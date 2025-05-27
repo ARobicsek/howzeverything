@@ -1,0 +1,30 @@
+# Dependencies
+/node_modules
+
+# Vite build output
+/dist
+/dist-ssr # if using SSR
+
+# IDE / System files
+.DS_Store
+Thumbs.db
+*.suo
+*.user
+*.sln
+*.userprefs
+
+# Environment variables
+.env
+.env.*
+!.env.example # if you have an example env file, you can commit that
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
