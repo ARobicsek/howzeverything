@@ -54,7 +54,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
             }}
             onClick={() => onNavigateToScreen('restaurants')}
           >
-            Begin Your Journey
+            Find or Add a Restaurant
           </button>
         </div>
       </main>

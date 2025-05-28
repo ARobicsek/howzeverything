@@ -1,12 +1,15 @@
+// src/RestaurantScreen.tsx
 import React, { useState, useEffect } from 'react';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import { COLORS, FONTS, STYLES } from './constants';
+import { supabase } from './supabaseClient';
 
 interface Restaurant {
   id: string;
   name: string;
   dateAdded: string;
+  created_at: string;
 }
 
 interface RestaurantScreenProps {
@@ -25,43 +28,84 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date'>('name');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedRestaurants = localStorage.getItem('howzeverything-restaurants');
-    if (savedRestaurants) {
-      setRestaurants(JSON.parse(savedRestaurants));
-    }
-  }, []);
+    const fetchRestaurants = async () => {
+      setIsLoading(true);
+      setError(null);
+      const { data, error: fetchError } = await supabase
+        .from('restaurants')
+        .select('*')
+        .order(sortBy === 'name' ? 'name' : 'created_at', { ascending: sortBy === 'name' ? true : false });
 
-  const saveRestaurants = (updatedRestaurants: Restaurant[]) => {
-    setRestaurants(updatedRestaurants);
-    localStorage.setItem('howzeverything-restaurants', JSON.stringify(updatedRestaurants));
-  };
+      if (fetchError) {
+        console.error('Error fetching restaurants:', fetchError);
+        setError('Failed to load restaurants. Please try again.');
+      } else if (data) {
+        setRestaurants(data);
+      }
+      setIsLoading(false);
+    };
 
-  const addRestaurant = () => {
+    fetchRestaurants();
+  }, [sortBy]);
+
+  const addRestaurant = async () => {
     if (newRestaurantName.trim()) {
-      const newRestaurant: Restaurant = {
-        id: Date.now().toString(),
-        name: newRestaurantName.trim(),
-        dateAdded: new Date().toLocaleDateString(),
-      };
-      saveRestaurants([newRestaurant, ...restaurants]);
-      setNewRestaurantName('');
-      setShowAddForm(false);
+      setError(null);
+      try {
+        const { data: newRestaurantData, error: insertError } = await supabase
+          .from('restaurants')
+          .insert([
+            {
+              name: newRestaurantName.trim(),
+              dateAdded: new Date().toISOString(),
+            },
+          ])
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Error adding restaurant:', insertError);
+          setError('Failed to add restaurant. Please try again.');
+          throw insertError;
+        }
+
+        if (newRestaurantData) {
+          setRestaurants(prevRestaurants => [newRestaurantData, ...prevRestaurants].sort((a, b) => {
+            if (sortBy === 'name') return a.name.localeCompare(b.name);
+            if (sortBy === 'date') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            return 0;
+          }));
+          setNewRestaurantName('');
+          setShowAddForm(false);
+        }
+      } catch (catchedError) {
+        console.error('Caught error in addRestaurant:', catchedError);
+      }
     }
   };
 
-  const deleteRestaurant = (restaurantId: string) => {
+  const deleteRestaurant = async (restaurantId: string) => {
     if (window.confirm('Are you sure you want to delete this restaurant and all its dishes?')) {
-      const updatedRestaurants = restaurants.filter(r => r.id !== restaurantId);
-      saveRestaurants(updatedRestaurants);
-      
-      // Also remove associated dishes
-      const savedDishes = localStorage.getItem('howzeverything-dishes');
-      if (savedDishes) {
-        const allDishes = JSON.parse(savedDishes);
-        const remainingDishes = allDishes.filter((dish: { restaurantId: string }) => dish.restaurantId !== restaurantId);
-        localStorage.setItem('howzeverything-dishes', JSON.stringify(remainingDishes));
+      setError(null);
+      try {
+        const { error: deleteError } = await supabase
+          .from('restaurants')
+          .delete()
+          .eq('id', restaurantId);
+
+        if (deleteError) {
+          console.error('Error deleting restaurant:', deleteError);
+          setError('Failed to delete restaurant. Please try again.');
+          throw deleteError;
+        }
+
+        setRestaurants(prevRestaurants => prevRestaurants.filter(r => r.id !== restaurantId));
+      } catch (catchedError) {
+        console.error('Caught error in deleteRestaurant:', catchedError);
       }
     }
   };
@@ -73,7 +117,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         case 'name':
           return a.name.localeCompare(b.name);
         case 'date':
-          return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         default:
           return 0;
       }
@@ -94,7 +138,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       <main className="flex-1 px-6 py-6" style={{ paddingBottom: STYLES.mainContentPadding }}>
         <div className="max-w-md mx-auto space-y-6">
           
-          {/* Add Restaurant Section */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
             {!showAddForm ? (
               <button
@@ -133,7 +176,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     Save Restaurant
                   </button>
                   <button
-                    onClick={() => { setShowAddForm(false); setNewRestaurantName(''); }}
+                    onClick={() => { setShowAddForm(false); setNewRestaurantName(''); setError(null); }}
                     className="flex-1 py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
                     style={STYLES.secondaryButton}
                     onMouseEnter={(e) => e.currentTarget.style.background = COLORS.secondaryHover}
@@ -146,59 +189,99 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             )}
           </div>
 
+          {error && (
+            <div className="bg-red-500/20 p-3 rounded-lg text-center">
+              <p style={{color: COLORS.danger, ...FONTS.elegant}}>{error}</p>
+            </div>
+          )}
+
           {/* Search and Sort Section */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-6">
             <div className="flex flex-col gap-3">
               <input
                 type="text"
                 placeholder="Search restaurants..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 text-gray-800 w-full"
-                style={{ background: 'white', fontSize: '1rem', ...FONTS.elegant, color: COLORS.textDark }}
+                className={`px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full ${showAddForm ? 'opacity-60' : 'text-gray-800'}`}
+                style={{ 
+                  background: showAddForm ? COLORS.disabled : 'white', 
+                  fontSize: '1rem', 
+                  ...FONTS.elegant, 
+                  color: showAddForm ? COLORS.text : COLORS.textDark,
+                  cursor: showAddForm ? 'not-allowed' : 'auto'
+                }}
+                disabled={showAddForm}
               />
               <div className="flex gap-2 justify-center">
                 {(['name', 'date'] as const).map((option) => (
                   <button
                     key={option}
                     onClick={() => setSortBy(option)}
-                    className="px-3 py-1 rounded-lg text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                    className={`px-3 py-1 rounded-lg text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-white ${showAddForm ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{
                       background: sortBy === option ? 'white' : 'transparent',
                       color: sortBy === option ? COLORS.textDark : COLORS.text,
                       border: sortBy === option ? 'none' : `1px solid ${COLORS.text}a`,
                       ...FONTS.elegant,
                     }}
+                    disabled={showAddForm}
                   >
-                    {option === 'name' ? 'Name' : 'Date'}
+                    {option === 'name' ? 'Name' : 'Date Added'}
                   </button>
                 ))}
               </div>
             </div>
           </div>
+          
+          {isLoading && (
+            <div className="text-center py-12">
+              <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>Loading restaurants...</p>
+            </div>
+          )}
 
-          {/* Restaurant List */}
-          {filteredAndSortedRestaurants.length === 0 ? (
+          {!isLoading && filteredAndSortedRestaurants.length === 0 && (
             <div className="text-center py-12">
               <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>
                 {searchTerm ? 'No restaurants found matching your search.' : 'No restaurants yet. Add your first one!'}
               </p>
             </div>
-          ) : (
+          )}
+
+          {!isLoading && filteredAndSortedRestaurants.length > 0 && (
             <div className="space-y-4">
               {filteredAndSortedRestaurants.map(restaurant => (
                 <div key={restaurant.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-xl mb-1" style={{...FONTS.elegant, fontWeight: '500', color: COLORS.text}}>
+                  <div className="flex items-start"> 
+                    <div className="flex-1"> 
+                  <div style={{display: 'flex', alignItems: 'center'}}> {/* Using inline styles */}
+                    <button
+                      onClick={() => onNavigateToMenu(restaurant.id)}
+                      className="text-left"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        transition: 'opacity 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    >
+                      <h2 className="text-xl mb-1 hover:underline" style={{...FONTS.elegant, fontWeight: '500', color: COLORS.text, margin: 0}}>
                         {restaurant.name}
                       </h2>
-                    </div>
+                    </button>
                     <button
                       onClick={() => deleteRestaurant(restaurant.id)}
                       className="p-2 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none"
                       aria-label={`Delete ${restaurant.name}`}
-                      style={{color: COLORS.text}}
+                      style={{
+                        color: COLORS.text, 
+                        marginLeft: '24px', // Explicit pixel spacing
+                        marginTop: '2px',   // Fine-tune vertical alignment
+                        flexShrink: 0
+                      }}
                       onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
                       onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
                     >
@@ -207,16 +290,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       </svg>
                     </button>
                   </div>
-                  <div className="mt-4">
-                    <button
-                      onClick={() => onNavigateToMenu(restaurant.id)}
-                      className="w-full rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none"
-                      style={STYLES.cardButton}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                    >
-                      View Menu & Rate Dishes
-                    </button>
+                  <p className="text-xs" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6}}>
+                    Added: {new Date(restaurant.dateAdded).toLocaleDateString()}
+                  </p>
+                    </div>
                   </div>
                 </div>
               ))}
