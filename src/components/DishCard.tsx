@@ -47,7 +47,7 @@ const StarRating: React.FC<{
           background: 'none', 
           border: 'none', 
           padding: '0 1px', 
-          fontSize: '1.3rem', 
+          fontSize: '1.2rem', // Slightly smaller than before
           lineHeight: '1' 
         }}
         aria-label={readonly ? `${rating} of 5 stars` : `Rate ${star} of 5 stars`} 
@@ -65,58 +65,65 @@ const DishHeader: React.FC<{
   onDelete: () => void;
   onUpdateRating: (rating: number) => void;
 }> = ({ name, rating, dateAdded, onDelete, onUpdateRating }) => (
-  <>
-    {/* FIXED: Trash icon positioned relative to text end */}
-    <div className="flex items-center mb-px">
-      <h3 
-        style={{ 
-          ...FONTS.elegant, 
-          fontWeight: '500', 
-          color: COLORS.text, 
-          fontSize: '1.125rem', 
-          lineHeight: '1.3',
-          margin: 0,
-          marginRight: '16px', // Space between text end and icon
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          maxWidth: 'calc(100% - 40px)', // Leave space for icon
-        }}
-      >
-        {name}
-      </h3>
-      <button
-        onClick={onDelete}
-        className="p-1.5 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"
-        aria-label={`Delete ${name}`}
-        style={{ color: COLORS.text }}
-        onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
-        onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-        </svg>
-      </button>
+  <div className="mb-3"> {/* Added margin bottom for better spacing */}
+    {/* Dish name and delete button row */}
+    <div className="flex items-start justify-between mb-2"> {/* Changed to items-start for better alignment */}
+      <div className="flex-1 min-w-0 pr-6"> {/* Increased padding right from pr-3 to pr-6 for more space from delete button */}
+        <h3 
+          style={{ 
+            ...FONTS.elegant, 
+            fontWeight: '500', 
+            color: COLORS.text, 
+            fontSize: '0.95rem', // Made smaller from 1.125rem
+            lineHeight: '1.3',
+            margin: 0,
+            wordWrap: 'break-word',
+            hyphens: 'auto'
+          }}
+          className="break-words" // Allow text to wrap
+        >
+          {name}
+        </h3>
+      </div>
+      <div className="ml-4"> {/* Added wrapper div with left margin for extra spacing */}
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"
+          aria-label={`Delete ${name}`}
+          style={{ color: COLORS.text }}
+          onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
+          onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+          </svg>
+        </button>
+      </div>
     </div>
-    <div className="-ml-1">
+    
+    {/* Rating row */}
+    <div className="-ml-1 mb-2">
       <StarRating rating={rating} onRatingChange={onUpdateRating} />
     </div>
+    
+    {/* Date row */}
     <p 
-      className="text-xs mt-px" 
+      className="text-xs" 
       style={{
         ...FONTS.elegant, 
         color: COLORS.text, 
-        opacity: 0.6, 
-        lineHeight: '1.3' 
+        opacity: 0.5, // Made more subtle
+        lineHeight: '1.3',
+        fontSize: '0.7rem' // Made smaller to correspond with smaller dish name
       }}
     >
       {new Date(dateAdded).toLocaleDateString()}
     </p>
-  </>
+  </div>
 );
 
 const PhotoPlaceholders: React.FC = () => (
-  <div className="flex gap-2 mt-2">
+  <div className="flex gap-2 mt-3 mb-4"> {/* Added margin bottom for spacing */}
     {[1, 2, 3].map(p => (
       <div 
         key={p} 
@@ -147,10 +154,9 @@ const DishActions: React.FC<{
   onToggleAddComment,
   editingCommentDishId 
 }) => (
-  <div className="flex flex-col flex-shrink-0 w-44">
-    {/* FIXED: Proper spacing between action buttons */}
+  <div className="flex flex-col flex-shrink-0 w-36" style={{ marginLeft: '20px' }}> {/* Added explicit left margin and made narrower */}
     {!showAddCommentForm && !editingCommentDishId && (
-      <div style={{ marginBottom: '8px' }}>
+      <div style={{ marginBottom: '10px' }}> {/* Increased spacing */}
         <button
           onClick={onToggleAddComment}
           className="w-full flex items-center justify-center gap-1.5 text-sm py-2 px-3 rounded-xl transition-colors focus:outline-none focus:ring-1 focus:ring-white/50 shadow-md hover:shadow-lg"
@@ -161,14 +167,14 @@ const DishActions: React.FC<{
             background: COLORS.primary,
             borderRadius: '0.75rem',
             padding: '0.5rem 0.75rem',
-            fontSize: '0.875rem',
+            fontSize: '0.8rem', // Made slightly smaller
             border: 'none',
             cursor: 'pointer'
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = COLORS.primaryHover}
           onMouseLeave={(e) => e.currentTarget.style.background = COLORS.primary}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
           Add Comment
@@ -188,7 +194,7 @@ const DishActions: React.FC<{
             background: showComments ? COLORS.primary : COLORS.viewCommentsBg,
             borderRadius: '0.75rem',
             padding: '0.5rem 0.75rem',
-            fontSize: '0.875rem',
+            fontSize: '0.8rem', // Made slightly smaller
             border: 'none',
             cursor: 'pointer'
           }}
@@ -282,22 +288,24 @@ const CommentItem: React.FC<{
           {showActionMenu && (
             <div 
               ref={actionMenuRef}
-              className="absolute right-0 top-full mt-1 w-32 bg-white rounded-md shadow-lg z-20 border"
+              className="absolute bottom-full mb-1 w-32 bg-white rounded-md shadow-lg z-20 border"
               style={{
                 borderColor: COLORS.text + '30', 
-                background: COLORS.background
+                background: COLORS.background,
+                // Position dropdown ABOVE the button and align right edges
+                right: '0'
               }}
             >
               <button
                 onClick={onStartEdit}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10"
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-t-md"
                 style={{...FONTS.elegant, color: COLORS.text}}
               >
                 Edit
               </button>
               <button
                 onClick={onDeleteComment}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10"
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-b-md"
                 style={{...FONTS.elegant, color: COLORS.danger}}
               >
                 Delete
@@ -368,9 +376,9 @@ const DishCard: React.FC<DishCardProps> = ({
   }, [openActionMenuCommentId]);
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg hover:bg-white/10 transition-colors">
-      <div className="flex justify-between items-start gap-x-3">
-        <div className="flex-1 min-w-0">
+    <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors"> {/* Increased padding for better spacing */}
+      <div className="flex justify-between items-start gap-x-6"> {/* Increased gap from 4 to 6 for more space between trash icon and action buttons */}
+        <div className="flex-1 min-w-0 pr-2"> {/* Added pr-2 for extra right padding */}
           <DishHeader 
             name={dish.name}
             rating={dish.rating}
@@ -392,7 +400,7 @@ const DishCard: React.FC<DishCardProps> = ({
         />
       </div>
 
-      <div className="mt-3 space-y-2">
+      <div className="mt-4 space-y-3"> {/* Increased margin top for better spacing */}
         {showAddCommentForm && (
           <CommentForm
             onSubmit={handleAddComment}
@@ -402,7 +410,7 @@ const DishCard: React.FC<DishCardProps> = ({
         )}
         
         {showComments && dish.dish_comments && dish.dish_comments.length > 0 && (
-          <div className="mt-2 space-y-3 pl-1">
+          <div className="mt-3 space-y-3 pl-1">
             {dish.dish_comments.map(comment => (
               <CommentItem
                 key={comment.id}

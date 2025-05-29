@@ -146,8 +146,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             style={{ color: COLORS.text, width: '40px', height: '40px' }}
             aria-label="Go back"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            {/* Simplified back arrow icon for better mobile compatibility */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
             </svg>
           </button>
           
@@ -165,9 +166,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             style={{ color: COLORS.text, width: '40px', height: '40px' }}
             aria-label="Toggle search and sort"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            {/* Simplified search icon for better mobile compatibility */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
           </button>
         </div>
@@ -175,7 +176,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       
       {/* Main Content */}
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-        <div className="max-w-md mx-auto space-y-5">
+        <div className="max-w-md mx-auto space-y-8"> {/* Increased spacing to space-y-8 for more separation */}
           {/* Error Display */}
           {dishesError && (
             <div className="bg-red-500/20 p-3 rounded-lg text-center">
@@ -202,25 +203,38 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           )}
           
           {/* Dishes List */}
-          <div className="space-y-3">
+          <div className="space-y-4" style={{ marginTop: '32px' }}> {/* Explicit 32px margin top for clear separation */}
             {filteredDishes.length === 0 ? (
               <EmptyState 
                 hasSearchTerm={!!searchTerm}
                 restaurantName={restaurant.name}
               />
             ) : (
-              filteredDishes.map(dish => (
-                <DishCard
-                  key={dish.id}
-                  dish={dish}
-                  onDelete={deleteDish}
-                  onUpdateRating={updateDishRating}
-                  onAddComment={handleAddComment}
-                  onUpdateComment={handleUpdateComment}
-                  onDeleteComment={handleDeleteComment}
-                  isSubmittingComment={isSubmittingComment}
-                />
-              ))
+              <>
+                {filteredDishes.map((dish, index) => (
+                  <div key={dish.id}>
+                    <DishCard
+                      dish={dish}
+                      onDelete={deleteDish}
+                      onUpdateRating={updateDishRating}
+                      onAddComment={handleAddComment}
+                      onUpdateComment={handleUpdateComment}
+                      onDeleteComment={handleDeleteComment}
+                      isSubmittingComment={isSubmittingComment}
+                    />
+                    {/* Add subtle separator line between dish cards, except for the last one */}
+                    {index < filteredDishes.length - 1 && (
+                      <div 
+                        className="mx-4 mt-4"
+                        style={{
+                          height: '1px',
+                          background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </>
             )}
           </div>
         </div>
