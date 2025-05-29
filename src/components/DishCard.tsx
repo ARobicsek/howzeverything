@@ -1,6 +1,6 @@
 // src/components/DishCard.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { COLORS, FONTS, STYLES } from '../constants';
+import { COLORS, FONTS } from '../constants';
 import CommentForm from './CommentForm';
 
 interface DishComment { 
@@ -131,7 +131,6 @@ const PhotoPlaceholders: React.FC = () => (
 );
 
 const DishActions: React.FC<{
-  dishId: string;
   hasComments: boolean;
   commentCount: number;
   showComments: boolean;
@@ -140,7 +139,6 @@ const DishActions: React.FC<{
   onToggleAddComment: () => void;
   editingCommentDishId: string | null;
 }> = ({ 
-  dishId, 
   hasComments, 
   commentCount, 
   showComments, 
@@ -151,7 +149,7 @@ const DishActions: React.FC<{
 }) => (
   <div className="flex flex-col flex-shrink-0 w-44">
     {/* FIXED: Proper spacing between action buttons */}
-    {!showAddCommentForm && editingCommentDishId !== dishId && (
+    {!showAddCommentForm && !editingCommentDishId && (
       <div style={{ marginBottom: '8px' }}>
         <button
           onClick={onToggleAddComment}
@@ -160,11 +158,12 @@ const DishActions: React.FC<{
             ...FONTS.elegant,
             fontWeight: '400',
             color: COLORS.textWhite,
-            ...STYLES.primaryButton,
             background: COLORS.primary,
             borderRadius: '0.75rem',
             padding: '0.5rem 0.75rem',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            border: 'none',
+            cursor: 'pointer'
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = COLORS.primaryHover}
           onMouseLeave={(e) => e.currentTarget.style.background = COLORS.primary}
@@ -177,7 +176,7 @@ const DishActions: React.FC<{
       </div>
     )}
     
-    {hasComments && editingCommentDishId !== dishId && (
+    {hasComments && !editingCommentDishId && (
       <div>
         <button
           onClick={onToggleComments}
@@ -186,11 +185,12 @@ const DishActions: React.FC<{
             ...FONTS.elegant,
             fontWeight: '400',
             color: COLORS.textWhite,
-            ...STYLES.primaryButton,
             background: showComments ? COLORS.primary : COLORS.viewCommentsBg,
             borderRadius: '0.75rem',
             padding: '0.5rem 0.75rem',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            border: 'none',
+            cursor: 'pointer'
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = showComments ? COLORS.primaryHover : COLORS.viewCommentsBgHover}
           onMouseLeave={(e) => e.currentTarget.style.background = showComments ? COLORS.primary : COLORS.viewCommentsBg}
@@ -204,7 +204,6 @@ const DishActions: React.FC<{
 
 const CommentItem: React.FC<{
   comment: DishComment;
-  dishId: string;
   isEditing: boolean;
   editingText: string;
   showActionMenu: boolean;
@@ -214,10 +213,9 @@ const CommentItem: React.FC<{
   onDeleteComment: () => Promise<void>;
   onToggleActionMenu: () => void;
   isSubmitting: boolean;
-  actionMenuRef: React.RefObject<HTMLDivElement>;
+  actionMenuRef: React.RefObject<HTMLDivElement | null>;
 }> = ({
   comment,
-  dishId,
   isEditing,
   editingText,
   showActionMenu,
@@ -325,7 +323,7 @@ const DishCard: React.FC<DishCardProps> = ({
   const [showAddCommentForm, setShowAddCommentForm] = useState(false);
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);
-  const actionMenuRef = useRef<HTMLDivElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
   const handleDeleteDish = () => {
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {
@@ -384,7 +382,6 @@ const DishCard: React.FC<DishCardProps> = ({
         </div>
 
         <DishActions
-          dishId={dish.id}
           hasComments={dish.dish_comments.length > 0}
           commentCount={dish.dish_comments.length}
           showComments={showComments}
@@ -410,7 +407,6 @@ const DishCard: React.FC<DishCardProps> = ({
               <CommentItem
                 key={comment.id}
                 comment={comment}
-                dishId={dish.id}
                 isEditing={editingComment?.id === comment.id}
                 editingText={editingComment?.currentText || ''}
                 showActionMenu={openActionMenuCommentId === comment.id}

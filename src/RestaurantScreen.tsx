@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, STYLES } from './constants';
+import { COLORS, FONTS, STYLES } from './constants.ts';
 import { supabase } from './supabaseClient';
 
 interface Restaurant {
