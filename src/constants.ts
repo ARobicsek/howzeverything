@@ -7,16 +7,18 @@ export const COLORS = {
   textWhite: '#FFFFFF',
   textDark: '#374151',
   danger: '#EF4444',
-  success: '#10B981',
+  success: '#10B981', // Original Green, kept for other uses (e.g. Add Dish form save)
   successHover: '#059669',
   disabled: '#D1D5DB',
-  primary: '#60A5FA',
+  primary: '#60A5FA',         // Blue for "Add Comment" / "Hide Comments"
   primaryHover: '#3B82F6',
   secondary: '#6b7280',
   secondaryHover: '#4b5563',
   navBar: '#5c5d5e',
   star: '#fbbf24',
-  starEmpty: '#d1d5db'
+  starEmpty: '#d1d5db',
+  viewCommentsBg: '#968875',       // UPDATED: New color for "View Comments"
+  viewCommentsBgHover: '#827563', // UPDATED: Darker version for hover
 };
 
 export const FONTS = {
@@ -30,18 +32,18 @@ export const FONTS = {
 export const STYLES = {
   mainContentPadding: '90px',
   
-  primaryButton: {
+  primaryButton: { 
     background: COLORS.primary,
     color: COLORS.textWhite,
     border: 'none',
     cursor: 'pointer',
-    borderRadius: '1rem',
+    borderRadius: '1rem', 
     fontSize: '1rem',
     fontWeight: '400' as const,
     fontFamily: 'system-ui, -apple-system, sans-serif',
     boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
     transition: 'all 0.2s ease-in-out',
-    padding: '0.75rem 1.5rem',
+    padding: '0.75rem 1.5rem', 
     width: '100%',
   },
   
