@@ -162,8 +162,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           
           <button 
             onClick={() => setShowSearchSort(!showSearchSort)}
-            className={`p-2 rounded-full hover:bg-white/25 active:bg-white/30 transition-colors focus:outline-none flex items-center justify-center ${showSearchSort ? 'bg-white/20' : ''}`}
-            style={{ color: COLORS.text, width: '40px', height: '40px' }}
+            className={`p-2 rounded-full hover:bg-white/25 active:bg-white/30 transition-colors focus:outline-none flex items-center justify-center`}
+            style={{ 
+              color: showSearchSort ? COLORS.textWhite : COLORS.text,
+              background: showSearchSort ? COLORS.danger : 'transparent',
+              width: '40px', 
+              height: '40px' 
+            }}
             aria-label="Toggle search and sort"
           >
             {/* Simplified search icon for better mobile compatibility */}
