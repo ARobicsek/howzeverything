@@ -201,34 +201,36 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     <div className="w-10" />
                   </div>
 
-                  {/* Mode Toggle Buttons - SWAPPED ORDER */}
+                  {/* Mode Toggle Buttons - UPDATED: Explicit height instead of padding */}
                   <div className="flex bg-white/10 backdrop-blur-sm rounded-2xl p-1">
-                    <button
-                      onClick={handleSearchModeToggle}
-                      className={`flex-1 py-4 px-4 rounded-xl transition-colors focus:outline-none ${
-                        searchMode === 'online' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
-                      }`}
-                      style={{
-                        ...FONTS.elegant,
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      Search Online
-                    </button>
                     <button
                       onClick={() => {
                         setSearchMode('manual');
                         clearSearchResults();
                       }}
-                      className={`flex-1 py-4 px-4 rounded-xl transition-colors focus:outline-none ${
+                      className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
                         searchMode === 'manual' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
                       }`}
                       style={{
                         ...FONTS.elegant,
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        height: '50px' // Explicit height - double the original ~30px
                       }}
                     >
                       Add Manually
+                    </button>
+                    <button
+                      onClick={handleSearchModeToggle}
+                      className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
+                        searchMode === 'online' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
+                      }`}
+                      style={{
+                        ...FONTS.elegant,
+                        fontSize: '0.9rem',
+                        height: '50px' // Explicit height - double the original ~30px
+                      }}
+                    >
+                      Search Online
                     </button>
                   </div>
 

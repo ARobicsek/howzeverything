@@ -44,7 +44,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors">
+    <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors relative">
       <div className="flex justify-between items-start gap-x-6">
         <div className="flex-1 min-w-0">
           <button
@@ -109,8 +109,26 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-col flex-shrink-0 gap-4" style={{ marginLeft: '20px' }}>
-          {/* View Website Button */}
+        {/* Right side with buttons arranged vertically */}
+        <div className="flex flex-col justify-between flex-shrink-0 h-full" style={{ marginLeft: '20px', minHeight: '80px' }}>
+          {/* Delete Button - Top */}
+          <button
+            onClick={handleDelete}
+            className="p-2 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none"
+            aria-label={`Delete ${restaurant.name}`}
+            style={{ color: COLORS.text }}
+            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
+            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+            </svg>
+          </button>
+          
+          {/* Spacer to push website button to bottom */}
+          <div className="flex-1"></div>
+          
+          {/* View Website Button - Bottom */}
           {restaurant.website_url && (
             <button
               onClick={handleViewWebsite}
@@ -126,20 +144,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               </svg>
             </button>
           )}
-          
-          {/* Delete Button */}
-          <button
-            onClick={handleDelete}
-            className="p-2 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none"
-            aria-label={`Delete ${restaurant.name}`}
-            style={{ color: COLORS.text }}
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
