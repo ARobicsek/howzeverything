@@ -109,7 +109,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-col flex-shrink-0 gap-2" style={{ marginLeft: '20px' }}>
+        <div className="flex flex-col flex-shrink-0 gap-4" style={{ marginLeft: '20px' }}>
           {/* View Website Button */}
           {restaurant.website_url && (
             <button
