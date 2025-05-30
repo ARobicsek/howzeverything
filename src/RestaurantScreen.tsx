@@ -201,36 +201,55 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     <div className="w-10" />
                   </div>
 
-                  {/* Mode Toggle Buttons - UPDATED: Explicit height instead of padding */}
+                  {/* Mode Toggle Buttons - UPDATED: Added divider line */}
                   <div className="flex bg-white/10 backdrop-blur-sm rounded-2xl p-1">
-                    <button
-                      onClick={() => {
-                        setSearchMode('manual');
-                        clearSearchResults();
-                      }}
-                      className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
-                        searchMode === 'manual' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
-                      }`}
-                      style={{
-                        ...FONTS.elegant,
-                        fontSize: '0.9rem',
-                        height: '50px' // Explicit height - double the original ~30px
-                      }}
-                    >
-                      Add Manually
-                    </button>
                     <button
                       onClick={handleSearchModeToggle}
                       className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
-                        searchMode === 'online' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
+                        searchMode === 'online' ? 'bg-gray-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
                       }`}
                       style={{
                         ...FONTS.elegant,
                         fontSize: '0.9rem',
-                        height: '50px' // Explicit height - double the original ~30px
+                        height: '50px',
+                        WebkitAppearance: 'none',
+                        WebkitTapHighlightColor: 'transparent',
+                        border: 'none',
+                        outline: 'none'
                       }}
                     >
                       Search Online
+                    </button>
+                    
+                    {/* Divider line */}
+                    <div 
+                      className="w-px my-2"
+                      style={{ 
+                        backgroundColor: COLORS.text,
+                        opacity: 0.3
+                      }}
+                    />
+                    
+                    <button
+                      onClick={() => {
+                        setSearchMode('manual');
+                        setShowAddForm(true); // Automatically show the form
+                        clearSearchResults();
+                      }}
+                      className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
+                        searchMode === 'manual' ? 'bg-gray-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
+                      }`}
+                      style={{
+                        ...FONTS.elegant,
+                        fontSize: '0.9rem',
+                        height: '50px',
+                        WebkitAppearance: 'none',
+                        WebkitTapHighlightColor: 'transparent',
+                        border: 'none',
+                        outline: 'none'
+                      }}
+                    >
+                      Add Manually
                     </button>
                   </div>
 
