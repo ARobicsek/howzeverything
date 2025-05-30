@@ -1,9 +1,11 @@
 // src/RestaurantScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import RestaurantSearchAndSort from './components/restaurant/RestaurantSearchAndSort';
+import RestaurantSearchForm from './components/restaurant/RestaurantSearchForm';
+import RestaurantSearchResults from './components/restaurant/RestaurantSearchResults';
 import LoadingScreen from './components/LoadingScreen';
 import { useRestaurants } from './hooks/useRestaurants';
 import { COLORS, FONTS, STYLES } from './constants';
@@ -25,6 +27,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [sortBy, setSortBy] = useState<'name' | 'date'>('name');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showSearchSort, setShowSearchSort] = useState(false);
+  const [showAddOptions, setShowAddOptions] = useState(false); // NEW: Controls showing add options
+  const [searchMode, setSearchMode] = useState<'manual' | 'online'>('manual');
 
   // Custom Hooks
   const {
@@ -32,20 +36,78 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     isLoading,
     error,
     addRestaurant,
-    deleteRestaurant
+    deleteRestaurant,
+    // New search functionality
+    searchResults,
+    isSearching,
+    searchError,
+    isLoadingDetails,
+    restaurantErrors,
+    searchRestaurants,
+    importRestaurant,
+    clearSearchResults,
+    resetSearch // New reset function
   } = useRestaurants(sortBy);
 
-  // Handlers
-  const handleAddRestaurant = async (name: string) => {
+  // Handlers with useCallback to prevent infinite loops
+  const handleAddRestaurant = useCallback(async (name: string) => {
     const success = await addRestaurant(name);
     if (success) {
       setShowAddForm(false);
+      setShowAddOptions(false); // Close the add options after successful add
     }
-  };
+  }, [addRestaurant]);
 
-  const handleDeleteRestaurant = async (restaurantId: string) => {
+  const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {
     await deleteRestaurant(restaurantId);
-  };
+  }, [deleteRestaurant]);
+
+  const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {
+    const restaurantId = await importRestaurant(geoapifyPlace);
+    if (restaurantId) {
+      clearSearchResults();
+      setSearchMode('manual');
+      setShowAddOptions(false); // Close the add options after successful import
+      // Optionally navigate to the imported restaurant's menu
+      // onNavigateToMenu(restaurantId);
+    }
+  }, [importRestaurant, clearSearchResults]);
+
+  // Stabilized search function to prevent infinite loops
+  const handleSearchRestaurants = useCallback((query: string, location: string) => {
+    searchRestaurants(query, location);
+  }, [searchRestaurants]);
+
+  // New reset handler
+  const handleResetSearch = useCallback(() => {
+    resetSearch();
+  }, [resetSearch]);
+
+  // Enhanced search mode toggle with reset
+  const handleSearchModeToggle = useCallback(() => {
+    if (searchMode === 'online') {
+      // If switching away from online mode, reset search
+      resetSearch();
+    }
+    setSearchMode('online');
+  }, [searchMode, resetSearch]);
+
+  // NEW: Handle opening add options
+  const handleShowAddOptions = useCallback(() => {
+    setShowAddOptions(true);
+    setShowAddForm(false);
+    clearSearchResults();
+    resetSearch();
+  }, [clearSearchResults, resetSearch]);
+
+  // NEW: Handle closing add options
+  const handleCloseAddOptions = useCallback(() => {
+    setShowAddOptions(false);
+    setShowAddForm(false);
+    clearSearchResults();
+    resetSearch();
+    setSearchMode('manual');
+  }, [clearSearchResults, resetSearch]);
 
   // Loading State
   if (isLoading) {
@@ -97,12 +159,116 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>
           )}
 
-          {/* Add Restaurant Form */}
-          <AddRestaurantForm
-            show={showAddForm}
-            onToggleShow={() => setShowAddForm(!showAddForm)}
-            onSubmit={handleAddRestaurant}
-          />
+          {/* NEW FLOW: Add Restaurant Section */}
+          {!showSearchSort && (
+            <div className="space-y-4">
+              {!showAddOptions ? (
+                // Show big blue "Add New Restaurant" button
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleShowAddOptions}
+                    className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full text-white"
+                    style={{
+                      ...STYLES.primaryButton,
+                      background: COLORS.primary,
+                      padding: '0.8rem 2rem',
+                      fontSize: '1.1rem',
+                      borderRadius: '16px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = COLORS.primaryHover}
+                    onMouseLeave={(e) => e.currentTarget.style.background = COLORS.primary}
+                  >
+                    + Add New Restaurant
+                  </button>
+                </div>
+              ) : (
+                // Show add options flow
+                <div className="space-y-4">
+                  {/* Back Button */}
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={handleCloseAddOptions}
+                      className="p-2 rounded-full hover:bg-white/20 transition-colors focus:outline-none"
+                      style={{ color: COLORS.text }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
+                      </svg>
+                    </button>
+                    <h2 style={{...FONTS.elegant, color: COLORS.text, fontSize: '1.1rem', fontWeight: 500}}>
+                      Add Restaurant
+                    </h2>
+                    <div className="w-10" />
+                  </div>
+
+                  {/* Mode Toggle Buttons */}
+                  <div className="flex bg-white/10 backdrop-blur-sm rounded-2xl p-1">
+                    <button
+                      onClick={() => {
+                        setSearchMode('manual');
+                        clearSearchResults();
+                      }}
+                      className={`flex-1 py-2 px-4 rounded-xl transition-colors focus:outline-none ${
+                        searchMode === 'manual' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
+                      }`}
+                      style={{
+                        ...FONTS.elegant,
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      Add Manually
+                    </button>
+                    <button
+                      onClick={handleSearchModeToggle}
+                      className={`flex-1 py-2 px-4 rounded-xl transition-colors focus:outline-none ${
+                        searchMode === 'online' ? 'bg-white text-gray-800' : 'text-white hover:bg-white/10'
+                      }`}
+                      style={{
+                        ...FONTS.elegant,
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      Search Online
+                    </button>
+                  </div>
+
+                  {/* Conditional Form Display */}
+                  {searchMode === 'manual' ? (
+                    <AddRestaurantForm
+                      show={showAddForm}
+                      onToggleShow={() => setShowAddForm(!showAddForm)}
+                      onSubmit={handleAddRestaurant}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      <RestaurantSearchForm
+                        onSearch={handleSearchRestaurants}
+                        onReset={handleResetSearch}
+                        isSearching={isSearching}
+                        disabled={showAddForm}
+                      />
+                      
+                      {searchError && (
+                        <div className="bg-red-500/20 p-3 rounded-lg text-center">
+                          <p style={{color: COLORS.danger, ...FONTS.elegant}}>{searchError}</p>
+                        </div>
+                      )}
+                      
+                      {searchResults.length > 0 && (
+                        <RestaurantSearchResults
+                          results={searchResults}
+                          onSelectRestaurant={handleImportRestaurant}
+                          isImporting={isLoading}
+                          isLoadingDetails={isLoadingDetails}
+                          restaurantErrors={restaurantErrors}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Search and Sort */}
           {showSearchSort && (
