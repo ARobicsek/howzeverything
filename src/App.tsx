@@ -86,6 +86,9 @@ const App: React.FC = () => {
       if (user && !profile && !authLoading && !isCreatingProfile) {
         setIsCreatingProfile(true)
         try {
+          // FIXED: Add explicit null check inside try block
+          if (!user) return; // Extra safety check for TypeScript
+          
           const success = await createProfile({
             full_name: user.user_metadata?.full_name || '',
             bio: '',

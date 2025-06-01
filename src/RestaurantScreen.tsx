@@ -207,7 +207,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             Restaurants
           </h1>
           
-          {/* Filter Button - Updated styling */}
+          {/* Filter Button */}
           <button 
             onClick={() => setShowAdvancedSort(!showAdvancedSort)}
             className={`p-2 rounded-full hover:bg-white/25 active:bg-white/30 transition-colors focus:outline-none flex items-center justify-center`}
@@ -476,7 +476,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     </div>
                   )}
                   
-                  {searchResults.map((result, index) => (
+                  {searchResults.map((result) => (
                     <div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1 mr-4">

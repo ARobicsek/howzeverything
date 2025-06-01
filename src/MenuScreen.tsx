@@ -147,7 +147,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         setDishes(prevDishes => 
           prevDishes.map(d => 
             d.id === dishId 
-              ? { ...d, dish_comments: [...d.dish_comments, newComment] }
+              ? { 
+                  ...d, 
+                  dish_comments: [...d.dish_comments, newComment].filter(Boolean) // FIXED: Filter out any null values
+                }
               : d
           )
         );
@@ -166,8 +169,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             return {
               ...d,
               dish_comments: d.dish_comments.map(c =>
-                c.id === commentId ? updatedComment : c
-              )
+                c && c.id === commentId ? updatedComment : c
+              ).filter(Boolean) // FIXED: Filter out any null values
             };
           }
           return d;
@@ -186,7 +189,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           if (d.id === dishId) {
             return {
               ...d,
-              dish_comments: d.dish_comments.filter(c => c.id !== commentId)
+              dish_comments: d.dish_comments.filter(c => c && c.id !== commentId)
             };
           }
           return d;
