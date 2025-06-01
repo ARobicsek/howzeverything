@@ -119,6 +119,53 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
     fetchRestaurants();
   }, [sortBy]);
 
+  // ENHANCED: Better duplicate detection by name and address
+  const isDuplicateRestaurant = (newName: string, newAddress?: string): Restaurant | null => {
+    const normalizedNewName = newName.toLowerCase().trim();
+    const normalizedNewAddress = newAddress?.toLowerCase().trim();
+
+    return restaurants.find(existing => {
+      const existingName = existing.name.toLowerCase().trim();
+      const existingAddress = existing.address?.toLowerCase().trim();
+
+      // Check if names are very similar (exact match or very close)
+      const nameMatch = (
+        existingName === normalizedNewName ||
+        existingName.includes(normalizedNewName) ||
+        normalizedNewName.includes(existingName) ||
+        // Handle common variations (spaces, punctuation)
+        existingName.replace(/[^a-z0-9]/g, '') === normalizedNewName.replace(/[^a-z0-9]/g, '')
+      );
+
+      if (!nameMatch) return false;
+
+      // If both have addresses, check address similarity
+      if (existingAddress && normalizedNewAddress) {
+        const addressMatch = (
+          existingAddress === normalizedNewAddress ||
+          existingAddress.includes(normalizedNewAddress) ||
+          normalizedNewAddress.includes(existingAddress) ||
+          // Check if they contain the same street number and street name
+          (() => {
+            const existingParts = existingAddress.split(',')[0]?.trim(); // Get first part (street address)
+            const newParts = normalizedNewAddress.split(',')[0]?.trim();
+            return existingParts && newParts && (
+              existingParts === newParts ||
+              existingParts.includes(newParts) ||
+              newParts.includes(existingParts)
+            );
+          })()
+        );
+        return addressMatch;
+      }
+
+      // If only one has an address, still consider it a match if names are very similar
+      // This handles cases where one is manually added (no address) and one is imported (with address)
+      const exactNameMatch = existingName === normalizedNewName;
+      return exactNameMatch;
+    }) || null;
+  };
+
   // IMPROVED: Enhanced similarity algorithm with fuzzy matching
   const calculateSimilarity = (str1: string, str2: string): number => {
     const s1 = str1.toLowerCase().trim();
@@ -468,7 +515,7 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
     }
   };
 
-  // Import restaurant from Geoapify search results
+  // ENHANCED: Import restaurant with duplicate checking by name and address
   const importRestaurant = async (selectedPlace: GeoapifyPlace) => {
     setError(null);
     setIsLoadingDetails(true);
@@ -481,18 +528,32 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
     });
 
     try {
-      // Check if restaurant with this place_id already exists
-      const { data: existingData } = await supabase
+      // ENHANCED: Check for duplicates by geoapify_place_id, name, and address
+      const { data: existingByPlaceId } = await supabase
         .from('restaurants')
-        .select('id')
+        .select('id, name')
         .eq('geoapify_place_id', selectedPlace.place_id)
         .single();
 
-      if (existingData) {
-        // Set error for this specific restaurant
+      if (existingByPlaceId) {
         setRestaurantErrors(prev => {
           const newErrors = new Map(prev);
-          newErrors.set(selectedPlace.place_id, 'This restaurant has already been added.');
+          newErrors.set(selectedPlace.place_id, `"${existingByPlaceId.name}" has already been added.`);
+          return newErrors;
+        });
+        return false;
+      }
+
+      // Check for duplicate by name and address
+      const duplicateRestaurant = isDuplicateRestaurant(
+        selectedPlace.properties.name, 
+        selectedPlace.properties.formatted
+      );
+
+      if (duplicateRestaurant) {
+        setRestaurantErrors(prev => {
+          const newErrors = new Map(prev);
+          newErrors.set(selectedPlace.place_id, `"${duplicateRestaurant.name}" appears to already be in your list.`);
           return newErrors;
         });
         return false;
@@ -575,11 +636,20 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
     return false;
   };
 
-  // Manual add restaurant (existing functionality)
+  // ENHANCED: Manual add restaurant with duplicate checking
   const addRestaurant = async (name: string) => {
     if (!name.trim()) return false;
 
     setError(null);
+    
+    // Check for duplicates by name
+    const duplicateRestaurant = isDuplicateRestaurant(name.trim());
+    
+    if (duplicateRestaurant) {
+      setError(`"${duplicateRestaurant.name}" appears to already be in your list.`);
+      return false;
+    }
+
     try {
       const { data: newRestaurantData, error: insertError } = await supabase
         .from('restaurants')

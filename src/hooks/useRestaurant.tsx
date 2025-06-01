@@ -1,14 +1,27 @@
-// src/hooks/useRestaurant.tsx
+// src/hooks/useRestaurant.tsx (Updated for consistency)
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-interface RestaurantInfo { 
-  id: string; 
-  name: string; 
+// Use the same interface as useRestaurants.tsx for consistency
+interface Restaurant {
+  id: string;
+  name: string;
+  dateAdded: string;
+  created_at: string;
+  geoapify_place_id?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  website_url?: string | null;
+  rating?: number | null;
+  price_tier?: number | null;
+  category?: string | null;
+  opening_hours?: any;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export const useRestaurant = (restaurantId: string) => {
-  const [restaurant, setRestaurant] = useState<RestaurantInfo | null>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,19 +39,19 @@ export const useRestaurant = (restaurantId: string) => {
       try {
         const { data, error: fetchError } = await supabase
           .from('restaurants')
-          .select('id, name')
+          .select('*') // Get all fields for consistency
           .eq('id', restaurantId)
           .single();
 
         if (fetchError) {
-          console.error('Error fetching restaurant details:', fetchError);
-          setError('Failed to load restaurant details.');
-          setRestaurant(null);
+          if (fetchError.code === 'PGRST116') {
+            setError('Restaurant not found');
+          } else {
+            console.error('Error fetching restaurant details:', fetchError);
+            setError('Failed to load restaurant details.');
+          }
         } else if (data) {
-          setRestaurant(data);
-        } else {
-          setError('Restaurant not found.');
-          setRestaurant(null);
+          setRestaurant(data as Restaurant);
         }
       } catch (err: any) {
         console.error('Error fetching restaurant:', err);
@@ -54,6 +67,7 @@ export const useRestaurant = (restaurantId: string) => {
   return {
     restaurant,
     isLoading,
-    error
+    error,
+    setError // Add this for consistency with other hooks
   };
 };

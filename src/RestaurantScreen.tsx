@@ -1,11 +1,8 @@
 // src/RestaurantScreen.tsx
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
-import RestaurantSearchAndSort from './components/restaurant/RestaurantSearchAndSort';
-import RestaurantSearchForm from './components/restaurant/RestaurantSearchForm';
-import RestaurantSearchResults from './components/restaurant/RestaurantSearchResults';
 import LoadingScreen from './components/LoadingScreen';
 import { useRestaurants } from './hooks/useRestaurants';
 import { COLORS, FONTS, STYLES } from './constants';
@@ -17,6 +14,62 @@ interface RestaurantScreenProps {
   currentAppScreen: GlobalAppScreenType;
 }
 
+// Fuzzy search algorithm for restaurant names (same as MenuScreen)
+const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {
+  const restaurant = restaurantName.toLowerCase().trim();
+  const search = searchTerm.toLowerCase().trim();
+  
+  if (!search) return 100; // Show all restaurants when no search term
+  
+  // Exact match - highest score
+  if (restaurant === search) return 100;
+  
+  // Contains match - very high score
+  if (restaurant.includes(search) || search.includes(restaurant)) return 95;
+  
+  // Word-by-word comparison
+  const restaurantWords = restaurant.split(/\s+/);
+  const searchWords = search.split(/\s+/);
+  let wordMatches = 0;
+  let partialMatches = 0;
+  
+  searchWords.forEach(searchWord => {
+    // Check for exact word matches
+    if (restaurantWords.some(restaurantWord => restaurantWord === searchWord)) {
+      wordMatches++;
+    }
+    // Check for partial word matches
+    else if (restaurantWords.some(restaurantWord => 
+      restaurantWord.includes(searchWord) || 
+      searchWord.includes(restaurantWord) ||
+      // Handle common variations
+      restaurantWord.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e') === searchWord
+    )) {
+      partialMatches++;
+    }
+  });
+  
+  if (wordMatches > 0 || partialMatches > 0) {
+    const exactScore = (wordMatches / searchWords.length) * 80;
+    const partialScore = (partialMatches / searchWords.length) * 60;
+    return Math.min(95, 40 + exactScore + partialScore);
+  }
+  
+  // Character similarity for very different strings
+  const longer = restaurant.length > search.length ? restaurant : search;
+  const shorter = restaurant.length > search.length ? search : restaurant;
+  
+  if (longer.length === 0) return 100;
+  
+  let matches = 0;
+  for (let i = 0; i < shorter.length; i++) {
+    if (longer.includes(shorter[i])) matches++;
+  }
+  
+  const charSimilarity = (matches / longer.length) * 30;
+  return Math.max(0, charSimilarity);
+};
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   onNavigateToScreen,
   onNavigateToMenu,
@@ -26,9 +79,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date'>('name');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showSearchSort, setShowSearchSort] = useState(false);
-  const [showAddOptions, setShowAddOptions] = useState(false); // NEW: Controls showing add options
-  const [searchMode, setSearchMode] = useState<'manual' | 'online'>('manual');
+  const [showAdvancedSort, setShowAdvancedSort] = useState(false);
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Custom Hooks
   const {
@@ -37,7 +89,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     error,
     addRestaurant,
     deleteRestaurant,
-    // New search functionality
+    // Online search functionality
     searchResults,
     isSearching,
     searchError,
@@ -46,15 +98,45 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     searchRestaurants,
     importRestaurant,
     clearSearchResults,
-    resetSearch // New reset function
+    resetSearch
   } = useRestaurants(sortBy);
 
-  // Handlers with useCallback to prevent infinite loops
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
+
+  // Enhanced restaurant filtering with fuzzy search (same as MenuScreen)
+  const filteredAndSortedRestaurants = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return restaurants; // Return all restaurants when no search term
+    }
+
+    // Calculate similarity scores and filter
+    const restaurantsWithScores = restaurants.map(restaurant => ({
+      ...restaurant,
+      similarityScore: calculateRestaurantSimilarity(restaurant.name, searchTerm)
+    }));
+
+    // Filter restaurants with reasonable similarity (> 20 for very loose matching)
+    const filteredRestaurants = restaurantsWithScores
+      .filter(restaurant => restaurant.similarityScore > 20)
+      .sort((a, b) => b.similarityScore - a.similarityScore) // Sort by similarity first
+      .map(({ similarityScore, ...restaurant }) => restaurant); // Remove score from final result
+
+    return filteredRestaurants;
+  }, [restaurants, searchTerm]);
+
+  // Handlers
   const handleAddRestaurant = useCallback(async (name: string) => {
     const success = await addRestaurant(name);
     if (success) {
       setShowAddForm(false);
-      setShowAddOptions(false); // Close the add options after successful add
+      setSearchTerm(''); // Clear search when new restaurant is added
     }
   }, [addRestaurant]);
 
@@ -66,58 +148,53 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     const restaurantId = await importRestaurant(geoapifyPlace);
     if (restaurantId) {
       clearSearchResults();
-      setSearchMode('manual');
-      setShowAddOptions(false); // Close the add options after successful import
-      // Optionally navigate to the imported restaurant's menu
-      // onNavigateToMenu(restaurantId);
+      setSearchTerm('');
     }
   }, [importRestaurant, clearSearchResults]);
 
-  // Stabilized search function to prevent infinite loops
-  const handleSearchRestaurants = useCallback((query: string, location: string) => {
-    searchRestaurants(query, location);
-  }, [searchRestaurants]);
+  // Enhanced search handler that triggers both local and online search
+  const handleSearchChange = useCallback((newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+    
+    // Clear existing timer
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+    
+    // If search term is empty, clear online results
+    if (!newSearchTerm.trim()) {
+      clearSearchResults();
+      return;
+    }
+    
+    // Debounced online search (wait 500ms after user stops typing)
+    const timer = setTimeout(() => {
+      if (newSearchTerm.trim().length >= 2) { // Only search if 2+ characters
+        console.log('🔍 Triggering online search for:', newSearchTerm);
+        searchRestaurants(newSearchTerm, 'Seattle, WA');
+      }
+    }, 500);
+    
+    setSearchDebounceTimer(timer);
+  }, [searchRestaurants, clearSearchResults, searchDebounceTimer]);
 
-  // New reset handler
   const handleResetSearch = useCallback(() => {
     resetSearch();
-  }, [resetSearch]);
-
-  // Enhanced search mode toggle with reset
-  const handleSearchModeToggle = useCallback(() => {
-    if (searchMode === 'online') {
-      // If switching away from online mode, reset search
-      resetSearch();
+    setSearchTerm('');
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+      setSearchDebounceTimer(null);
     }
-    setSearchMode('online');
-  }, [searchMode, resetSearch]);
-
-  // NEW: Handle opening add options
-  const handleShowAddOptions = useCallback(() => {
-    setShowAddOptions(true);
-    setShowAddForm(false);
-    clearSearchResults();
-    resetSearch();
-  }, [clearSearchResults, resetSearch]);
-
-  // NEW: Handle closing add options
-  const handleCloseAddOptions = useCallback(() => {
-    setShowAddOptions(false);
-    setShowAddForm(false);
-    clearSearchResults();
-    resetSearch();
-    setSearchMode('manual');
-  }, [clearSearchResults, resetSearch]);
+  }, [resetSearch, searchDebounceTimer]);
 
   // Loading State
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // Filter restaurants
-  const filteredRestaurants = restaurants.filter(restaurant => 
-    restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const hasSearchResults = searchTerm.trim() && filteredAndSortedRestaurants.length > 0;
+  const hasSearchTerm = searchTerm.trim().length > 0;
+  const showNoResults = hasSearchTerm && filteredAndSortedRestaurants.length === 0;
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
@@ -130,20 +207,21 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             Restaurants
           </h1>
           
+          {/* Filter Button - Updated styling */}
           <button 
-            onClick={() => setShowSearchSort(!showSearchSort)}
+            onClick={() => setShowAdvancedSort(!showAdvancedSort)}
             className={`p-2 rounded-full hover:bg-white/25 active:bg-white/30 transition-colors focus:outline-none flex items-center justify-center`}
             style={{ 
-              color: showSearchSort ? COLORS.textWhite : COLORS.text,
-              background: showSearchSort ? COLORS.danger : 'transparent',
+              color: showAdvancedSort ? COLORS.textWhite : COLORS.text,
+              background: showAdvancedSort ? COLORS.primary : 'white',
               width: '40px', 
-              height: '40px' 
+              height: '40px',
+              boxShadow: showAdvancedSort ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'
             }}
-            aria-label="Toggle search and sort"
+            aria-label="Filter restaurants"
           >
-            {/* Simplified search icon for better mobile compatibility */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
             </svg>
           </button>
         </div>
@@ -151,7 +229,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
       {/* Main Content */}
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-        <div className="max-w-md mx-auto space-y-8">
+        <div className="max-w-md mx-auto space-y-6">
           {/* Error Display */}
           {error && (
             <div className="bg-red-500/20 p-3 rounded-lg text-center">
@@ -159,181 +237,352 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>
           )}
 
-          {/* NEW FLOW: Add Restaurant Section */}
-          {!showSearchSort && (
-            <div className="space-y-4">
-              {!showAddOptions ? (
-                // Show big blue "Add New Restaurant" button
-                <div className="flex justify-center">
+          {/* Advanced Sort Options */}
+          {showAdvancedSort && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>
+                Sort restaurants by:
+              </h3>
+              <div className="flex gap-2">
+                {[
+                  { value: 'name', label: 'Name' },
+                  { value: 'date', label: 'Date Added' }
+                ].map((option) => (
                   <button
-                    onClick={handleShowAddOptions}
-                    className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full text-white"
-                    style={{
-                      ...STYLES.primaryButton,
-                      background: COLORS.primary,
-                      padding: '0.8rem 2rem',
-                      fontSize: '1.1rem',
-                      borderRadius: '16px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = COLORS.primaryHover}
-                    onMouseLeave={(e) => e.currentTarget.style.background = COLORS.primary}
+                    key={option.value}
+                    onClick={() => setSortBy(option.value as 'name' | 'date')}
+                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                      sortBy === option.value 
+                        ? 'bg-white text-gray-800' 
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
+                    style={FONTS.elegant}
                   >
-                    + Add New Restaurant
+                    {option.label}
                   </button>
-                </div>
-              ) : (
-                // Show add options flow
-                <div className="space-y-4">
-                  {/* Back Button */}
-                  <div className="flex justify-between items-center">
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Restaurant Search */}
+          {!showAddForm && (
+            <div className="space-y-4">
+              {/* Search Box */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label style={{
+                    ...FONTS.elegant,
+                    fontSize: '20.8px', // 30% larger than 16px
+                    fontWeight: '500',
+                    color: COLORS.text
+                  }}>
+                    Search for a restaurant
+                  </label>
+                  {/* Reset Button */}
+                  {hasSearchTerm && (
                     <button
-                      onClick={handleCloseAddOptions}
-                      className="p-2 rounded-full hover:bg-white/20 transition-colors focus:outline-none"
-                      style={{ color: COLORS.text }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
-                      </svg>
-                    </button>
-                    <h2 style={{...FONTS.elegant, color: COLORS.text, fontSize: '1.1rem', fontWeight: 500}}>
-                      Add Restaurant
-                    </h2>
-                    <div className="w-10" />
-                  </div>
-
-                  {/* Mode Toggle Buttons - UPDATED: Added divider line */}
-                  <div className="flex bg-white/10 backdrop-blur-sm rounded-2xl p-1">
-                    <button
-                      onClick={handleSearchModeToggle}
-                      className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
-                        searchMode === 'online' ? 'bg-gray-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-                      }`}
+                      onClick={handleResetSearch}
                       style={{
                         ...FONTS.elegant,
-                        fontSize: '0.9rem',
-                        height: '50px',
-                        WebkitAppearance: 'none',
-                        WebkitTapHighlightColor: 'transparent',
+                        backgroundColor: COLORS.primary,
+                        color: 'white',
                         border: 'none',
-                        outline: 'none'
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        height: '20.8px' // Match the label height
                       }}
                     >
-                      Search Online
+                      Reset
                     </button>
-                    
-                    {/* Divider line */}
-                    <div 
-                      className="w-px my-2"
-                      style={{ 
-                        backgroundColor: COLORS.text,
-                        opacity: 0.3
-                      }}
-                    />
-                    
-                    <button
-                      onClick={() => {
-                        setSearchMode('manual');
-                        setShowAddForm(true); // Automatically show the form
-                        clearSearchResults();
-                      }}
-                      className={`flex-1 px-4 rounded-xl transition-colors focus:outline-none flex items-center justify-center ${
-                        searchMode === 'manual' ? 'bg-gray-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'
-                      }`}
-                      style={{
-                        ...FONTS.elegant,
-                        fontSize: '0.9rem',
-                        height: '50px',
-                        WebkitAppearance: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                        border: 'none',
-                        outline: 'none'
-                      }}
-                    >
-                      Add Manually
-                    </button>
-                  </div>
-
-                  {/* Conditional Form Display */}
-                  {searchMode === 'manual' ? (
-                    <AddRestaurantForm
-                      show={showAddForm}
-                      onToggleShow={() => setShowAddForm(!showAddForm)}
-                      onSubmit={handleAddRestaurant}
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      <RestaurantSearchForm
-                        onSearch={handleSearchRestaurants}
-                        onReset={handleResetSearch}
-                        isSearching={isSearching}
-                        disabled={showAddForm}
-                      />
-                      
-                      {searchError && (
-                        <div className="bg-red-500/20 p-3 rounded-lg text-center">
-                          <p style={{color: COLORS.danger, ...FONTS.elegant}}>{searchError}</p>
-                        </div>
-                      )}
-                      
-                      {searchResults.length > 0 && (
-                        <RestaurantSearchResults
-                          results={searchResults}
-                          onSelectRestaurant={handleImportRestaurant}
-                          isImporting={isLoading}
-                          isLoadingDetails={isLoadingDetails}
-                          restaurantErrors={restaurantErrors}
-                        />
-                      )}
-                    </div>
                   )}
+                </div>
+                <input
+                  id="restaurant-search-input"
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="e.g., Starbucks, Cafe Flora, Dick's Drive-In..."
+                  style={{
+                    ...FONTS.elegant,
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    color: COLORS.text,
+                    boxSizing: 'border-box',
+                    WebkitAppearance: 'none'
+                  }}
+                />
+                
+                {/* Search Stats */}
+                {hasSearchTerm && (
+                  <div style={{
+                    ...FONTS.elegant,
+                    fontSize: '14px',
+                    color: COLORS.text,
+                    opacity: 0.8,
+                    marginTop: '8px',
+                    marginBottom: 0
+                  }}>
+                    <div>
+                      {filteredAndSortedRestaurants.length > 0 
+                        ? `Found ${filteredAndSortedRestaurants.length} in your restaurants`
+                        : 'No matching restaurants in your list'
+                      }
+                    </div>
+                    {isSearching && (
+                      <div style={{ marginTop: '4px' }}>
+                        🔍 Searching online...
+                      </div>
+                    )}
+                    {searchResults.length > 0 && (
+                      <div style={{ marginTop: '4px' }}>
+                        ✨ Found {searchResults.length} online results
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* "Don't see your restaurant?" Button */}
+              {(showNoResults && searchResults.length === 0) || hasSearchTerm && (
+                <div className="text-center">
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    style={{
+                      ...FONTS.elegant,
+                      backgroundColor: COLORS.success,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '14px 24px',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      WebkitAppearance: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.successHover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.success}
+                  >
+                    Don't see your restaurant? Add it here
+                  </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* Search and Sort */}
-          {showSearchSort && (
-            <RestaurantSearchAndSort
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              disabled={showAddForm}
-            />
+          {/* Add Restaurant Form */}
+          {showAddForm && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setSearchTerm(''); // Optionally clear search when canceling
+                  }}
+                  className="p-2 rounded-full hover:bg-white/20 transition-colors focus:outline-none"
+                  style={{ color: COLORS.text }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
+                  </svg>
+                </button>
+                <h2 style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500'}}>
+                  Add New Restaurant
+                </h2>
+                <div className="w-10" />
+              </div>
+
+              {/* Add Mode - Only Manual for now since online search is integrated above */}
+              <AddRestaurantForm
+                show={true}
+                onToggleShow={() => setShowAddForm(false)}
+                onSubmit={handleAddRestaurant}
+              />
+            </div>
           )}
 
           {/* Restaurants List */}
-          <div className="space-y-4" style={{ marginTop: '32px' }}>
-            {filteredRestaurants.length === 0 ? (
-              <div className="text-center py-12">
-                <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>
-                  {searchTerm ? 'No restaurants found matching your search.' : 'No restaurants yet. Add your first one!'}
-                </p>
-              </div>
-            ) : (
-              <>
-                {filteredRestaurants.map((restaurant, index) => (
-                  <div key={restaurant.id}>
-                    <RestaurantCard
-                      restaurant={restaurant}
-                      onDelete={handleDeleteRestaurant}
-                      onNavigateToMenu={onNavigateToMenu}
-                    />
-                    {/* Add subtle separator line between restaurant cards, except for the last one */}
-                    {index < filteredRestaurants.length - 1 && (
-                      <div 
-                        className="mx-4 mt-4"
-                        style={{
-                          height: '1px',
-                          background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`
-                        }}
+          {!showAddForm && (
+            <div className="space-y-4">
+              {/* Show existing restaurants */}
+              {filteredAndSortedRestaurants.length > 0 && (
+                <div>
+                  {/* Results header for search */}
+                  {hasSearchResults && (
+                    <div className="text-center mb-4">
+                      <h3 style={{
+                        ...FONTS.elegant,
+                        color: COLORS.text,
+                        fontSize: '18px',
+                        fontWeight: '500',
+                        margin: 0
+                      }}>
+                        Your restaurants:
+                      </h3>
+                    </div>
+                  )}
+                  
+                  {filteredAndSortedRestaurants.map((restaurant, index) => (
+                    <div key={restaurant.id}>
+                      <RestaurantCard
+                        restaurant={restaurant}
+                        onDelete={handleDeleteRestaurant}
+                        onNavigateToMenu={onNavigateToMenu}
                       />
-                    )}
+                      {/* Separator line between cards */}
+                      {(index < filteredAndSortedRestaurants.length - 1 || searchResults.length > 0) && (
+                        <div 
+                          className="mx-4 mt-4"
+                          style={{
+                            height: '1px',
+                            background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Show online search results */}
+              {searchResults.length > 0 && (
+                <div>
+                  {/* Online results header */}
+                  <div className="text-center mb-4">
+                    <h3 style={{
+                      ...FONTS.elegant,
+                      color: COLORS.text,
+                      fontSize: '18px',
+                      fontWeight: '500',
+                      margin: 0
+                    }}>
+                      {filteredAndSortedRestaurants.length > 0 ? 'Found online:' : 'Online results:'}
+                    </h3>
                   </div>
-                ))}
-              </>
-            )}
-          </div>
+
+                  {searchError && (
+                    <div className="bg-red-500/20 p-3 rounded-lg text-center mb-4">
+                      <p style={{color: COLORS.danger, ...FONTS.elegant}}>{searchError}</p>
+                    </div>
+                  )}
+                  
+                  {searchResults.map((result, index) => (
+                    <div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 mr-4">
+                          <h4 style={{
+                            ...FONTS.elegant,
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            color: COLORS.text,
+                            margin: '0 0 4px 0'
+                          }}>
+                            {result.properties.name}
+                          </h4>
+                          <p style={{
+                            ...FONTS.elegant,
+                            fontSize: '14px',
+                            color: COLORS.textDark,
+                            margin: 0,
+                            lineHeight: '1.4'
+                          }}>
+                            {result.properties.formatted}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleImportRestaurant(result)}
+                          disabled={isLoadingDetails}
+                          style={{
+                            ...FONTS.elegant,
+                            backgroundColor: COLORS.primary,
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '8px 16px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: isLoadingDetails ? 'not-allowed' : 'pointer',
+                            WebkitAppearance: 'none',
+                            opacity: isLoadingDetails ? 0.6 : 1
+                          }}
+                        >
+                          {isLoadingDetails ? 'Adding...' : 'Add'}
+                        </button>
+                      </div>
+                      
+                      {/* Show any errors for this specific restaurant */}
+                      {restaurantErrors.has(result.place_id) && (
+                        <div className="mt-2 p-2 bg-red-500/20 rounded">
+                          <p style={{
+                            ...FONTS.elegant,
+                            fontSize: '12px',
+                            color: COLORS.danger,
+                            margin: 0
+                          }}>
+                            {restaurantErrors.get(result.place_id)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty state */}
+              {filteredAndSortedRestaurants.length === 0 && searchResults.length === 0 && (
+                <div className="text-center py-12">
+                  {showNoResults ? (
+                    <div>
+                      <div className="text-4xl mb-4">🔍</div>
+                      <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>
+                        No restaurants found for "{searchTerm}"
+                      </p>
+                      <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7, marginBottom: '16px'}}>
+                        {isSearching ? 'Still searching online...' : 'Try a different search term or add this restaurant.'}
+                      </p>
+                    </div>
+                  ) : restaurants.length === 0 ? (
+                    <div>
+                      <div className="text-6xl mb-4">🍽️</div>
+                      <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>
+                        No restaurants yet
+                      </p>
+                      <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7, marginBottom: '16px'}}>
+                        Add your first restaurant to get started!
+                      </p>
+                      <button
+                        onClick={() => setShowAddForm(true)}
+                        style={{
+                          ...FONTS.elegant,
+                          backgroundColor: COLORS.primary,
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '12px 24px',
+                          fontSize: '16px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          WebkitAppearance: 'none'
+                        }}
+                      >
+                        Add First Restaurant
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
