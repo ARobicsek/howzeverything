@@ -31,76 +31,80 @@ const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home')
   const [menuScreenState, setMenuScreenState] = useState<MenuScreenState | null>(null)
   const [showLogin, setShowLogin] = useState(false)
+  
   const [showProfileEdit, setShowProfileEdit] = useState(false)
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
 
-  // DEBUG: Log app state changes
   console.log('🚀 App State:', { 
     currentScreen, 
     menuScreenState, 
     authLoading, 
     isCreatingProfile,
-    userEmail: user?.email 
+    userEmail: user?.email,
+    profileExists: !!profile 
   });
 
-  // Handle navigation to menu screen with restaurant context
   const navigateToMenu = (restaurantId: string) => {
     console.log('🍕 navigateToMenu called with restaurantId:', restaurantId);
-    setMenuScreenState({ restaurantId, restaurantName: '' }) // restaurantName not needed by MenuScreen
+    setMenuScreenState({ restaurantId, restaurantName: '' })
     setCurrentScreen('menu')
     console.log('🍕 After setting state - currentScreen should be menu');
   }
 
-  // Handle navigation back from menu screen
   const navigateBackFromMenu = () => {
     console.log('🔙 navigateBackFromMenu called');
     setMenuScreenState(null)
     setCurrentScreen('restaurants')
   }
 
-  // Handle navigation between screens
   const handleNavigateToScreen = (screen: NavigableScreenType) => {
     console.log('🧭 handleNavigateToScreen called with:', screen);
     setCurrentScreen(screen)
     if (screen !== 'restaurants') {
-      setMenuScreenState(null) // Clear menu state when navigating away
+      setMenuScreenState(null)
     }
   }
 
-  // Convert AppScreen to AppScreenType for components that need it
   const getCurrentAppScreen = (): AppScreenType => {
     if (currentScreen === 'menu') {
-      return 'restaurants' // Menu is considered part of restaurants flow
+      return 'restaurants'
     }
     return currentScreen as AppScreenType
   }
 
-  // Handle profile creation for new users
   useEffect(() => {
     const handleProfileCreation = async () => {
-      // TEMPORARILY DISABLED - causing infinite loop
-      console.log('🚀 Profile creation: DISABLED (temporary fix for flickering)')
-      return
+      // RE-DISABLED: Automatic profile creation is causing a loop/flicker
+      // due to "duplicate key value violates unique constraint 'users_pkey'".
+      // This means the app thinks a profile doesn't exist (profile state is null),
+      // tries to create one, but a profile for that user ID already exists in DB.
+      // The fetching of the existing profile in useAuth needs to be investigated.
+      console.log('🚀 Profile creation: RE-DISABLED (flickering/duplicate key issue)')
+      if (isCreatingProfile) setIsCreatingProfile(false); 
+      return; // This disables the block below
       
-      // If user exists but no profile, create one automatically
+      // Original logic (currently disabled by the return above):
       if (user && !profile && !authLoading && !isCreatingProfile) {
+        // If 'user' is guaranteed non-null by the 'if' above, these should be safe.
+        // Using non-null assertion '!' as a concession to a potentially over-cautious linter
+        // for this currently disabled code block. Only do this if you are certain.
+        console.log('🤔 Attempting to create profile for user:', user!.id); // Ln 87
         setIsCreatingProfile(true)
         try {
-          // FIXED: Add explicit null check inside try block
-          if (!user) return; // Extra safety check for TypeScript
-          
           const success = await createProfile({
-            full_name: user.user_metadata?.full_name || '',
+            full_name: user!.user_metadata?.full_name || '', // Ln 92
             bio: '',
             location: '',
-            avatar_url: ''
+            avatar_url: user!.user_metadata?.avatar_url || '' // Ln 95
           })
           
           if (!success) {
-            console.error('Failed to create user profile')
+            console.error('Failed to create user profile (as reported by createProfile function)')
+          } else {
+            console.log('✅ Profile creation reported success by createProfile function.');
           }
         } catch (error) {
-          console.error('Profile creation error:', error)
+          console.error('Profile creation error (exception caught):', error)
         } finally {
           setIsCreatingProfile(false)
         }
@@ -110,13 +114,11 @@ const App: React.FC = () => {
     handleProfileCreation()
   }, [user, profile, authLoading, createProfile, isCreatingProfile])
 
-  // Show loading screen during auth initialization or profile creation
-  if (authLoading || isCreatingProfile) {
-    console.log('⏳ Showing LoadingScreen because:', { authLoading, isCreatingProfile });
-    return <LoadingScreen />
+  if (authLoading || (isCreatingProfile && !profile)) { 
+    console.log('⏳ Showing LoadingScreen because:', { authLoading, isCreatingProfile, profileExists: !!profile });
+    return <LoadingScreen message={isCreatingProfile ? "Setting up your profile..." : undefined} />;
   }
 
-  // Show login form if no user is authenticated
   if (!user) {
     return (
       <div style={{
@@ -128,7 +130,6 @@ const App: React.FC = () => {
         justifyContent: 'center',
         padding: '20px'
       }}>
-        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <img 
             src="/logo.png" 
@@ -140,8 +141,6 @@ const App: React.FC = () => {
             }}
           />
         </div>
-
-        {/* Welcome Card */}
         <div style={{
           backgroundColor: 'white',
           borderRadius: '12px',
@@ -181,8 +180,6 @@ const App: React.FC = () => {
             Get Started
           </button>
         </div>
-
-        {/* Login Modal */}
         {showLogin && (
           <LoginForm
             onSuccess={() => setShowLogin(false)}
@@ -193,7 +190,6 @@ const App: React.FC = () => {
     )
   }
 
-  // Main authenticated app content
   const renderCurrentScreen = () => {
     console.log('🎬 renderCurrentScreen called with currentScreen:', currentScreen);
     
@@ -206,7 +202,6 @@ const App: React.FC = () => {
             currentAppScreen={getCurrentAppScreen()}
           />
         )
-        
       case 'restaurants':
         console.log('🍽️ Rendering RestaurantScreen');
         return (
@@ -216,19 +211,12 @@ const App: React.FC = () => {
             currentAppScreen={getCurrentAppScreen()}
           />
         )
-        
       case 'menu':
         console.log('🍕 Menu case reached! menuScreenState:', menuScreenState);
         if (!menuScreenState) {
           console.log('❌ No menuScreenState! Redirecting to restaurants...');
           setCurrentScreen('restaurants')
-          return (
-            <RestaurantScreen 
-              onNavigateToScreen={handleNavigateToScreen}
-              onNavigateToMenu={navigateToMenu}
-              currentAppScreen={getCurrentAppScreen()}
-            />
-          )
+          return null; 
         }
         console.log('✅ About to render MenuScreen with restaurantId:', menuScreenState.restaurantId);
         return (
@@ -239,7 +227,6 @@ const App: React.FC = () => {
             currentAppScreen={getCurrentAppScreen()}
           />
         )
-        
       case 'ratings':
         console.log('⭐ Rendering RatingsScreen');
         return (
@@ -248,7 +235,6 @@ const App: React.FC = () => {
             currentAppScreen={getCurrentAppScreen()}
           />
         )
-        
       case 'profile':
         console.log('👤 Rendering ProfileScreen');
         return (
@@ -257,7 +243,6 @@ const App: React.FC = () => {
             currentAppScreen={getCurrentAppScreen()}
           />
         )
-        
       default:
         console.log('🏠 Default case: Rendering HomeScreen');
         return (
@@ -274,11 +259,8 @@ const App: React.FC = () => {
       minHeight: '100vh',
       backgroundColor: COLORS.background
     }}>
-      {/* Main Content */}
       {renderCurrentScreen()}
-
-      {/* Profile Edit Modal */}
-      {showProfileEdit && (
+      {showProfileEdit && user && ( 
         <UserForm
           onSuccess={() => setShowProfileEdit(false)}
           onCancel={() => setShowProfileEdit(false)}
