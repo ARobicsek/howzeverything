@@ -3,14 +3,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 // Define proper interfaces that match the existing useComments interface
-interface DishComment {
+// EXPORT THIS
+export interface DishComment {
   id: string;
-  comment_text: string;
+  comment_text: string; // This is the key field name
   created_at: string;
   updated_at: string;
+  // user_id is not directly on this object based on current hook structures.
+  // If you need user info for comments, it usually comes from a join or separate profile lookup.
 }
 
-interface DishRating {
+// EXPORT THIS
+export interface DishRating {
   id: string;
   user_id: string;
   rating: number;
@@ -21,8 +25,8 @@ interface DishRating {
   dish_id: string;
 }
 
-// Updated to match new restaurant_dishes table
-interface RestaurantDish {
+// EXPORT THIS
+export interface RestaurantDish {
   id: string;
   restaurant_id: string;
   name: string;
@@ -37,12 +41,12 @@ interface RestaurantDish {
   updated_at: string;
 }
 
-interface DishWithDetails extends RestaurantDish {
-  dish_comments: DishComment[];
+// EXPORT THIS
+export interface DishWithDetails extends RestaurantDish {
+  dish_comments: DishComment[]; // Uses the exported DishComment
   dish_ratings: DishRating[];
-  // For backward compatibility with existing components
-  rating: number; // Maps to average_rating
-  dateAdded: string; // Maps to created_at
+  rating: number; 
+  dateAdded: string;
 }
 
 export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'date') => {
@@ -96,9 +100,8 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         
         const dishesWithDetails = data?.map(d => ({
           ...d,
-          dish_comments: (d.dish_comments as DishComment[]) || [],
-          dish_ratings: (d.dish_ratings as DishRating[]) || [],
-          // Backward compatibility mappings
+          dish_comments: (d.dish_comments as DishComment[]) || [], // Cast to exported DishComment
+          dish_ratings: (d.dish_ratings as DishRating[]) || [],   // Cast to exported DishRating
           rating: d.average_rating || 0,
           dateAdded: d.created_at
         })) || [];
@@ -115,20 +118,17 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
     fetchDishes();
   }, [restaurantId, sortBy]);
 
-  // Note: This now creates a community dish, not a personal rating
   const addDish = async (name: string, rating: number) => {
     if (!name.trim()) return false;
     
     setError(null);
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setError('You must be logged in to add a dish');
         return false;
       }
 
-      // First, create the restaurant dish
       const { data: dishData, error: dishError } = await supabase
         .from('restaurant_dishes')
         .insert([{
@@ -146,7 +146,6 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
       if (dishError) throw dishError;
 
       if (dishData) {
-        // Then create the user's rating for this dish
         const { error: ratingError } = await supabase
           .from('dish_ratings')
           .insert([{
@@ -157,13 +156,12 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
 
         if (ratingError) {
           console.warn('Failed to create rating:', ratingError);
-          // Don't fail the whole operation if rating creation fails
         }
 
         const newDish: DishWithDetails = {
-          ...dishData,
+          ...(dishData as RestaurantDish), // Cast to RestaurantDish
           dish_comments: [],
-          dish_ratings: [],
+          dish_ratings: [], // You might want to include the new rating here
           rating: dishData.average_rating || 0,
           dateAdded: dishData.created_at
         };
@@ -186,7 +184,6 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
   const deleteDish = async (dishId: string) => {
     setError(null);
     try {
-      // Check if user can delete (created by them or is admin)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setError('You must be logged in to delete dishes');
@@ -196,7 +193,6 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
       const dish = dishes.find(d => d.id === dishId);
       
       if (dish && user && dish.created_by !== user.id) {
-        // Check if user is admin
         const { data: profile } = await supabase
           .from('users')
           .select('is_admin')
@@ -225,7 +221,6 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
     }
   };
 
-  // This now updates the user's personal rating, not the dish itself
   const updateDishRating = async (dishId: string, newRating: number) => {
     setError(null);
     try {
@@ -235,7 +230,6 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         return false;
       }
 
-      // Check if user already has a rating for this dish
       const { data: existingRating } = await supabase
         .from('dish_ratings')
         .select('id')
@@ -245,13 +239,11 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
 
       let ratingOperation;
       if (existingRating) {
-        // Update existing rating
         ratingOperation = supabase
           .from('dish_ratings')
           .update({ rating: newRating })
           .eq('id', existingRating.id);
       } else {
-        // Create new rating
         ratingOperation = supabase
           .from('dish_ratings')
           .insert([{
@@ -264,7 +256,6 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
       const { error: ratingError } = await ratingOperation;
       if (ratingError) throw ratingError;
 
-      // Fetch updated dish with new average
       const { data: updatedDish, error: fetchError } = await supabase
         .from('restaurant_dishes')
         .select(`
@@ -293,7 +284,7 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
 
       if (updatedDish) {
         const dishWithDetails: DishWithDetails = {
-          ...updatedDish,
+          ...(updatedDish as RestaurantDish), // Cast to RestaurantDish
           dish_comments: (updatedDish.dish_comments as DishComment[]) || [],
           dish_ratings: (updatedDish.dish_ratings as DishRating[]) || [],
           rating: updatedDish.average_rating || 0,
