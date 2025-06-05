@@ -1,6 +1,7 @@
+// Updated RestaurantSearchResults with consistent button styling
 // src/components/restaurant/RestaurantSearchResults.tsx
 import React from 'react';
-import { COLORS, FONTS } from '../../constants';
+import { COLORS, FONTS, STYLES } from '../../constants';
 
 interface GeoapifyPlace {
   place_id: string;
@@ -186,12 +187,12 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   </div>
                 </div>
                 
-                {/* Add Button */}
+                {/* UPDATED: Add Button with consistent blue styling */}
                 <div className="flex-shrink-0">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center"
                     style={{ 
-                      background: hasError ? COLORS.danger : COLORS.primary 
+                      background: hasError ? COLORS.danger : COLORS.addButtonBg // Blue background
                     }}
                   >
                     {hasError ? (

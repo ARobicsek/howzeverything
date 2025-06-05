@@ -5,14 +5,16 @@ import RestaurantCard from './components/restaurant/RestaurantCard';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import LoadingScreen from './components/LoadingScreen';
 import { useRestaurants } from './hooks/useRestaurants';
-import { COLORS, FONTS, STYLES } from './constants';
+import { COLORS, FONTS, STYLES, SIZES } from './constants'; // <<< SIZES ADDED HERE
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
+
 
 interface RestaurantScreenProps {
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;
   onNavigateToMenu: (restaurantId: string) => void;
   currentAppScreen: GlobalAppScreenType;
 }
+
 
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {
@@ -70,6 +72,7 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   return Math.max(0, charSimilarity);
 };
 
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   onNavigateToScreen,
   onNavigateToMenu,
@@ -81,6 +84,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
 
   // Custom Hooks
   const {
@@ -101,6 +105,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     resetSearch
   } = useRestaurants(sortBy);
 
+
   // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
@@ -110,11 +115,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     };
   }, [searchDebounceTimer]);
 
+
   // Enhanced restaurant filtering with fuzzy search (same as MenuScreen)
   const filteredAndSortedRestaurants = useMemo(() => {
     if (!searchTerm.trim()) {
       return restaurants; // Return all restaurants when no search term
     }
+
 
     // Calculate similarity scores and filter
     const restaurantsWithScores = restaurants.map(restaurant => ({
@@ -122,14 +129,17 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       similarityScore: calculateRestaurantSimilarity(restaurant.name, searchTerm)
     }));
 
+
     // Filter restaurants with reasonable similarity (> 20 for very loose matching)
     const filteredRestaurants = restaurantsWithScores
       .filter(restaurant => restaurant.similarityScore > 20)
       .sort((a, b) => b.similarityScore - a.similarityScore) // Sort by similarity first
       .map(({ similarityScore, ...restaurant }) => restaurant); // Remove score from final result
 
+
     return filteredRestaurants;
   }, [restaurants, searchTerm]);
+
 
   // Handlers
   const handleAddRestaurant = useCallback(async (name: string) => {
@@ -140,9 +150,11 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }
   }, [addRestaurant]);
 
+
   const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {
     await deleteRestaurant(restaurantId);
   }, [deleteRestaurant]);
+
 
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {
     const restaurantId = await importRestaurant(geoapifyPlace);
@@ -152,24 +164,22 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }
   }, [importRestaurant, clearSearchResults]);
 
+
   // Enhanced search handler that triggers both local and online search
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
     
-    // Clear existing timer
     if (searchDebounceTimer) {
       clearTimeout(searchDebounceTimer);
     }
     
-    // If search term is empty, clear online results
     if (!newSearchTerm.trim()) {
       clearSearchResults();
       return;
     }
     
-    // Debounced online search (wait 500ms after user stops typing)
     const timer = setTimeout(() => {
-      if (newSearchTerm.trim().length >= 2) { // Only search if 2+ characters
+      if (newSearchTerm.trim().length >= 2) { 
         console.log('🔍 Triggering online search for:', newSearchTerm);
         searchRestaurants(newSearchTerm, 'Seattle, WA');
       }
@@ -177,6 +187,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     
     setSearchDebounceTimer(timer);
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer]);
+
 
   const handleResetSearch = useCallback(() => {
     resetSearch();
@@ -187,35 +198,35 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }
   }, [resetSearch, searchDebounceTimer]);
 
-  // Loading State
+
   if (isLoading) {
     return <LoadingScreen />;
   }
 
+
   const hasSearchResults = searchTerm.trim() && filteredAndSortedRestaurants.length > 0;
   const hasSearchTerm = searchTerm.trim().length > 0;
   const showNoResults = hasSearchTerm && filteredAndSortedRestaurants.length === 0;
+
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
       {/* Header */}
       <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="w-10" />
+          <div className="w-10" /> {/* Spacer */}
           
           <h1 className="text-xl text-center flex-1 tracking-wide mx-2" style={{...FONTS.elegant, color: COLORS.text}}>
             Restaurants
           </h1>
           
-          {/* Filter Button */}
           <button 
             onClick={() => setShowAdvancedSort(!showAdvancedSort)}
-            className={`p-2 rounded-full hover:bg-white/25 active:bg-white/30 transition-colors focus:outline-none flex items-center justify-center`}
+            className={`p-2 rounded-full hover:opacity-80 active:opacity-70 transition-all focus:outline-none flex items-center justify-center`}
             style={{ 
-              color: showAdvancedSort ? COLORS.textWhite : COLORS.text,
-              background: showAdvancedSort ? COLORS.primary : 'white',
-              width: '40px', 
-              height: '40px',
+              ...STYLES.iconButton, // Use iconButton style for base
+              backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.iconBackground, 
+              color: showAdvancedSort ? COLORS.textWhite : COLORS.iconPrimary,
               boxShadow: showAdvancedSort ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'
             }}
             aria-label="Filter restaurants"
@@ -227,17 +238,17 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         </div>
       </header>
 
+
       {/* Main Content */}
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
         <div className="max-w-md mx-auto space-y-6">
-          {/* Error Display */}
           {error && (
             <div className="bg-red-500/20 p-3 rounded-lg text-center">
               <p style={{color: COLORS.danger, ...FONTS.elegant}}>{error}</p>
             </div>
           )}
 
-          {/* Advanced Sort Options */}
+
           {showAdvancedSort && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
               <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>
@@ -256,7 +267,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                         ? 'bg-white text-gray-800' 
                         : 'bg-white/20 text-white hover:bg-white/30'
                     }`}
-                    style={FONTS.elegant}
+                    style={{...FONTS.elegant, color: sortBy === option.value ? COLORS.textDark : COLORS.textWhite }}
                   >
                     {option.label}
                   </button>
@@ -265,21 +276,19 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>
           )}
           
-          {/* Restaurant Search */}
           {!showAddForm && (
             <div className="space-y-4">
-              {/* Search Box */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              {/* UPDATED: Search Box container with marginBottom */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SIZES.lg /* Added space */ }}>
                 <div className="flex items-center justify-between mb-2">
                   <label style={{
                     ...FONTS.elegant,
-                    fontSize: '20.8px', // 30% larger than 16px
-                    fontWeight: '500',
+                    fontSize: '1.1rem', 
+                    fontWeight: '600', 
                     color: COLORS.text
                   }}>
                     Search for a restaurant
                   </label>
-                  {/* Reset Button */}
                   {hasSearchTerm && (
                     <button
                       onClick={handleResetSearch}
@@ -288,13 +297,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                         backgroundColor: COLORS.primary,
                         color: 'white',
                         border: 'none',
-                        borderRadius: '6px',
+                        borderRadius: STYLES.borderRadiusSmall, 
                         padding: '4px 12px',
-                        fontSize: '12px',
+                        fontSize: '0.85rem', 
                         fontWeight: '500',
                         cursor: 'pointer',
                         WebkitAppearance: 'none',
-                        height: '20.8px' // Match the label height
                       }}
                     >
                       Reset
@@ -307,21 +315,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="e.g., Starbucks, Cafe Flora, Dick's Drive-In..."
+                  className="w-full outline-none focus:ring-2 focus:ring-white/50"
                   style={{
                     ...FONTS.elegant,
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '12px',
-                    fontSize: '16px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    color: COLORS.text,
+                    padding: '12px 16px', 
+                    borderRadius: STYLES.borderRadiusMedium, 
+                    fontSize: '1rem',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    color: COLORS.textDark, 
                     boxSizing: 'border-box',
-                    WebkitAppearance: 'none'
+                    WebkitAppearance: 'none',
+                    border: `1px solid ${COLORS.text}`, 
                   }}
                 />
                 
-                {/* Search Stats */}
                 {hasSearchTerm && (
                   <div style={{
                     ...FONTS.elegant,
@@ -351,27 +358,19 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 )}
               </div>
 
-              {/* "Don't see your restaurant?" Button */}
-              {(showNoResults && searchResults.length === 0) || hasSearchTerm && (
+
+              {(showNoResults && searchResults.length === 0 && hasSearchTerm) && ( 
                 <div className="text-center">
                   <button
                     onClick={() => setShowAddForm(true)}
                     style={{
-                      ...FONTS.elegant,
-                      backgroundColor: COLORS.success,
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '12px',
-                      padding: '14px 24px',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      WebkitAppearance: 'none',
-                      WebkitTapHighlightColor: 'transparent',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                      ...STYLES.addButton, 
+                      padding: '14px 24px', 
+                      fontSize: '16px',     
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' 
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.successHover}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.success}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
                   >
                     Don't see your restaurant? Add it here
                   </button>
@@ -380,29 +379,29 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>
           )}
 
-          {/* Add Restaurant Form */}
+
           {showAddForm && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => {
                     setShowAddForm(false);
-                    setSearchTerm(''); // Optionally clear search when canceling
+                    setSearchTerm(''); 
                   }}
-                  className="p-2 rounded-full hover:bg-white/20 transition-colors focus:outline-none"
-                  style={{ color: COLORS.text }}
+                  className="p-2 rounded-full hover:opacity-80 transition-opacity focus:outline-none"
+                  style={STYLES.iconButton}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
                   </svg>
                 </button>
                 <h2 style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500'}}>
                   Add New Restaurant
                 </h2>
-                <div className="w-10" />
+                <div className="w-10" /> {/* Spacer */}
               </div>
 
-              {/* Add Mode - Only Manual for now since online search is integrated above */}
+
               <AddRestaurantForm
                 show={true}
                 onToggleShow={() => setShowAddForm(false)}
@@ -411,13 +410,11 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>
           )}
 
-          {/* Restaurants List */}
+
           {!showAddForm && (
             <div className="space-y-4">
-              {/* Show existing restaurants */}
               {filteredAndSortedRestaurants.length > 0 && (
                 <div>
-                  {/* Results header for search */}
                   {hasSearchResults && (
                     <div className="text-center mb-4">
                       <h3 style={{
@@ -439,7 +436,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                         onDelete={handleDeleteRestaurant}
                         onNavigateToMenu={onNavigateToMenu}
                       />
-                      {/* Separator line between cards */}
                       {(index < filteredAndSortedRestaurants.length - 1 || searchResults.length > 0) && (
                         <div 
                           className="mx-4 mt-4"
@@ -454,10 +450,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 </div>
               )}
 
-              {/* Show online search results */}
+
               {searchResults.length > 0 && (
                 <div>
-                  {/* Online results header */}
                   <div className="text-center mb-4">
                     <h3 style={{
                       ...FONTS.elegant,
@@ -469,6 +464,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       {filteredAndSortedRestaurants.length > 0 ? 'Found online:' : 'Online results:'}
                     </h3>
                   </div>
+
 
                   {searchError && (
                     <div className="bg-red-500/20 p-3 rounded-lg text-center mb-4">
@@ -492,7 +488,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                           <p style={{
                             ...FONTS.elegant,
                             fontSize: '14px',
-                            color: COLORS.textDark,
+                            color: COLORS.text, 
+                            opacity: 0.8, 
                             margin: 0,
                             lineHeight: '1.4'
                           }}>
@@ -503,24 +500,18 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                           onClick={() => handleImportRestaurant(result)}
                           disabled={isLoadingDetails}
                           style={{
-                            ...FONTS.elegant,
-                            backgroundColor: COLORS.primary,
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '8px 16px',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: isLoadingDetails ? 'not-allowed' : 'pointer',
-                            WebkitAppearance: 'none',
+                            ...STYLES.addButton, 
+                            padding: '8px 16px', 
+                            fontSize: '14px',    
                             opacity: isLoadingDetails ? 0.6 : 1
                           }}
+                           onMouseEnter={(e) => { if(!isLoadingDetails) e.currentTarget.style.backgroundColor = COLORS.addButtonHover; }}
+                           onMouseLeave={(e) => { if(!isLoadingDetails) e.currentTarget.style.backgroundColor = COLORS.addButtonBg; }}
                         >
                           {isLoadingDetails ? 'Adding...' : 'Add'}
                         </button>
                       </div>
                       
-                      {/* Show any errors for this specific restaurant */}
                       {restaurantErrors.has(result.place_id) && (
                         <div className="mt-2 p-2 bg-red-500/20 rounded">
                           <p style={{
@@ -538,20 +529,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 </div>
               )}
 
-              {/* Empty state */}
-              {filteredAndSortedRestaurants.length === 0 && searchResults.length === 0 && (
-                <div className="text-center py-12">
-                  {showNoResults ? (
-                    <div>
-                      <div className="text-4xl mb-4">🔍</div>
-                      <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>
-                        No restaurants found for "{searchTerm}"
-                      </p>
-                      <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7, marginBottom: '16px'}}>
-                        {isSearching ? 'Still searching online...' : 'Try a different search term or add this restaurant.'}
-                      </p>
-                    </div>
-                  ) : restaurants.length === 0 ? (
+
+              {filteredAndSortedRestaurants.length === 0 && searchResults.length === 0 && !hasSearchTerm && restaurants.length === 0 && (
+                 <div className="text-center py-12">
                     <div>
                       <div className="text-6xl mb-4">🍽️</div>
                       <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>
@@ -562,31 +542,35 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       </p>
                       <button
                         onClick={() => setShowAddForm(true)}
-                        style={{
-                          ...FONTS.elegant,
-                          backgroundColor: COLORS.primary,
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '12px',
-                          padding: '12px 24px',
-                          fontSize: '16px',
-                          fontWeight: '500',
-                          cursor: 'pointer',
-                          WebkitAppearance: 'none'
-                        }}
+                        style={STYLES.addButton} 
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
                       >
                         Add First Restaurant
                       </button>
                     </div>
-                  ) : null}
+                  </div>
+              )}
+               {filteredAndSortedRestaurants.length === 0 && searchResults.length === 0 && hasSearchTerm && (
+                 <div className="text-center py-12">
+                    <div>
+                      <div className="text-4xl mb-4">🔍</div>
+                      <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>
+                        No restaurants found for "{searchTerm}"
+                      </p>
+                      <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7, marginBottom: '16px'}}>
+                        {isSearching ? 'Still searching online...' : 'Try a different search term or add this restaurant.'}
+                      </p>
+                    </div>
                 </div>
               )}
+
             </div>
           )}
         </div>
       </main>
 
-      {/* Bottom Navigation */}
+
       <BottomNavigation 
         onNav={onNavigateToScreen} 
         activeScreenValue={currentAppScreen} 
@@ -594,5 +578,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>
   );
 };
+
 
 export default RestaurantScreen;

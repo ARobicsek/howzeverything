@@ -1,67 +1,64 @@
+// Updated HomeScreen with consistent button and icon styling
 // HomeScreen.tsx
 import React from 'react';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import type { NavigableScreenType, AppScreenType } from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, STYLES } from './constants';
+import { COLORS, FONTS, STYLES, SIZES } from './constants'; // Added SIZES
+
 
 interface HomeScreenProps {
   onNavigateToScreen: (screen: NavigableScreenType) => void;
   currentAppScreen: AppScreenType;
 }
 
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
-      {/* Header */}
-      <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-center">
-          <h1 className="text-xl text-center flex-1 tracking-wide" style={{...FONTS.elegant, color: COLORS.text}}>
-            Howzeverything
-          </h1>
-        </div>
-      </header>
+      {/* Header Removed */}
 
       {/* Main Content */}
-      <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-        <div className="max-w-md mx-auto space-y-8">
-          {/* Logo Section */}
-          <div className="flex justify-center" style={{ marginTop: '32px' }}>
+      <main 
+        className="flex-1 px-4 sm:px-6 flex flex-col items-center" 
+        style={{ 
+          paddingTop: SIZES['3xl'], // Added padding to the top
+          paddingBottom: STYLES.mainContentPadding 
+        }}
+      >
+        <div className="max-w-md mx-auto w-full text-center flex flex-col items-center" style={{ gap: SIZES['2xl'] /* Space between logo and button */ }}>
+          {/* Logo Section - Moved to top, increased size slightly */}
+          <div className="flex justify-center">
             <img
-              src="/logo.png"
+              src="/logo.png" 
               alt="Howzeverything Logo"
-              className="mx-auto"
-              style={{ 
-                width: '10rem', 
-                height: '10rem', 
-                maxWidth: '160px',
-                display: 'block'
+              style={{
+                maxWidth: '180px', // Slightly larger logo
+                height: 'auto',    
               }}
             />
           </div>
 
-          {/* Action Button Section */}
-          <div className="flex justify-center">
+
+          {/* Action Button Section - Moved up, colored blue */}
+          <div className="flex justify-center w-full">
             <button
               onClick={() => onNavigateToScreen('restaurants')}
               className="transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
               style={{
-                ...STYLES.primaryButton,
-                background: 'white',
-                color: COLORS.textDark,
+                ...STYLES.addButton, // Use consistent blue add button style
                 fontSize: '1.125rem',
-                fontWeight: '300',
-                maxWidth: '280px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                border: 'none',
-                cursor: 'pointer'
+                fontWeight: '500', 
+                maxWidth: '320px', // Adjusted maxWidth slightly
+                width: '100%', 
+                boxShadow: '0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 6px 10px -5px rgba(0, 0, 0, 0.04)', // Adjusted shadow
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.background = '#f9fafb';
+                e.currentTarget.style.transform = 'scale(1.03)'; // Slightly less aggressive hover scale
+                e.currentTarget.style.backgroundColor = COLORS.addButtonHover; 
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.backgroundColor = COLORS.addButtonBg;
               }}
             >
               Find or Add a Restaurant
@@ -70,13 +67,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
         </div>
       </main>
 
+
       {/* Bottom Navigation */}
-      <BottomNavigation 
-        onNav={onNavigateToScreen} 
-        activeScreenValue={currentAppScreen} 
+      <BottomNavigation  
+        onNav={onNavigateToScreen}  
+        activeScreenValue={currentAppScreen}  
       />
     </div>
   );
 };
+
 
 export default HomeScreen;

@@ -1,90 +1,159 @@
-// src/constants.ts
-// Shared constants for consistent styling across the app
-
+// Updated constants with restored original color scheme and consistent button styling
+// This goes in src/constants.ts
 export const COLORS = {
-  background: '#b0afa7',
-  text: '#363738',
-  textWhite: '#FFFFFF',
-  textDark: '#374151',
-  danger: '#EF4444',
-  success: '#10B981', // Original Green, kept for other uses (e.g. Add Dish form save)
-  successHover: '#059669',
-  disabled: '#D1D5DB',
-  primary: '#60A5FA',         // Blue for "Add Comment" / "Hide Comments"
-  primaryHover: '#3B82F6',
-  secondary: '#6b7280',
-  secondaryHover: '#4b5563',
-  navBar: '#5c5d5e',
-  star: '#fbbf24',
-  starEmpty: '#d1d5db',
-  viewCommentsBg: '#968875',       // UPDATED: New color for "View Comments"
-  viewCommentsBgHover: '#827563', // UPDATED: Darker version for hover
+// Core colors (restored to original, background updated)
+background: '#aeaea6', // USER MODIFIED from '#0f172a'
+text: '#34343b', // USER MODIFIED
+textWhite: '#ffffff',
+textDark: '#1e293b',
+primary: '#3b82f6',
+secondary: '#64748b',
+danger: '#ef4444',
+// Rating colors - keeping dual system for personal vs community
+star: '#3b82f6', // Blue for personal ratings
+starEmpty: '#edeadd', // USER MODIFIED
+// Community rating colors
+starCommunity: '#fbbf24', // Gold for community ratings
+starCommunityEmpty: '#edeadd', // USER MODIFIED
+// Action colors
+success: '#10b981',
+warning: '#f59e0b',
+info: '#3b82f6',
+// Background variations
+cardBg: 'rgba(0, 0, 0, 0.07)', // Adjusted for lighter background
+cardBgHover: 'rgba(0, 0, 0, 0.12)', // Adjusted
+inputBg: 'rgba(255, 255, 255, 0.95)',
+// Icon colors (restored to original)
+iconPrimary: '#000000', // Black icons
+iconBackground: '#ffffff', // White backgrounds for icon buttons
+// Comment and interaction colors
+viewCommentsBg: '#475569',
+disabled: '#6b7280',
+// State colors for different interaction states
+highlight: 'rgba(59, 130, 246, 0.1)',
+border: 'rgba(0, 0, 0, 0.2)', // Darker border for lighter background
+borderFocus: 'rgba(0, 0, 0, 0.4)', // Darker focus border
+// Button colors for consistency
+addButtonBg: '#3b82f6', // Blue background for all add buttons
+addButtonText: '#ffffff', // White text for all add buttons
+addButtonHover: '#2563eb', // Darker blue on hover
+// Navigation Bar Color
+navBar: '#34343b', // USER MODIFIED
 };
-
 export const FONTS = {
-  elegant: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontWeight: '300' as const,
-    letterSpacing: '0.025em',
-  }
+elegant: {
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+letterSpacing: '0.01em',
+},
+heading: {
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+fontWeight: '600',
+letterSpacing: '-0.025em',
+},
+body: {
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+lineHeight: '1.6',
+}
 };
-
 export const STYLES = {
-  mainContentPadding: '90px',
-  
-  primaryButton: { 
-    background: COLORS.primary,
-    color: COLORS.textWhite,
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '1rem', 
-    fontSize: '1rem',
-    fontWeight: '400' as const,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-    transition: 'all 0.2s ease-in-out',
-    padding: '0.75rem 1.5rem', 
-    width: '100%',
-  },
-  
-  cardButton: {
-    background: COLORS.text,
-    color: COLORS.textWhite,
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '0.75rem',
-    fontSize: '0.875rem',
-    fontWeight: '400' as const,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-    transition: 'all 0.2s ease-in-out',
-    padding: '0.625rem 1.25rem',
-  },
-  
-  formButton: {
-    color: COLORS.textWhite,
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '1rem',
-    fontSize: '1rem',
-    fontWeight: '300' as const,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    transition: 'all 0.3s ease',
-    padding: '0.75rem 1.5rem',
-  },
-  
-  secondaryButton: {
-    background: COLORS.secondary,
-    color: COLORS.textWhite,
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '1rem',
-    fontSize: '1rem',
-    fontWeight: '300' as const,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.3s ease',
-    padding: '0.75rem 1.5rem',
-  }
+// Navigation and layout
+mainContentPadding: '80px', // For bottom navigation space
+headerHeight: '60px',
+// Animation durations
+animationFast: '150ms',
+animationNormal: '300ms',
+animationSlow: '500ms',
+// Border radius
+borderRadiusSmall: '6px',
+borderRadiusMedium: '12px',
+borderRadiusLarge: '16px',
+// Shadows
+shadowSmall: '0 1px 3px rgba(0, 0, 0, 0.1)',
+shadowMedium: '0 4px 6px rgba(0, 0, 0, 0.1)',
+shadowLarge: '0 10px 15px rgba(0, 0, 0, 0.1)',
+// Z-index values
+zModal: 1000,
+zDropdown: 100,
+zHeader: 10,
+zDefault: 1,
+// Consistent button styles
+addButton: {
+backgroundColor: '#3b82f6', // Blue
+color: '#ffffff', // White
+border: 'none',
+borderRadius: '12px',
+padding: '12px 24px',
+fontSize: '1rem',
+fontWeight: '500',
+cursor: 'pointer',
+transition: 'all 0.3s ease',
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+},
+// Icon button styles
+iconButton: {
+backgroundColor: '#ffffff', // White background
+color: '#000000', // Black icon
+border: 'none',
+borderRadius: '50%',
+width: '40px',
+height: '40px',
+cursor: 'pointer',
+display: 'flex',
+alignItems: 'center',
+justifyContent: 'center',
+transition: 'all 0.2s ease',
+},
+// Primary button (for main actions like "Find or Add a Restaurant")
+primaryButton: { // Note: This style is used by HomeScreen button, will be overridden for color below
+borderRadius: '12px',
+padding: '16px 32px',
+border: 'none',
+cursor: 'pointer',
+transition: 'all 0.3s ease',
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+},
+// Secondary button
+secondaryButton: {
+backgroundColor: '#64748b',
+color: '#f1f5f9',
+border: '1px solid rgba(241, 245, 249, 0.3)', // This border might be too light on new background
+borderRadius: '12px',
+padding: '12px 24px',
+fontSize: '0.9rem',
+fontWeight: '500',
+cursor: 'pointer',
+transition: 'all 0.3s ease',
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+},
+// Form button
+formButton: {
+borderRadius: '12px',
+padding: '12px 24px',
+fontSize: '0.9rem',
+fontWeight: '500',
+border: 'none',
+cursor: 'pointer',
+transition: 'all 0.3s ease',
+color: '#ffffff',
+fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+}
+};
+// Size definitions for consistent spacing
+export const SIZES = {
+xs: '0.5rem', // 8px
+sm: '0.75rem', // 12px
+md: '1rem', // 16px
+lg: '1.25rem', // 20px
+xl: '1.5rem', // 24px
+'2xl': '2rem', // 32px
+'3xl': '3rem', // 48px
+'4xl': '4rem', // 64px
+};
+// Breakpoints for responsive design
+export const BREAKPOINTS = {
+sm: '640px',
+md: '768px',
+lg: '1024px',
+xl: '1280px',
+'2xl': '1536px',
 };
