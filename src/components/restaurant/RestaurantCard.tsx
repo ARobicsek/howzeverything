@@ -37,7 +37,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
   const handleViewWebsite = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the menu navigation
+    e.stopPropagation(); 
     if (restaurant.website_url) {
       window.open(restaurant.website_url, '_blank', 'noopener,noreferrer');
     }
@@ -78,7 +78,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             </h2>
           </button>
           
-          {/* Address */}
           {restaurant.address && (
             <p 
               className="text-sm mb-2"
@@ -94,7 +93,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             </p>
           )}
           
-          {/* Date Added - SIMPLIFIED: Removed "Added" text */}
           <p 
             className="text-xs" 
             style={{
@@ -109,9 +107,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </p>
         </div>
 
-        {/* Right side with buttons arranged vertically */}
         <div className="flex flex-col justify-between flex-shrink-0 h-full" style={{ marginLeft: '20px', minHeight: '80px' }}>
-          {/* Delete Button - Top */}
           <button
             onClick={handleDelete}
             className="p-2 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none"
@@ -125,17 +121,15 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             </svg>
           </button>
           
-          {/* Spacer to push website button to bottom */}
           <div className="flex-1"></div>
           
-          {/* View Website Button - Bottom */}
           {restaurant.website_url && (
             <button
               onClick={handleViewWebsite}
               className="p-2 rounded-full hover:bg-blue-500/20 transition-colors focus:outline-none"
               aria-label={`View ${restaurant.name} website`}
               style={{ color: COLORS.primary }}
-              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primaryHover}
+              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.addButtonHover} // Use darker blue for text/icon hover
               onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary}
               title="View Menu Online"
             >

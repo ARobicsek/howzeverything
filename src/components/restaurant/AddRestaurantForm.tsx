@@ -1,4 +1,4 @@
-// src/components/AddRestaurantForm.tsx
+// src/components/restaurant/AddRestaurantForm.tsx
 import React, { useState } from 'react';
 import { COLORS, FONTS, STYLES } from '../../constants';
 
@@ -19,6 +19,7 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
     if (restaurantName.trim()) {
       await onSubmit(restaurantName);
       setRestaurantName('');
+      // Assuming onToggleShow is called by the parent if form needs to hide after submit
     }
   };
 
@@ -33,15 +34,10 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
         <div className="flex justify-center">
           <button
             onClick={onToggleShow}
-            className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full text-white"
-            style={{
-              ...STYLES.primaryButton,
-              background: COLORS.primary,
-              padding: '0.6rem 1.5rem',
-              fontSize: '1rem'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = COLORS.primaryHover}
-            onMouseLeave={(e) => e.currentTarget.style.background = COLORS.primary}
+            className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full"
+            style={STYLES.addButton} // Use consistent blue add button style
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
           >
             + Add New Restaurant
           </button>
@@ -54,12 +50,12 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
               value={restaurantName}
               onChange={(e) => setRestaurantName(e.target.value)}
               placeholder="Enter restaurant name..."
-              className="px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 text-gray-800 w-full"
+              className="px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full"
               style={{
                 background: 'white',
                 fontSize: '1rem',
                 ...FONTS.elegant,
-                color: COLORS.textDark
+                color: COLORS.textDark 
               }}
               autoFocus
               onKeyPress={(e) => {
@@ -73,14 +69,14 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
               disabled={!restaurantName.trim()}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
-                ...STYLES.formButton,
-                background: !restaurantName.trim() ? COLORS.disabled : COLORS.success
+                ...STYLES.addButton, // Standardize to blue button
+                backgroundColor: !restaurantName.trim() ? COLORS.disabled : COLORS.addButtonBg
               }}
               onMouseEnter={(e) => {
-                if (restaurantName.trim()) e.currentTarget.style.background = COLORS.successHover;
+                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonHover;
               }}
               onMouseLeave={(e) => {
-                if (restaurantName.trim()) e.currentTarget.style.background = COLORS.success;
+                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonBg;
               }}
             >
               Save Restaurant
@@ -89,8 +85,8 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
               onClick={handleCancel}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={STYLES.secondaryButton}
-              onMouseEnter={(e) => e.currentTarget.style.background = COLORS.secondaryHover}
-              onMouseLeave={(e) => e.currentTarget.style.background = COLORS.secondary}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.secondaryHover} // Use defined secondaryHover
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.secondary}
             >
               Cancel
             </button>

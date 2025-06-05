@@ -1,7 +1,6 @@
-// Updated RestaurantSearchResults with consistent button styling
 // src/components/restaurant/RestaurantSearchResults.tsx
 import React from 'react';
-import { COLORS, FONTS, STYLES } from '../../constants';
+import { COLORS, FONTS } from '../../constants'; // STYLES removed as it's unused
 
 interface GeoapifyPlace {
   place_id: string;
@@ -65,14 +64,13 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
   };
 
   const getDistanceDisplay = (lat: number, lon: number) => {
-    // Seattle coordinates for distance calculation
     const seattleLat = 47.6062;
     const seattleLon = -122.3321;
-    
+   
     const distance = Math.sqrt(
       Math.pow(lat - seattleLat, 2) + Math.pow(lon - seattleLon, 2)
-    ) * 69; // Rough miles conversion
-    
+    ) * 69; 
+   
     if (distance < 1) return 'Nearby';
     return `~${distance.toFixed(1)} mi`;
   };
@@ -84,7 +82,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
           Found {results.length} restaurants - tap to add:
         </p>
       </div>
-      
+     
       {isLoadingDetails && (
         <div className="text-center py-2 mb-4">
           <p style={{...FONTS.elegant, color: COLORS.primary, fontSize: '0.9rem'}}>
@@ -92,16 +90,15 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
           </p>
         </div>
       )}
-      
+     
       {results.map((restaurant) => {
         const hasError = restaurantErrors.has(restaurant.place_id);
         const errorMessage = restaurantErrors.get(restaurant.place_id);
-        
+       
         return (
           <div key={restaurant.place_id}>
-            {/* Error message above restaurant card */}
             {hasError && errorMessage && (
-              <div 
+              <div
                 className="bg-red-500/20 p-3 rounded-lg mb-2 text-center"
                 style={{
                   border: `1px solid ${COLORS.danger}40`
@@ -112,18 +109,16 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                 </p>
               </div>
             )}
-            
-            {/* Restaurant card */}
-            <div 
+           
+            <div
               className="bg-white/5 backdrop-blur-sm p-4 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               onClick={() => onSelectRestaurant(restaurant)}
-              style={{ 
+              style={{
                 opacity: (isImporting || isLoadingDetails) ? 0.6 : 1,
                 border: hasError ? `1px solid ${COLORS.danger}40` : 'none'
               }}
             >
               <div className="flex items-start gap-3">
-                {/* Restaurant Icon */}
                 <div className="flex-shrink-0">
                   <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center">
                     <span style={{color: COLORS.text, opacity: 0.6, fontSize: '1.5rem'}}>
@@ -131,10 +126,9 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                     </span>
                   </div>
                 </div>
-                
-                {/* Restaurant Info */}
+               
                 <div className="flex-1 min-w-0">
-                  <h3 
+                  <h3
                     className="font-medium mb-1"
                     style={{
                       ...FONTS.elegant,
@@ -146,8 +140,8 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   >
                     {restaurant.properties.name}
                   </h3>
-                  
-                  <p 
+                 
+                  <p
                     className="text-sm mb-2"
                     style={{
                       ...FONTS.elegant,
@@ -159,7 +153,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   >
                     {restaurant.properties.formatted}
                   </p>
-                  
+                 
                   <div className="flex flex-wrap gap-2 mb-2">
                     <span
                       className="px-2 py-1 rounded-md text-xs"
@@ -172,7 +166,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                     >
                       {getCategoryDisplay(restaurant.properties.categories)}
                     </span>
-                    
+                   
                     <span
                       className="px-2 py-1 rounded-md text-xs"
                       style={{
@@ -186,13 +180,12 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                     </span>
                   </div>
                 </div>
-                
-                {/* UPDATED: Add Button with consistent blue styling */}
+               
                 <div className="flex-shrink-0">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{ 
-                      background: hasError ? COLORS.danger : COLORS.addButtonBg // Blue background
+                    style={{
+                      background: hasError ? COLORS.danger : COLORS.addButtonBg 
                     }}
                   >
                     {hasError ? (
@@ -211,7 +204,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
           </div>
         );
       })}
-      
+     
       <div className="text-center pt-2">
         <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6, fontSize: '0.7rem'}}>
           Powered by Geoapify • Data from OpenStreetMap

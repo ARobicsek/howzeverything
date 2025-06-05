@@ -1,10 +1,9 @@
-// Enhanced DishCard component with consistent button styling
-// This goes in src/components/DishCard.tsx
-
+// src/components/DishCard.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { COLORS, FONTS, STYLES } from '../constants';
 import CommentForm from './CommentForm';
-import type { DishComment, DishWithDetails, DishRating } from '../hooks/useDishes';
+// DishComment removed from this import line as it caused TS6196. It's used implicitly.
+import type { DishWithDetails, DishRating } from '../hooks/useDishes';
 
 interface DishCardProps {
   dish: DishWithDetails;
@@ -17,10 +16,9 @@ interface DishCardProps {
   isSubmittingComment: boolean;
 }
 
-// Enhanced StarRating component that shows different visual states
-const StarRating: React.FC<{   
-  rating: number;   
-  onRatingChange?: (rating: number) => void;   
+const StarRating: React.FC<{  
+  rating: number;  
+  onRatingChange?: (rating: number) => void;  
   readonly?: boolean;
   variant?: 'personal' | 'community';
   size?: 'sm' | 'md' | 'lg';
@@ -30,7 +28,7 @@ const StarRating: React.FC<{
     md: '1.2rem',
     lg: '1.4rem'
   };
-  
+ 
   const colorMap = {
     personal: { filled: COLORS.star, empty: COLORS.starEmpty },
     community: { filled: COLORS.starCommunity, empty: COLORS.starCommunityEmpty }
@@ -39,29 +37,28 @@ const StarRating: React.FC<{
   return (
     <div className="flex gap-px">
       {[1, 2, 3, 4, 5].map((star) => (
-        <button   
-          key={star}   
-          onClick={() => !readonly && onRatingChange?.(star)}   
-          disabled={readonly}   
-          className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-105 focus:outline-none'}`}   
-          style={{   
-            color: star <= rating ? colorMap[variant].filled : colorMap[variant].empty,   
-            background: 'none',   
-            border: 'none',   
-            padding: '0 1px',   
+        <button  
+          key={star}  
+          onClick={() => !readonly && onRatingChange?.(star)}  
+          disabled={readonly}  
+          className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-105 focus:outline-none'}`}  
+          style={{  
+            color: star <= rating ? colorMap[variant].filled : colorMap[variant].empty,  
+            background: 'none',  
+            border: 'none',  
+            padding: '0 1px',  
             fontSize: sizeMap[size],
-            lineHeight: '1'   
-          }}   
-          aria-label={readonly ? `${rating} of 5 stars` : `Rate ${star} of 5 stars`}   
-        >   
-          ★   
-        </button>   
+            lineHeight: '1'  
+          }}  
+          aria-label={readonly ? `${rating} of 5 stars` : `Rate ${star} of 5 stars`}  
+        >  
+          ★  
+        </button>  
       ))}
     </div>
   );
 };
 
-// New component to show rating breakdown
 const RatingBreakdown: React.FC<{
   personalRating: number | null;
   communityAverage: number;
@@ -69,7 +66,6 @@ const RatingBreakdown: React.FC<{
   onUpdatePersonalRating: (rating: number) => void;
 }> = ({ personalRating, communityAverage, totalRatings, onUpdatePersonalRating }) => (
   <div className="space-y-3">
-    {/* Personal Rating Section */}
     <div className="bg-white/5 p-3 rounded-lg">
       <div className="flex items-center justify-between mb-2">
         <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>
@@ -96,7 +92,6 @@ const RatingBreakdown: React.FC<{
       </div>
     </div>
 
-    {/* Community Rating Section */}
     <div className="bg-white/5 p-3 rounded-lg">
       <div className="flex items-center justify-between mb-2">
         <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>
@@ -118,7 +113,6 @@ const RatingBreakdown: React.FC<{
   </div>
 );
 
-// Enhanced DishHeader with better rating display
 const DishHeader: React.FC<{
   name: string;
   dateAdded: string;
@@ -131,49 +125,48 @@ const DishHeader: React.FC<{
   <div className="mb-4">
     <div className="flex items-start justify-between mb-3">
       <div className="flex-1 min-w-0 pr-6">
-        <h3   
-          style={{   
-            ...FONTS.elegant,   
-            fontWeight: '500',   
-            color: COLORS.text,   
+        <h3  
+          style={{  
+            ...FONTS.elegant,  
+            fontWeight: '500',  
+            color: COLORS.text,  
             fontSize: '1.1rem',
-            lineHeight: '1.3',   
-            margin: 0,   
-            wordWrap: 'break-word',   
-            hyphens: 'auto'   
-          }}   
-          className="break-words"   
-        >   
-          {name}   
-        </h3>   
-        <p className="text-xs mt-1" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.5, lineHeight: '1.3', fontSize: '0.7rem' }}>   
-          Added {new Date(dateAdded).toLocaleDateString()}   
+            lineHeight: '1.3',  
+            margin: 0,  
+            wordWrap: 'break-word',  
+            hyphens: 'auto'  
+          }}  
+          className="break-words"  
+        >  
+          {name}  
+        </h3>  
+        <p className="text-xs mt-1" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.5, lineHeight: '1.3', fontSize: '0.7rem' }}>  
+          Added {new Date(dateAdded).toLocaleDateString()}  
         </p>
-      </div>   
-      <div className="ml-4">   
-        <button   
-          onClick={onDelete}   
-          className="p-1.5 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"   
-          aria-label={`Delete ${name}`}   
-          style={{ color: COLORS.text }}   
-          onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}   
-          onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}   
-        >   
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>   
-        </button>   
-      </div>   
+      </div>  
+      <div className="ml-4">  
+        <button  
+          onClick={onDelete}  
+          className="p-1.5 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"  
+          aria-label={`Delete ${name}`}  
+          style={{ color: COLORS.text }}  
+          onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}  
+          onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}  
+        >  
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>  
+        </button>  
+      </div>  
     </div>
-    
+   
     <RatingBreakdown
       personalRating={personalRating}
       communityAverage={communityAverage}
       totalRatings={totalRatings}
       onUpdatePersonalRating={onUpdateRating}
     />
-  </div>   
+  </div>  
 );
 
-// Helper function to get user's personal rating
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {
   if (!userId) return null;
   const userRating = dishRatings.find(rating => rating.user_id === userId);
@@ -196,7 +189,6 @@ const DishCard: React.FC<DishCardProps> = ({
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // Get user's personal rating
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
 
   const handleDeleteDish = () => {
@@ -230,11 +222,11 @@ const DishCard: React.FC<DishCardProps> = ({
         setOpenActionMenuCommentId(null);
       }
     };
-      
+     
     if (openActionMenuCommentId) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-      
+     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -242,7 +234,7 @@ const DishCard: React.FC<DishCardProps> = ({
 
   return (
     <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors">
-      <DishHeader   
+      <DishHeader  
         name={dish.name}
         dateAdded={dish.dateAdded}
         onDelete={handleDeleteDish}
@@ -252,11 +244,10 @@ const DishCard: React.FC<DishCardProps> = ({
         onUpdateRating={(rating) => onUpdateRating(dish.id, rating)}
       />
 
-      {/* Photo placeholders section can stay the same */}
       <div className="flex gap-2 mt-3 mb-4">
         {[1, 2, 3].map(p => (
-          <div   
-            key={p}   
+          <div  
+            key={p}  
             className="w-16 h-16 bg-white/10 rounded-md border border-white/20 flex items-center justify-center flex-shrink-0"
           >
             <div style={{color: COLORS.text, opacity: 0.4}} className="text-xl">
@@ -266,14 +257,13 @@ const DishCard: React.FC<DishCardProps> = ({
         ))}
       </div>
 
-      {/* UPDATED: Comments section with consistent button styling */}
       <div className="flex justify-end gap-2 mb-3">
         {!showAddCommentForm && !editingComment && (
           <button
             onClick={() => setShowAddCommentForm(!showAddCommentForm)}
             className="flex items-center gap-1.5 text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"
             style={{
-              ...STYLES.addButton, // Using consistent add button style (blue)
+              ...STYLES.addButton, 
               fontSize: '0.875rem',
               padding: '8px 12px'
             }}
@@ -286,7 +276,7 @@ const DishCard: React.FC<DishCardProps> = ({
             Add Comment
           </button>
         )}
-        
+       
         {dish.dish_comments.length > 0 && !editingComment && (
           <button
             onClick={() => setShowComments(!showComments)}
@@ -296,7 +286,7 @@ const DishCard: React.FC<DishCardProps> = ({
               fontWeight: '500',
               fontSize: '0.875rem',
               padding: '8px 12px',
-              backgroundColor: showComments ? COLORS.primary : COLORS.viewCommentsBg, // Blue when active, gray when inactive
+              backgroundColor: showComments ? COLORS.primary : COLORS.viewCommentsBg, 
               color: COLORS.textWhite,
               border: 'none',
               borderRadius: '12px',
@@ -305,7 +295,7 @@ const DishCard: React.FC<DishCardProps> = ({
             }}
             onMouseEnter={(e) => {
               if (!showComments) {
-                e.currentTarget.style.backgroundColor = '#5b6574'; // Slightly lighter gray on hover
+                e.currentTarget.style.backgroundColor = '#5b6574'; 
               }
             }}
             onMouseLeave={(e) => {
@@ -327,7 +317,7 @@ const DishCard: React.FC<DishCardProps> = ({
             isLoading={isSubmittingComment}
           />
         )}
-          
+         
         {showComments && dish.dish_comments && dish.dish_comments.length > 0 && (
           <div className="space-y-3">
             {dish.dish_comments.map(comment => (
