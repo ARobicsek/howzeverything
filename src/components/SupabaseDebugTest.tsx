@@ -3,8 +3,7 @@ import React, { useState } from 'react'
 import { supabase, withTimeout } from '../supabaseClient'  
 import { COLORS, FONTS } from '../constants'  
 import type { PostgrestSingleResponse } from '@supabase/supabase-js'  
-import type { DatabaseUser } from '../supabaseClient' // Assuming DatabaseUser from supabaseClient.ts  
-import type { Database } from '../types/supabase' // Import Database for precise row types
+import type { DatabaseUser } from '../supabaseClient' // Assuming DatabaseUser from supabaseClient.ts
 
 const SupabaseDebugTest: React.FC = () => {  
   const [results, setResults] = useState<string[]>([])  
