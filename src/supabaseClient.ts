@@ -1,5 +1,7 @@
 // src/supabaseClient.ts
 import { createClient } from '@supabase/supabase-js'
+import type { User, Session, PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js'
+import type { Database } from './types/supabase' // Import Database type-only
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -8,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
@@ -23,63 +25,22 @@ export const {
   storage: supabaseStorage
 } = supabase
 
-// Type definitions for our database schema
-export interface DatabaseUser {
-  id: string
-  email: string
-  full_name?: string | null
-  avatar_url?: string | null
-  bio?: string | null
-  location?: string | null
-  is_admin: boolean
-  created_at: string
-  updated_at: string
-}
+// Type definitions for our database schema - derived directly from 'Database' for consistency
+export type DatabaseUser = Database['public']['Tables']['users']['Row'];
+export type RestaurantDish = Database['public']['Tables']['restaurant_dishes']['Row'];
+export type DishRating = Database['public']['Tables']['dish_ratings']['Row'];
 
-export interface RestaurantDish {
-  id: string
-  restaurant_id: string
-  name: string
-  description?: string | null
-  category?: string | null
-  is_active: boolean
-  created_by: string
-  verified_by_restaurant: boolean
-  total_ratings: number
-  average_rating: number
-  created_at: string
-  updated_at: string
-}
+// Expanded Restaurant type for UI/Hooks - combines table row with additional derived/joined properties
+// Changed from interface extends to type intersection to fix ts(2499)
+export type Restaurant = Database['public']['Tables']['restaurants']['Row'] & {
+  // These fields are added by the `useRestaurants` hook logic,
+  // either from `user_favorite_restaurants` or `restaurants.created_at`.
+  dateAdded: string;
+  date_favorited?: string; // Explicitly from user_favorite_restaurants
+  // `created_by` is already in `Database['public']['Tables']['restaurants']['Row']`, so no need to redeclare
+  dishes?: RestaurantDish[]; // For joined queries, if any
+};
 
-export interface DishRating {
-  id: string
-  dish_id: string
-  user_id: string
-  rating: number
-  notes?: string | null
-  date_tried: string
-  created_at: string
-  updated_at: string
-}
-
-// Expanded Restaurant type to include the dishes relationship
-export interface Restaurant {
-  id: string
-  name: string
-  dateAdded: string
-  created_at: string
-  geoapify_place_id?: string | null
-  address?: string | null
-  phone?: string | null
-  website_url?: string | null
-  rating?: number | null
-  price_tier?: number | null
-  category?: string | null
-  opening_hours?: any
-  latitude?: number | null
-  longitude?: number | null
-  dishes?: RestaurantDish[] // For joined queries
-}
 
 // Combined types for UI components
 export interface DishWithRatings extends RestaurantDish {
@@ -118,5 +79,23 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }
+
+// Re-export specific types needed for other files from supabase-js
+export type { User, Session, PostgrestResponse, PostgrestSingleResponse }
+
+// NEW: withTimeout function
+export const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeoutError = new Error(`Query timed out after ${timeoutMs}ms`);
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => reject(timeoutError), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    clearTimeout(timeoutId!);
+  }
+};
 
 export default supabase

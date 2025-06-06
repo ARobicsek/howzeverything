@@ -14,7 +14,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
   const [validationError, setValidationError] = useState('')
 
   const validateForm = (): boolean => {
@@ -42,8 +42,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     }
 
     if (mode === 'signup') {
-      if (!fullName.trim()) {
-        setValidationError('Full name is required')
+      if (!username.trim()) {
+        setValidationError('Username is required')
+        return false
+      }
+
+      if (username.trim().length < 2) {
+        setValidationError('Username must be at least 2 characters')
         return false
       }
 
@@ -66,7 +71,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     if (mode === 'signin') {
       success = await signIn(email, password)
     } else {
-      success = await signUp(email, password, fullName.trim())
+      success = await signUp(email, password, username.trim())
     }
 
     if (success && onSuccess) {
@@ -80,6 +85,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     clearError()
     setPassword('')
     setConfirmPassword('')
+    setUsername('')
   }
 
   const displayError = validationError || error
@@ -161,13 +167,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 display: 'block',
                 marginBottom: '6px'
               }}>
-                Full Name
+                Username *
               </label>
               <input
                 type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Choose a username"
                 style={{
                   ...FONTS.elegant,
                   width: '100%',
@@ -181,6 +187,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 }}
                 disabled={loading}
               />
+              <p style={{
+                ...FONTS.elegant,
+                fontSize: '12px',
+                color: COLORS.textDark,
+                margin: '4px 0 0 0'
+              }}>
+                This name will be visible to other users
+              </p>
             </div>
           )}
 

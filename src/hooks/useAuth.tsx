@@ -1,11 +1,13 @@
 // src/hooks/useAuth.tsx
-import { useState, useEffect, useCallback } from 'react'
-import type { User, Session } from '@supabase/supabase-js'
-import { 
-  supabase, 
+import { useState, useEffect, useCallback, useRef } from 'react'
+import type { User, Session, PostgrestSingleResponse } from '@supabase/supabase-js'
+import {
+  supabase,
   type DatabaseUser,
-  signOut as supabaseSignOut 
+  signOut as supabaseSignOut,
+  withTimeout
 } from '../supabaseClient'
+
 
 interface AuthState {
   user: User | null
@@ -14,6 +16,7 @@ interface AuthState {
   loading: boolean
   error: string | null
 }
+
 
 interface AuthActions {
   signIn: (email: string, password: string) => Promise<boolean>
@@ -25,7 +28,9 @@ interface AuthActions {
   refreshProfile: () => Promise<void>
 }
 
+
 export type UseAuthReturn = AuthState & AuthActions
+
 
 export const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<User | null>(null)
@@ -33,87 +38,146 @@ export const useAuth = (): UseAuthReturn => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const loadingRef = useRef<string | null>(null)
 
-  // Load user profile from database
-  const loadUserProfile = useCallback(async (userId: string) => {
-    console.log('🔐 loadUserProfile: Starting for userId:', userId)
-    
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
-      
-      if (profileError) {
-        if (profileError.code === 'PGRST116') {
-          console.log('🔐 loadUserProfile: No profile exists yet for user')
-          setProfile(null)
-          return false // Profile doesn't exist
-        }
-        
-        console.error('🔐 loadUserProfile: Error loading profile:', profileError)
-        throw profileError
-      }
-      
-      if (profileData) {
-        console.log('🔐 loadUserProfile: Profile loaded successfully')
-        setProfile(profileData)
-        return true // Profile exists
-      }
-    } catch (err) {
-      console.error('🔐 loadUserProfile: Exception:', err)
-      setProfile(null)
+
+  // Load user profile from database with timeout
+  const loadUserProfile = useCallback(async (userId: string): Promise<boolean> => {
+    // Prevent duplicate loading
+    if (loadingRef.current === userId) {
+      console.log('🔐 loadUserProfile: Already loading for this user')
+      return false
     }
-    
-    return false
+   
+    loadingRef.current = userId
+    console.log('🔐 loadUserProfile: Starting for userId:', userId)
+   
+    try {
+      console.log('🔐 loadUserProfile: Creating query...')
+     
+      const result: PostgrestSingleResponse<DatabaseUser> = await withTimeout(
+        Promise.resolve(
+          supabase
+            .from('users')
+            .select('*') // Changed to explicit '*' to aid TypeScript inference
+            .eq('id', userId)
+            .single()
+        ),
+        5000
+      )
+     
+      console.log('🔐 loadUserProfile: Query completed', {
+        hasData: !!result.data,
+        errorCode: result.error?.code
+      })
+     
+      if (result.error) {
+        if (result.error.code === 'PGRST116' || result.error.code === '406') {
+          console.log('🔐 loadUserProfile: No profile exists yet for user or 406 error')
+          setProfile(null)
+          return false
+        }
+       
+        if (result.error.code !== '406') {
+          console.error('🔐 loadUserProfile: Error loading profile:', result.error)
+        }
+        setProfile(null)
+        return false
+      }
+     
+      if (result.data) {
+        console.log('🔐 loadUserProfile: Profile loaded successfully')
+        setProfile(result.data)
+        return true
+      }
+     
+      console.log('🔐 loadUserProfile: No profile data returned')
+      setProfile(null)
+      return false
+    } catch (err: any) {
+      console.error('🔐 loadUserProfile: Exception caught:', err)
+      if (err instanceof Error && err.message.includes('timeout')) {
+        console.error('🔐 loadUserProfile: Query timed out')
+      }
+      setProfile(null)
+      return false
+    } finally {
+      loadingRef.current = null
+    }
   }, [])
+
 
   // Initialize auth
   useEffect(() => {
     let isMounted = true
-    
+   
     console.log('🔐 useAuth: Initializing...')
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!isMounted) return
-      
-      if (error) {
-        console.error('🔐 Initial session error:', error)
-        setError(error.message)
-        setLoading(false)
-        return
-      }
 
-      console.log('🔐 Initial session:', session?.user?.email || 'No user')
-      
-      if (session?.user) {
-        setSession(session)
-        setUser(session.user)
-        // Load profile
-        loadUserProfile(session.user.id).finally(() => {
-          if (isMounted) setLoading(false)
-        })
-      } else {
-        setLoading(false)
-      }
-    })
+    const initializeAuth = async () => {
+      try {
+        console.log('🔐 useAuth: Getting session...')
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+       
+        if (!isMounted) return
+       
+        if (sessionError) {
+          console.error('🔐 Initial session error:', sessionError)
+          setError(sessionError.message)
+          setLoading(false)
+          return
+        }
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+
+        console.log('🔐 Initial session:', session?.user?.email || 'No user')
+       
+        if (session?.user) {
+          setSession(session)
+          setUser(session.user)
+         
+          console.log('🔐 useAuth: Loading profile in background...')
+          loadUserProfile(session.user.id).then(success => {
+            console.log('🔐 useAuth: Profile load completed:', success)
+          }).catch(err => {
+            console.error('🔐 useAuth: Profile load error (non-blocking):', err)
+          })
+        }
+       
+        if (isMounted) {
+          console.log('🔐 useAuth: Setting loading to false')
+          setLoading(false)
+        }
+      } catch (err: any) {
+        console.error('🔐 useAuth: Initialize error:', err)
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to initialize auth')
+          setLoading(false)
+        }
+      }
+    }
+
+
+    initializeAuth()
+
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return
-      
+     
       console.log('🔐 Auth event:', _event)
-      
+     
       if (session?.user) {
         setSession(session)
         setUser(session.user)
         setError(null)
-        
-        // Only load profile on significant events
+       
         if (_event === 'SIGNED_IN' || _event === 'USER_UPDATED') {
-          loadUserProfile(session.user.id)
+          setTimeout(() => {
+            if (isMounted) {
+              loadUserProfile(session.user.id).catch(err => {
+                console.error('🔐 Profile load error on auth change:', err)
+              })
+            }
+          }, 500)
         }
       } else {
         setSession(null)
@@ -122,22 +186,25 @@ export const useAuth = (): UseAuthReturn => {
       }
     })
 
+
     return () => {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, []) // Empty deps, run once
+  }, [loadUserProfile])
 
-  // Sign in
+
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true)
       setError(null)
 
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password
       })
+
 
       if (signInError) {
         setError(signInError.message)
@@ -145,20 +212,22 @@ export const useAuth = (): UseAuthReturn => {
         return false
       }
 
-      // Auth state change will handle the rest
+
+      setLoading(false)
       return !!data.user
-    } catch (err) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to sign in')
       setLoading(false)
       return false
     }
   }, [])
 
-  // Sign up
+
   const signUp = useCallback(async (email: string, password: string, fullName?: string): Promise<boolean> => {
     try {
       setLoading(true)
       setError(null)
+
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -170,36 +239,40 @@ export const useAuth = (): UseAuthReturn => {
         }
       })
 
+
       if (signUpError) {
         setError(signUpError.message)
         setLoading(false)
         return false
       }
 
+
       if (data.user && !data.user.email_confirmed_at) {
         setError('Please check your email and click the confirmation link to complete registration.')
       }
 
+
+      setLoading(false)
       return !!data.user
-    } catch (err) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to sign up')
       setLoading(false)
       return false
     }
   }, [])
 
-  // Sign out
+
   const signOut = useCallback(async (): Promise<void> => {
     try {
       setError(null)
       await supabaseSignOut()
-    } catch (err) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to sign out')
       throw err
     }
   }, [])
 
-  // Create profile
+
   const createProfile = useCallback(async (profileData: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user) {
@@ -207,16 +280,18 @@ export const useAuth = (): UseAuthReturn => {
         return false
       }
 
+
       setError(null)
-      
-      // First check if profile already exists
+     
       const profileExists = await loadUserProfile(user.id)
       if (profileExists) {
         console.log('🔐 createProfile: Profile already exists')
         return true
       }
-      
-      const { data, error: createError } = await supabase
+     
+      console.log('🔐 createProfile: Creating new profile...')
+     
+      const { data, error: createError }: PostgrestSingleResponse<DatabaseUser> = await supabase
         .from('users')
         .insert({
           id: user.id,
@@ -230,26 +305,31 @@ export const useAuth = (): UseAuthReturn => {
         .select()
         .single()
 
+
       if (createError) {
-        if (createError.code === '23505') {
-          // Duplicate key - profile already exists
+        if (createError.code === '23505' || createError.code === '406') {
+          console.log('🔐 createProfile: Profile already exists or 406 error - reloading')
           await loadUserProfile(user.id)
           return true
         }
-        
+       
+        console.error('🔐 createProfile: Error:', createError)
         setError(`Failed to create profile: ${createError.message}`)
         return false
       }
 
+
+      console.log('🔐 createProfile: Profile created successfully')
       setProfile(data)
       return true
-    } catch (err) {
+    } catch (err: any) {
+      console.error('🔐 createProfile: Exception:', err)
       setError(err instanceof Error ? err.message : 'Failed to create profile')
       return false
     }
   }, [user, loadUserProfile])
 
-  // Update profile
+
   const updateProfile = useCallback(async (updates: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user || !profile) {
@@ -257,9 +337,11 @@ export const useAuth = (): UseAuthReturn => {
         return false
       }
 
+
       setError(null)
 
-      const { data, error: updateError } = await supabase
+
+      const { data, error: updateError }: PostgrestSingleResponse<DatabaseUser> = await supabase
         .from('users')
         .update({
           ...updates,
@@ -269,30 +351,33 @@ export const useAuth = (): UseAuthReturn => {
         .select()
         .single()
 
+
       if (updateError) {
         setError(`Failed to update profile: ${updateError.message}`)
         return false
       }
 
+
       setProfile(data)
       return true
-    } catch (err) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to update profile')
       return false
     }
   }, [user, profile])
 
-  // Refresh profile
+
   const refreshProfile = useCallback(async (): Promise<void> => {
     if (user) {
       await loadUserProfile(user.id)
     }
   }, [user, loadUserProfile])
 
-  // Clear error
+
   const clearError = useCallback(() => {
     setError(null)
   }, [])
+
 
   return {
     user,

@@ -1,15 +1,20 @@
-// Enhanced useDishes hook with better personal vs community rating handling
+// Enhanced useDishes hook with username display in comments
 // This goes in src/hooks/useDishes.tsx
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-// Keep existing interfaces but enhance them
+// Updated interfaces to include user information in comments
 export interface DishComment {
   id: string;
+  dish_id: string; // Added missing property
   comment_text: string;
   created_at: string;
   updated_at: string;
+  user_id: string;
+  // User information joined from users table
+  commenter_name?: string;
+  commenter_email?: string;
 }
 
 export interface DishRating {
@@ -41,7 +46,6 @@ export interface RestaurantDish {
 export interface DishWithDetails extends RestaurantDish {
   dish_comments: DishComment[];
   dish_ratings: DishRating[];
-  // Remove the old 'rating' field to avoid confusion
   dateAdded: string;
 }
 
@@ -74,27 +78,33 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         setIsLoading(false);
         return;
       }
-        
+      
       setIsLoading(true);
       setError(null);
-        
+      
       try {
         const { data, error: fetchError } = await supabase
           .from('restaurant_dishes')
           .select(`
             *,
             dish_comments (
-              id, 
-              comment_text, 
-              created_at, 
-              updated_at
+              id,
+              dish_id,
+              comment_text,
+              created_at,
+              updated_at,
+              user_id,
+              users (
+                full_name,
+                email
+              )
             ),
             dish_ratings (
-              id, 
-              user_id, 
-              rating, 
-              notes, 
-              date_tried, 
+              id,
+              user_id,
+              rating,
+              notes,
+              date_tried,
               created_at,
               updated_at,
               dish_id
@@ -110,11 +120,11 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
           .order('created_at', { foreignTable: 'dish_ratings', ascending: false });
 
         if (fetchError) throw fetchError;
-          
+        
         const dishesWithDetails = data?.map(d => {
           const ratings = (d.dish_ratings as DishRating[]) || [];
           const actualTotalRatings = ratings.length;
-          const actualAverageRating = actualTotalRatings > 0 
+          const actualAverageRating = actualTotalRatings > 0
             ? ratings.reduce((sum, r) => sum + r.rating, 0) / actualTotalRatings
             : 0;
 
@@ -127,9 +137,21 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
             console.log('Database stored average:', d.average_rating);
           }
 
+          // Process comments to include user information
+          const commentsWithUserInfo = (d.dish_comments as any[])?.map(comment => ({
+            id: comment.id,
+            dish_id: comment.dish_id || d.id, // Ensure dish_id is always present
+            comment_text: comment.comment_text,
+            created_at: comment.created_at,
+            updated_at: comment.updated_at,
+            user_id: comment.user_id,
+            commenter_name: comment.users?.full_name || 'Anonymous User',
+            commenter_email: comment.users?.email
+          })) || [];
+
           return {
             ...d,
-            dish_comments: (d.dish_comments as DishComment[]) || [],
+            dish_comments: commentsWithUserInfo,
             dish_ratings: ratings,
             // Use calculated values from actual ratings for consistency
             total_ratings: actualTotalRatings,
@@ -137,7 +159,7 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
             dateAdded: d.created_at
           };
         }) || [];
-          
+        
         setDishes(dishesWithDetails as DishWithDetails[]);
       } catch (err: any) {
         console.error('Error fetching dishes:', err);
@@ -181,8 +203,8 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         searchWords.forEach(searchWord => {
           if (dishWords.some(dishWord => dishWord === searchWord)) {
             wordMatches++;
-          } else if (dishWords.some(dishWord => 
-            dishWord.includes(searchWord) || 
+          } else if (dishWords.some(dishWord =>
+            dishWord.includes(searchWord) ||
             searchWord.includes(dishWord) ||
             // Handle common character substitutions
             dishWord.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e') === searchWord
@@ -230,7 +252,7 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
 
   const addDish = async (name: string, rating: number) => {
     if (!name.trim()) return false;
-      
+    
     setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -290,7 +312,7 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
           average_rating: rating,
           dateAdded: dishData.created_at
         };
-          
+        
         setDishes(prev => [newDish, ...prev].sort((a, b) => {
           if (sortBy === 'name') return a.name.localeCompare(b.name);
           if (sortBy === 'rating') return b.average_rating - a.average_rating;
@@ -314,16 +336,16 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         setError('You must be logged in to delete dishes');
         return false;
       }
-        
+      
       const dish = dishes.find(d => d.id === dishId);
-        
+      
       if (dish && user && dish.created_by !== user.id) {
         const { data: profile } = await supabase
           .from('users')
           .select('is_admin')
           .eq('id', user.id)
           .single();
-            
+        
         if (!profile?.is_admin) {
           setError('You can only delete dishes you created');
           return false;
@@ -334,9 +356,9 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         .from('restaurant_dishes')
         .delete()
         .eq('id', dishId);
-          
+      
       if (error) throw error;
-        
+      
       setDishes(prev => prev.filter(dish => dish.id !== dishId));
       return true;
     } catch (err: any) {
@@ -380,9 +402,9 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
         if (dish.id === dishId) {
           // Update or add the user's rating
           const updatedRatings = dish.dish_ratings.some(r => r.user_id === user.id)
-            ? dish.dish_ratings.map(r => 
-                r.user_id === user.id 
-                  ? { ...r, rating: newRating, updated_at: new Date().toISOString() } 
+            ? dish.dish_ratings.map(r =>
+                r.user_id === user.id
+                  ? { ...r, rating: newRating, updated_at: new Date().toISOString() }
                   : r
               )
             : [...dish.dish_ratings, {
@@ -398,7 +420,7 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
           
           // Calculate new averages
           const totalRatings = updatedRatings.length;
-          const averageRating = totalRatings > 0 
+          const averageRating = totalRatings > 0
             ? updatedRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
             : 0;
           
@@ -430,11 +452,11 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
               total_ratings,
               average_rating,
               dish_ratings (
-                id, 
-                user_id, 
-                rating, 
-                notes, 
-                date_tried, 
+                id,
+                user_id,
+                rating,
+                notes,
+                date_tried,
                 created_at,
                 updated_at,
                 dish_id
@@ -448,7 +470,7 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
             // This is the source of truth, not the database fields which might be stale
             const ratings = refreshedDish.dish_ratings as DishRating[];
             const actualTotalRatings = ratings.length;
-            const actualAverageRating = actualTotalRatings > 0 
+            const actualAverageRating = actualTotalRatings > 0
               ? ratings.reduce((sum, r) => sum + r.rating, 0) / actualTotalRatings
               : 0;
 
@@ -461,8 +483,8 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
             console.log('Calculated average:', actualAverageRating);
             console.log('Database stored average:', refreshedDish.average_rating);
 
-            setDishes(prev => prev.map(dish => 
-              dish.id === dishId 
+            setDishes(prev => prev.map(dish =>
+              dish.id === dishId
                 ? {
                     ...dish,
                     // Use calculated values from actual ratings, not database fields
@@ -486,9 +508,127 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
     }
   };
 
+  // Updated addComment function to refresh with user information
+  const addComment = async (dishId: string, commentText: string): Promise<void> => {
+    if (!commentText.trim()) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError('You must be logged in to add comments');
+      return;
+    }
+
+    try {
+      const { data: newComment, error } = await supabase
+        .from('dish_comments')
+        .insert([{
+          dish_id: dishId,
+          user_id: user.id,
+          comment_text: commentText.trim()
+        }])
+        .select(`
+          id,
+          dish_id,
+          comment_text,
+          created_at,
+          updated_at,
+          user_id,
+          users (
+            full_name,
+            email
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      if (newComment) {
+        // Add the comment with user information to local state
+        const commentWithUserInfo: DishComment = {
+          id: newComment.id,
+          dish_id: newComment.dish_id,
+          comment_text: newComment.comment_text,
+          created_at: newComment.created_at,
+          updated_at: newComment.updated_at,
+          user_id: newComment.user_id,
+          commenter_name: (newComment.users as any)?.full_name || 'Anonymous User',
+          commenter_email: (newComment.users as any)?.email
+        };
+
+        setDishes(prev => prev.map(dish =>
+          dish.id === dishId
+            ? { ...dish, dish_comments: [...dish.dish_comments, commentWithUserInfo] }
+            : dish
+        ));
+      }
+    } catch (err: any) {
+      console.error('Error adding comment:', err);
+      setError(`Failed to add comment: ${err.message}`);
+    }
+  };
+
+  // Updated updateComment function
+  const updateComment = async (commentId: string, dishId: string, newText: string): Promise<void> => {
+    if (!newText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('dish_comments')
+        .update({
+          comment_text: newText.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', commentId);
+
+      if (error) throw error;
+
+      // Update local state
+      setDishes(prev => prev.map(dish =>
+        dish.id === dishId
+          ? {
+              ...dish,
+              dish_comments: dish.dish_comments.map(comment =>
+                comment.id === commentId
+                  ? { ...comment, comment_text: newText.trim(), updated_at: new Date().toISOString() }
+                  : comment
+              )
+            }
+          : dish
+      ));
+    } catch (err: any) {
+      console.error('Error updating comment:', err);
+      setError(`Failed to update comment: ${err.message}`);
+    }
+  };
+
+  // Updated deleteComment function
+  const deleteComment = async (dishId: string, commentId: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('dish_comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setDishes(prev => prev.map(dish =>
+        dish.id === dishId
+          ? {
+              ...dish,
+              dish_comments: dish.dish_comments.filter(comment => comment.id !== commentId)
+            }
+          : dish
+      ));
+    } catch (err: any) {
+      console.error('Error deleting comment:', err);
+      setError(`Failed to delete comment: ${err.message}`);
+    }
+  };
+
   // Helper function to check if a dish name might be a duplicate
   const checkForSimilarDishes = (dishName: string, threshold: number = 80): DishSearchResult[] => {
-    return searchDishes(dishName).filter(dish => 
+    return searchDishes(dishName).filter(dish =>
       (dish.similarityScore || 0) >= threshold
     );
   };
@@ -504,6 +644,10 @@ export const useDishes = (restaurantId: string, sortBy: 'name' | 'rating' | 'dat
     updateDishRating,
     setDishes,
     searchDishes,
-    checkForSimilarDishes
+    checkForSimilarDishes,
+    // Comment functions
+    addComment,
+    updateComment,
+    deleteComment
   };
 };

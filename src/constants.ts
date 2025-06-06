@@ -79,8 +79,8 @@ export const STYLES = {
   zDefault: 1,
   // Consistent button styles
   addButton: {
-    backgroundColor: COLORS.addButtonBg, 
-    color: COLORS.addButtonText, 
+    backgroundColor: COLORS.addButtonBg,
+    color: COLORS.addButtonText,
     border: 'none',
     borderRadius: '12px',
     padding: '12px 24px',
@@ -92,8 +92,8 @@ export const STYLES = {
   },
   // Icon button styles
   iconButton: {
-    backgroundColor: COLORS.iconBackground, 
-    color: COLORS.iconPrimary, 
+    backgroundColor: COLORS.iconBackground,
+    color: COLORS.iconPrimary,
     border: 'none',
     borderRadius: '50%',
     width: '40px',
@@ -105,7 +105,7 @@ export const STYLES = {
     transition: 'all 0.2s ease',
   },
   // Primary button (for main actions like "Find or Add a Restaurant")
-  primaryButton: { 
+  primaryButton: {
     borderRadius: '12px',
     padding: '16px 32px',
     border: 'none',
@@ -118,7 +118,7 @@ export const STYLES = {
   secondaryButton: {
     backgroundColor: COLORS.secondary,
     color: '#f1f5f9',
-    border: '1px solid rgba(241, 245, 249, 0.3)', 
+    border: '1px solid rgba(241, 245, 249, 0.3)',
     borderRadius: '12px',
     padding: '12px 24px',
     fontSize: '0.9rem',

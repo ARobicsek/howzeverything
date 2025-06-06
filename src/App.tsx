@@ -1,4 +1,4 @@
-// src/App.tsx
+// src/App.tsx - WITH DEBUG MODE
 import React, { useState, useEffect } from 'react'
 import { COLORS, FONTS } from './constants'
 import { useAuth } from './hooks/useAuth'
@@ -14,6 +14,9 @@ import LoadingScreen from './components/LoadingScreen'
 // User components
 import LoginForm from './components/user/LoginForm'
 import UserForm from './components/user/UserForm'
+
+// Debug component
+import SupabaseDebugTest from './components/SupabaseDebugTest'
 
 // Import types from BottomNavigation
 import type { NavigableScreenType, AppScreenType } from './components/navigation/BottomNavigation'
@@ -32,6 +35,7 @@ const App: React.FC = () => {
   const [menuScreenState, setMenuScreenState] = useState<MenuScreenState | null>(null)
   const [showLogin, setShowLogin] = useState(false)
   const [showProfileEdit, setShowProfileEdit] = useState(false)
+  const [showDebug, setShowDebug] = useState(false) // DEBUG MODE
 
   const navigateToMenu = (restaurantId: string) => {
     setMenuScreenState({ restaurantId, restaurantName: '' })
@@ -57,30 +61,86 @@ const App: React.FC = () => {
     return currentScreen as AppScreenType
   }
 
-  // Create profile if needed - but only once per user
+  // Handle successful login - redirect to home screen
+  const handleLoginSuccess = () => {
+    setShowLogin(false)
+    setCurrentScreen('home') // Always go to home after sign-in
+  }
+
+  // Create profile if needed - but only once per user and avoid race conditions
   useEffect(() => {
-    if (!user || profile || authLoading) {
+    if (!user || profile !== null || authLoading) {
       return
     }
 
-    // User exists but no profile - create one
-    const createInitialProfile = async () => {
+    let isMounted = true
+    const timeoutId = setTimeout(async () => {
+      // Double-check conditions after delay
+      if (!isMounted || !user || profile !== null) {
+        return
+      }
+
       console.log('🚀 Creating initial profile for user:', user.email)
       
-      await createProfile({
-        full_name: user.user_metadata?.full_name || '',
-        bio: '',
-        location: '',
-        avatar_url: user.user_metadata?.avatar_url || ''
-      })
-    }
+      try {
+        const success = await createProfile({
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+          bio: '',
+          location: '',
+          avatar_url: user.user_metadata?.avatar_url || ''
+        })
+        
+        if (!success) {
+          console.error('Failed to create initial profile')
+        }
+      } catch (err) {
+        console.error('Error creating initial profile:', err)
+      }
+    }, 1000) // Increased delay to 1 second to ensure auth is fully settled
 
-    createInitialProfile()
-  }, [user?.id]) // Only depend on user id
+    return () => {
+      isMounted = false
+      clearTimeout(timeoutId)
+    }
+  }, [user?.id, profile, authLoading, createProfile]) // Added createProfile to deps
+
+  // Navigate to home when user signs in
+  useEffect(() => {
+    if (user && !authLoading) {
+      // If we're not already on a specific screen, go to home
+      if (currentScreen === 'profile' || showLogin) {
+        setCurrentScreen('home')
+      }
+    }
+  }, [user, authLoading])
 
   // Show loading screen while auth is initializing
   if (authLoading) {
-    return <LoadingScreen />
+    return (
+      <div style={{ position: 'relative', minHeight: '100vh' }}>
+        <LoadingScreen />
+        {/* DEBUG: Add button to show debug panel even during loading */}
+        <button
+          onClick={() => setShowDebug(!showDebug)}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            padding: '8px 16px',
+            backgroundColor: COLORS.primary,
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            zIndex: 1000
+          }}
+        >
+          {showDebug ? 'Hide Debug' : 'Show Debug'}
+        </button>
+        {showDebug && <SupabaseDebugTest />}
+      </div>
+    )
   }
 
   // Show login screen if no user
@@ -89,68 +149,95 @@ const App: React.FC = () => {
       <div style={{
         minHeight: '100vh',
         backgroundColor: COLORS.background,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
+        position: 'relative'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            style={{
-              maxWidth: '200px',
-              height: 'auto',
-              margin: '0 auto'
-            }}
-          />
-        </div>
+        {/* DEBUG BUTTON */}
+        <button
+          onClick={() => setShowDebug(!showDebug)}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            padding: '8px 16px',
+            backgroundColor: COLORS.primary,
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            zIndex: 1000
+          }}
+        >
+          {showDebug ? 'Hide Debug' : 'Show Debug'}
+        </button>
+
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '32px',
-          maxWidth: '400px',
-          width: '100%',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          textAlign: 'center',
-          marginBottom: '24px'
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          minHeight: '100vh'
         }}>
-          <h2 style={{
-            ...FONTS.elegant,
-            fontSize: '20px',
-            fontWeight: '600',
-            color: COLORS.text,
-            margin: '0 0 24px 0'
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                maxWidth: '200px',
+                height: 'auto',
+                margin: '0 auto'
+              }}
+            />
+          </div>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '400px',
+            width: '100%',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            textAlign: 'center',
+            marginBottom: '24px'
           }}>
-            Sign in and start to dish
-          </h2>
-          <button
-            onClick={() => setShowLogin(true)}
-            style={{
+            <h2 style={{
               ...FONTS.elegant,
-              width: '100%',
-              height: '50px',
-              backgroundColor: COLORS.primary,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
+              fontSize: '20px',
               fontWeight: '600',
-              cursor: 'pointer',
-              WebkitAppearance: 'none',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
-            Get Started
-          </button>
+              color: COLORS.text,
+              margin: '0 0 24px 0'
+            }}>
+              Sign in and start to dish
+            </h2>
+            <button
+              onClick={() => setShowLogin(true)}
+              style={{
+                ...FONTS.elegant,
+                width: '100%',
+                height: '50px',
+                backgroundColor: COLORS.primary,
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                WebkitAppearance: 'none',
+                WebkitTapHighlightColor: 'transparent'
+              }}
+            >
+              Get Started
+            </button>
+          </div>
+          {showLogin && (
+            <LoginForm
+              onSuccess={handleLoginSuccess}
+              onCancel={() => setShowLogin(false)}
+            />
+          )}
         </div>
-        {showLogin && (
-          <LoginForm
-            onSuccess={() => setShowLogin(false)}
-            onCancel={() => setShowLogin(false)}
-          />
-        )}
+        
+        {showDebug && <SupabaseDebugTest />}
       </div>
     )
   }
@@ -159,14 +246,14 @@ const App: React.FC = () => {
     switch (currentScreen) {
       case 'home':
         return (
-          <HomeScreen 
+          <HomeScreen
             onNavigateToScreen={handleNavigateToScreen}
             currentAppScreen={getCurrentAppScreen()}
           />
         )
       case 'restaurants':
         return (
-          <RestaurantScreen 
+          <RestaurantScreen
             onNavigateToScreen={handleNavigateToScreen}
             onNavigateToMenu={navigateToMenu}
             currentAppScreen={getCurrentAppScreen()}
@@ -187,21 +274,21 @@ const App: React.FC = () => {
         )
       case 'ratings':
         return (
-          <RatingsScreen 
+          <RatingsScreen
             onNavigateToScreen={handleNavigateToScreen}
             currentAppScreen={getCurrentAppScreen()}
           />
         )
       case 'profile':
         return (
-          <ProfileScreen 
+          <ProfileScreen
             onNavigateToScreen={handleNavigateToScreen}
             currentAppScreen={getCurrentAppScreen()}
           />
         )
       default:
         return (
-          <HomeScreen 
+          <HomeScreen
             onNavigateToScreen={handleNavigateToScreen}
             currentAppScreen={getCurrentAppScreen()}
           />
@@ -212,15 +299,39 @@ const App: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: COLORS.background
+      backgroundColor: COLORS.background,
+      position: 'relative'
     }}>
+      {/* DEBUG BUTTON - Always visible when authenticated */}
+      <button
+        onClick={() => setShowDebug(!showDebug)}
+        style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          padding: '8px 16px',
+          backgroundColor: COLORS.primary,
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '12px',
+          zIndex: 1000
+        }}
+      >
+        {showDebug ? 'Hide Debug' : 'Show Debug'}
+      </button>
+
       {renderCurrentScreen()}
-      {showProfileEdit && user && ( 
+      
+      {showProfileEdit && user && (
         <UserForm
           onSuccess={() => setShowProfileEdit(false)}
           onCancel={() => setShowProfileEdit(false)}
         />
       )}
+      
+      {showDebug && <SupabaseDebugTest />}
     </div>
   )
 }
