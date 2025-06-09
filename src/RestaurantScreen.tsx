@@ -151,6 +151,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);    
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);    
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [addingRestaurantId, setAddingRestaurantId] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState(false);
 
   // Custom Hooks    
   const {    
@@ -163,7 +165,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     searchResults,    
     isSearching,    
     searchError,    
-    isLoadingDetails,    
     restaurantErrors,    
     searchRestaurants,    
     importRestaurant,    
@@ -179,6 +180,21 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       }    
     };    
   }, [searchDebounceTimer]);
+
+  // Handle navigation after adding restaurant
+  const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);
+  
+  useEffect(() => {
+    // If we're pending navigation and a new restaurant was added, navigate to it
+    if (pendingNavigation && restaurants.length > previousRestaurantCount) {
+      const newestRestaurant = restaurants.reduce((newest, restaurant) => {
+        return new Date(restaurant.dateAdded) > new Date(newest.dateAdded) ? restaurant : newest;
+      });
+      onNavigateToMenu(newestRestaurant.id);
+      setPendingNavigation(false);
+    }
+    setPreviousRestaurantCount(restaurants.length);
+  }, [restaurants, pendingNavigation, previousRestaurantCount, onNavigateToMenu]);
 
   // Enhanced restaurant filtering with fuzzy search (same as MenuScreen)    
   const filteredAndSortedRestaurants = useMemo(() => {    
@@ -207,6 +223,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     if (success) {    
       setShowAddForm(false);    
       setSearchTerm(''); // Clear search when new restaurant is added    
+      setPendingNavigation(true); // This will trigger navigation once restaurants state updates
     }    
   }, [addRestaurant]);
 
@@ -215,12 +232,15 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [deleteRestaurant]);
 
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {    
-    const restaurantId = await importRestaurant(geoapifyPlace);    
-    if (restaurantId) {    
+    setAddingRestaurantId(geoapifyPlace.place_id);
+    const result = await importRestaurant(geoapifyPlace);    
+    if (typeof result === 'string') { // result is restaurant ID
       clearSearchResults();    
       setSearchTerm('');    
-    }    
-  }, [importRestaurant, clearSearchResults]);
+      onNavigateToMenu(result); // Navigate to the new restaurant's menu
+    }
+    setAddingRestaurantId(null);
+  }, [importRestaurant, clearSearchResults, onNavigateToMenu]);
 
   // Enhanced search handler that triggers both local and online search    
   const handleSearchChange = useCallback((newSearchTerm: string) => {    
@@ -403,7 +423,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     <div>    
                       {filteredAndSortedRestaurants.length > 0    
                         ? `Found ${filteredAndSortedRestaurants.length} in your restaurants`    
-                        : 'No matching restaurants in your list'    
+                        : 'No matching restaurants found in your personal list'    
                       }    
                     </div>    
                     {isSearching && (    
@@ -413,7 +433,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     )}    
                     {searchResults.length > 0 && (    
                       <div style={{ marginTop: '4px' }}>    
-                        ✨ Found {searchResults.length} online results    
+                        ✨ Found {searchResults.length === 1 ? 'one online result' : `${searchResults.length} online results`}    
                       </div>    
                     )}    
                   </div>    
@@ -506,17 +526,17 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                             </div>
                             <button
                               onClick={() => handleImportRestaurant(result)}
-                              disabled={isLoadingDetails}
+                              disabled={addingRestaurantId === result.place_id}
                               style={{
                                 ...STYLES.addButton,
                                 padding: '8px 16px',
                                 fontSize: '14px',        
-                                opacity: isLoadingDetails ? 0.6 : 1
+                                opacity: addingRestaurantId === result.place_id ? 0.6 : 1
                               }}
-                               onMouseEnter={(e) => { if(!isLoadingDetails) e.currentTarget.style.backgroundColor = COLORS.addButtonHover; }}
-                               onMouseLeave={(e) => { if(!isLoadingDetails) e.currentTarget.style.backgroundColor = COLORS.addButtonBg; }}
+                               onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) e.currentTarget.style.backgroundColor = COLORS.addButtonHover; }}
+                               onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) e.currentTarget.style.backgroundColor = COLORS.addButtonBg; }}
                             >
-                              {isLoadingDetails ? 'Adding...' : 'Add'}
+                              {addingRestaurantId === result.place_id ? 'Adding...' : 'Add'}
                             </button>
                           </div>
                           
