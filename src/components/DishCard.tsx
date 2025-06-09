@@ -147,7 +147,7 @@ const DishHeader: React.FC<{
 }) => (    
   <div className="mb-4">    
     <div className="flex items-start justify-between mb-3">    
-      <div className="flex-1 min-w-0 pr-6">    
+      <div className="flex-1 min-w-0 pr-2 sm:pr-6">    
         <h3      
           style={{      
             ...FONTS.elegant,      
@@ -168,46 +168,43 @@ const DishHeader: React.FC<{
         </p>    
       </div>      
       
-      {/* Action buttons container - positioned to avoid interference with long names */}
-      <div className="flex items-center gap-2 flex-shrink-0" style={{ marginTop: '4px' }}>
+      {/* Action buttons container - responsive sizing */}
+      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0" style={{ marginTop: '4px' }}>
         {/* Comment buttons */}
         {!showAddCommentForm && !editingComment && (    
           <button    
             onClick={onToggleAddComment}    
-            className="flex items-center gap-1.5 text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
+            className="flex items-center gap-1 sm:gap-1.5 text-sm py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
             style={{    
               ...FONTS.elegant,
               fontWeight: '500',    
-              fontSize: '0.875rem',    
-              padding: '8px 12px',
+              fontSize: '0.75rem',    
               backgroundColor: COLORS.addButtonBg,
               color: COLORS.textWhite,
-              border: 'none',
-              borderRadius: '12px'
+              border: 'none'
             }}    
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}    
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}    
           >    
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">    
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor">    
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>    
             </svg>    
-            Add Comment    
+            <span className="hidden sm:inline">Add Comment</span>
+            <span className="sm:hidden">Add</span>
           </button>    
         )}    
            
         {commentsCount > 0 && !editingComment && (    
           <button    
             onClick={onToggleShowComments}    
-            className="text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
+            className="text-sm py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
             style={{    
               ...FONTS.elegant,    
               fontWeight: '500',    
-              fontSize: '0.875rem',    
-              padding: '8px 12px',    
+              fontSize: '0.75rem',    
               backgroundColor: COLORS.viewCommentsBg,    
               color: COLORS.textWhite,    
               border: 'none',    
-              borderRadius: '12px',    
               cursor: 'pointer',    
               transition: 'all 0.3s ease'    
             }}    
@@ -218,20 +215,21 @@ const DishHeader: React.FC<{
               e.currentTarget.style.backgroundColor = COLORS.viewCommentsBg;    
             }}    
           >    
-            {showComments ? 'Hide Comments' : `View Comments (${commentsCount})`}    
+            <span className="hidden sm:inline">{showComments ? 'Hide Comments' : `View Comments (${commentsCount})`}</span>
+            <span className="sm:hidden">{showComments ? 'Hide' : `${commentsCount}`}</span>
           </button>    
         )}
 
         {/* Delete button */}
         <button      
           onClick={onDelete}      
-          className="py-2 px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"      
+          className="py-1.5 sm:py-2 px-2 sm:px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"      
           aria-label={`Delete ${name}`}      
-          style={{ color: COLORS.text, minHeight: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}      
+          style={{ color: COLORS.text, minHeight: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}      
           onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}      
           onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}      
         >      
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>      
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>      
         </button>      
       </div>      
     </div>    
