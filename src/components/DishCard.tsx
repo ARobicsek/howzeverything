@@ -174,11 +174,11 @@ const DishHeader: React.FC<{
         {!showAddCommentForm && !editingComment && (    
           <button    
             onClick={onToggleAddComment}    
-            className="flex items-center gap-1 sm:gap-1.5 text-sm py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
+            className="flex items-center gap-1 sm:gap-1.5 text-sm py-2 sm:py-2 px-2.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
             style={{    
               ...FONTS.elegant,
               fontWeight: '500',    
-              fontSize: '0.75rem',    
+              fontSize: '0.8rem',    
               backgroundColor: COLORS.addButtonBg,
               color: COLORS.textWhite,
               border: 'none'
@@ -197,11 +197,11 @@ const DishHeader: React.FC<{
         {commentsCount > 0 && !editingComment && (    
           <button    
             onClick={onToggleShowComments}    
-            className="text-sm py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
+            className="text-sm py-2 sm:py-2 px-2.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
             style={{    
               ...FONTS.elegant,    
               fontWeight: '500',    
-              fontSize: '0.75rem',    
+              fontSize: '0.8rem',    
               backgroundColor: COLORS.viewCommentsBg,    
               color: COLORS.textWhite,    
               border: 'none',    
@@ -223,13 +223,13 @@ const DishHeader: React.FC<{
         {/* Delete button */}
         <button      
           onClick={onDelete}      
-          className="py-1.5 sm:py-2 px-2 sm:px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"      
+          className="py-2 sm:py-2 px-2.5 sm:px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"      
           aria-label={`Delete ${name}`}      
-          style={{ color: COLORS.text, minHeight: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}      
+          style={{ color: COLORS.text, minHeight: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}      
           onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}      
           onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}      
         >      
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>      
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>      
         </button>      
       </div>      
     </div>    
@@ -341,11 +341,13 @@ const DishCard: React.FC<DishCardProps> = ({
 
       <div className="space-y-3 mt-3">    
         {showAddCommentForm && (    
-          <CommentForm    
-            onSubmit={handleAddCommentInternal}    
-            onCancel={() => setShowAddCommentForm(false)}    
-            isLoading={isSubmittingComment}    
-          />    
+          <div className="w-full max-w-full overflow-hidden">
+            <CommentForm    
+              onSubmit={handleAddCommentInternal}    
+              onCancel={() => setShowAddCommentForm(false)}    
+              isLoading={isSubmittingComment}    
+            />
+          </div>    
         )}    
              
         {showComments && dish.dish_comments && dish.dish_comments.length > 0 && (    
@@ -353,13 +355,15 @@ const DishCard: React.FC<DishCardProps> = ({
             {dish.dish_comments.map(comment => (    
               <div key={comment.id} className="bg-white/5 p-3 rounded-lg">    
                 {editingComment?.id === comment.id ? (    
-                  <CommentForm    
-                    initialText={editingComment.currentText}    
-                    onSubmit={(text) => handleUpdateCommentInternal(comment.id, text)}    
-                    onCancel={() => setEditingComment(null)}    
-                    isLoading={isSubmittingComment}    
-                    submitButtonText="Update Comment"    
-                  />    
+                  <div className="w-full max-w-full overflow-hidden">
+                    <CommentForm    
+                      initialText={editingComment.currentText}    
+                      onSubmit={(text) => handleUpdateCommentInternal(comment.id, text)}    
+                      onCancel={() => setEditingComment(null)}    
+                      isLoading={isSubmittingComment}    
+                      submitButtonText="Update Comment"    
+                    />
+                  </div>    
                 ) : (    
                   <div className="flex justify-between items-start">    
                     <div className="flex-grow mr-2 min-w-0">    
