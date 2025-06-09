@@ -1,6 +1,6 @@
 // src/components/DishCard.tsx    
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, STYLES } from '../constants';
+import { COLORS, FONTS } from '../constants';
 import type { DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 
@@ -30,7 +30,7 @@ const StarRating: React.FC<{
      
   const colorMap = {    
     personal: { filled: COLORS.star, empty: COLORS.starEmpty },    
-    community: { filled: COLORS.starCommunity, empty: COLORS.starCommunityEmpty }    
+    community: { filled: COLORS.starCommunity, empty: COLORS.starEmpty }    
   };
 
   return (    
@@ -64,51 +64,54 @@ const RatingBreakdown: React.FC<{
   totalRatings: number;    
   onUpdatePersonalRating: (rating: number) => void;    
 }> = ({ personalRating, communityAverage, totalRatings, onUpdatePersonalRating }) => (    
-  <div className="space-y-3">    
-    <div className="bg-white/5 p-3 rounded-lg">    
-      <div className="flex items-center justify-between mb-2">    
-        <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>    
-          Your Rating    
-        </span>    
-        {personalRating && (    
-          <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.7}}>    
-            {personalRating}/5    
+  <div className="bg-white/5 p-3 rounded-lg">    
+    {/* Horizontal layout with both ratings side by side */}
+    <div className="flex items-start gap-6">
+      {/* Personal Rating Section */}
+      <div className="flex-1 min-w-0">
+        <div className="mb-2">
+          <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>    
+            Your Rating    
           </span>    
-        )}    
-      </div>    
-      <div className="flex items-center gap-2">    
-        <StarRating    
-          rating={personalRating || 0}    
-          onRatingChange={onUpdatePersonalRating}    
-          variant="personal"    
-          size="md"    
-        />    
-        {!personalRating && (    
-          <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.6}}>    
-            Tap to rate    
-          </span>    
-        )}    
-      </div>    
-    </div>
+        </div>    
+        <div className="flex items-center gap-2">    
+          <StarRating    
+            rating={personalRating || 0}    
+            onRatingChange={onUpdatePersonalRating}    
+            variant="personal"    
+            size="md"    
+          />    
+          {!personalRating && (    
+            <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.6}}>    
+              Tap to rate    
+            </span>    
+          )}    
+        </div>    
+      </div>
 
-    <div className="bg-white/5 p-3 rounded-lg">    
-      <div className="flex items-center justify-between mb-2">    
-        <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>    
-          Community Average    
-        </span>    
-        <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.7}}>    
-          {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}    
-        </span>    
-      </div>    
-      <div className="flex items-center gap-2">    
-        <StarRating    
-          rating={communityAverage}    
-          readonly={true}    
-          variant="community"    
-          size="md"    
-        />    
-      </div>    
-    </div>    
+      {/* Community Rating Section */}
+      <div className="flex-1 min-w-0">
+        <div className="mb-2">
+          <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>    
+            Community Average    
+          </span>    
+        </div>    
+        <div className="flex items-center gap-2">    
+          <StarRating    
+            rating={communityAverage}    
+            readonly={true}    
+            variant="community"    
+            size="md"    
+          />    
+        </div>
+        {/* Community stats underneath the stars */}
+        <div className="mt-1">
+          <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.7}}>    
+            {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}    
+          </span>    
+        </div>
+      </div>
+    </div>
   </div>    
 );
 
@@ -120,8 +123,28 @@ const DishHeader: React.FC<{
   communityAverage: number;    
   totalRatings: number;    
   onUpdateRating: (rating: number) => void;
-  showDeleteButton: boolean; // NEW: Only show trash icon if user created the dish    
-}> = ({ name, dateAdded, onDelete, personalRating, communityAverage, totalRatings, onUpdateRating, showDeleteButton }) => (    
+  // Comment-related props
+  commentsCount: number;
+  showComments: boolean;
+  showAddCommentForm: boolean;
+  editingComment: boolean;
+  onToggleAddComment: () => void;
+  onToggleShowComments: () => void;    
+}> = ({ 
+  name, 
+  dateAdded, 
+  onDelete, 
+  personalRating, 
+  communityAverage, 
+  totalRatings, 
+  onUpdateRating,
+  commentsCount,
+  showComments,
+  showAddCommentForm,
+  editingComment,
+  onToggleAddComment,
+  onToggleShowComments
+}) => (    
   <div className="mb-4">    
     <div className="flex items-start justify-between mb-3">    
       <div className="flex-1 min-w-0 pr-6">    
@@ -140,25 +163,77 @@ const DishHeader: React.FC<{
         >      
           {name}      
         </h3>      
-        <p className="text-xs mt-1" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.5, lineHeight: '1.3', fontSize: '0.7rem' }}>      
+        <p className="text-xs" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.5, lineHeight: '1.3', fontSize: '0.7rem', marginTop: '-2px' }}>      
           Added {new Date(dateAdded).toLocaleDateString()}      
         </p>    
       </div>      
-      {/* UPDATED: Only show delete button if user created the dish */}
-      {showDeleteButton && (
-        <div className="ml-4">      
-          <button      
-            onClick={onDelete}      
-            className="p-1.5 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"      
-            aria-label={`Delete ${name}`}      
-            style={{ color: COLORS.text }}      
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}      
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}      
-          >      
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>      
-          </button>      
-        </div>      
-      )}
+      
+      {/* Action buttons container - positioned to avoid interference with long names */}
+      <div className="flex items-center gap-2 flex-shrink-0" style={{ marginTop: '4px' }}>
+        {/* Comment buttons */}
+        {!showAddCommentForm && !editingComment && (    
+          <button    
+            onClick={onToggleAddComment}    
+            className="flex items-center gap-1.5 text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
+            style={{    
+              ...FONTS.elegant,
+              fontWeight: '500',    
+              fontSize: '0.875rem',    
+              padding: '8px 12px',
+              backgroundColor: COLORS.addButtonBg,
+              color: COLORS.textWhite,
+              border: 'none',
+              borderRadius: '12px'
+            }}    
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}    
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}    
+          >    
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">    
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>    
+            </svg>    
+            Add Comment    
+          </button>    
+        )}    
+           
+        {commentsCount > 0 && !editingComment && (    
+          <button    
+            onClick={onToggleShowComments}    
+            className="text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
+            style={{    
+              ...FONTS.elegant,    
+              fontWeight: '500',    
+              fontSize: '0.875rem',    
+              padding: '8px 12px',    
+              backgroundColor: COLORS.viewCommentsBg,    
+              color: COLORS.textWhite,    
+              border: 'none',    
+              borderRadius: '12px',    
+              cursor: 'pointer',    
+              transition: 'all 0.3s ease'    
+            }}    
+            onMouseEnter={(e) => {    
+              e.currentTarget.style.backgroundColor = '#5b6574';    
+            }}    
+            onMouseLeave={(e) => {    
+              e.currentTarget.style.backgroundColor = COLORS.viewCommentsBg;    
+            }}    
+          >    
+            {showComments ? 'Hide Comments' : `View Comments (${commentsCount})`}    
+          </button>    
+        )}
+
+        {/* Delete button */}
+        <button      
+          onClick={onDelete}      
+          className="py-2 px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"      
+          aria-label={`Delete ${name}`}      
+          style={{ color: COLORS.text, minHeight: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}      
+          onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}      
+          onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}      
+        >      
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>      
+        </button>      
+      </div>      
     </div>    
        
     <RatingBreakdown    
@@ -193,9 +268,6 @@ const DishCard: React.FC<DishCardProps> = ({
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
-  
-  // UPDATED: Check if current user created this dish
-  const canDeleteDish = currentUserId && dish.created_by === currentUserId;
 
   const handleDeleteDish = () => {    
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {    
@@ -248,10 +320,15 @@ const DishCard: React.FC<DishCardProps> = ({
         communityAverage={dish.average_rating}    
         totalRatings={dish.total_ratings}    
         onUpdateRating={(rating) => onUpdateRating(dish.id, rating)}
-        showDeleteButton={!!canDeleteDish} // UPDATED: Pass permission check    
+        commentsCount={dish.dish_comments.length}
+        showComments={showComments}
+        showAddCommentForm={showAddCommentForm}
+        editingComment={!!editingComment}
+        onToggleAddComment={() => setShowAddCommentForm(!showAddCommentForm)}
+        onToggleShowComments={() => setShowComments(!showComments)}    
       />
 
-      <div className="flex gap-2 mt-3 mb-4">    
+      <div className="flex gap-2 mt-3 mb-3">    
         {[1, 2, 3].map(p => (    
           <div      
             key={p}      
@@ -264,55 +341,7 @@ const DishCard: React.FC<DishCardProps> = ({
         ))}    
       </div>
 
-      <div className="flex justify-end gap-2 mb-3">    
-        {!showAddCommentForm && !editingComment && (    
-          <button    
-            onClick={() => setShowAddCommentForm(!showAddCommentForm)}    
-            className="flex items-center gap-1.5 text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
-            style={{    
-              ...STYLES.addButton,    
-              fontSize: '0.875rem',    
-              padding: '8px 12px'    
-            }}    
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}    
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}    
-          >    
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">    
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>    
-            </svg>    
-            Add Comment    
-          </button>    
-        )}    
-           
-        {dish.dish_comments.length > 0 && !editingComment && (    
-          <button    
-            onClick={() => setShowComments(!showComments)}    
-            className="text-sm py-2 px-3 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none"    
-            style={{    
-              ...FONTS.elegant,    
-              fontWeight: '500',    
-              fontSize: '0.875rem',    
-              padding: '8px 12px',    
-              backgroundColor: COLORS.viewCommentsBg,    
-              color: COLORS.textWhite,    
-              border: 'none',    
-              borderRadius: '12px',    
-              cursor: 'pointer',    
-              transition: 'all 0.3s ease'    
-            }}    
-            onMouseEnter={(e) => {    
-              e.currentTarget.style.backgroundColor = '#5b6574';    
-            }}    
-            onMouseLeave={(e) => {    
-              e.currentTarget.style.backgroundColor = COLORS.viewCommentsBg;    
-            }}    
-          >    
-            {showComments ? 'Hide Comments' : `View Comments (${dish.dish_comments.length})`}    
-          </button>    
-        )}    
-      </div>
-
-      <div className="space-y-3">    
+      <div className="space-y-3 mt-3">    
         {showAddCommentForm && (    
           <CommentForm    
             onSubmit={handleAddCommentInternal}    
