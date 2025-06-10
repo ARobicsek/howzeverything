@@ -353,7 +353,7 @@ const DishCard: React.FC<DishCardProps> = ({
         )}      
                
         {showComments && dish.dish_comments && dish.dish_comments.length > 0 && (      
-          <div className="space-y-3">      
+          <div className="space-y-6">      
             {dish.dish_comments.map(comment => (      
               <div key={comment.id} className="bg-white/5 p-3 rounded-lg">      
                 {editingComment?.id === comment.id ? (      
@@ -369,10 +369,10 @@ const DishCard: React.FC<DishCardProps> = ({
                 ) : (      
                   <div className="flex justify-between items-start">      
                     <div className="flex-grow mr-2 min-w-0">      
-                      <p style={{...FONTS.elegant, fontSize: '0.875rem', color: COLORS.text, lineHeight: '1.5'}} className="break-words">      
+                      <p style={{...FONTS.elegant, fontSize: '0.875rem', color: COLORS.text, lineHeight: '1.5', margin: 0}} className="break-words">      
                         {comment.comment_text}      
                       </p>      
-                      <p style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.6, marginTop: '6px' }}>      
+                      <p style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.6, margin: 0, marginTop: '2px' }}>      
                         <span style={{ fontWeight: '500', opacity: 0.8 }}>{comment.commenter_name || 'Anonymous'}</span> • {new Date(comment.created_at).toLocaleDateString()}      
                         {comment.updated_at !== comment.created_at && ` (edited ${new Date(comment.updated_at).toLocaleDateString()})`}      
                       </p>      
