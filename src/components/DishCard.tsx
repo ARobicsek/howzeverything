@@ -4,6 +4,7 @@ import { COLORS, FONTS } from '../constants';
 import type { DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 
+
 interface DishCardProps {      
   dish: DishWithDetails;      
   currentUserId: string | null;      
@@ -14,6 +15,7 @@ interface DishCardProps {
   onDeleteComment: (dishId: string, commentId: string) => Promise<void>;      
   isSubmittingComment: boolean;      
 }
+
 
 const StarRating: React.FC<{        
   rating: number;        
@@ -32,6 +34,7 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.star, empty: COLORS.starEmpty },      
     community: { filled: COLORS.starCommunity, empty: COLORS.starEmpty }      
   };
+
 
   return (      
     <div className="flex gap-px">      
@@ -57,6 +60,7 @@ const StarRating: React.FC<{
     </div>      
   );      
 };
+
 
 const RatingBreakdown: React.FC<{      
   personalRating: number | null;      
@@ -89,13 +93,14 @@ const RatingBreakdown: React.FC<{
         </div>      
       </div>
 
+
       {/* Community Rating Section */}  
       <div className="flex-1 min-w-0">  
         <div className="mb-2">  
           <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>      
             Community Average      
           </span>      
-        </div>      
+        </div>  
         <div className="flex items-center gap-2">      
           <StarRating      
             rating={communityAverage}      
@@ -114,6 +119,7 @@ const RatingBreakdown: React.FC<{
     </div>  
   </div>      
 );
+
 
 const DishHeader: React.FC<{      
   name: string;      
@@ -146,7 +152,7 @@ const DishHeader: React.FC<{
   onToggleShowComments  
 }) => (      
   <div className="mb-4">      
-    <div className="flex items-start justify-between mb-3">      
+    <div className="flex items-start justify-between mb-3"> {/* UPDATED: Changed items-center to items-start for top alignment */}
       <div className="flex-1 min-w-0 pr-2 sm:pr-6">      
         <h3        
           style={{        
@@ -170,11 +176,11 @@ const DishHeader: React.FC<{
        
       {/* Action buttons container - MEDIUM SIZE */}  
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0" style={{ marginTop: '4px' }}>  
-        {/* Comment buttons - MEDIUM SIZE */}  
+        {/* Comment buttons - REDUCED HEIGHT */}  
         {!showAddCommentForm && !editingComment && (      
           <button      
             onClick={onToggleAddComment}      
-            className="flex items-center gap-1.5 sm:gap-2 text-sm py-2 sm:py-2 px-3 sm:px-3 rounded-md sm:rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none"      
+            className="flex items-center gap-1.5 sm:gap-2 text-sm py-1 sm:py-1 px-3 sm:px-3 rounded-md sm:rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none"
             style={{      
               ...FONTS.elegant,  
               fontWeight: '500',      
@@ -182,7 +188,7 @@ const DishHeader: React.FC<{
               backgroundColor: COLORS.addButtonBg,  
               color: COLORS.textWhite,  
               border: 'none',
-              minHeight: '38px' // REDUCED from 44px
+              minHeight: '30px' // UPDATED: from 38px to 30px
             }}      
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}      
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}      
@@ -198,7 +204,7 @@ const DishHeader: React.FC<{
         {commentsCount > 0 && !editingComment && (      
           <button      
             onClick={onToggleShowComments}      
-            className="text-sm py-2 sm:py-2 px-3 sm:px-3 rounded-md sm:rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none"      
+            className="text-sm py-1 sm:py-1 px-3 sm:px-3 rounded-md sm:rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none"
             style={{      
               ...FONTS.elegant,      
               fontWeight: '500',      
@@ -208,7 +214,7 @@ const DishHeader: React.FC<{
               border: 'none',      
               cursor: 'pointer',      
               transition: 'all 0.3s ease',
-              minHeight: '38px' // REDUCED from 44px      
+              minHeight: '30px' // UPDATED: from 38px to 30px
             }}      
             onMouseEnter={(e) => {      
               e.currentTarget.style.backgroundColor = '#5b6574';      
@@ -222,12 +228,13 @@ const DishHeader: React.FC<{
           </button>      
         )}
 
-        {/* Delete button - MEDIUM SIZE */}  
+
+        {/* Delete button - REDUCED HEIGHT */}  
         <button        
           onClick={onDelete}        
-          className="py-2 sm:py-2 px-3 sm:px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"        
+          className="py-1 sm:py-1 px-3 sm:px-3 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none flex-shrink-0"
           aria-label={`Delete ${name}`}        
-          style={{ color: COLORS.text, minHeight: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} // REDUCED from 44px        
+          style={{ color: COLORS.text, minHeight: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} // UPDATED: from 38px to 30px       
           onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}        
           onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}        
         >        
@@ -245,11 +252,13 @@ const DishHeader: React.FC<{
   </div>        
 );
 
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {      
   if (!userId) return null;      
   const userRating = dishRatings.find(rating => rating.user_id === userId);      
   return userRating ? userRating.rating : null;      
 };
+
 
 const DishCard: React.FC<DishCardProps> = ({      
   dish,      
@@ -267,7 +276,9 @@ const DishCard: React.FC<DishCardProps> = ({
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);      
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
+
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
+
 
   const handleDeleteDish = () => {      
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {      
@@ -275,11 +286,13 @@ const DishCard: React.FC<DishCardProps> = ({
     }      
   };
 
+
   const handleAddCommentInternal = async (text: string) => {      
     await onAddComment(dish.id, text);      
     setShowAddCommentForm(false);      
     setShowComments(true);      
   };
+
 
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {      
     await onUpdateComment(commentId, dish.id, text);      
@@ -287,12 +300,14 @@ const DishCard: React.FC<DishCardProps> = ({
     setOpenActionMenuCommentId(null);      
   };
 
+
   const handleDeleteCommentInternal = async (commentId: string) => {      
     if (window.confirm('Are you sure you want to delete this comment?')) {      
       await onDeleteComment(dish.id, commentId);      
       setOpenActionMenuCommentId(null);      
     }      
   };
+
 
   useEffect(() => {      
     const handleClickOutside = (event: MouseEvent) => {      
@@ -309,6 +324,7 @@ const DishCard: React.FC<DishCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);      
     };      
   }, [openActionMenuCommentId]);
+
 
   return (      
     <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors">      
@@ -328,6 +344,7 @@ const DishCard: React.FC<DishCardProps> = ({
         onToggleShowComments={() => setShowComments(!showComments)}      
       />
 
+
       <div className="flex gap-2 mt-3 mb-3">      
         {[1, 2, 3].map(p => (      
           <div        
@@ -341,6 +358,7 @@ const DishCard: React.FC<DishCardProps> = ({
         ))}      
       </div>
 
+
       <div className="space-y-3 mt-3">      
         {showAddCommentForm && (      
           <div className="w-full max-w-full overflow-hidden">  
@@ -353,9 +371,15 @@ const DishCard: React.FC<DishCardProps> = ({
         )}      
                
         {showComments && dish.dish_comments && dish.dish_comments.length > 0 && (      
-          <div className="space-y-6">      
-            {dish.dish_comments.map(comment => (      
-              <div key={comment.id} className="bg-white/5 p-3 rounded-lg">      
+          <div className=""> {/* Removed space-y-8 from here */}
+            {dish.dish_comments.map((comment, index) => (      
+              <div 
+                key={comment.id} 
+                className="bg-white/5 p-3 rounded-lg"
+                style={{
+                  marginBottom: index < dish.dish_comments.length - 1 ? '20px' : '0px' // UPDATED: from 32px to 20px
+                }}
+              >      
                 {editingComment?.id === comment.id ? (      
                   <div className="w-full max-w-full overflow-hidden">  
                     <CommentForm      
@@ -405,5 +429,6 @@ const DishCard: React.FC<DishCardProps> = ({
     </div>      
   );      
 };
+
 
 export default DishCard;
