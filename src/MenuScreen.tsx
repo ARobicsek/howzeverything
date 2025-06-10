@@ -61,7 +61,7 @@ const DishSearchSection: React.FC<{
       <input        
         type="text"        
         value={searchTerm}        
-        onChange={(e) => onSearchChange(e.target.value)}        
+        onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)} // Limit search term length to 100 chars        
         placeholder="Search for your dish (e.g., Margherita Pizza, Chicken Alfredo...)"        
         className="w-full max-w-full border-none outline-none focus:ring-2 focus:ring-white/50"        
         style={{        
@@ -184,7 +184,7 @@ const EnhancedAddDishForm: React.FC<{
         <input        
           type="text"        
           value={dishName}        
-          onChange={(e) => setDishName(e.target.value)}        
+          onChange={(e) => e.target.value.length <= 100 && setDishName(e.target.value)} // Limit dish name length to 100 chars        
           placeholder="Enter the exact dish name..."        
           className="w-full max-w-full px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50"        
           style={{        
@@ -451,7 +451,21 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       className="transition-colors duration-200 hover:opacity-90"
                       style={buttonStyle}        
                     >        
-                      {option.label} {arrow}        
+                      {/* MODIFIED: Display text with black star emojis */}
+                      {option.value === 'your_rating' ? (
+                        <>
+                          <span>Your</span>
+                          <span style={{ color: COLORS.iconPrimary }}>★</span>
+                        </>
+                      ) : option.value === 'community_rating' ? (
+                        <>
+                          <span>Community</span>
+                          <span style={{ color: COLORS.iconPrimary }}>★</span>
+                        </>
+                      ) : (
+                        <span>{option.label}</span>
+                      )}
+                      {arrow}        
                     </button>        
                   );
                 })}        
