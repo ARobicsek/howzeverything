@@ -80,19 +80,20 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
         </div>
       ) : (
         <div className="space-y-4 w-full max-w-full">
-          <div className="flex justify-center w-full">
+          <div className="flex justify-center w-full px-2">
             <input
               type="text"
               value={dishName}
               onChange={(e) => setDishName(e.target.value)}
               placeholder="Enter dish name..."
-              className="w-full max-w-full box-border px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full max-w-full px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50"
               style={{
                 background: 'white',
                 fontSize: '1rem',
                 ...FONTS.elegant,
                 color: COLORS.textDark,
-                minWidth: 0, // Allows shrinking below content width
+                maxWidth: 'calc(100% - 16px)', // Account for container padding
+                boxSizing: 'border-box',
               }}
               autoFocus
               onKeyPress={(e) => {
