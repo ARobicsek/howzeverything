@@ -1,6 +1,7 @@
 // Enhanced MenuScreen with consistent button styling        
 // This goes in src/MenuScreen.tsx
 
+
 import React, { useMemo, useState } from 'react';
 import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
@@ -13,12 +14,14 @@ import type { DishSearchResult } from './hooks/useDishes';
 import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
 
+
 interface MenuScreenProps {        
   restaurantId: string;        
   onNavigateBack: () => void;        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
 
 // Enhanced search component with better visual hierarchy        
 const DishSearchSection: React.FC<{        
@@ -81,6 +84,7 @@ const DishSearchSection: React.FC<{
       </p>        
     </div>
 
+
     {/* Search Results */}        
     {hasSearched && (        
       <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4">        
@@ -121,6 +125,7 @@ const DishSearchSection: React.FC<{
   </div>        
 );
 
+
 // Component to show add dish option when search yields results        
 // FIXED: Removed unused 'searchTerm' prop        
 const AddDishPrompt: React.FC<{        
@@ -147,6 +152,7 @@ const AddDishPrompt: React.FC<{
   );        
 };
 
+
 // Enhanced Add Dish Form with pre-filled search term        
 const EnhancedAddDishForm: React.FC<{        
   initialDishName?: string;        
@@ -156,6 +162,7 @@ const EnhancedAddDishForm: React.FC<{
   const [dishName, setDishName] = useState(initialDishName);        
   const [rating, setRating] = useState(5);
 
+
   const handleSubmit = async () => {        
     if (dishName.trim()) {        
       await onSubmit(dishName, rating);        
@@ -164,9 +171,11 @@ const EnhancedAddDishForm: React.FC<{
     }        
   };
 
+
   return (        
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">        
       {/* REMOVED: Duplicate "Add New Dish" title - the parent already shows this in the header */}
+
 
       <div>        
         <label style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, display: 'block', marginBottom: '8px'}}>        
@@ -188,6 +197,7 @@ const EnhancedAddDishForm: React.FC<{
           }}        
         />        
       </div>
+
 
       <div>        
         <label style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, display: 'block', marginBottom: '8px'}}>        
@@ -217,6 +227,7 @@ const EnhancedAddDishForm: React.FC<{
           </span>        
         </div>        
       </div>
+
 
       <div className="flex gap-3 w-full max-w-full">        
         <button        
@@ -249,6 +260,7 @@ const EnhancedAddDishForm: React.FC<{
   );        
 };
 
+
 const MenuScreen: React.FC<MenuScreenProps> = ({        
   restaurantId,        
   onNavigateBack,        
@@ -256,11 +268,14 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   currentAppScreen        
 }) => {        
   const [searchTerm, setSearchTerm] = useState('');        
-  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'date'>('rating');        
+  // MODIFIED: Updated sortBy state to include new rating criteria
+  const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }>({ criterion: 'community_rating', direction: 'desc' });
   const [showAddForm, setShowAddForm] = useState(false);        
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
 
+
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);        
+  // MODIFIED: Pass the sortBy object to useDishes
   const {        
     dishes,        
     isLoading: isLoadingDishes,        
@@ -275,17 +290,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     addComment,        
     updateComment,        
     deleteComment        
-  } = useDishes(restaurantId, sortBy);        
-           
-  // REMOVED: const { isSubmitting: isSubmittingComment, addComment, updateComment, deleteComment } = useComments();
+  } = useDishes(restaurantId, sortBy); 
+
 
   const searchResults = useMemo(() => {        
     return searchDishes(searchTerm);        
   }, [dishes, searchTerm, searchDishes]);
 
+
   const hasSearched = searchTerm.trim().length > 0;        
   const hasSearchResults = hasSearched && searchResults.length > 0;  
   const hasDishes = dishes.length > 0; // Track if any dishes exist
+
 
   const handleSearchChange = (term: string) => {        
     setSearchTerm(term);        
@@ -294,14 +310,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }        
   };
 
+
   const handleResetSearch = () => {        
     setSearchTerm('');        
     setShowAddForm(false);        
   };
 
+
   const handleShowAddForm = () => {        
     setShowAddForm(true);        
   };
+
 
   const handleAddDish = async (name: string, rating: number) => {        
     const success = await addDish(name, rating);        
@@ -310,6 +329,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setSearchTerm(''); // Clear search term from MenuScreen state        
     }        
   };
+
 
   // FIXED: Simplified comment handlers - useDishes functions handle everything internally    
   const handleAddComment = async (dishId: string, text: string) => {        
@@ -321,6 +341,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }        
   };
 
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {        
     try {        
       await updateComment(commentId, dishId, newText);    
@@ -329,6 +350,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setError(`Failed to update comment: ${err.message}`);        
     }        
   };
+
 
   const handleDeleteComment = async (dishId: string, commentId: string) => {        
     try {        
@@ -339,9 +361,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }        
   };
 
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;        
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;        
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
 
   return (        
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>        
@@ -380,6 +404,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </div>        
       </header>
 
+
       {/* Main Content */}        
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>        
         <div className="max-w-md mx-auto space-y-6">        
@@ -389,23 +414,51 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>        
           )}
 
+
           {showAdvancedSort && (        
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">        
-              <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>Sort dishes by:</h3>        
-              <div className="flex gap-2">        
-                {[{ value: 'rating', label: 'Rating' }, { value: 'name', label: 'Name' }, { value: 'date', label: 'Date Added' }].map((option) => (        
-                  <button        
-                    key={option.value}        
-                    onClick={() => setSortBy(option.value as 'rating' | 'name' | 'date')}        
-                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${sortBy === option.value ? 'bg-white text-gray-800' : 'bg-white/20 text-white hover:bg-white/30'}`}        
-                    style={{...FONTS.elegant, color: sortBy === option.value ? COLORS.textDark : COLORS.textWhite }}        
-                  >        
-                    {option.label}        
-                  </button>        
-                ))}        
+              {/* REMOVED: <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>Sort dishes by:</h3>         */}
+              <div className="flex gap-2 flex-wrap">        
+                {/* MODIFIED: Updated sort options */}
+                {[
+                  { value: 'name', label: 'Name' },
+                  { value: 'your_rating', label: 'Your rating' },
+                  { value: 'community_rating', label: 'Community rating' },
+                  { value: 'date', label: 'Date Added' }
+                ].map((option) => {
+                  const isActive = sortBy.criterion === option.value;
+                  const buttonStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
+                  // Up arrow for ascending, down for descending
+                  const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
+                  return (        
+                    <button        
+                      key={option.value}        
+                      onClick={() => {
+                        if (isActive) {
+                          // Toggle direction if the same criterion is clicked
+                          setSortBy(prev => ({
+                            ...prev,
+                            direction: prev.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        } else {
+                          // Set new criterion, default to descending for ratings, ascending for name/date
+                          setSortBy({
+                            criterion: option.value as typeof sortBy.criterion,
+                            direction: (option.value === 'your_rating' || option.value === 'community_rating') ? 'desc' : 'asc'
+                          });
+                        }
+                      }}
+                      className="transition-colors duration-200 hover:opacity-90"
+                      style={buttonStyle}        
+                    >        
+                      {option.label} {arrow}        
+                    </button>        
+                  );
+                })}        
               </div>        
             </div>        
           )}
+
 
           {/* UPDATED: Only show search section if dishes exist AND not showing add form */}  
           {!showAddForm && hasDishes && (        
@@ -418,6 +471,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               onShowAddForm={handleShowAddForm}        
             />        
           )}
+
 
           {!showAddForm && (        
             <div className="space-y-4">        
@@ -453,6 +507,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   />        
                 </>        
               )}
+
 
               {(hasSearched ? searchResults : dishes).length > 0 && !hasSearchResults ? (        
                 <>        
@@ -496,6 +551,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>        
           )}
 
+
           {/* FIXED: Removed the duplicate back arrow and "Add New Dish" header section */}
           {showAddForm && (        
             <div className="space-y-4">
@@ -510,9 +566,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </div>        
       </main>
 
+
       <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen}/>        
     </div>        
   );        
 };
+
 
 export default MenuScreen;

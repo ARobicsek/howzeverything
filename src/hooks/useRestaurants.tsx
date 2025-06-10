@@ -78,7 +78,27 @@ interface GeoapifyPlaceDetails {
 }
 
 
-export const useRestaurants = (sortBy: 'name' | 'date') => {    
+// Reusable sorting function for restaurants
+const sortRestaurantsArray = (
+  array: Restaurant[],
+  sortBy: { criterion: 'name' | 'date'; direction: 'asc' | 'desc' }
+): Restaurant[] => {
+  return [...array].sort((a, b) => {
+    let comparison = 0;
+    if (sortBy.criterion === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else { // sortBy.criterion === 'date'
+      // Sort by when user favorited the restaurant (dateAdded or created_at)
+      const dateA = new Date(a.dateAdded || a.created_at).getTime();
+      const dateB = new Date(b.dateAdded || b.created_at).getTime();
+      comparison = dateA - dateB; // Default to ASC (oldest first)
+    }
+    return sortBy.direction === 'asc' ? comparison : -comparison;
+  });
+};
+
+// MODIFIED: Updated sortBy type to include criterion and direction
+export const useRestaurants = (sortBy: { criterion: 'name' | 'date'; direction: 'asc' | 'desc' }) => {    
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);    
   const [isLoading, setIsLoading] = useState(true);    
   const [error, setError] = useState<string | null>(null);
@@ -102,12 +122,12 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
         const { data: { user } } = await supabase.auth.getUser();    
         if (!user) {    
           setError('User not authenticated');    
+          setRestaurants([]); // Clear restaurants if user not authenticated
           return;    
         }
 
 
         // Fetch user's favorite restaurants with details    
-        // Using a more explicit approach for better error handling    
         const { data: favoriteLinks, error: favError } = await supabase    
           .from('user_favorite_restaurants')    
           .select('restaurant_id, added_at')    
@@ -156,18 +176,8 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
             };    
           });
 
-
-          // Sort based on user preference    
-          const sortedRestaurants = combinedData.sort((a, b) => {    
-            if (sortBy === 'name') {    
-              return a.name.localeCompare(b.name);    
-            } else { // sortBy === 'date'    
-              // Sort by when user favorited the restaurant    
-              return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();    
-            }    
-          });
-
-
+          // MODIFIED: Use reusable sort function
+          const sortedRestaurants = sortRestaurantsArray(combinedData, sortBy);
           setRestaurants(sortedRestaurants);    
         }    
       } catch (err: any) {    
@@ -179,8 +189,9 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
     };
 
 
+    // MODIFIED: Update dependency array for sortBy object
     fetchRestaurants();    
-  }, [sortBy]);
+  }, [sortBy.criterion, sortBy.direction]);
 
 
   // Enhanced duplicate detection for global restaurants    
@@ -578,7 +589,7 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
         }
        
         // Check for apostrophe patterns (e.g., "Ludi's restaurant", "McDonald's")
-        // These should generally NOT be split unless followed by clear location words
+        // These should generally NOT be split unless there's a clear location indicator
         if (lowerQuery.includes("'") || lowerQuery.includes("’")) {
           // Don't split possessive forms unless there's a clear location indicator
           return { isMultiPart: false };
@@ -1063,12 +1074,9 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
         };
 
 
-        setRestaurants(prevRestaurants =>    
-          [restaurantWithFavoriteDate, ...prevRestaurants].sort((a, b) => {    
-            if (sortBy === 'name') return a.name.localeCompare(b.name);    
-            if (sortBy === 'date') return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();    
-            return 0;    
-          })    
+        // MODIFIED: Use reusable sort function
+        setRestaurants(prevRestaurants =>
+          sortRestaurantsArray([...prevRestaurants, restaurantWithFavoriteDate], sortBy)
         );
 
 
@@ -1185,12 +1193,9 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
       };
 
 
-      setRestaurants(prevRestaurants =>    
-        [restaurantWithFavoriteDate, ...prevRestaurants].sort((a, b) => {    
-          if (sortBy === 'name') return a.name.localeCompare(b.name);    
-          if (sortBy === 'date') return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();    
-          return 0;    
-        })    
+      // MODIFIED: Use reusable sort function
+      setRestaurants(prevRestaurants =>
+        sortRestaurantsArray([...prevRestaurants, restaurantWithFavoriteDate], sortBy)
       );
 
 
@@ -1263,12 +1268,9 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
         };
 
 
-        setRestaurants(prevRestaurants =>    
-          [restaurantWithFavoriteDate, ...prevRestaurants].sort((a, b) => {    
-            if (sortBy === 'name') return a.name.localeCompare(b.name);    
-            if (sortBy === 'date') return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();    
-            return 0;    
-          })    
+        // MODIFIED: Use reusable sort function
+        setRestaurants(prevRestaurants =>
+          sortRestaurantsArray([...prevRestaurants, restaurantWithFavoriteDate], sortBy)
         );
 
 
@@ -1319,12 +1321,9 @@ export const useRestaurants = (sortBy: 'name' | 'date') => {
       };
 
 
-      setRestaurants(prevRestaurants =>    
-        [restaurantWithFavoriteDate, ...prevRestaurants].sort((a, b) => {    
-            if (sortBy === 'name') return a.name.localeCompare(b.name);    
-            if (sortBy === 'date') return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();    
-            return 0;    
-        })    
+      // MODIFIED: Use reusable sort function
+      setRestaurants(prevRestaurants =>
+        sortRestaurantsArray([...prevRestaurants, restaurantWithFavoriteDate], sortBy)
       );
 
 

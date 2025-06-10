@@ -138,7 +138,40 @@ export const STYLES = {
     transition: 'all 0.3s ease',
     color: COLORS.textWhite,
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  }
+  },
+  // Sort button styles
+  sortButtonDefault: {
+    backgroundColor: '#efefef',
+    color: '#000000',
+    border: '1px solid #000000',
+    borderRadius: '8px', // Tailwind's rounded-lg is ~8px, maintaining "rectangular" feel with slight roundness
+    padding: '8px 12px',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    fontFamily: FONTS.elegant.fontFamily,
+    display: 'flex', // For aligning text and arrow
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px', // Space between text and arrow
+  },
+  sortButtonActive: {
+    backgroundColor: COLORS.primary, // #3b82f6
+    color: COLORS.textWhite, // white
+    border: `1px solid ${COLORS.textWhite}`, // white border
+    borderRadius: '8px',
+    padding: '8px 12px',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    fontFamily: FONTS.elegant.fontFamily,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+  },
 };
 // Size definitions for consistent spacing
 export const SIZES = {

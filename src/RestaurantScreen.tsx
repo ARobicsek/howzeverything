@@ -7,11 +7,13 @@ import RestaurantCard from './components/restaurant/RestaurantCard';
 import { COLORS, FONTS, SIZES, STYLES } from './constants';
 import { useRestaurants } from './hooks/useRestaurants';
 
+
 interface RestaurantScreenProps {        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
 
 // Enhanced Add Restaurant Form with pre-filled search term (like MenuScreen)    
 const EnhancedAddRestaurantForm: React.FC<{          
@@ -21,12 +23,14 @@ const EnhancedAddRestaurantForm: React.FC<{
 }> = ({ initialRestaurantName = '', onSubmit, onCancel }) => {          
   const [restaurantName, setRestaurantName] = useState(initialRestaurantName);
 
+
   const handleSubmit = async () => {          
     if (restaurantName.trim()) {          
       await onSubmit(restaurantName);          
       setRestaurantName('');          
     }          
   };
+
 
   return (          
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">          
@@ -52,6 +56,7 @@ const EnhancedAddRestaurantForm: React.FC<{
           }}    
         />          
       </div>
+
 
       <div className="flex gap-3 w-full max-w-full">          
         <button          
@@ -83,6 +88,7 @@ const EnhancedAddRestaurantForm: React.FC<{
     </div>          
   );          
 };
+
 
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)        
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
@@ -140,6 +146,7 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   return Math.max(0, charSimilarity);        
 };
 
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
   onNavigateToScreen,        
   onNavigateToMenu,        
@@ -147,7 +154,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 }) => {        
   // UI State        
   const [searchTerm, setSearchTerm] = useState('');        
-  const [sortBy, setSortBy] = useState<'name' | 'date'>('name');        
+  // MODIFIED: Updated sortBy state to include criterion and direction
+  const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'date'; direction: 'asc' | 'desc' }>({ criterion: 'name', direction: 'asc' });
   const [showAddForm, setShowAddForm] = useState(false);        
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);        
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);    
@@ -156,11 +164,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [hasInteractedWithEmptyState, setHasInteractedWithEmptyState] = useState(false);  
   const [ellipsis, setEllipsis] = useState('.'); // State for search ellipsis animation
 
+
   // User Geolocation State  
   const [userLat, setUserLat] = useState<number | null>(null);  
   const [userLon, setUserLon] = useState<number | null>(null);  
   const [fetchingLocation, setFetchingLocation] = useState(true);  
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+
 
   // Custom Hooks        
   const {        
@@ -178,7 +188,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     importRestaurant,        
     clearSearchResults,        
     resetSearch        
-  } = useRestaurants(sortBy);
+  } = useRestaurants(sortBy); // MODIFIED: Pass the sortBy object
+
 
   // Cleanup debounce timer on unmount        
   useEffect(() => {        
@@ -188,6 +199,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       }        
     };        
   }, [searchDebounceTimer]);
+
 
   // Ellipsis animation effect  
   useEffect(() => {  
@@ -205,6 +217,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }  
     return () => clearInterval(interval);  
   }, [isSearching]);
+
 
   // Request user's geolocation on component mount  
   useEffect(() => {  
@@ -240,6 +253,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }  
   }, []); // Run once on mount
 
+
   // Handle navigation after adding restaurant    
   const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);    
      
@@ -259,11 +273,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     setPreviousRestaurantCount(restaurants.length);    
   }, [restaurants, pendingNavigation, previousRestaurantCount, onNavigateToMenu]);
 
+
   // Enhanced restaurant filtering with fuzzy search (same as MenuScreen)        
   const filteredAndSortedRestaurants = useMemo(() => {        
     if (!searchTerm.trim()) {        
       return restaurants; // Return all restaurants when no search term        
     }
+
 
     // Calculate similarity scores and filter        
     const restaurantsWithScores = restaurants.map(restaurant => ({        
@@ -271,18 +287,22 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       similarityScore: calculateRestaurantSimilarity(restaurant.name, searchTerm)        
     }));
 
+
     // Filter restaurants with reasonable similarity (> 20 for very loose matching)        
     // When online results are present, apply a stricter filter for local results.  
     const hasOnlineResults = searchResults.length > 0;  
     const similarityThreshold = hasOnlineResults ? 70 : 20; // Stricter if online results exist
+
 
     const filteredRestaurants = restaurantsWithScores        
       .filter(restaurant => restaurant.similarityScore > similarityThreshold)        
       .sort((a, b) => b.similarityScore - a.similarityScore) // Sort by similarity first        
       .map(({ similarityScore, ...restaurant }) => restaurant); // Remove score from final result
 
+
     return filteredRestaurants;        
   }, [restaurants, searchTerm, searchResults.length]); // Added searchResults.length to dependency array
+
 
   // Handlers        
   const handleAddRestaurant = useCallback(async (name: string) => {        
@@ -295,9 +315,11 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }        
   }, [addRestaurant]);
 
+
   const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {        
     await deleteRestaurant(restaurantId);        
   }, [deleteRestaurant]);
+
 
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {        
     setAddingRestaurantId(geoapifyPlace.place_id);    
@@ -309,6 +331,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }    
     setAddingRestaurantId(null);    
   }, [importRestaurant, clearSearchResults, onNavigateToMenu]);
+
 
   // Enhanced search handler that triggers both local and online search        
   const handleSearchChange = useCallback((newSearchTerm: string) => {        
@@ -338,6 +361,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     setSearchDebounceTimer(timer);        
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
 
+
   const handleResetSearch = useCallback(() => {        
     resetSearch();        
     setSearchTerm('');        
@@ -349,6 +373,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }    
   }, [resetSearch, searchDebounceTimer]);
 
+
   // Handler for "Add your first restaurant" button to initiate search flow  
   const handleAddFirstRestaurantFlow = useCallback(() => {  
     setHasInteractedWithEmptyState(true); // User wants to add their first restaurant  
@@ -357,15 +382,18 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     setShowAddForm(false); // Ensure manual add form is not active  
   }, [clearSearchResults]);
 
+
   // Modified handleShowAddForm to reset interacted state for manual add  
   const handleShowAddForm = useCallback(() => {  
     setShowAddForm(true);  
     setHasInteractedWithEmptyState(false); // If user explicitly goes to manual form, it's not the initial search flow  
   }, []);
 
+
   if (isLoading) {        
     return <LoadingScreen />;        
   }
+
 
   const hasSearchTerm = searchTerm.trim().length > 0;        
   const hasLocalResults = hasSearchTerm && filteredAndSortedRestaurants.length > 0;    
@@ -373,10 +401,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const hasAnyResults = hasLocalResults || hasOnlineResults;  
   const hasRestaurants = restaurants.length > 0; // Track if user has any restaurants
 
+
   // Determine which main section to show  
   const showInitialEmptyState = !hasRestaurants && !hasInteractedWithEmptyState && !showAddForm;  
   const showManualAddForm = showAddForm;  
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
+
 
   return (        
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>        
@@ -408,6 +438,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         </div>        
       </header>
 
+
       {/* Main Content */}        
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>        
         <div className="max-w-md mx-auto space-y-6">        
@@ -416,6 +447,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               <p style={{color: COLORS.danger, ...FONTS.elegant}}>{error}</p>        
             </div>        
           )}
+
 
           {/* Location Feedback */}  
           {fetchingLocation && (  
@@ -433,32 +465,49 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>  
           )}
 
+
           {showAdvancedSort && (        
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">        
-              <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>        
+              {/* REMOVED: <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>        
                 Sort restaurants by:        
-              </h3>        
+              </h3> */}        
               <div className="flex gap-2">        
                 {[        
                   { value: 'name', label: 'Name' },        
                   { value: 'date', label: 'Date Added' }        
-                ].map((option) => (        
-                  <button        
-                    key={option.value}        
-                    onClick={() => setSortBy(option.value as 'name' | 'date')}        
-                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${        
-                      sortBy === option.value        
-                        ? 'bg-white text-gray-800'        
-                        : 'bg-white/20 text-white hover:bg-white/30'        
-                    }`}        
-                    style={{...FONTS.elegant, color: sortBy === option.value ? COLORS.textDark : COLORS.textWhite }}        
-                  >        
-                    {option.label}        
-                  </button>        
-                ))}        
+                ].map((option) => {
+                  const isActive = sortBy.criterion === option.value;
+                  const buttonStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
+                  const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : ''; // Up arrow for ascending, down for descending
+                  return (        
+                    <button        
+                      key={option.value}        
+                      onClick={() => {
+                        if (isActive) {
+                          // Toggle direction if the same criterion is clicked
+                          setSortBy(prev => ({
+                            ...prev,
+                            direction: prev.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        } else {
+                          // Set new criterion, default to ascending for name, descending for date
+                          setSortBy({
+                            criterion: option.value as 'name' | 'date',
+                            direction: option.value === 'name' ? 'asc' : 'desc'
+                          });
+                        }
+                      }}        
+                      className="transition-colors duration-200 hover:opacity-90" // Simple hover effect
+                      style={buttonStyle}        
+                    >        
+                      {option.label} {arrow}        
+                    </button>        
+                  );        
+                })}        
               </div>        
             </div>        
           )}
+
 
           {/* Initial Empty State */}  
           {showInitialEmptyState && (  
@@ -552,7 +601,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       </div>  
                     )}  
                     {isSearching && (        
-                      <div style={{ 
+                      <div style={{
                         marginTop: '4px',
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         padding: '4px 8px',
@@ -570,6 +619,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   </div>        
                 )}        
               </div>
+
 
               {/* Conditional Display of Results or Info Message */}  
               {hasSearchTerm ? (    
@@ -610,6 +660,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     </div>    
                   )}
 
+
                   {/* Online Results */}    
                   {hasOnlineResults && (    
                     <div>    
@@ -624,6 +675,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                           {hasLocalResults ? 'Found online:' : 'Online results:'}    
                         </h3>    
                       </div>
+
 
                       {searchError && (    
                         <div className="bg-red-500/20 p-3 rounded-lg text-center mb-4">    
@@ -688,6 +740,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     </div>    
                   )}
 
+
                   {/* Add New Restaurant Button - Always show when searching */}    
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">    
                     <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>    
@@ -703,6 +756,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       Add New Restaurant    
                     </button>    
                   </div>
+
 
                   {/* No Results Message */}    
                   {!hasAnyResults && !isSearching && (    
@@ -756,6 +810,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>        
           )}
 
+
           {/* Add Restaurant Form */}    
           {showManualAddForm && (    
             <div className="space-y-4">    
@@ -777,6 +832,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 <div className="w-10" /> {/* Spacer */}    
               </div>
 
+
               <EnhancedAddRestaurantForm    
                 initialRestaurantName={searchTerm} // Pre-fill with search term    
                 onSubmit={handleAddRestaurant}    
@@ -787,6 +843,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         </div>        
       </main>
 
+
       <BottomNavigation        
         onNav={onNavigateToScreen}        
         activeScreenValue={currentAppScreen}        
@@ -794,5 +851,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
 
 export default RestaurantScreen;
