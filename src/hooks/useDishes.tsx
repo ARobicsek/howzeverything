@@ -1,10 +1,26 @@
-// Enhanced useDishes hook with username display in comments
+// Enhanced useDishes hook with username display in comments and photo functionality
 // This goes in src/hooks/useDishes.tsx
-
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
+// Photo interface
+export interface DishPhoto {
+  id: string;
+  dish_id: string;
+  user_id: string;
+  storage_path: string;
+  caption?: string | null;
+  width?: number | null;
+  height?: number | null;
+  created_at: string;
+  updated_at: string;
+  // User information joined from users table
+  photographer_name?: string;
+  photographer_email?: string;
+  // Computed URL
+  url?: string;
+}
 
 // Updated interfaces to include user information in comments
 export interface DishComment {
@@ -19,7 +35,6 @@ export interface DishComment {
   commenter_email?: string;
 }
 
-
 export interface DishRating {
   id: string;
   user_id: string;
@@ -30,7 +45,6 @@ export interface DishRating {
   updated_at: string;
   dish_id: string;
 }
-
 
 export interface RestaurantDish {
   id: string;
@@ -47,13 +61,12 @@ export interface RestaurantDish {
   updated_at: string;
 }
 
-
 export interface DishWithDetails extends RestaurantDish {
   dish_comments: DishComment[];
   dish_ratings: DishRating[];
+  dish_photos: DishPhoto[];
   dateAdded: string;
 }
-
 
 // New interface for search/discovery results
 export interface DishSearchResult extends DishWithDetails {
@@ -61,7 +74,6 @@ export interface DishSearchResult extends DishWithDetails {
   isExactMatch?: boolean;
   matchType?: 'exact' | 'fuzzy' | 'partial';
 }
-
 
 // MODIFIED: Reusable sorting function for dishes, now accepts currentUserId
 const sortDishesArray = (
@@ -94,14 +106,12 @@ const sortDishesArray = (
   });
 };
 
-
 // MODIFIED: Updated sortBy type
 export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }) => {
   const [dishes, setDishes] = useState<DishWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
 
   // Get current user on mount
   useEffect(() => {
@@ -112,7 +122,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     getCurrentUser();
   }, []);
 
-
   useEffect(() => {
     const fetchDishes = async () => {
       if (!restaurantId) {
@@ -120,24 +129,24 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         setIsLoading(false);
         return;
       }
-     
+      
       setIsLoading(true);
       setError(null);
-     
+      
       try {
         // MODIFIED: Base order for database query, relying more on client-side sort for custom logic
         let dbOrderByColumn: 'name' | 'average_rating' | 'created_at' = 'name';
         let dbOrderAscending = true;
 
         if (sortBy.criterion === 'community_rating') {
-            dbOrderByColumn = 'average_rating';
-            dbOrderAscending = sortBy.direction === 'asc';
+          dbOrderByColumn = 'average_rating';
+          dbOrderAscending = sortBy.direction === 'asc';
         } else if (sortBy.criterion === 'date') {
-            dbOrderByColumn = 'created_at';
-            dbOrderAscending = sortBy.direction === 'asc';
+          dbOrderByColumn = 'created_at';
+          dbOrderAscending = sortBy.direction === 'asc';
         } else { // Default to name for 'name' and 'your_rating'
-            dbOrderByColumn = 'name';
-            dbOrderAscending = sortBy.direction === 'asc';
+          dbOrderByColumn = 'name';
+          dbOrderAscending = sortBy.direction === 'asc';
         }
 
         const { data, error: fetchError } = await supabase
@@ -165,6 +174,21 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
               created_at,
               updated_at,
               dish_id
+            ),
+            dish_photos (
+              id,
+              dish_id,
+              user_id,
+              storage_path,
+              caption,
+              width,
+              height,
+              created_at,
+              updated_at,
+              users (
+                full_name,
+                email
+              )
             )
           `)
           .eq('restaurant_id', restaurantId)
@@ -172,18 +196,17 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           // MODIFIED: Apply database sorting based on selected criterion for efficiency
           .order(dbOrderByColumn, { ascending: dbOrderAscending })
           .order('created_at', { foreignTable: 'dish_comments', ascending: true }) // Still sort comments by creation date
-          .order('created_at', { foreignTable: 'dish_ratings', ascending: false }); // Still sort ratings by creation date for fetching purposes
-
+          .order('created_at', { foreignTable: 'dish_ratings', ascending: false }) // Still sort ratings by creation date for fetching purposes
+          .order('created_at', { foreignTable: 'dish_photos', ascending: false }); // Sort photos by newest first
 
         if (fetchError) throw fetchError;
-       
+        
         const dishesWithDetails = data?.map(d => {
           const ratings = (d.dish_ratings as DishRating[]) || [];
           const actualTotalRatings = ratings.length;
           const actualAverageRating = actualTotalRatings > 0
             ? ratings.reduce((sum, r) => sum + r.rating, 0) / actualTotalRatings
             : 0;
-
 
           // Debug logging for initial fetch
           if (ratings.length > 0) {
@@ -193,7 +216,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             console.log('Calculated average:', actualAverageRating);
             console.log('Database stored average:', d.average_rating);
           }
-
 
           // Process comments to include user information
           const commentsWithUserInfo = (d.dish_comments as any[])?.map(comment => ({
@@ -207,20 +229,42 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             commenter_email: comment.users?.email
           })) || [];
 
+          // Process photos to include user information and URLs
+          const photosWithInfo = (d.dish_photos as any[])?.map(photo => {
+            const { data } = supabase.storage
+              .from('dish-photos')
+              .getPublicUrl(photo.storage_path);
+            
+            return {
+              id: photo.id,
+              dish_id: photo.dish_id || d.id,
+              user_id: photo.user_id,
+              storage_path: photo.storage_path,
+              caption: photo.caption,
+              width: photo.width,
+              height: photo.height,
+              created_at: photo.created_at,
+              updated_at: photo.updated_at,
+              photographer_name: photo.users?.full_name || 'Anonymous User',
+              photographer_email: photo.users?.email,
+              url: data?.publicUrl
+            };
+          }) || [];
 
           return {
             ...d,
             dish_comments: commentsWithUserInfo,
             dish_ratings: ratings,
+            dish_photos: photosWithInfo,
             // Use calculated values from actual ratings for consistency
             total_ratings: actualTotalRatings,
             average_rating: Math.round(actualAverageRating * 10) / 10,
             dateAdded: d.created_at
           };
         }) || [];
-       
+        
         // MODIFIED: Pass currentUserId to sortDishesArray
-        setDishes(sortDishesArray(dishesWithDetails as DishWithDetails[], sortBy, currentUserId)); 
+        setDishes(sortDishesArray(dishesWithDetails as DishWithDetails[], sortBy, currentUserId));
       } catch (err: any) {
         console.error('Error fetching dishes:', err);
         setError(`Failed to load dishes: ${err.message}`);
@@ -229,24 +273,20 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }
     };
 
-
     // MODIFIED: Update dependency array for sortBy object and currentUserId
     fetchDishes();
   }, [restaurantId, sortBy.criterion, sortBy.direction, currentUserId]);
-
 
   // Enhanced search function with better matching
   const searchDishes = (searchTerm: string): DishSearchResult[] => {
     if (!searchTerm.trim()) return dishes.map(d => ({ ...d, similarityScore: 100 }));
 
-
     const term = searchTerm.toLowerCase().trim();
-   
+    
     return dishes.map(dish => {
       const dishName = dish.name.toLowerCase();
       let score = 0;
       let matchType: 'exact' | 'fuzzy' | 'partial' = 'fuzzy';
-
 
       // Exact match
       if (dishName === term) {
@@ -265,7 +305,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         let wordMatches = 0;
         let partialMatches = 0;
 
-
         searchWords.forEach(searchWord => {
           if (dishWords.some(dishWord => dishWord === searchWord)) {
             wordMatches++;
@@ -278,7 +317,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             partialMatches++;
           }
         });
-
 
         if (wordMatches > 0 || partialMatches > 0) {
           const exactScore = (wordMatches / searchWords.length) * 80;
@@ -300,7 +338,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         }
       }
 
-
       return {
         ...dish,
         similarityScore: score,
@@ -318,10 +355,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     });
   };
 
-
   const addDish = async (name: string, rating: number) => {
     if (!name.trim()) return false;
-   
+    
     setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -329,7 +365,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         setError('You must be logged in to add a dish');
         return false;
       }
-
 
       // First, add the dish (let the trigger calculate the stats)
       const { data: dishData, error: dishError } = await supabase
@@ -345,9 +380,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         .select()
         .single();
 
-
       if (dishError) throw dishError;
-
 
       if (dishData) {
         // Then add the user's rating
@@ -359,11 +392,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             rating: rating
           }]);
 
-
         if (ratingError) {
           console.warn('Failed to create rating:', ratingError);
         }
-
 
         // Create the new dish object with the user's rating included
         const tempRating: DishRating = {
@@ -377,17 +408,17 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           dish_id: dishData.id
         };
 
-
         const newDish: DishWithDetails = {
           ...(dishData as RestaurantDish),
           dish_comments: [],
           dish_ratings: [tempRating],
+          dish_photos: [],
           // Calculate from actual ratings
           total_ratings: 1,
           average_rating: rating,
           dateAdded: dishData.created_at
         };
-       
+        
         // MODIFIED: Use reusable sort function, passing currentUserId
         setDishes(prev => sortDishesArray([...prev, newDish], sortBy, currentUserId));
         return true;
@@ -400,7 +431,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     return false;
   };
 
-
   const deleteDish = async (dishId: string) => {
     setError(null);
     try {
@@ -409,30 +439,29 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         setError('You must be logged in to delete dishes');
         return false;
       }
-     
+      
       const dish = dishes.find(d => d.id === dishId);
-     
+      
       if (dish && user && dish.created_by !== user.id) {
         const { data: profile } = await supabase
           .from('users')
           .select('is_admin')
           .eq('id', user.id)
           .single();
-       
+        
         if (!profile?.is_admin) {
           setError('You can only delete dishes you created');
           return false;
         }
       }
 
-
       const { error } = await supabase
         .from('restaurant_dishes')
         .delete()
         .eq('id', dishId);
-     
+      
       if (error) throw error;
-     
+      
       setDishes(prev => prev.filter(dish => dish.id !== dishId));
       return true;
     } catch (err: any) {
@@ -442,7 +471,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
 
-
   const updateDishRating = async (dishId: string, newRating: number) => {
     setError(null);
     try {
@@ -451,7 +479,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         setError('You must be logged in to rate dishes');
         return false;
       }
-
 
       // Use upsert to handle both insert and update in one operation
       const { error: ratingError } = await supabase
@@ -465,20 +492,17 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           onConflict: 'dish_id,user_id'
         });
 
-
       if (ratingError) {
         console.error('Rating upsert error:', ratingError);
         throw ratingError;
       }
 
-
       // Wait for database trigger to update the dish stats
       await new Promise(resolve => setTimeout(resolve, 800));
 
-
       // Optimistically update the local state immediately
       // MODIFIED: Pass currentUserId to sortDishesArray
-      setDishes(prev => sortDishesArray(prev.map(dish => { 
+      setDishes(prev => sortDishesArray(prev.map(dish => {
         if (dish.id === dishId) {
           // Update or add the user's rating
           const updatedRatings = dish.dish_ratings.some(r => r.user_id === user.id)
@@ -497,13 +521,13 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
                 updated_at: new Date().toISOString(),
                 dish_id: dishId
               }];
-         
+          
           // Calculate new averages
           const totalRatings = updatedRatings.length;
           const averageRating = totalRatings > 0
             ? updatedRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
             : 0;
-         
+          
           // Debug logging for optimistic update
           console.log(`🔍 Optimistic update debug for dish ${dishId}:`);
           console.log('Updated ratings:', updatedRatings.map(r => ({ user_id: r.user_id.substring(0,8) + '...', rating: r.rating })));
@@ -511,7 +535,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           console.log('Sum:', updatedRatings.reduce((sum, r) => sum + r.rating, 0));
           console.log('Total:', totalRatings);
           console.log('Average:', averageRating);
-         
+          
           return {
             ...dish,
             dish_ratings: updatedRatings,
@@ -521,7 +545,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         }
         return dish;
       }), sortBy, currentUserId));
-
 
       // Then fetch the real data from the database to ensure accuracy
       setTimeout(async () => {
@@ -546,7 +569,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             .eq('id', dishId)
             .single();
 
-
           if (refreshedDish && refreshedDish.dish_ratings) {
             // Calculate the REAL averages from the actual ratings data
             // This is the source of truth, not the database fields which might be stale
@@ -556,7 +578,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
               ? ratings.reduce((sum, r) => sum + r.rating, 0) / actualTotalRatings
               : 0;
 
-
             // Debug logging to see what's happening
             console.log(`🔍 Dish rating debug for dish ${dishId}:`);
             console.log('Ratings data:', ratings.map(r => ({ user_id: r.user_id.substring(0,8) + '...', rating: r.rating })));
@@ -565,7 +586,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             console.log('Total ratings:', actualTotalRatings);
             console.log('Calculated average:', actualAverageRating);
             console.log('Database stored average:', refreshedDish.average_rating);
-
 
             // MODIFIED: Pass currentUserId to sortDishesArray
             setDishes(prev => sortDishesArray(prev.map(dish =>
@@ -585,7 +605,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         }
       }, 1500);
 
-
       return true;
     } catch (err: any) {
       console.error('Error updating rating:', err);
@@ -594,18 +613,15 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
 
-
   // Updated addComment function to refresh with user information
   const addComment = async (dishId: string, commentText: string): Promise<void> => {
     if (!commentText.trim()) return;
-
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setError('You must be logged in to add comments');
       return;
     }
-
 
     try {
       const { data: newComment, error } = await supabase
@@ -629,9 +645,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         `)
         .single();
 
-
       if (error) throw error;
-
 
       if (newComment) {
         // Add the comment with user information to local state
@@ -646,7 +660,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           commenter_email: (newComment.users as any)?.email
         };
 
-
         // MODIFIED: Ensure new comment is added to the correct dish and then the dishes array is sorted
         setDishes(prev => sortDishesArray(prev.map(dish =>
           dish.id === dishId
@@ -660,11 +673,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
 
-
   // Updated updateComment function
   const updateComment = async (commentId: string, dishId: string, newText: string): Promise<void> => {
     if (!newText.trim()) return;
-
 
     try {
       const { error } = await supabase
@@ -675,9 +686,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         })
         .eq('id', commentId);
 
-
       if (error) throw error;
-
 
       // Update local state
       // MODIFIED: Ensure the dishes array is sorted after updating a comment
@@ -699,7 +708,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
 
-
   // Updated deleteComment function
   const deleteComment = async (dishId: string, commentId: string): Promise<void> => {
     try {
@@ -708,9 +716,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         .delete()
         .eq('id', commentId);
 
-
       if (error) throw error;
-
 
       // Remove from local state
       // MODIFIED: Ensure the dishes array is sorted after deleting a comment
@@ -728,6 +734,142 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
 
+  // NEW: Add photo function
+  const addPhoto = async (dishId: string, file: File, caption?: string): Promise<void> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError('You must be logged in to add photos');
+      return;
+    }
+
+    try {
+      // Create unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${dishId}/${Date.now()}.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('dish-photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get image dimensions (optional)
+      let width: number | null = null;
+      let height: number | null = null;
+      if (file.type.startsWith('image/')) {
+        const img = new Image();
+        const imgPromise = new Promise<void>((resolve) => {
+          img.onload = () => {
+            width = img.width;
+            height = img.height;
+            resolve();
+          };
+        });
+        img.src = URL.createObjectURL(file);
+        await imgPromise;
+      }
+
+      // Save metadata to database
+      const { data: photoData, error: dbError } = await supabase
+        .from('dish_photos')
+        .insert([{
+          dish_id: dishId,
+          user_id: user.id,
+          storage_path: fileName,
+          caption: caption?.trim(),
+          width,
+          height
+        }])
+        .select(`
+          id,
+          dish_id,
+          user_id,
+          storage_path,
+          caption,
+          width,
+          height,
+          created_at,
+          updated_at,
+          users (
+            full_name,
+            email
+          )
+        `)
+        .single();
+
+      if (dbError) throw dbError;
+
+      if (photoData) {
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('dish-photos')
+          .getPublicUrl(fileName);
+
+        const photoWithInfo: DishPhoto = {
+          id: photoData.id,
+          dish_id: photoData.dish_id,
+          user_id: photoData.user_id,
+          storage_path: photoData.storage_path,
+          caption: photoData.caption,
+          width: photoData.width,
+          height: photoData.height,
+          created_at: photoData.created_at,
+          updated_at: photoData.updated_at,
+          photographer_name: (photoData.users as any)?.full_name || 'Anonymous User',
+          photographer_email: (photoData.users as any)?.email,
+          url: urlData?.publicUrl
+        };
+
+        // Update local state
+        setDishes(prev => sortDishesArray(prev.map(dish =>
+          dish.id === dishId
+            ? { ...dish, dish_photos: [...dish.dish_photos, photoWithInfo] }
+            : dish
+        ), sortBy, currentUserId));
+      }
+    } catch (err: any) {
+      console.error('Error adding photo:', err);
+      setError(`Failed to add photo: ${err.message}`);
+    }
+  };
+
+  // NEW: Delete photo function
+  const deletePhoto = async (dishId: string, photoId: string): Promise<void> => {
+    try {
+      // Get photo details first
+      const photo = dishes.find(d => d.id === dishId)?.dish_photos.find(p => p.id === photoId);
+      if (!photo) throw new Error('Photo not found');
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('dish-photos')
+        .remove([photo.storage_path]);
+
+      if (storageError) console.warn('Error deleting from storage:', storageError);
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('dish_photos')
+        .delete()
+        .eq('id', photoId);
+
+      if (dbError) throw dbError;
+
+      // Update local state
+      setDishes(prev => sortDishesArray(prev.map(dish =>
+        dish.id === dishId
+          ? {
+              ...dish,
+              dish_photos: dish.dish_photos.filter(photo => photo.id !== photoId)
+            }
+          : dish
+      ), sortBy, currentUserId));
+    } catch (err: any) {
+      console.error('Error deleting photo:', err);
+      setError(`Failed to delete photo: ${err.message}`);
+    }
+  };
 
   // Helper function to check if a dish name might be a duplicate
   const checkForSimilarDishes = (dishName: string, threshold: number = 80): DishSearchResult[] => {
@@ -735,7 +877,6 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       (dish.similarityScore || 0) >= threshold
     );
   };
-
 
   return {
     dishes,
@@ -752,6 +893,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     // Comment functions
     addComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    // Photo functions
+    addPhoto,
+    deletePhoto
   };
 };

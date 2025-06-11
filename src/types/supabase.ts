@@ -52,6 +52,8 @@ export interface Database {
           address: string | null
           phone: string | null
           website_url: string | null
+          rating: number | null
+          price_tier: number | null
           category: string | null
           opening_hours: Json | null
           latitude: number | null
@@ -67,6 +69,8 @@ export interface Database {
           address?: string | null
           phone?: string | null
           website_url?: string | null
+          rating?: number | null
+          price_tier?: number | null
           category?: string | null
           opening_hours?: Json | null
           latitude?: number | null
@@ -82,6 +86,8 @@ export interface Database {
           address?: string | null
           phone?: string | null
           website_url?: string | null
+          rating?: number | null
+          price_tier?: number | null
           category?: string | null
           opening_hours?: Json | null
           latitude?: number | null
@@ -211,6 +217,41 @@ export interface Database {
           updated_at?: string
         }
       }
+      dish_photos: {
+        Row: {
+          id: string
+          dish_id: string
+          user_id: string
+          storage_path: string
+          caption: string | null
+          width: number | null
+          height: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          dish_id: string
+          user_id: string
+          storage_path: string
+          caption?: string | null
+          width?: number | null
+          height?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          dish_id?: string
+          user_id?: string
+          storage_path?: string
+          caption?: string | null
+          width?: number | null
+          height?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -219,9 +260,6 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
       [_ in never]: never
     }
   }
