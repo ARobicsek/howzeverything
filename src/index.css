@@ -2,21 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* Hide scrollbar for photo carousel */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
 
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
 
 /* Optional: Add smooth scrolling to photo carousel */
 .photo-carousel {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
+
 
 /* Optional: Add image loading animation */
 @keyframes imageLoad {
@@ -30,17 +34,16 @@
   }
 }
 
-.photo-thumbnail img {
-  animation: imageLoad 0.3s ease-out;
-}
 
 /* Optional: Improve photo modal appearance */
 .photo-modal-backdrop {
   backdrop-filter: blur(10px);
 }
 
+
 /* Ensure images don't exceed viewport in modal */
 .photo-modal img {
   max-width: 90vw;
   max-height: 80vh;
   object-fit: contain;
+}
