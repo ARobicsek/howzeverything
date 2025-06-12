@@ -1,6 +1,4 @@
-// Enhanced useDishes hook with username display in comments and photo functionality
-// This goes in src/hooks/useDishes.tsx
-
+// src/hooks/useDishes.tsx
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
@@ -480,6 +478,45 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         return false;
       }
 
+      // Handle clearing rating (rating = 0)
+      if (newRating === 0) {
+        // Delete the rating
+        const { error: deleteError } = await supabase
+          .from('dish_ratings')
+          .delete()
+          .eq('dish_id', dishId)
+          .eq('user_id', user.id);
+
+        if (deleteError) {
+          console.error('Rating delete error:', deleteError);
+          throw deleteError;
+        }
+
+        // Update local state to remove the rating
+        setDishes(prev => sortDishesArray(prev.map(dish => {
+          if (dish.id === dishId) {
+            // Remove the user's rating
+            const updatedRatings = dish.dish_ratings.filter(r => r.user_id !== user.id);
+            
+            // Calculate new averages
+            const totalRatings = updatedRatings.length;
+            const averageRating = totalRatings > 0
+              ? updatedRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+              : 0;
+            
+            return {
+              ...dish,
+              dish_ratings: updatedRatings,
+              total_ratings: totalRatings,
+              average_rating: Math.round(averageRating * 10) / 10
+            };
+          }
+          return dish;
+        }), sortBy, currentUserId));
+
+        return true;
+      }
+
       // Use upsert to handle both insert and update in one operation
       const { error: ratingError } = await supabase
         .from('dish_ratings')
@@ -609,6 +646,59 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     } catch (err: any) {
       console.error('Error updating rating:', err);
       setError(`Failed to update rating: ${err.message}`);
+      return false;
+    }
+  };
+
+  // NEW: Update dish name function
+  const updateDishName = async (dishId: string, newName: string) => {
+    if (!newName.trim()) return false;
+    
+    setError(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('You must be logged in to edit dishes');
+        return false;
+      }
+
+      const dish = dishes.find(d => d.id === dishId);
+      
+      // Check if user can edit this dish (must be creator or admin)
+      if (dish && dish.created_by !== user.id) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single();
+        
+        if (!profile?.is_admin) {
+          setError('You can only edit dishes you created');
+          return false;
+        }
+      }
+
+      const { error } = await supabase
+        .from('restaurant_dishes')
+        .update({ 
+          name: newName.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', dishId);
+
+      if (error) throw error;
+
+      // Update local state
+      setDishes(prev => sortDishesArray(prev.map(dish =>
+        dish.id === dishId
+          ? { ...dish, name: newName.trim(), updated_at: new Date().toISOString() }
+          : dish
+      ), sortBy, currentUserId));
+
+      return true;
+    } catch (err: any) {
+      console.error('Error updating dish name:', err);
+      setError(`Failed to update dish name: ${err.message}`);
       return false;
     }
   };
@@ -887,6 +977,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     addDish,
     deleteDish,
     updateDishRating,
+    updateDishName, // NEW
     setDishes,
     searchDishes,
     checkForSimilarDishes,

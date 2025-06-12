@@ -1,14 +1,11 @@
-// Enhanced MenuScreen with consistent button styling and photo functionality
-// This goes in src/MenuScreen.tsx
-
+// src/screens/MenuScreen.tsx
 import React, { useMemo, useState } from 'react';
 import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, SIZES, STYLES } from './constants'; // Added SIZES
-// REMOVED: import { useComments } from './hooks/useComments';
+import { COLORS, FONTS, SIZES, STYLES } from './constants';
 import type { DishSearchResult } from './hooks/useDishes';
 import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
@@ -122,7 +119,6 @@ const DishSearchSection: React.FC<{
 );
 
 // Component to show add dish option when search yields results
-// FIXED: Removed unused 'searchTerm' prop
 const AddDishPrompt: React.FC<{
   hasResults: boolean;
   onShowAddForm: () => void;
@@ -166,8 +162,6 @@ const EnhancedAddDishForm: React.FC<{
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">
-      {/* REMOVED: Duplicate "Add New Dish" title - the parent already shows this in the header */}
-
       <div>
         <label style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, display: 'block', marginBottom: '8px'}}>
           Dish Name
@@ -256,13 +250,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   currentAppScreen
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  // MODIFIED: Updated sortBy state to include new rating criteria
   const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }>({ criterion: 'community_rating', direction: 'desc' });
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
+  const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
+  const [allExpanded, setAllExpanded] = useState(false);
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);
-  // MODIFIED: Pass the sortBy object to useDishes
   const {
     dishes,
     isLoading: isLoadingDishes,
@@ -272,12 +266,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     addDish,
     deleteDish,
     updateDishRating,
+    updateDishName,
     searchDishes,
-    // FIXED: Use comment functions from useDishes (they return Promise<void> and handle state internally)
     addComment,
     updateComment,
     deleteComment,
-    // NEW: Photo functions
     addPhoto,
     deletePhoto
   } = useDishes(restaurantId, sortBy);
@@ -288,7 +281,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   const hasSearched = searchTerm.trim().length > 0;
   const hasSearchResults = hasSearched && searchResults.length > 0;
-  const hasDishes = dishes.length > 0; // Track if any dishes exist
+  const hasDishes = dishes.length > 0;
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
@@ -310,15 +303,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     const success = await addDish(name, rating);
     if (success) {
       setShowAddForm(false);
-      setSearchTerm(''); // Clear search term from MenuScreen state
+      setSearchTerm('');
     }
   };
 
-  // FIXED: Simplified comment handlers - useDishes functions handle everything internally
   const handleAddComment = async (dishId: string, text: string) => {
     try {
       await addComment(dishId, text);
-      // No need for manual state updates - addComment handles it internally
     } catch (err: any) {
       setError(`Failed to add comment: ${err.message}`);
     }
@@ -327,7 +318,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     try {
       await updateComment(commentId, dishId, newText);
-      // No need for manual state updates - updateComment handles it internally
     } catch (err: any) {
       setError(`Failed to update comment: ${err.message}`);
     }
@@ -336,13 +326,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     try {
       await deleteComment(dishId, commentId);
-      // No need for manual state updates - deleteComment handles it internally
     } catch (err: any) {
       setError(`Failed to delete comment: ${err.message}`);
     }
   };
 
-  // NEW: Photo handlers
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
       await addPhoto(dishId, file, caption);
@@ -356,6 +344,27 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       await deletePhoto(dishId, photoId);
     } catch (err: any) {
       setError(`Failed to delete photo: ${err.message}`);
+    }
+  };
+
+  const handleToggleAllExpanded = () => {
+    if (allExpanded) {
+      setAllExpanded(false);
+      setExpandedDishId(null);
+    } else {
+      setAllExpanded(true);
+      // All dishes will be expanded via the allExpanded flag
+    }
+  };
+
+  const handleToggleDishExpanded = (dishId: string) => {
+    if (allExpanded) {
+      // If all are expanded and user clicks one, collapse all and expand only that one
+      setAllExpanded(false);
+      setExpandedDishId(dishId === expandedDishId ? null : dishId);
+    } else {
+      // Normal toggle behavior
+      setExpandedDishId(dishId === expandedDishId ? null : dishId);
     }
   };
 
@@ -384,19 +393,41 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           >
             {restaurant.name}
           </h1>
-          <button
-            onClick={() => setShowAdvancedSort(!showAdvancedSort)}
-            className="rounded-full hover:opacity-80 transition-opacity focus:outline-none"
-            style={{
-              ...STYLES.iconButton,
-              backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.iconBackground,
-              color: showAdvancedSort ? COLORS.textWhite : COLORS.iconPrimary
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
-            </svg>
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Expand/Collapse All button */}
+            <button
+              onClick={handleToggleAllExpanded}
+              className="rounded-full hover:opacity-80 transition-opacity focus:outline-none"
+              style={{
+                ...STYLES.iconButton,
+                backgroundColor: allExpanded ? COLORS.primary : COLORS.iconBackground,
+                color: allExpanded ? COLORS.textWhite : COLORS.iconPrimary
+              }}
+              aria-label={allExpanded ? "Collapse all dishes" : "Expand all dishes"}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                {allExpanded ? (
+                  <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/>
+                ) : (
+                  <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                )}
+              </svg>
+            </button>
+            {/* Sort button */}
+            <button
+              onClick={() => setShowAdvancedSort(!showAdvancedSort)}
+              className="rounded-full hover:opacity-80 transition-opacity focus:outline-none"
+              style={{
+                ...STYLES.iconButton,
+                backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.iconBackground,
+                color: showAdvancedSort ? COLORS.textWhite : COLORS.iconPrimary
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -411,9 +442,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
           {showAdvancedSort && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              {/* REMOVED: <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>Sort dishes by:</h3>  */}
               <div className="flex gap-2 flex-wrap">
-                {/* MODIFIED: Updated sort options */}
                 {[
                   { value: 'name', label: 'Name' },
                   { value: 'your_rating', label: 'Your rating' },
@@ -422,20 +451,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 ].map((option) => {
                   const isActive = sortBy.criterion === option.value;
                   const buttonStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
-                  // Up arrow for ascending, down for descending
                   const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
                   return (
                     <button
                       key={option.value}
                       onClick={() => {
                         if (isActive) {
-                          // Toggle direction if the same criterion is clicked
                           setSortBy(prev => ({
                             ...prev,
                             direction: prev.direction === 'asc' ? 'desc' : 'asc'
                           }));
                         } else {
-                          // Set new criterion, default to descending for ratings, ascending for name/date
                           setSortBy({
                             criterion: option.value as typeof sortBy.criterion,
                             direction: (option.value === 'your_rating' || option.value === 'community_rating') ? 'desc' : 'asc'
@@ -445,7 +471,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       className="transition-colors duration-200 hover:opacity-90"
                       style={buttonStyle}
                     >
-                      {/* MODIFIED: Display text with black star emojis */}
                       {option.value === 'your_rating' ? (
                         <>
                           <span>Your</span>
@@ -467,7 +492,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>
           )}
 
-          {/* UPDATED: Only show search section if dishes exist AND not showing add form */}
+          {/* Only show search section if dishes exist AND not showing add form */}
           {!showAddForm && hasDishes && (
             <DishSearchSection
               searchTerm={searchTerm}
@@ -495,12 +520,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                         currentUserId={currentUserId}
                         onDelete={deleteDish}
                         onUpdateRating={updateDishRating}
+                        onUpdateDishName={updateDishName}
                         onAddComment={handleAddComment}
                         onUpdateComment={handleUpdateComment}
                         onDeleteComment={handleDeleteComment}
                         onAddPhoto={handleAddPhoto}
                         onDeletePhoto={handleDeletePhoto}
                         isSubmittingComment={false}
+                        isExpanded={allExpanded || expandedDishId === dish.id}
+                        onToggleExpand={() => handleToggleDishExpanded(dish.id)}
                       />
                       {index < searchResults.length - 1 && (
                         <div className="mx-4 mt-4" style={{height: '1px', background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`}}/>
@@ -525,12 +553,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                         currentUserId={currentUserId}
                         onDelete={deleteDish}
                         onUpdateRating={updateDishRating}
+                        onUpdateDishName={updateDishName}
                         onAddComment={handleAddComment}
                         onUpdateComment={handleUpdateComment}
                         onDeleteComment={handleDeleteComment}
                         onAddPhoto={handleAddPhoto}
                         onDeletePhoto={handleDeletePhoto}
                         isSubmittingComment={false}
+                        isExpanded={allExpanded || expandedDishId === dish.id}
+                        onToggleExpand={() => handleToggleDishExpanded(dish.id)}
                       />
                       {index < (hasSearched ? searchResults : dishes).length - 1 && (
                         <div className="mx-4 mt-4" style={{height: '1px', background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`}}/>
@@ -560,12 +591,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>
           )}
 
-          {/* FIXED: Removed the duplicate back arrow and "Add New Dish" header section */}
           {showAddForm && (
             <div className="space-y-4">
-              {/* Just show the form directly without duplicate headers */}
               <EnhancedAddDishForm
-                initialDishName={searchTerm} // searchTerm from MenuScreen state is used here
+                initialDishName={searchTerm}
                 onSubmit={handleAddDish}
                 onCancel={() => { setShowAddForm(false); }}
               />
