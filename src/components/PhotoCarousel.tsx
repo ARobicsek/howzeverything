@@ -1,50 +1,40 @@
-// src/components/PhotoCarousel.tsx
+// src/components/PhotoCarousel.tsx  
 import React from 'react';
 import type { DishPhoto } from '../hooks/useDishes';
 
-interface PhotoCarouselProps {
-  photos: DishPhoto[];
-  onPhotoClick: (photo: DishPhoto, index: number) => void;
+interface PhotoCarouselProps {  
+  photos: DishPhoto[];  
+  onPhotoClick: (photo: DishPhoto, index: number) => void;  
 }
 
-const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, onPhotoClick }) => {
-  const maxThumbnails = 5;
-  const displayPhotos = photos.slice(0, maxThumbnails);
-  const remainingCount = Math.max(0, photos.length - maxThumbnails);
+const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, onPhotoClick }) => {  
+  // Remove the artificial limit - show all photos
+  const displayPhotos = photos; // Show all photos instead of limiting to 5
 
-  return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-      {/* Photo thumbnails */}
-      {displayPhotos.map((photo, index) => (
-        <button
-          key={photo.id}
-          onClick={() => onPhotoClick(photo, index)}
-          className="relative flex-shrink-0 rounded-md overflow-hidden hover:opacity-80 transition-opacity group"
-          style={{ 
-            width: '80px', 
-            height: '80px'
-          }}
-        >
-          <img
-            src={photo.url}
-            alt={photo.caption || `Photo ${index + 1}`}
-            className="w-full h-full object-cover"
-          />
-          {/* Show "+X" overlay on last thumbnail if there are more photos */}
-          {index === maxThumbnails - 1 && remainingCount > 0 && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <span 
-                className="text-white font-medium text-sm"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                +{remainingCount}
-              </span>
-            </div>
-          )}
-        </button>
-      ))}
-    </div>
-  );
+  return (  
+    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">  
+      {/* Photo thumbnails - now shows all photos */}  
+      {displayPhotos.map((photo, index) => (  
+        <button  
+          key={photo.id}  
+          onClick={() => onPhotoClick(photo, index)}  
+          className="relative flex-shrink-0 rounded-md overflow-hidden hover:opacity-80 transition-opacity group"  
+          style={{  
+            width: '80px',  
+            height: '80px'  
+          }}  
+        >  
+          <img  
+            src={photo.url}  
+            alt={photo.caption || `Photo ${index + 1}`}  
+            className="w-full h-full object-cover"  
+          />  
+          {/* Optional: Add a subtle overlay on hover for better UX */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200 pointer-events-none" />
+        </button>  
+      ))}  
+    </div>  
+  );  
 };
 
 export default PhotoCarousel;
