@@ -1,301 +1,404 @@
-// src/components/PhotoModal.tsx  
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+// src/components/PhotoModal.tsx    
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS } from '../constants';
 import type { DishPhoto } from '../hooks/useDishes';
 
-
-interface PhotoModalProps {  
-  photos: DishPhoto[];  
-  initialIndex: number;  
-  currentUserId: string | null;  
-  onClose: () => void;  
-  onDelete: (photoId: string) => Promise<void>;  
-  onDoubleClickDelete?: boolean;  
+interface PhotoModalProps {    
+  photos: DishPhoto[];    
+  initialIndex: number;    
+  currentUserId: string | null;    
+  onClose: () => void;    
+  onDelete: (photoId: string) => Promise<void>;    
 }
 
+const PhotoModal: React.FC<PhotoModalProps> = ({    
+  photos,    
+  initialIndex,    
+  currentUserId,    
+  onClose,    
+  onDelete   
+}) => {    
+  console.log('PhotoModal rendering with:', { 
+    photosLength: photos?.length, 
+    initialIndex, 
+    photosExist: !!photos 
+  });
 
-const PhotoModal: React.FC<PhotoModalProps> = ({  
-  photos,  
-  initialIndex,  
-  currentUserId,  
-  onClose,  
-  onDelete,  
-  onDoubleClickDelete = true  
-}) => {  
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);  
-  const [isDeleting, setIsDeleting] = useState(false);  
-  const [showDeleteHint, setShowDeleteHint] = useState(false);  
-   
-  // Use a ref for double click timer  
-  const doubleClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // FIXED: Ensure initial currentIndex is always valid
+  const validInitialIndex = Math.max(0, Math.min(initialIndex, (photos?.length || 1) - 1));
+  const [currentIndex, setCurrentIndex] = useState(validInitialIndex);    
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  // Early validation with better error handling
+  if (!photos || photos.length === 0) {
+    console.warn("PhotoModal: No photos provided, closing modal");
+    setTimeout(() => onClose(), 0);
+    return null;
+  }
 
-  const currentPhoto = photos[currentIndex];  
-  const isOwner = currentPhoto?.user_id === currentUserId;
+  // FIXED: Always ensure we have a valid current photo
+  const safeCurrentIndex = Math.max(0, Math.min(currentIndex, photos.length - 1));
+  const currentPhoto = photos[safeCurrentIndex];
 
+  console.log('PhotoModal currentPhoto:', { 
+    safeCurrentIndex, 
+    currentPhoto: !!currentPhoto, 
+    photoUrl: currentPhoto?.url,
+    currentUserId: currentUserId,
+    photoUserId: currentPhoto?.user_id
+  });
 
-  useEffect(() => {  
-    // FIXED: Remove unused prevIndex parameter that was causing TypeScript error
-    setCurrentIndex(Math.min(initialIndex, photos.length > 0 ? photos.length - 1 : 0));  
-    // If photos becomes empty, the DishCard will stop rendering PhotoModal entirely, so `0` is a safe default.  
+  if (!currentPhoto) {
+    console.error("PhotoModal: No current photo available after validation");
+    setTimeout(() => onClose(), 0);
+    return null;
+  }
+
+  // FIXED: Declare isOwner after currentPhoto is validated
+  const isOwner = currentPhoto.user_id === currentUserId;
+
+  useEffect(() => {    
+    const validIndex = Math.max(0, Math.min(initialIndex, photos.length - 1));
+    console.log('PhotoModal useEffect: Setting currentIndex from', initialIndex, 'to', validIndex);
+    setCurrentIndex(validIndex);    
   }, [initialIndex, photos.length]);
 
-
-  const handleNext = useCallback(() => {  
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);  
+  const handleNext = useCallback(() => {    
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);    
   }, [photos.length]);
 
-
-  const handlePrev = useCallback(() => {  
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);  
+  const handlePrev = useCallback(() => {    
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);    
   }, [photos.length]);
 
-
-  useEffect(() => {  
-    const handleKeyDown = (e: KeyboardEvent) => {  
-      if (e.key === 'Escape') onClose();  
-      if (e.key === 'ArrowLeft') handlePrev();  
-      if (e.key === 'ArrowRight') handleNext();  
+  useEffect(() => {    
+    const handleKeyDown = (e: KeyboardEvent) => {    
+      if (e.key === 'Escape') onClose();    
+      if (e.key === 'ArrowLeft') handlePrev();    
+      if (e.key === 'ArrowRight') handleNext();    
     };
 
-
-    document.addEventListener('keydown', handleKeyDown);  
-    return () => document.removeEventListener('keydown', handleKeyDown);  
+    document.addEventListener('keydown', handleKeyDown);    
+    return () => document.removeEventListener('keydown', handleKeyDown);    
   }, [handlePrev, handleNext, onClose]);
 
-
-  useEffect(() => {  
-    // Show delete hint for photo owners  
-    if (isOwner && onDoubleClickDelete) {  
-      setShowDeleteHint(true);  
-      const timer = setTimeout(() => setShowDeleteHint(false), 3000);  
-      return () => clearTimeout(timer);  
-    }  
-  }, [currentIndex, isOwner, onDoubleClickDelete]);
-
-
-  const handleDelete = async () => {  
-    if (window.confirm('Are you sure you want to delete this photo?')) {  
-      setIsDeleting(true);  
-      try {  
-        await onDelete(currentPhoto.id);  
-        // Parent component's onDelete will trigger a re-fetch or state update of `photos`.  
-        // The `useEffect` for `currentIndex` will then re-adjust.  
-        // If no photos are left, the parent `DishCard` will no longer render PhotoModal.  
-        // If currentPhoto.id is the only one, onClose will be called by parent after deletion.  
-      } catch (error) {  
-        console.error('Error deleting photo:', error);  
-      } finally {  
-        setIsDeleting(false);  
-      }  
-    }  
+  const handleDelete = async () => {    
+    if (window.confirm('Are you sure you want to delete this photo?')) {    
+      setIsDeleting(true);    
+      try {    
+        await onDelete(currentPhoto.id);    
+      } catch (error) {    
+        console.error('Error deleting photo:', error);    
+      } finally {    
+        setIsDeleting(false);    
+      }    
+    }    
   };
 
-
-  const handlePhotoDoubleClick = useCallback(() => {  
-    if (isOwner && onDoubleClickDelete) {  
-      handleDelete();  
-    }  
-  }, [isOwner, onDoubleClickDelete, handleDelete]);
-
-
-  // Handle single and double click for delete  
-  const handlePhotoClick = useCallback(() => {  
-    if (doubleClickTimer.current) {  
-      clearTimeout(doubleClickTimer.current);  
-      doubleClickTimer.current = null;  
-      handlePhotoDoubleClick(); // This is a double click  
-    } else {  
-      doubleClickTimer.current = setTimeout(() => {  
-        doubleClickTimer.current = null;  
-        // This is a single click, do nothing or add single click behavior here  
-      }, 300); // 300ms threshold for double click  
-    }  
-  }, [handlePhotoDoubleClick]);
-
-
-  if (!currentPhoto) {  
-      console.warn("PhotoModal: No current photo to display. Rendering null.");  
-      return null; // Ensure currentPhoto is valid  
+  // Enhanced modal root detection and creation
+  let modalRoot = document.getElementById('modal-root');    
+  if (!modalRoot) {    
+    console.warn("PhotoModal: modal-root not found, creating it");
+    modalRoot = document.createElement('div');
+    modalRoot.id = 'modal-root';
+    modalRoot.style.position = 'fixed';
+    modalRoot.style.top = '0';
+    modalRoot.style.left = '0';
+    modalRoot.style.width = '100vw';
+    modalRoot.style.height = '100vh';
+    modalRoot.style.pointerEvents = 'none'; // Allow clicks through when empty
+    modalRoot.style.zIndex = '999999';
+    document.body.appendChild(modalRoot);
+    console.log("PhotoModal: Created and styled modal-root element");
   }
 
-
-  // Get the modal root element for portal rendering  
-  const modalRoot = document.getElementById('modal-root');  
-  if (!modalRoot) {  
-    console.error("PhotoModal: Modal root element with ID 'modal-root' not found in index.html. Modals may not render correctly.");  
-    return null; // Don't render if the portal target isn't found  
+  // Double-check modal root
+  if (!modalRoot) {
+    console.error("PhotoModal: Still cannot find or create modal-root");
+    return null;
   }
 
+  console.log('PhotoModal: About to render portal with photo:', currentPhoto.url);
+  console.log('PhotoModal: Modal root element:', modalRoot);
 
-  // Use a portal to render the modal outside the current DOM hierarchy  
-  return ReactDOM.createPortal(  
-    <div  
-      className="fixed inset-0 z-[9999] flex items-center justify-center" // High z-index for the portal  
-      onClick={onClose}  
-    >  
-      {/* Enhanced backdrop with blur effect */}  
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />  
-       
-      {/* Modal content - positioned higher with pt-8 */}  
-      <div  
-        className="relative max-w-4xl max-h-screen w-full h-full flex flex-col pt-8 px-4 pb-4"  
-        onClick={(e) => e.stopPropagation()}  
-      >  
-        {/* Close button - top right */}  
-        <button  
-          onClick={onClose}  
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"  
-          aria-label="Close"  
-        >  
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">  
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>  
-          </svg>  
+  // BULLETPROOF MODAL with forced visibility styles
+  const modalElement = (    
+    <div    
+      style={{
+        // FORCE these styles to ensure visibility
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 2147483647, // Maximum z-index value
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'auto'
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          console.log('Backdrop clicked, closing modal');
+          onClose();
+        }
+      }}
+    >    
+      {/* Backdrop - MORE VISIBLE for debugging */}    
+      <div 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(4px)'
+        }}
+      />    
+         
+      {/* Modal content */}    
+      <div    
+        style={{
+          position: 'relative',
+          maxWidth: '90vw',
+          maxHeight: '90vh',
+          width: 'auto',
+          height: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          borderRadius: '8px',
+          overflow: 'hidden'
+        }}
+        onClick={(e) => e.stopPropagation()}    
+      >    
+        {/* Close button - ALWAYS VISIBLE */}    
+        <button    
+          onClick={() => {
+            console.log('Close button clicked');
+            onClose();
+          }}    
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            zIndex: 10,
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            color: '#000',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px',
+            fontWeight: 'bold'
+          }}
+          aria-label="Close"    
+        >    
+          ×
         </button>
 
-
-        {/* Navigation arrows - positioned in upper right */}  
-        {photos.length > 1 && (  
-          <div className="absolute top-4 right-20 z-10 flex gap-2">  
-            <button  
-              onClick={handlePrev}  
-              disabled={currentIndex === 0}  
-              className={`p-2 rounded-full transition-all ${  
-                currentIndex === 0  
-                  ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'  
-                  : 'bg-black/50 text-white hover:bg-black/70'  
-              }`}  
-              aria-label="Previous photo"  
-            >  
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">  
-                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>  
-              </svg>  
-            </button>  
-            <button  
-              onClick={handleNext}  
-              disabled={currentIndex === photos.length - 1}  
-              className={`p-2 rounded-full transition-all ${  
-                currentIndex === photos.length - 1  
-                  ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'  
-                  : 'bg-black/50 text-white hover:bg-black/70'  
-              }`}  
-              aria-label="Next photo"  
-            >  
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">  
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>  
-              </svg>  
-            </button>  
-          </div>  
-        )}
-
-
-        {/* Photo counter with improved visibility */}  
-        {photos.length > 1 && (  
-          <div className="absolute top-4 left-4 z-10">  
-            <div  
-              className="px-3 py-1 rounded-lg"  
-              style={{  
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',  
-                color: COLORS.textDark,  
-                ...FONTS.elegant,  
-                fontSize: '0.875rem',  
-                fontWeight: '500'  
-              }}  
-            >  
-              {currentIndex + 1} / {photos.length}  
-            </div>  
-          </div>  
-        )}
-
-
-        {/* Image container */}  
-        <div className="flex-1 flex items-center justify-center">  
-          <img  
-            src={currentPhoto.url}  
-            alt={currentPhoto.caption || 'Dish photo'}  
-            className="max-w-full max-h-full object-contain cursor-pointer"  
-            style={{ maxHeight: '70vh' }}  
-            onDoubleClick={handlePhotoDoubleClick}  
-            onClick={handlePhotoClick}  
-          />  
+        {/* Photo counter and delete button container */}    
+        <div 
+          style={{
+            position: 'absolute',
+            top: '10px',
+            left: '10px',
+            zIndex: 10,
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center'
+          }}
+        >
+          {/* Photo counter */}
+          {photos.length > 1 && (    
+            <div 
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: '#000',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >    
+              {safeCurrentIndex + 1} / {photos.length}    
+            </div>    
+          )}
+          
+          {/* Delete button for photo owners */}
+          {isOwner && (    
+            <button    
+              onClick={(e) => {
+                console.log('Delete button clicked - proceeding with delete');
+                e.stopPropagation();
+                handleDelete();
+              }}
+              disabled={isDeleting}    
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#3B82F6', // Blue background
+                color: 'white',
+                border: '2px solid black', // Black border
+                cursor: isDeleting ? 'not-allowed' : 'pointer',
+                opacity: isDeleting ? 0.5 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}
+              title="Delete this photo"
+            >    
+              {isDeleting ? '...' : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                </svg>
+              )}
+            </button>    
+          )}
         </div>
 
+        {/* Navigation arrows - if multiple photos */}    
+        {photos.length > 1 && (    
+          <>
+            <button    
+              onClick={() => {
+                console.log('Previous button clicked');
+                handlePrev();
+              }}    
+              disabled={safeCurrentIndex === 0}    
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 10,
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: safeCurrentIndex === 0 ? 'rgba(128, 128, 128, 0.5)' : 'rgba(255, 255, 255, 0.9)',
+                color: '#000',
+                border: 'none',
+                cursor: safeCurrentIndex === 0 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: 'bold'
+              }}
+              aria-label="Previous photo"    
+            >    
+              ‹
+            </button>    
+            <button    
+              onClick={() => {
+                console.log('Next button clicked');
+                handleNext();
+              }}
+              disabled={safeCurrentIndex === photos.length - 1}    
+              style={{
+                position: 'absolute',
+                right: '60px', // Account for close button
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 10,
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: safeCurrentIndex === photos.length - 1 ? 'rgba(128, 128, 128, 0.5)' : 'rgba(255, 255, 255, 0.9)',
+                color: '#000',
+                border: 'none',
+                cursor: safeCurrentIndex === photos.length - 1 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: 'bold'
+              }}
+              aria-label="Next photo"    
+            >    
+              ›
+            </button>    
+          </>
+        )}
 
-        {/* Photo information with improved visibility */}  
-        <div className="mt-4 space-y-2">  
-          {/* Caption */}  
-          {currentPhoto.caption && (  
-            <div  
-              className="px-4 py-2 rounded-lg inline-block"  
-              style={{  
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',  
-                color: COLORS.textDark  
-              }}  
-            >  
-              <p style={{...FONTS.elegant, fontSize: '1rem', margin: 0}}>  
-                {currentPhoto.caption}  
-              </p>  
-            </div>  
+        {/* Image container - SIMPLIFIED */}    
+        <div 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+            padding: '60px 20px 20px 20px' // Account for buttons
+          }}
+        >    
+          <img    
+            src={currentPhoto.url}    
+            alt={currentPhoto.caption || 'Dish photo'}    
+            style={{
+              maxWidth: '100%',
+              maxHeight: '70vh',
+              objectFit: 'contain',
+              cursor: 'default'
+            }}
+            onLoad={() => console.log('Photo loaded successfully:', currentPhoto.url)}
+            onError={(e) => {
+              console.error('Photo failed to load:', currentPhoto.url);
+              console.error('Image error event:', e);
+            }}
+          />    
+        </div>
+
+        {/* Photo info - SIMPLIFIED */}    
+        <div 
+          style={{
+            padding: '20px',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white'
+          }}
+        >    
+          {/* Caption */}    
+          {currentPhoto.caption && (    
+            <div style={{marginBottom: '10px'}}>    
+              <p style={{margin: 0, fontSize: '16px'}}>    
+                {currentPhoto.caption}    
+              </p>    
+            </div>    
           )}
 
-
-          {/* Photographer and date */}  
-          <div className="flex items-center justify-between">  
-            <div  
-              className="px-3 py-1 rounded-lg"  
-              style={{  
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',  
-                color: COLORS.textDark  
-              }}  
-            >  
-              <p style={{...FONTS.elegant, fontSize: '0.75rem', opacity: 0.8, margin: 0}}>  
-                by {currentPhoto.photographer_name || 'Anonymous'} • {new Date(currentPhoto.created_at).toLocaleDateString()}  
-              </p>  
-            </div>
-
-
-            {/* Delete button for owners */}  
-            {isOwner && !onDoubleClickDelete && (  
-              <button  
-                onClick={handleDelete}  
-                disabled={isDeleting}  
-                className="px-4 py-2 rounded-lg transition-colors"  
-                style={{  
-                  backgroundColor: COLORS.danger,  
-                  color: 'white',  
-                  ...FONTS.elegant,  
-                  fontSize: '0.875rem',  
-                  opacity: isDeleting ? 0.5 : 1,  
-                  cursor: isDeleting ? 'not-allowed' : 'pointer'  
-                }}  
-              >  
-                {isDeleting ? 'Deleting...' : 'Delete Photo'}  
-              </button>  
-            )}  
+          {/* Photo metadata - simplified */}    
+          <div 
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: '12px',
+              opacity: 0.8
+            }}
+          >    
+            <span>    
+              by {currentPhoto.photographer_name || 'Anonymous'} • {new Date(currentPhoto.created_at).toLocaleDateString()}    
+            </span>
           </div>
+        </div>    
+      </div>    
+    </div>
+  );
 
-
-          {/* Delete hint */}  
-          {showDeleteHint && isOwner && onDoubleClickDelete && (  
-            <div  
-              className="px-3 py-1 rounded-lg inline-block animate-pulse"  
-              style={{  
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',  
-                color: COLORS.textDark  
-              }}  
-            >  
-              <p style={{...FONTS.elegant, fontSize: '0.75rem', margin: 0}}>  
-                💡 Double-click photo to delete  
-              </p>  
-            </div>  
-          )}  
-        </div>  
-      </div>  
-    </div>, // End of modal content  
-    modalRoot // Target DOM node for the portal  
-  );  
+  console.log('PhotoModal: Creating portal...');
+  const portal = ReactDOM.createPortal(modalElement, modalRoot);
+  console.log('PhotoModal: Portal created successfully');
+  
+  return portal;
 };
-
 
 export default PhotoModal;
