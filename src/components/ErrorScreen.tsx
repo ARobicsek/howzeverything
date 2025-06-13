@@ -1,82 +1,67 @@
 // src/components/ErrorScreen.tsx
 import React from 'react';
-import { COLORS, FONTS } from '../constants';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
 
-interface ErrorScreenProps {
-  error: string;
-  onBack?: () => void;
+interface ErrorScreenProps { // Renamed from LoadingScreenProps
+  error: string; // Added error prop
+  onBack: () => void; // Added onBack prop
 }
 
-const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => {
+const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => { // Changed component name to ErrorScreen, destructured props
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: COLORS.background,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px'
+      backgroundColor: COLORS.background,
+      padding: SPACING[4]
     }}>
       <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '32px',
-        maxWidth: '400px',
-        width: '100%',
-        textAlign: 'center',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: SPACING[4],
+        backgroundColor: COLORS.white, // Added background for better presentation
+        padding: SPACING[6],
+        borderRadius: STYLES.borderRadiusLarge,
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`
       }}>
-        <div style={{
-          fontSize: '48px',
-          marginBottom: '16px'
-        }}>
-          ⚠️
-        </div>
-        
-        <h2 style={{
-          ...FONTS.elegant,
-          fontSize: '24px',
-          fontWeight: '600',
-          color: COLORS.text,
-          margin: '0 0 16px 0'
-        }}>
-          Oops! Something went wrong
-        </h2>
-        
+        {/* Error icon or message */}
+        <div style={{ fontSize: '3rem', marginBottom: SPACING[2] }}>❌</div>
         <p style={{
-          ...FONTS.elegant,
-          fontSize: '16px',
-          color: COLORS.textDark,
-          margin: '0 0 24px 0',
-          lineHeight: '1.5'
+          ...FONTS.heading, // Using heading for emphasis
+          fontSize: TYPOGRAPHY.lg.fontSize,
+          color: COLORS.danger, // Use danger color for errors
+          margin: 0,
+          textAlign: 'center'
+        }}>
+          Error!
+        </p>
+        <p style={{ // Display the actual error message
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.base.fontSize,
+          color: COLORS.textSecondary,
+          margin: 0,
+          textAlign: 'center'
         }}>
           {error}
         </p>
-        
-        {onBack && (
-          <button
-            onClick={onBack}
-            style={{
-              ...FONTS.elegant,
-              backgroundColor: COLORS.primary,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '12px 24px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              WebkitAppearance: 'none',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
-            Go Back
-          </button>
-        )}
+        <button
+          onClick={onBack}
+          style={{
+            ...STYLES.secondaryButton, // Using a secondary button style
+            marginTop: SPACING[4],
+            padding: `${SPACING[3]} ${SPACING[5]}`
+          }}
+        >
+          Go Back
+        </button>
       </div>
     </div>
   );
 };
 
-export default ErrorScreen;
+export default ErrorScreen; // Export as ErrorScreen

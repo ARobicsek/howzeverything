@@ -1,12 +1,12 @@
-// ProfileScreen.tsx
-import React, { useState } from 'react'; // Added useState
+// src/ProfileScreen.tsx
+import React, { useState } from 'react';
+import LoadingScreen from './components/LoadingScreen';
+import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
-import type { NavigableScreenType, AppScreenType } from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, STYLES } from './constants';
-import { useAuth } from './hooks/useAuth'; // Added useAuth
-import ProfileCard from './components/user/ProfileCard'; // Added ProfileCard
-import UserForm from './components/user/UserForm'; // Added UserForm
-import LoadingScreen from './components/LoadingScreen'; // Added LoadingScreen
+import ProfileCard from './components/user/ProfileCard';
+import UserForm from './components/user/UserForm';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { useAuth } from './hooks/useAuth';
 
 interface ProfileScreenProps {
   onNavigateToScreen: (screen: NavigableScreenType) => void;
@@ -23,70 +23,124 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigateToScreen, curre
 
   const handleProfileFormSuccess = () => {
     setShowProfileEdit(false);
-    // Optionally, you might want to refresh the profile data here if useAuth doesn't do it automatically
-    // For now, we assume useAuth handles profile updates reflected in its state.
   };
 
   const handleProfileFormCancel = () => {
     setShowProfileEdit(false);
   };
 
-  // If auth is still loading, or if there's no user/profile yet (e.g., after sign out, before redirect)
+  // If auth is still loading
   if (authLoading) {
     return <LoadingScreen message="Loading profile..." />;
   }
 
-  // After sign out, user and profile will be null.
-  // App.tsx should handle redirecting to the login screen if !user.
-  // This check is more for robustness within this component.
+  // After sign out or if no user/profile
   if (!user || !profile) {
-    // This state should ideally be brief as App.tsx will redirect.
-    // You could show a "Signing out..." or redirect message or a minimal loading.
     return (
-        <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
-            <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">
-                <div className="max-w-md mx-auto px-6 py-6 flex items-center justify-center">
-                <h1 className="text-xl text-center flex-1 tracking-wide" style={{...FONTS.elegant, color: COLORS.text}}>
-                    Profile
-                </h1>
-                </div>
-            </header>
-            <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-                <div className="max-w-md mx-auto text-center py-16">
-                    <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>
-                        No user profile loaded. You might be signed out.
-                    </p>
-                </div>
-            </main>
-            <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen} />
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>
+        <header style={{
+          backgroundColor: COLORS.white,
+          borderBottom: `1px solid ${COLORS.gray200}`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          boxShadow: STYLES.shadowSmall
+        }}>
+          <div style={{
+            maxWidth: '768px',
+            margin: '0 auto',
+            padding: `${SPACING[4]} ${SPACING[4]}`,
+            textAlign: 'center'
+          }}>
+            <h1 style={{
+              ...FONTS.heading,
+              fontSize: TYPOGRAPHY.xl.fontSize,
+              color: COLORS.gray900,
+              margin: 0
+            }}>
+              My Profile
+            </h1>
+          </div>
+        </header>
+
+        <main style={{ 
+          flex: 1, 
+          padding: SPACING[4], 
+          paddingBottom: STYLES.mainContentPadding,
+          maxWidth: '768px',
+          width: '100%',
+          margin: '0 auto'
+        }}>
+          <div style={{
+            backgroundColor: COLORS.white,
+            borderRadius: STYLES.borderRadiusLarge,
+            padding: `${SPACING[12]} ${SPACING[6]}`,
+            boxShadow: STYLES.shadowMedium,
+            border: `1px solid ${COLORS.gray200}`,
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: SPACING[3] }}>👤</div>
+            <p style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.textSecondary,
+              margin: 0
+            }}>
+              No user profile loaded. You might be signed out.
+            </p>
+          </div>
+        </main>
+
+        <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
-      <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-center">
-          {/* Removed spacers for a cleaner centered title */}
-          <h1 className="text-xl text-center flex-1 tracking-wide" style={{...FONTS.elegant, color: COLORS.text}}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>
+      <header style={{
+        backgroundColor: COLORS.white,
+        borderBottom: `1px solid ${COLORS.gray200}`,
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        boxShadow: STYLES.shadowSmall
+      }}>
+        <div style={{
+          maxWidth: '768px',
+          margin: '0 auto',
+          padding: `${SPACING[4]} ${SPACING[4]}`,
+          textAlign: 'center'
+        }}>
+          <h1 style={{
+            ...FONTS.heading,
+            fontSize: TYPOGRAPHY.xl.fontSize,
+            color: COLORS.gray900,
+            margin: 0
+          }}>
             My Profile
           </h1>
         </div>
       </header>
 
-      <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-        <div className="max-w-md mx-auto">
-          <ProfileCard 
-            onEditProfile={handleEditProfile} 
-            showEditButton={true} 
-          />
-        </div>
+      <main style={{ 
+        flex: 1, 
+        padding: SPACING[4], 
+        paddingBottom: STYLES.mainContentPadding,
+        maxWidth: '768px',
+        width: '100%',
+        margin: '0 auto'
+      }}>
+        <ProfileCard
+          onEditProfile={handleEditProfile}
+          showEditButton={true}
+        />
       </main>
 
       {showProfileEdit && (
-        <UserForm 
-          onSuccess={handleProfileFormSuccess} 
-          onCancel={handleProfileFormCancel} 
+        <UserForm
+          onSuccess={handleProfileFormSuccess}
+          onCancel={handleProfileFormCancel}
         />
       )}
 

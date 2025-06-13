@@ -1,63 +1,60 @@
 // src/components/user/ProfileCard.tsx
-import React, { useState } from 'react'
-import { COLORS, FONTS } from '../../constants'
-import { useAuth } from '../../hooks/useAuth'
+import React, { useState } from 'react';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { useAuth } from '../../hooks/useAuth';
 
 interface ProfileCardProps {
-  onEditProfile?: () => void
-  showEditButton?: boolean
+  onEditProfile?: () => void;
+  showEditButton?: boolean;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ 
   onEditProfile, 
   showEditButton = true 
 }) => {
-  const { user, profile, signOut, loading, error } = useAuth()
-  const [isSigningOut, setIsSigningOut] = useState(false)
+  const { user, profile, signOut, loading, error } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
     try {
-      setIsSigningOut(true)
-      await signOut()
+      setIsSigningOut(true);
+      await signOut();
     } catch (err) {
-      console.error('Sign out error:', err)
+      console.error('Sign out error:', err);
     } finally {
-      setIsSigningOut(false)
+      setIsSigningOut(false);
     }
-  }
+  };
 
   if (!user || !profile) {
     return (
       <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        margin: '16px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        textAlign: 'center'
+        ...STYLES.card,
+        textAlign: 'center',
+        padding: SPACING[6]
       }}>
         <p style={{
-          ...FONTS.elegant,
-          fontSize: '16px',
-          color: COLORS.textDark,
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.base.fontSize,
+          color: COLORS.textSecondary,
           margin: 0
         }}>
           {loading ? 'Loading profile...' : 'No profile found'}
         </p>
       </div>
-    )
+    );
   }
 
   // Get user initials for avatar fallback
   const getInitials = (name?: string | null): string => {
-    if (!name) return user.email?.charAt(0).toUpperCase() ?? '?'
+    if (!name) return user.email?.charAt(0).toUpperCase() ?? '?';
     
-    const names = name.trim().split(' ')
+    const names = name.trim().split(' ');
     if (names.length >= 2) {
-      return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
+      return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
     }
-    return names[0].charAt(0).toUpperCase()
-  }
+    return names[0].charAt(0).toUpperCase();
+  };
 
   const formatDate = (dateString: string): string => {
     try {
@@ -65,34 +62,32 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         year: 'numeric',
         month: 'long',
         day: 'numeric'
-      })
+      });
     } catch {
-      return 'Unknown'
+      return 'Unknown';
     }
-  }
+  };
 
-  const initials = getInitials(profile.full_name)
+  const initials = getInitials(profile.full_name);
 
   return (
     <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      margin: '16px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+      ...STYLES.card,
+      boxShadow: STYLES.shadowLarge,
+      padding: SPACING[6]
     }}>
       {/* Error Display */}
       {error && (
         <div style={{
-          backgroundColor: '#FEF2F2',
+          backgroundColor: '#FEE2E2',
           border: '1px solid #FECACA',
-          borderRadius: '8px',
-          padding: '12px',
-          marginBottom: '20px'
+          borderRadius: STYLES.borderRadiusMedium,
+          padding: SPACING[3],
+          marginBottom: SPACING[5]
         }}>
           <p style={{
-            ...FONTS.elegant,
-            fontSize: '14px',
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
             color: COLORS.danger,
             margin: 0
           }}>
@@ -105,12 +100,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        marginBottom: '20px'
+        marginBottom: SPACING[6]
       }}>
         {/* Avatar */}
         <div style={{
-          width: '64px',
-          height: '64px',
+          width: '80px',
+          height: '80px',
           borderRadius: '50%',
           backgroundColor: profile.avatar_url ? 'transparent' : COLORS.primary,
           backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none',
@@ -119,15 +114,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginRight: '16px',
-          flexShrink: 0
+          marginRight: SPACING[5],
+          flexShrink: 0,
+          border: `3px solid ${COLORS.gray100}`
         }}>
           {!profile.avatar_url && (
             <span style={{
-              ...FONTS.elegant,
-              fontSize: '24px',
-              fontWeight: '600',
-              color: 'white'
+              ...FONTS.heading,
+              fontSize: TYPOGRAPHY['2xl'].fontSize,
+              color: COLORS.white
             }}>
               {initials}
             </span>
@@ -137,19 +132,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         {/* Name and Email */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{
-            ...FONTS.elegant,
-            fontSize: '20px',
-            fontWeight: '600',
-            color: COLORS.text,
-            margin: '0 0 4px 0',
+            ...FONTS.heading,
+            fontSize: TYPOGRAPHY.xl.fontSize,
+            color: COLORS.gray900,
+            margin: `0 0 ${SPACING[1]} 0`,
             wordBreak: 'break-word'
           }}>
             {profile.full_name || 'No name set'}
           </h3>
           <p style={{
-            ...FONTS.elegant,
-            fontSize: '14px',
-            color: COLORS.textDark,
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            color: COLORS.textSecondary,
             margin: 0,
             wordBreak: 'break-word'
           }}>
@@ -157,15 +151,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </p>
           {profile.is_admin && (
             <span style={{
-              ...FONTS.elegant,
-              fontSize: '12px',
-              fontWeight: '600',
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.xs.fontSize,
+              fontWeight: TYPOGRAPHY.semibold,
               color: COLORS.primary,
-              backgroundColor: '#EBF8FF',
-              padding: '2px 8px',
-              borderRadius: '12px',
+              backgroundColor: COLORS.primaryLight,
+              padding: `${SPACING[1]} ${SPACING[3]}`,
+              borderRadius: STYLES.borderRadiusSmall,
               display: 'inline-block',
-              marginTop: '4px'
+              marginTop: SPACING[2]
             }}>
               Admin
             </span>
@@ -174,24 +168,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       </div>
 
       {/* Profile Details */}
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ 
+        marginBottom: SPACING[6],
+        paddingTop: SPACING[5],
+        borderTop: `1px solid ${COLORS.gray100}`
+      }}>
         {profile.bio && (
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
-              ...FONTS.elegant,
-              fontSize: '14px',
-              fontWeight: '600',
-              color: COLORS.text,
-              margin: '0 0 4px 0'
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.sm.fontSize,
+              fontWeight: TYPOGRAPHY.semibold,
+              color: COLORS.textSecondary,
+              margin: `0 0 ${SPACING[2]} 0`,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}>
               Bio
             </h4>
             <p style={{
-              ...FONTS.elegant,
-              fontSize: '14px',
-              color: COLORS.textDark,
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.text,
               margin: 0,
-              lineHeight: '1.4',
+              lineHeight: '1.6',
               wordBreak: 'break-word'
             }}>
               {profile.bio}
@@ -200,20 +200,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         )}
 
         {profile.location && (
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
-              ...FONTS.elegant,
-              fontSize: '14px',
-              fontWeight: '600',
-              color: COLORS.text,
-              margin: '0 0 4px 0'
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.sm.fontSize,
+              fontWeight: TYPOGRAPHY.semibold,
+              color: COLORS.textSecondary,
+              margin: `0 0 ${SPACING[2]} 0`,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}>
               Location
             </h4>
             <p style={{
-              ...FONTS.elegant,
-              fontSize: '14px',
-              color: COLORS.textDark,
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.text,
               margin: 0
             }}>
               {profile.location}
@@ -223,18 +225,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
         <div>
           <h4 style={{
-            ...FONTS.elegant,
-            fontSize: '14px',
-            fontWeight: '600',
-            color: COLORS.text,
-            margin: '0 0 4px 0'
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            fontWeight: TYPOGRAPHY.semibold,
+            color: COLORS.textSecondary,
+            margin: `0 0 ${SPACING[2]} 0`,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
           }}>
             Member Since
           </h4>
           <p style={{
-            ...FONTS.elegant,
-            fontSize: '14px',
-            color: COLORS.textDark,
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.base.fontSize,
+            color: COLORS.text,
             margin: 0
           }}>
             {formatDate(profile.created_at)}
@@ -245,7 +249,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {/* Action Buttons */}
       <div style={{
         display: 'flex',
-        gap: '12px',
+        gap: SPACING[3],
         flexDirection: 'column'
       }}>
         {showEditButton && onEditProfile && (
@@ -253,17 +257,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             onClick={onEditProfile}
             disabled={loading}
             style={{
-              ...FONTS.elegant,
-              height: '44px',
-              backgroundColor: COLORS.primary,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              WebkitAppearance: 'none',
-              WebkitTapHighlightColor: 'transparent'
+              ...STYLES.primaryButton,
+              width: '100%',
+              opacity: loading ? 0.5 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = COLORS.primary;
+              }
             }}
           >
             Edit Profile
@@ -274,24 +281,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
           style={{
-            ...FONTS.elegant,
-            height: '44px',
-            backgroundColor: 'transparent',
+            ...STYLES.secondaryButton,
+            width: '100%',
             color: COLORS.danger,
-            border: `1px solid ${COLORS.danger}`,
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer',
-            WebkitAppearance: 'none',
-            WebkitTapHighlightColor: 'transparent'
+            borderColor: COLORS.danger,
+            opacity: (loading || isSigningOut) ? 0.5 : 1,
+            cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading && !isSigningOut) {
+              e.currentTarget.style.backgroundColor = '#FEF2F2';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = COLORS.white;
           }}
         >
           {isSigningOut ? 'Signing out...' : 'Sign Out'}
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProfileCard
+export default ProfileCard;

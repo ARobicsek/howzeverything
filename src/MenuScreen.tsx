@@ -1,11 +1,11 @@
-// src/screens/MenuScreen.tsx
+// src/MenuScreen.tsx
 import React, { useMemo, useState } from 'react';
 import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, SIZES, STYLES } from './constants';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import type { DishSearchResult } from './hooks/useDishes';
 import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
@@ -19,7 +19,7 @@ interface MenuScreenProps {
 }
 
 
-// Enhanced search component with better visual hierarchy
+// Enhanced search component with modern design
 const DishSearchSection: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -28,25 +28,32 @@ const DishSearchSection: React.FC<{
   hasSearched: boolean;
   onShowAddForm: () => void;
 }> = ({ searchTerm, onSearchChange, onReset, searchResults, hasSearched, onShowAddForm }) => (
-  // UPDATED: Added marginBottom to the entire section for spacing before next elements
-  <div className="space-y-4" style={{ marginBottom: SIZES.lg }}>
+  <div style={{ marginBottom: SPACING[6] }}>
     {/* Search Input */}
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h2 style={{...FONTS.elegant, fontSize: '1.2rem', fontWeight: '600', color: COLORS.text}}>
+    <div style={{
+      backgroundColor: COLORS.white,
+      borderRadius: STYLES.borderRadiusLarge,
+      padding: SPACING[5],
+      boxShadow: STYLES.shadowMedium,
+      border: `1px solid ${COLORS.gray200}`
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[3] }}>
+        <h2 style={{
+          ...FONTS.heading,
+          fontSize: TYPOGRAPHY.lg.fontSize,
+          color: COLORS.gray900,
+          margin: 0
+        }}>
           Find Your Dish
         </h2>
         {hasSearched && (
           <button
             onClick={onReset}
-            className="px-3 py-1 rounded-lg transition-colors"
             style={{
-              ...FONTS.elegant,
-              backgroundColor: COLORS.primary,
-              color: 'white',
-              border: 'none',
-              fontSize: '0.85rem',
-              fontWeight: '500'
+              ...STYLES.secondaryButton,
+              padding: `${SPACING[2]} ${SPACING[4]}`,
+              minHeight: '36px',
+              fontSize: TYPOGRAPHY.sm.fontSize
             }}
           >
             Clear
@@ -57,25 +64,22 @@ const DishSearchSection: React.FC<{
       <input
         type="text"
         value={searchTerm}
-        onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)} // Limit search term length to 100 chars
+        onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}
         placeholder="Search for your dish (e.g., Margherita Pizza, Chicken Alfredo...)"
-        className="w-full max-w-full border-none outline-none focus:ring-2 focus:ring-white/50"
         style={{
-          ...FONTS.elegant,
-          padding: '12px 16px',
-          borderRadius: STYLES.borderRadiusMedium,
-          fontSize: '1rem',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          color: COLORS.textDark,
-          boxSizing: 'border-box',
-          WebkitAppearance: 'none',
-          border: `1px solid ${COLORS.text}`,
-          minWidth: 0
+          ...STYLES.input,
+          fontSize: TYPOGRAPHY.base.fontSize,
+          marginBottom: SPACING[2]
         }}
         autoFocus
       />
      
-      <p style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, opacity: 0.8, marginTop: '8px', marginBottom: 0}}>
+      <p style={{
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.sm.fontSize,
+        color: COLORS.textSecondary,
+        margin: 0
+      }}>
         Search first to see if we already have your dish
       </p>
     </div>
@@ -83,34 +87,63 @@ const DishSearchSection: React.FC<{
 
     {/* Search Results */}
     {hasSearched && (
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4">
+      <div style={{
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusLarge,
+        padding: SPACING[5],
+        marginTop: SPACING[4],
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`
+      }}>
         {searchResults.length > 0 ? (
           <div>
-            <h3 style={{...FONTS.elegant, fontSize: '1.1rem', fontWeight: '500', color: COLORS.text, marginBottom: '12px'}}>
+            <h3 style={{
+              ...FONTS.heading,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.gray900,
+              marginBottom: SPACING[3]
+            }}>
               Found {searchResults.length} matching dish{searchResults.length !== 1 ? 'es' : ''}:
             </h3>
-            <div className="text-sm mb-3" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>
-              {searchResults.some(d => d.isExactMatch) && "🎯 Exact matches shown first"}
-            </div>
+            {searchResults.some(d => d.isExactMatch) && (
+              <div style={{
+                ...FONTS.body,
+                fontSize: TYPOGRAPHY.sm.fontSize,
+                color: COLORS.textSecondary,
+                marginBottom: SPACING[3]
+              }}>
+                🎯 Exact matches shown first
+              </div>
+            )}
           </div>
         ) : (
-          <div className="text-center py-4">
-            <div className="text-4xl mb-3">🔍</div>
-            <h3 style={{...FONTS.elegant, fontSize: '1.1rem', fontWeight: '500', color: COLORS.text, marginBottom: '8px'}}>
+          <div style={{ textAlign: 'center', padding: SPACING[6] }}>
+            <div style={{ fontSize: '3rem', marginBottom: SPACING[3] }}>🔍</div>
+            <h3 style={{
+              ...FONTS.heading,
+              fontSize: TYPOGRAPHY.lg.fontSize,
+              color: COLORS.gray900,
+              marginBottom: SPACING[2]
+            }}>
               No dishes found for "{searchTerm}"
             </h3>
-            <p style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, opacity: 0.7, marginBottom: '16px'}}>
+            <p style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.textSecondary,
+              marginBottom: SPACING[4]
+            }}>
               Looks like you'll be the first to add this dish!
             </p>
             <button
               onClick={onShowAddForm}
-              className="px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
-              style={{
-                ...STYLES.addButton,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+              style={STYLES.primaryButton}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primaryHover;
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primary;
+              }}
             >
               Add "{searchTerm}" to Menu
             </button>
@@ -130,16 +163,31 @@ const AddDishPrompt: React.FC<{
   if (!hasResults) return null;
  
   return (
-    <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">
-      <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>
+    <div style={{
+      backgroundColor: COLORS.white,
+      borderRadius: STYLES.borderRadiusLarge,
+      padding: SPACING[5],
+      textAlign: 'center',
+      boxShadow: STYLES.shadowMedium,
+      border: `1px solid ${COLORS.gray200}`
+    }}>
+      <p style={{
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.base.fontSize,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING[3]
+      }}>
         Can't find it?
       </p>
       <button
         onClick={onShowAddForm}
-        className="px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
-        style={STYLES.addButton}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
+        style={STYLES.primaryButton}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+        }}
       >
         Add New Dish
       </button>
@@ -148,7 +196,7 @@ const AddDishPrompt: React.FC<{
 };
 
 
-// Enhanced Add Dish Form with pre-filled search term
+// Enhanced Add Dish Form with modern design
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
   onSubmit: (name: string, rating: number) => Promise<void>;
@@ -156,94 +204,145 @@ const EnhancedAddDishForm: React.FC<{
 }> = ({ initialDishName = '', onSubmit, onCancel }) => {
   const [dishName, setDishName] = useState(initialDishName);
   const [rating, setRating] = useState(5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   const handleSubmit = async () => {
-    if (dishName.trim()) {
+    if (dishName.trim() && !isSubmitting) {
+      setIsSubmitting(true);
       await onSubmit(dishName, rating);
       setDishName('');
       setRating(5);
+      setIsSubmitting(false);
     }
   };
 
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">
-      <div>
-        <label style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, display: 'block', marginBottom: '8px'}}>
+    <div style={{
+      backgroundColor: COLORS.white,
+      borderRadius: STYLES.borderRadiusLarge,
+      padding: SPACING[6],
+      boxShadow: STYLES.shadowLarge,
+      border: `1px solid ${COLORS.gray200}`
+    }}>
+      <h3 style={{
+        ...FONTS.heading,
+        fontSize: TYPOGRAPHY.xl.fontSize,
+        color: COLORS.gray900,
+        marginBottom: SPACING[5]
+      }}>
+        Add New Dish
+      </h3>
+
+
+      <div style={{ marginBottom: SPACING[5] }}>
+        <label style={{
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.sm.fontSize,
+          fontWeight: TYPOGRAPHY.medium,
+          color: COLORS.textSecondary,
+          display: 'block',
+          marginBottom: SPACING[2]
+        }}>
           Dish Name
         </label>
         <input
           type="text"
           value={dishName}
-          onChange={(e) => e.target.value.length <= 100 && setDishName(e.target.value)} // Limit dish name length to 100 chars
+          onChange={(e) => e.target.value.length <= 100 && setDishName(e.target.value)}
           placeholder="Enter the exact dish name..."
-          className="w-full max-w-full px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50"
-          style={{
-            ...FONTS.elegant,
-            fontSize: '1rem',
-            backgroundColor: 'white',
-            color: COLORS.textDark,
-            boxSizing: 'border-box',
-            minWidth: 0
-          }}
+          style={STYLES.input}
+          disabled={isSubmitting}
         />
       </div>
 
 
-      <div>
-        <label style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, display: 'block', marginBottom: '8px'}}>
+      <div style={{ marginBottom: SPACING[6] }}>
+        <label style={{
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.sm.fontSize,
+          fontWeight: TYPOGRAPHY.medium,
+          color: COLORS.textSecondary,
+          display: 'block',
+          marginBottom: SPACING[2]
+        }}>
           Your Rating
         </label>
-        <div className="flex items-center justify-center gap-2">
-          <div className="flex gap-1">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: SPACING[2] }}>
+          <div style={{ display: 'flex', gap: SPACING[1] }}>
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 onClick={() => setRating(star)}
-                className="transition-all duration-200 cursor-pointer hover:scale-110 focus:outline-none"
+                disabled={isSubmitting}
                 style={{
-                  color: star <= rating ? COLORS.star : COLORS.starEmpty,
+                  color: star <= rating ? COLORS.primary : COLORS.gray300,
                   background: 'none',
                   border: 'none',
-                  padding: '4px',
+                  padding: SPACING[1],
                   fontSize: '1.5rem',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  opacity: isSubmitting ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 ★
               </button>
             ))}
           </div>
-          <span style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, marginLeft: '8px'}}>
+          <span style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.base.fontSize,
+            color: COLORS.text,
+            marginLeft: SPACING[2]
+          }}>
             {rating}/5
           </span>
         </div>
       </div>
 
 
-      <div className="flex gap-3 w-full max-w-full">
+      <div style={{ display: 'flex', gap: SPACING[3] }}>
         <button
           onClick={handleSubmit}
-          disabled={!dishName.trim()}
-          className="flex-1 py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          disabled={!dishName.trim() || isSubmitting}
           style={{
-            ...STYLES.addButton,
-            backgroundColor: !dishName.trim() ? COLORS.disabled : COLORS.addButtonBg,
-            fontSize: '0.9rem'
+            ...STYLES.primaryButton,
+            flex: 1,
+            opacity: (!dishName.trim() || isSubmitting) ? 0.5 : 1,
+            cursor: (!dishName.trim() || isSubmitting) ? 'not-allowed' : 'pointer'
           }}
           onMouseEnter={(e) => {
-            if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonHover;
+            if (dishName.trim() && !isSubmitting) {
+              e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+            }
           }}
           onMouseLeave={(e) => {
-            if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonBg;
+            if (dishName.trim() && !isSubmitting) {
+              e.currentTarget.style.backgroundColor = COLORS.primary;
+            }
           }}
         >
-          Add Dish
+          {isSubmitting ? 'Adding...' : 'Add Dish'}
         </button>
         <button
           onClick={onCancel}
-          className="flex-1 py-3 px-4 rounded-xl transition-colors"
-          style={STYLES.secondaryButton}
+          disabled={isSubmitting}
+          style={{
+            ...STYLES.secondaryButton,
+            flex: 1,
+            opacity: isSubmitting ? 0.5 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
+          }}
         >
           Cancel
         </button>
@@ -328,8 +427,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleAddComment = async (dishId: string, text: string) => {
     try {
       await addComment(dishId, text);
-    } catch (err: any) {
-      setError(`Failed to add comment: ${err.message}`);
+    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
+      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+        setError(`Failed to add comment: ${err.message}`);
+      } else {
+        setError(`Failed to add comment: An unknown error occurred.`);
+      }
     }
   };
 
@@ -337,8 +440,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     try {
       await updateComment(commentId, dishId, newText);
-    } catch (err: any) {
-      setError(`Failed to update comment: ${err.message}`);
+    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
+      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+        setError(`Failed to update comment: ${err.message}`);
+      } else {
+        setError(`Failed to update comment: An unknown error occurred.`);
+      }
     }
   };
 
@@ -346,8 +453,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     try {
       await deleteComment(dishId, commentId);
-    } catch (err: any) {
-      setError(`Failed to delete comment: ${err.message}`);
+    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
+      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+        setError(`Failed to delete comment: ${err.message}`);
+      } else {
+        setError(`Failed to delete comment: An unknown error occurred.`);
+      }
     }
   };
 
@@ -355,8 +466,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
       await addPhoto(dishId, file, caption);
-    } catch (err: any) {
-      setError(`Failed to add photo: ${err.message}`);
+    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
+      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+        setError(`Failed to add photo: ${err.message}`);
+      } else {
+        setError(`Failed to add photo: An unknown error occurred.`);
+      }
     }
   };
 
@@ -364,8 +479,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
     try {
       await deletePhoto(dishId, photoId);
-    } catch (err: any) {
-      setError(`Failed to delete photo: ${err.message}`);
+    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
+      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+        setError(`Failed to delete photo: ${err.message}`);
+      } else {
+        setError(`Failed to delete photo: An unknown error occurred.`);
+      }
     }
   };
 
@@ -376,18 +495,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setExpandedDishId(null);
     } else {
       setAllExpanded(true);
-      // All dishes will be expanded via the allExpanded flag
     }
   };
 
 
   const handleToggleDishExpanded = (dishId: string) => {
     if (allExpanded) {
-      // If all are expanded and user clicks one, collapse all and expand only that one
       setAllExpanded(false);
       setExpandedDishId(dishId === expandedDishId ? null : dishId);
     } else {
-      // Normal toggle behavior
       setExpandedDishId(dishId === expandedDishId ? null : dishId);
     }
   };
@@ -399,35 +515,58 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>
       {/* Header */}
-      <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <header style={{
+        backgroundColor: COLORS.white,
+        borderBottom: `1px solid ${COLORS.gray200}`,
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        boxShadow: STYLES.shadowSmall
+      }}>
+        <div style={{
+          maxWidth: '768px',
+          margin: '0 auto',
+          padding: `${SPACING[3]} ${SPACING[4]}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
           <button
             onClick={onNavigateBack}
-            className="rounded-full hover:opacity-80 transition-opacity focus:outline-none"
             style={STYLES.iconButton}
+            aria-label="Go back"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
             </svg>
           </button>
           <h1
-            className="text-xl text-center flex-1 tracking-wide mx-2 truncate"
-            style={{...FONTS.elegant, color: COLORS.text}}
+            style={{
+              ...FONTS.heading,
+              fontSize: TYPOGRAPHY.xl.fontSize,
+              color: COLORS.gray900,
+              flex: 1,
+              textAlign: 'center',
+              margin: `0 ${SPACING[4]}`,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
             title={restaurant.name}
           >
             {restaurant.name}
           </h1>
-          <div className="flex items-center gap-1">
+          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
             {/* Expand/Collapse All button */}
             <button
               onClick={handleToggleAllExpanded}
-              className="rounded-full hover:opacity-80 transition-opacity focus:outline-none"
               style={{
                 ...STYLES.iconButton,
-                backgroundColor: allExpanded ? COLORS.primary : COLORS.iconBackground,
-                color: allExpanded ? COLORS.textWhite : COLORS.iconPrimary
+                backgroundColor: allExpanded ? COLORS.primary : COLORS.white,
+                color: allExpanded ? COLORS.white : COLORS.gray700,
+                border: allExpanded ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}`
               }}
               aria-label={allExpanded ? "Collapse all dishes" : "Expand all dishes"}
             >
@@ -442,12 +581,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             {/* Sort button */}
             <button
               onClick={() => setShowAdvancedSort(!showAdvancedSort)}
-              className="rounded-full hover:opacity-80 transition-opacity focus:outline-none"
               style={{
                 ...STYLES.iconButton,
-                backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.iconBackground,
-                color: showAdvancedSort ? COLORS.textWhite : COLORS.iconPrimary
+                backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white,
+                color: showAdvancedSort ? COLORS.white : COLORS.gray700,
+                border: showAdvancedSort ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}`
               }}
+              aria-label="Sort options"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
@@ -459,18 +599,37 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
       {/* Main Content */}
-      <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-        <div className="max-w-md mx-auto space-y-6">
+      <main style={{
+        flex: 1,
+        padding: SPACING[4],
+        paddingBottom: STYLES.mainContentPadding,
+        maxWidth: '768px',
+        width: '100%',
+        margin: '0 auto'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
           {dishesError && (
-            <div className="bg-red-500/20 p-3 rounded-lg text-center">
-              <p style={{color: COLORS.danger, ...FONTS.elegant}}>{dishesError}</p>
+            <div style={{
+              backgroundColor: '#FEE2E2',
+              border: `1px solid #FECACA`,
+              borderRadius: STYLES.borderRadiusMedium,
+              padding: SPACING[4],
+              textAlign: 'center'
+            }}>
+              <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>
             </div>
           )}
 
 
           {showAdvancedSort && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="flex gap-2 flex-wrap">
+            <div style={{
+              backgroundColor: COLORS.white,
+              borderRadius: STYLES.borderRadiusLarge,
+              padding: SPACING[4],
+              boxShadow: STYLES.shadowMedium,
+              border: `1px solid ${COLORS.gray200}`
+            }}>
+              <div style={{ display: 'flex', gap: SPACING[2], flexWrap: 'wrap' }}>
                 {[
                   { value: 'name', label: 'Name' },
                   { value: 'your_rating', label: 'Your rating' },
@@ -496,23 +655,22 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                           });
                         }
                       }}
-                      className="transition-colors duration-200 hover:opacity-90"
                       style={buttonStyle}
                     >
                       {option.value === 'your_rating' ? (
                         <>
                           <span>Your</span>
-                          <span style={{ color: COLORS.iconPrimary }}>★</span>
+                          <span style={{ color: isActive ? COLORS.white : COLORS.primary }}>★</span>
                         </>
                       ) : option.value === 'community_rating' ? (
                         <>
                           <span>Community</span>
-                          <span style={{ color: COLORS.iconPrimary }}>★</span>
+                          <span style={{ color: isActive ? COLORS.white : COLORS.ratingGold }}>★</span>
                         </>
                       ) : (
                         <span>{option.label}</span>
                       )}
-                      {arrow}
+                      {arrow && <span style={{ marginLeft: SPACING[1] }}>{arrow}</span>}
                     </button>
                   );
                 })}
@@ -535,35 +693,37 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
           {!showAddForm && (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
               {hasSearchResults && (
                 <>
-                  <div className="text-center">
-                    <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', margin: '0 0 16px 0'}}>
+                  <div style={{ textAlign: 'center' }}>
+                    <h3 style={{
+                      ...FONTS.heading,
+                      fontSize: TYPOGRAPHY.lg.fontSize,
+                      color: COLORS.gray900,
+                      margin: `0 0 ${SPACING[4]} 0`
+                    }}>
                       Search Results:
                     </h3>
                   </div>
-                  {searchResults.map((dish, index) => (
-                    <div key={dish.id}>
-                      <DishCard
-                        dish={dish}
-                        currentUserId={currentUserId}
-                        onDelete={deleteDish}
-                        onUpdateRating={updateDishRating}
-                        onUpdateDishName={updateDishName}
-                        onAddComment={handleAddComment}
-                        onUpdateComment={handleUpdateComment}
-                        onDeleteComment={handleDeleteComment}
-                        onAddPhoto={handleAddPhoto}
-                        onDeletePhoto={handleDeletePhoto}
-                        isSubmittingComment={false}
-                        isExpanded={allExpanded || expandedDishId === dish.id}
-                        onToggleExpand={() => handleToggleDishExpanded(dish.id)}
-                      />
-                      {index < searchResults.length - 1 && (
-                        <div className="mx-4 mt-4" style={{height: '1px', background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`}}/>
-                      )}
-                    </div>
+                  {searchResults.map((dish) => (
+                    <DishCard
+                      key={dish.id}
+                      dish={dish}
+                      currentUserId={currentUserId}
+                      onDelete={deleteDish}
+                      onUpdateRating={updateDishRating}
+                      onUpdateDishName={updateDishName}
+                      onAddComment={handleAddComment}
+                      onUpdateComment={handleUpdateComment}
+                      onDeleteComment={handleDeleteComment}
+                      onAddPhoto={handleAddPhoto}
+                      onDeletePhoto={handleDeletePhoto}
+                      // --- MODIFIED: isSubmittingComment is boolean now ---
+                      isSubmittingComment={false} 
+                      isExpanded={allExpanded || expandedDishId === dish.id}
+                      onToggleExpand={() => handleToggleDishExpanded(dish.id)}
+                    />
                   ))}
                  
                   {/* Add dish prompt AFTER search results */}
@@ -577,45 +737,65 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
               {(hasSearched ? searchResults : dishes).length > 0 && !hasSearchResults ? (
                 <>
-                  {(hasSearched ? searchResults : dishes).map((dish, index) => (
-                    <div key={dish.id}>
-                      <DishCard
-                        dish={dish}
-                        currentUserId={currentUserId}
-                        onDelete={deleteDish}
-                        onUpdateRating={updateDishRating}
-                        onUpdateDishName={updateDishName}
-                        onAddComment={handleAddComment}
-                        onUpdateComment={handleUpdateComment}
-                        onDeleteComment={handleDeleteComment}
-                        onAddPhoto={handleAddPhoto}
-                        onDeletePhoto={handleDeletePhoto}
-                        isSubmittingComment={false}
-                        isExpanded={allExpanded || expandedDishId === dish.id}
-                        onToggleExpand={() => handleToggleDishExpanded(dish.id)}
-                      />
-                      {index < (hasSearched ? searchResults : dishes).length - 1 && (
-                        <div className="mx-4 mt-4" style={{height: '1px', background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`}}/>
-                      )}
-                    </div>
+                  {(hasSearched ? searchResults : dishes).map((dish) => (
+                    <DishCard
+                      key={dish.id}
+                      dish={dish}
+                      currentUserId={currentUserId}
+                      onDelete={deleteDish}
+                      onUpdateRating={updateDishRating}
+                      onUpdateDishName={updateDishName}
+                      onAddComment={handleAddComment}
+                      onUpdateComment={handleUpdateComment}
+                      onDeleteComment={handleDeleteComment}
+                      onAddPhoto={handleAddPhoto}
+                      onDeletePhoto={handleDeletePhoto}
+                      // --- MODIFIED: isSubmittingComment is boolean now ---
+                      isSubmittingComment={false} 
+                      isExpanded={allExpanded || expandedDishId === dish.id}
+                      onToggleExpand={() => handleToggleDishExpanded(dish.id)}
+                    />
                   ))}
                 </>
               ) : (
                 !hasSearched && dishes.length === 0 && (
-                  <div className="text-center py-12">
-                    <div>
-                      <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>No dishes yet</p>
-                      <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7, marginBottom: '16px'}}>Be the first to add a dish from {restaurant.name}!</p>
-                      <button
-                        onClick={() => setShowAddForm(true)}
-                        style={STYLES.addButton}
-                        className="transition-all duration-300 transform hover:scale-105"
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
-                      >
-                        Add First Dish
-                      </button>
-                    </div>
+                  <div style={{
+                    textAlign: 'center',
+                    padding: `${SPACING[12]} 0`,
+                    backgroundColor: COLORS.white,
+                    borderRadius: STYLES.borderRadiusLarge,
+                    boxShadow: STYLES.shadowMedium,
+                    border: `1px solid ${COLORS.gray200}`
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: SPACING[3] }}>🍽️</div>
+                    <p style={{
+                      ...FONTS.heading,
+                      fontSize: TYPOGRAPHY.lg.fontSize,
+                      color: COLORS.gray900,
+                      marginBottom: SPACING[2]
+                    }}>
+                      No dishes yet
+                    </p>
+                    <p style={{
+                      ...FONTS.body,
+                      fontSize: TYPOGRAPHY.base.fontSize,
+                      color: COLORS.textSecondary,
+                      marginBottom: SPACING[4]
+                    }}>
+                      Be the first to add a dish from {restaurant.name}!
+                    </p>
+                    <button
+                      onClick={() => setShowAddForm(true)}
+                      style={STYLES.primaryButton}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = COLORS.primary;
+                      }}
+                    >
+                      Add First Dish
+                    </button>
                   </div>
                 )
               )}
@@ -624,7 +804,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
           {showAddForm && (
-            <div className="space-y-4">
+            <div>
               <EnhancedAddDishForm
                 initialDishName={searchTerm}
                 onSubmit={handleAddDish}

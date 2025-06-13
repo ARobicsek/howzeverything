@@ -1,866 +1,995 @@
-// src/components/DishCard.tsx    
+// src/components/DishCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS } from '../constants';
-import type { DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+// MODIFIED: Added DishComment to the import list
+import type { DishComment, DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 import PhotoCarousel from './PhotoCarousel';
 import PhotoModal from './PhotoModal';
 import PhotoUpload from './PhotoUpload';
 
-interface DishCardProps {    
-  dish: DishWithDetails | null;    
-  currentUserId: string | null;    
-  onDelete: (dishId: string) => void;    
-  onUpdateRating: (dishId: string, rating: number) => void;    
-  onUpdateDishName?: (dishId: string, newName: string) => Promise<boolean>;    
-  onAddComment: (dishId: string, text: string) => Promise<void>;    
-  onUpdateComment: (commentId: string, dishId: string, text: string) => Promise<void>;    
-  onDeleteComment: (dishId: string, commentId: string) => Promise<void>;    
-  onAddPhoto: (dishId: string, file: File, caption?: string) => Promise<void>;    
-  onDeletePhoto: (dishId: string, photoId: string) => Promise<void>;    
-  isSubmittingComment: boolean;    
-  isExpanded: boolean;    
-  onToggleExpand: () => void;    
+
+interface DishCardProps {
+  dish: DishWithDetails | null;
+  currentUserId: string | null;
+  onDelete: (dishId: string) => void;
+  onUpdateRating: (dishId: string, rating: number) => void;
+  onUpdateDishName?: (dishId: string, newName: string) => Promise<boolean>;
+  onAddComment: (dishId: string, text: string) => Promise<void>;
+  onUpdateComment: (commentId: string, dishId: string, text: string) => Promise<void>;
+  onDeleteComment: (dishId: string, commentId: string) => Promise<void>;
+  onAddPhoto: (dishId: string, file: File, caption?: string) => Promise<void>;
+  onDeletePhoto: (dishId: string, photoId: string) => Promise<void>;
+  // MODIFIED: Changed type to boolean
+  isSubmittingComment: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
-const StarRating: React.FC<{    
-  rating: number;    
-  onRatingChange?: (rating: number) => void;    
-  readonly?: boolean;    
-  variant?: 'personal' | 'community';    
-  size?: 'sm' | 'md' | 'lg';    
-  showClearButton?: boolean;    
-}> = ({ rating, onRatingChange, readonly = false, variant = 'personal', size = 'md', showClearButton = false }) => {    
-  const sizeMap = {    
-    sm: '0.9rem',    
-    md: '1.2rem',    
-    lg: '1.4rem'    
-  };    
-     
-  const colorMap = {    
-    personal: { filled: COLORS.star, empty: COLORS.starEmpty },    
-    community: { filled: COLORS.starCommunity, empty: COLORS.starEmpty }    
+
+const StarRating: React.FC<{
+  rating: number;
+  onRatingChange?: (rating: number) => void;
+  readonly?: boolean;
+  variant?: 'personal' | 'community';
+  size?: 'sm' | 'md' | 'lg';
+  showClearButton?: boolean;
+}> = ({ rating, onRatingChange, readonly = false, variant = 'personal', size = 'md', showClearButton = false }) => {
+  const sizeMap = {
+    sm: '1rem',
+    md: '1.25rem',
+    lg: '1.5rem'
+  };
+ 
+  const colorMap = {
+    personal: { filled: COLORS.primary, empty: COLORS.ratingEmpty },
+    community: { filled: COLORS.ratingGold, empty: COLORS.ratingEmpty }
   };
 
-  return (    
-    <div className="flex items-center gap-px">    
-      <div className="flex gap-px">    
-        {[1, 2, 3, 4, 5].map((star) => (    
-          <button    
-            key={star}    
-            onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }} // Stop propagation  
-            disabled={readonly}    
-            className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-105 focus:outline-none'}`}    
-            style={{    
-              color: star <= rating ? colorMap[variant].filled : colorMap[variant].empty,    
-              background: 'none',    
-              border: 'none',    
-              padding: '0 1px',    
-              fontSize: sizeMap[size],    
-              lineHeight: '1'    
-            }}    
-            aria-label={readonly ? `${rating} of 5 stars` : `Rate ${star} of 5 stars`}    
-          >    
-            ★    
-          </button>    
-        ))}    
-      </div>    
-      {/* Clear rating button - Updated styling */}    
-      {!readonly && showClearButton && rating > 0 && (    
-        <button    
-          onClick={(e) => { e.stopPropagation(); onRatingChange?.(0); }} // Stop propagation  
-          className="ml-2 transition-opacity focus:outline-none hover:opacity-80"    
-          style={{ 
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            backgroundColor: '#3B82F6', // Blue background
-            color: 'white',
-            border: '2px solid black', // Black border
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          aria-label="Clear rating"    
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }}
+            disabled={readonly}
+            className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'}`}
+            style={{
+              color: star <= rating ? colorMap[variant].filled : colorMap[variant].empty,
+              background: 'none',
+              border: 'none',
+              padding: '0',
+              fontSize: sizeMap[size],
+              lineHeight: '1'
+            }}
+            aria-label={readonly ? `${rating} of 5 stars` : `Rate ${star} of 5 stars`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+      {!readonly && showClearButton && rating > 0 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onRatingChange?.(0); }}
+          style={STYLES.deleteButton}
+          aria-label="Clear rating"
           title="Clear rating"
-        >    
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
           </svg>
-        </button>    
-      )}    
-    </div>    
-  );    
+        </button>
+      )}
+    </div>
+  );
 };
 
-const RatingBreakdown: React.FC<{    
-  personalRating: number | null;    
-  communityAverage: number;    
-  totalRatings: number;    
-  onUpdatePersonalRating: (rating: number) => void;    
-}> = ({ personalRating, communityAverage, totalRatings, onUpdatePersonalRating }) => (    
-  <div className="bg-white/5 p-3 rounded-lg">    
-    {/* Horizontal layout with both ratings side by side */}    
-    <div className="flex items-start gap-6">    
-      {/* Personal Rating Section */}    
-      <div className="flex-1 min-w-0">    
-        <div className="mb-2">    
-          <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>    
-            Your Rating    
-          </span>    
-        </div>    
-        <div className="flex items-center gap-2">    
-          <StarRating    
-            rating={personalRating || 0}    
-            onRatingChange={onUpdatePersonalRating}    
-            variant="personal"    
-            size="md"    
-            showClearButton={true}    
-          />    
-          {!personalRating && (    
-            <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.6}}>    
-              Tap to rate    
-            </span>    
-          )}    
-        </div>    
+
+const RatingSummary: React.FC<{
+  personalRating: number | null;
+  communityAverage: number;
+  totalRatings: number;
+}> = ({ personalRating, communityAverage, totalRatings }) => (
+  <div style={{ display: 'flex', gap: SPACING[4], alignItems: 'center', fontSize: TYPOGRAPHY.sm.fontSize }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+      <span style={{ color: COLORS.textSecondary }}>You:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+        <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />
+        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium }}>
+          {personalRating || '—'}
+        </span>
+      </div>
+    </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+      <span style={{ color: COLORS.textSecondary }}>Community:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+        <StarRating rating={communityAverage} readonly variant="community" size="sm" />
+        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium }}>
+          {communityAverage.toFixed(1)}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+
+const RatingBreakdown: React.FC<{
+  personalRating: number | null;
+  communityAverage: number;
+  totalRatings: number; // This is Line 95
+  onUpdatePersonalRating: (rating: number) => void;
+}> = ({
+  personalRating,
+  communityAverage,
+  // MODIFIED: Added ESLint disable comment to ignore the 'no-unused-vars' warning
+  // for 'totalRatings'. This targets the declaration line (Line 95).
+  // The rule name might be 'no-unused-vars' or '@typescript-eslint/no-unused-vars'
+  // depending on your ESLint setup.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  totalRatings,
+  onUpdatePersonalRating
+}) => ( // Keeping the implicit return as it's cleaner if no other logic is needed.
+  <div style={{
+    backgroundColor: COLORS.gray50,
+    padding: SPACING[4],
+    borderRadius: STYLES.borderRadiusMedium,
+    marginTop: SPACING[4]
+  }}>
+    <div style={{ display: 'flex', gap: SPACING[8], flexWrap: 'wrap' }}>
+      {/* Personal Rating Section */}
+      <div style={{ flex: 1, minWidth: '200px' }}>
+        <div style={{ marginBottom: SPACING[2] }}>
+          <span style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            color: COLORS.textSecondary,
+            fontWeight: TYPOGRAPHY.medium
+          }}>
+            Your Rating
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+          <StarRating
+            rating={personalRating || 0}
+            onRatingChange={onUpdatePersonalRating}
+            variant="personal"
+            size="md"
+            showClearButton={true}
+          />
+          {!personalRating && (
+            <span style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.xs.fontSize,
+              color: COLORS.gray400
+            }}>
+              Tap to rate
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Community Rating Section */}    
-      <div className="flex-1 min-w-0">    
-        <div className="mb-2">    
-          <span style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, fontWeight: '500'}}>    
-            Community Average    
-          </span>    
-        </div>    
-        <div className="flex items-center gap-2">    
-          <StarRating    
-            rating={communityAverage}    
-            readonly={true}    
-            variant="community"    
-            size="md"    
-          />    
-        </div>    
-        {/* Community stats underneath the stars */}    
-        <div className="mt-1">    
-          <span style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.7}}>    
-            {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}    
-          </span>    
-        </div>    
-      </div>    
-    </div>    
-  </div>    
+
+      {/* Community Rating Section */}
+      <div style={{ flex: 1, minWidth: '200px' }}>
+        <div style={{ marginBottom: SPACING[2] }}>
+          <span style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            color: COLORS.textSecondary,
+            fontWeight: TYPOGRAPHY.medium
+          }}>
+            Community Average
+          </span>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+            <StarRating
+              rating={communityAverage}
+              readonly={true}
+              variant="community"
+              size="md"
+            />
+          </div>
+          <div style={{ marginTop: SPACING[1] }}>
+            <span style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.xs.fontSize,
+              color: COLORS.textSecondary
+            }}>
+              {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
-const DishHeader: React.FC<{    
-  name: string;    
-  dateAdded: string;    
-  createdBy: string;    
-  currentUserId: string | null;    
-  onDelete: () => void; // This is the onDelete prop  
-  onToggleEditMode: () => void;    
-  onToggleExpand: () => void; // Add this prop
-  isEditing?: boolean;    
-  onEditName?: (newName: string) => void;    
-  onSaveEdit?: () => void;    
-  onCancelEdit?: () => void;    
-}> = ({    
-  name,    
-  dateAdded,    
-  createdBy,    
-  currentUserId,    
-  onDelete, // Destructure the onDelete prop here  
-  onToggleEditMode,    
-  onToggleExpand, // Destructure the new prop
-  isEditing = false,    
-  onEditName,    
-  onSaveEdit,    
-  onCancelEdit    
-}) => {    
+
+const DishHeader: React.FC<{
+  name: string;
+  dateAdded: string;
+  createdBy: string;
+  currentUserId: string | null;
+  onDelete: () => void;
+  onToggleEditMode: () => void;
+  onToggleExpand: () => void;
+  isEditing?: boolean;
+  onEditName?: (newName: string) => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
+}> = ({
+  name,
+  dateAdded,
+  createdBy,
+  currentUserId,
+  onDelete,
+  onToggleEditMode,
+  onToggleExpand,
+  isEditing = false,
+  onEditName,
+  onSaveEdit,
+  onCancelEdit
+}) => {
   const [editedName, setEditedName] = useState(name);
 
-  useEffect(() => {    
-    setEditedName(name);    
+
+  useEffect(() => {
+    setEditedName(name);
   }, [name]);
 
-  return (    
-    <div className="mb-4">    
-      <div className="flex items-start justify-between mb-3">    
-        <div className="flex-1 min-w-0 pr-2 sm:pr-6">    
-          {isEditing ? (    
-            <div className="flex items-center gap-2">    
-              <input    
-                type="text"    
-                value={editedName}    
-                onChange={(e) => setEditedName(e.target.value)}    
-                className="flex-1 px-2 py-1 rounded border border-white/30 bg-white/10"    
-                style={{    
-                  ...FONTS.elegant,    
-                  color: COLORS.text,    
-                  fontSize: '1.1rem'    
-                }}    
-                autoFocus    
-              />    
-              <button    
-                onClick={(e) => { e.stopPropagation(); onEditName?.(editedName); onSaveEdit?.(); }} // Stop propagation  
-                className="px-2 py-1 rounded bg-green-500 text-white text-sm"    
-              >    
-                Save    
-              </button>    
-              <button    
-                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }} // Stop propagation  
-                className="px-2 py-1 rounded bg-gray-500 text-white text-sm"    
-              >    
-                Cancel    
-              </button>    
-            </div>    
-          ) : (    
-            <h3    
-              onClick={() => onToggleExpand()} // Add click handler to dish name
-              style={{    
-                ...FONTS.elegant,    
-                fontWeight: '500',    
-                color: COLORS.text,    
-                fontSize: '1.1rem',    
-                lineHeight: '1.3',    
-                margin: 0,    
-                wordWrap: 'break-word',    
-                hyphens: 'auto',
-                cursor: 'pointer' // Show it's clickable
-              }}    
-              className="break-words"    
-            >    
-              {name}    
-            </h3>    
-          )}    
-          <p className="text-xs" style={{...FONTS.elegant, color: COLORS.text, opacity: 0.5, lineHeight: '1.3', fontSize: '0.7rem', marginTop: '-2px' }}>    
-            Added {new Date(dateAdded).toLocaleDateString()}    
-          </p>    
-        </div>    
-           
-        {/* Action buttons container */}    
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0" style={{ marginTop: '4px' }}>    
-          {/* Edit button - only show if user created the dish */}    
-          {!isEditing && currentUserId && createdBy === currentUserId && (    
-            <button    
-              onClick={(e) => { e.stopPropagation(); onToggleEditMode(); }} // Stop propagation here  
-              className="p-2 rounded-full transition-colors focus:outline-none"    
-              style={{    
-                backgroundColor: '#000000',    
-                color: COLORS.textWhite,    
-                minHeight: '32px',    
-                display: 'flex',    
-                alignItems: 'center',    
-                justifyContent: 'center'    
-              }}    
-              aria-label="Edit dish name"    
-            >    
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">    
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>    
-              </svg>    
-            </button>    
-          )}
 
-          {/* Delete button - Updated styling */}    
-          <button    
-            onClick={(e) => { e.stopPropagation(); onDelete(); }} // NOW CORRECTLY CALLS the onDelete PROP  
-            className="transition-colors focus:outline-none flex-shrink-0"    
-            aria-label={`Delete ${name}`}    
-            style={{    
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#3B82F6', // Blue background
-              color: 'white',
-              border: '2px solid black', // Black border
-              cursor: 'pointer',
-              display: 'flex',    
-              alignItems: 'center',    
-              justifyContent: 'center'    
-            }}    
+  return (
+    <div style={{ marginBottom: SPACING[4] }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING[2] }}>
+        <div style={{ flex: 1, minWidth: 0, paddingRight: SPACING[4] }}>
+          {isEditing ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+              <input
+                type="text"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                style={{
+                  ...STYLES.input,
+                  flex: 1
+                }}
+                autoFocus
+              />
+              <button
+                onClick={(e) => { e.stopPropagation(); onEditName?.(editedName); onSaveEdit?.(); }}
+                style={{
+                  ...STYLES.primaryButton,
+                  padding: '8px 16px',
+                  minHeight: '36px',
+                  backgroundColor: COLORS.success
+                }}
+              >
+                Save
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
+                style={{
+                  ...STYLES.secondaryButton,
+                  padding: '8px 16px',
+                  minHeight: '36px'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <h3
+              onClick={() => onToggleExpand()}
+              style={{
+                ...FONTS.heading,
+                fontSize: TYPOGRAPHY.lg.fontSize,
+                color: COLORS.gray900,
+                margin: 0,
+                cursor: 'pointer',
+                wordBreak: 'break-word'
+              }}
+            >
+              {name}
+            </h3>
+          )}
+          <p style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.xs.fontSize,
+            color: COLORS.textSecondary,
+            margin: 0,
+            marginTop: SPACING[1]
+          }}>
+            Added {new Date(dateAdded).toLocaleDateString()}
+          </p>
+        </div>
+       
+        {/* Action buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+          {!isEditing && currentUserId && createdBy === currentUserId && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleEditMode(); }}
+              style={{
+                ...STYLES.iconButton,
+                backgroundColor: COLORS.gray900,
+                color: COLORS.white,
+                border: 'none'
+              }}
+              aria-label="Edit dish name"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            style={STYLES.deleteButton}
+            aria-label={`Delete ${name}`}
             title={`Delete ${name}`}
-          >    
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">    
-              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />    
-            </svg>    
-          </button>    
-        </div>    
-      </div>    
-    </div>    
-  );    
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const CollapsedRatingDisplay: React.FC<{    
-  personalRating: number | null;    
-  communityAverage: number;    
-}> = ({ personalRating, communityAverage }) => (    
-  <div className="flex items-center gap-4" style={{...FONTS.elegant, fontSize: '0.9rem'}}>    
-    <span>    
-      You: <strong style={{ color: COLORS.star }}>{personalRating || '—'}</strong>    
-    </span>    
-    <span>    
-      Community: <strong style={{ color: COLORS.starCommunity }}>{communityAverage.toFixed(1)}</strong>    
-    </span>    
-  </div>    
-);
 
-const CommentsAccordion: React.FC<{    
-  comments: any[];    
-  showComments: boolean;    
-  onToggle: () => void; // Prop expects no arguments  
-  currentUserId: string | null;    
-  editingComment: { id: string; currentText: string } | null;    
-  onEditComment: (comment: any) => void;    
-  onUpdateComment: (commentId: string, text: string) => Promise<void>;    
-  onDeleteComment: (commentId: string) => Promise<void>;    
-  onCancelEdit: () => void;    
-  isSubmittingComment: boolean;    
-}> = ({    
-  comments,    
-  showComments,    
-  onToggle,    
-  currentUserId,    
-  editingComment,    
-  onEditComment,    
-  onUpdateComment,    
-  onDeleteComment,    
-  onCancelEdit,    
-  isSubmittingComment    
-}) => {    
-  const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);    
+const CommentsSection: React.FC<{
+  // MODIFIED: comments type changed to DishComment[]
+  comments: DishComment[];
+  showComments: boolean;
+  onToggle: () => void;
+  currentUserId: string | null;
+  editingComment: { id: string; currentText: string } | null;
+  // MODIFIED: onEditComment parameter type changed to DishComment
+  onEditComment: (comment: DishComment) => void;
+  onUpdateComment: (commentId: string, text: string) => Promise<void>;
+  onDeleteComment: (commentId: string) => Promise<void>;
+  onCancelEdit: () => void;
+  // MODIFIED: isSubmittingComment type changed to boolean
+  isSubmittingComment: boolean;
+}> = ({
+  comments,
+  showComments,
+  onToggle,
+  currentUserId,
+  editingComment,
+  onEditComment,
+  onUpdateComment,
+  onDeleteComment,
+  onCancelEdit,
+  isSubmittingComment
+}) => {
+  const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {    
-    const handleClickOutside = (event: MouseEvent) => {    
-      if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {    
-        setOpenActionMenuCommentId(null);    
-      }    
-    };    
-       
-    if (openActionMenuCommentId) {    
-      document.addEventListener('mousedown', handleClickOutside);    
-    }    
-       
-    return () => {    
-      document.removeEventListener('mousedown', handleClickOutside);    
-    };    
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setOpenActionMenuCommentId(null);
+      }
+    };
+   
+    if (openActionMenuCommentId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+   
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [openActionMenuCommentId]);
+
 
   if (comments.length === 0) return null;
 
-  return (    
-    <div className="mt-4">    
-      {/* Modified Comments button styling with more spacing */}  
-      <div className="py-3"> {/* Added padding for more space */}
-        <button    
-          onClick={(e) => { e.stopPropagation(); onToggle(); }} // Stop propagation here, call the prop with no arguments  
-          className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity focus:outline-none"    
-          style={{    
-            ...FONTS.elegant,    
-            color: COLORS.text,    
-            fontWeight: '500',    
-            background: 'none', // Remove background  
-            border: 'none',     // Remove border  
-            padding: '8px 0',   // Add vertical padding  
-            cursor: 'pointer'   // Ensure cursor remains pointer  
-          }}    
-        >    
-          <span>Comments ({comments.length})</span>    
-          <svg    
-            width="16"    
-            height="16"    
-            viewBox="0 0 24 24"    
-            fill="currentColor"    
-            style={{    
-              transform: showComments ? 'rotate(180deg)' : 'rotate(0deg)',    
-              transition: 'transform 0.2s ease'    
-            }}    
-          >    
-            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>    
-          </svg>    
-        </button>
-      </div>
 
-      {showComments && (    
-        <div className="mt-3 space-y-3">    
-          {comments.map((comment) => (    
-            <div    
-              key={comment.id}    
-              className="bg-white/5 p-3 rounded-lg"    
-            >    
-              {editingComment?.id === comment.id ? (    
-                <div className="w-full max-w-full overflow-hidden">    
-                  <CommentForm    
-                    initialText={editingComment?.currentText || ''}    
-                    onSubmit={(text) => onUpdateComment(comment.id, text)}    
-                    onCancel={onCancelEdit}    
-                    isLoading={isSubmittingComment}    
-                    submitButtonText="Update Comment"    
-                  />    
-                </div>    
-              ) : (    
-                <div className="flex justify-between items-start">    
-                  <div className="flex-grow mr-2 min-w-0">    
-                    <p style={{...FONTS.elegant, fontSize: '0.875rem', color: COLORS.text, lineHeight: '1.5', margin: 0}} className="break-words">    
-                      {comment.comment_text}    
-                    </p>    
-                    <p style={{...FONTS.elegant, fontSize: '0.75rem', color: COLORS.text, opacity: 0.6, margin: 0, marginTop: '2px' }}>    
-                      <span style={{ fontWeight: '500', opacity: 0.8 }}>{comment.commenter_name || 'Anonymous'}</span> • {new Date(comment.created_at).toLocaleDateString()}    
-                      {comment.updated_at !== comment.created_at && ` (edited ${new Date(comment.updated_at).toLocaleDateString()})`}    
-                    </p>    
-                  </div>    
-                  {currentUserId && comment.user_id === currentUserId && (    
-                    <div className="relative flex-shrink-0">    
-                      <button    
-                        onClick={(e) => { e.stopPropagation(); setOpenActionMenuCommentId(openActionMenuCommentId === comment.id ? null : comment.id); }}    
-                        className="p-1.5 rounded-full hover:bg-white/20 focus:outline-none"    
-                        aria-label="Comment actions"    
-                        style={{ color: COLORS.text }}    
-                      >    
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">    
-                          <path d="M12 8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4C10.9 4 10 4.9 10 6C10 7.1 10.9 8 12 8ZM12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10ZM12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z"/>    
-                        </svg>    
-                      </button>    
-                      {openActionMenuCommentId === comment.id && (    
-                        <div ref={actionMenuRef} className="absolute bottom-full mb-1 w-32 bg-white rounded-md shadow-lg z-20 border" style={{ borderColor: COLORS.text + '30', background: COLORS.background, right: '0' }}>    
-                          <button onClick={(e) => { e.stopPropagation(); onEditComment(comment); setOpenActionMenuCommentId(null); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-t-md" style={{...FONTS.elegant, color: COLORS.text}}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{display: 'inline', marginRight: '8px'}}>    
-                              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>    
+  return (
+    <div style={{ marginTop: SPACING[6] }}>
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggle(); }}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: `${SPACING[3]} 0`,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: SPACING[2],
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.base.fontSize,
+          color: COLORS.text,
+          fontWeight: TYPOGRAPHY.medium,
+          width: '100%',
+          textAlign: 'left'
+        }}
+      >
+        <span>Comments ({comments.length})</span>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          style={{
+            transform: showComments ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease',
+            color: COLORS.gray400
+          }}
+        >
+          <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+        </svg>
+      </button>
+
+
+      {showComments && (
+        <div style={{ marginTop: SPACING[3], display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              style={{
+                backgroundColor: COLORS.gray50,
+                padding: SPACING[4],
+                borderRadius: STYLES.borderRadiusMedium
+              }}
+            >
+              {editingComment?.id === comment.id ? (
+                <div style={{ width: '100%' }}>
+                  <CommentForm
+                    initialText={editingComment?.currentText || ''}
+                    onSubmit={(text) => onUpdateComment(comment.id, text)}
+                    onCancel={onCancelEdit}
+                    isLoading={isSubmittingComment}
+                    submitButtonText="Update Comment"
+                  />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0, marginRight: SPACING[2] }}>
+                    <p style={{
+                      ...FONTS.body,
+                      fontSize: TYPOGRAPHY.sm.fontSize,
+                      color: COLORS.text,
+                      margin: 0,
+                      wordBreak: 'break-word'
+                    }}>
+                      {comment.comment_text}
+                    </p>
+                    <p style={{
+                      ...FONTS.body,
+                      fontSize: TYPOGRAPHY.xs.fontSize,
+                      color: COLORS.textSecondary,
+                      margin: 0,
+                      marginTop: SPACING[1]
+                    }}>
+                      <span style={{ fontWeight: TYPOGRAPHY.medium }}>
+                        {comment.commenter_name || 'Anonymous'}
+                      </span>
+                      {' • '}
+                      {new Date(comment.created_at).toLocaleDateString()}
+                      {comment.updated_at !== comment.created_at && ` (edited ${new Date(comment.updated_at).toLocaleDateString()})`}
+                    </p>
+                  </div>
+                  {currentUserId && comment.user_id === currentUserId && (
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenActionMenuCommentId(openActionMenuCommentId === comment.id ? null : comment.id);
+                        }}
+                        style={{
+                          ...STYLES.iconButton,
+                          width: '32px',
+                          height: '32px',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                        }}
+                        aria-label="Comment actions"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4C10.9 4 10 4.9 10 6C10 7.1 10.9 8 12 8ZM12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10ZM12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z"/>
+                        </svg>
+                      </button>
+                      {openActionMenuCommentId === comment.id && (
+                        <div
+                          ref={actionMenuRef}
+                          style={{
+                            position: 'absolute',
+                            bottom: '100%',
+                            right: 0,
+                            marginBottom: SPACING[1],
+                            backgroundColor: COLORS.white,
+                            borderRadius: STYLES.borderRadiusMedium,
+                            boxShadow: STYLES.shadowLarge,
+                            border: `1px solid ${COLORS.gray200}`,
+                            overflow: 'hidden',
+                            zIndex: 20,
+                            minWidth: '120px'
+                          }}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditComment(comment);
+                              setOpenActionMenuCommentId(null);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: SPACING[2],
+                              width: '100%',
+                              padding: `${SPACING[2]} ${SPACING[3]}`,
+                              border: 'none',
+                              background: 'none',
+                              cursor: 'pointer',
+                              ...FONTS.body,
+                              fontSize: TYPOGRAPHY.sm.fontSize,
+                              color: COLORS.text,
+                              textAlign: 'left',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = COLORS.gray50;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                             </svg>
                             Edit
-                          </button>    
-                          <button onClick={(e) => { e.stopPropagation(); onDeleteComment(comment.id); setOpenActionMenuCommentId(null); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-b-md" style={{...FONTS.elegant, color: COLORS.danger}}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{display: 'inline', marginRight: '8px'}}>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteComment(comment.id);
+                              setOpenActionMenuCommentId(null);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: SPACING[2],
+                              width: '100%',
+                              padding: `${SPACING[2]} ${SPACING[3]}`,
+                              border: 'none',
+                              background: 'none',
+                              cursor: 'pointer',
+                              ...FONTS.body,
+                              fontSize: TYPOGRAPHY.sm.fontSize,
+                              color: COLORS.danger,
+                              textAlign: 'left',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = COLORS.gray50;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
                             </svg>
                             Delete
-                          </button>    
-                        </div>    
-                      )}    
-                    </div>    
-                  )}    
-                </div>    
-              )}    
-            </div>    
-          ))}    
-        </div>    
-      )}    
-    </div>    
-  );    
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
-const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {    
-  if (!userId) return null;    
-  const userRating = dishRatings.find(rating => rating.user_id === userId);    
-  return userRating ? userRating.rating : null;    
+
+const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {
+  if (!userId) return null;
+  const userRating = dishRatings.find(rating => rating.user_id === userId);
+  return userRating ? userRating.rating : null;
 };
 
-// Portal Modal Component - Clean Production Version with Updated Button Styling  
-const PortalModal: React.FC<{    
-  isOpen: boolean;    
-  onClose: () => void;    
-  children: React.ReactNode;    
-}> = ({ isOpen, onClose, children }) => {    
-  const modalRoot = document.getElementById('modal-root');    
-     
-  if (!isOpen || !modalRoot) {    
-    return null;    
+
+// Portal Modal Component
+const PortalModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}> = ({ isOpen, onClose, children }) => {
+  const modalRoot = document.getElementById('modal-root');
+ 
+  if (!isOpen || !modalRoot) {
+    return null;
   }
 
-  return ReactDOM.createPortal(    
-    <div    
-      className="fixed inset-0 flex items-center justify-center p-4"    
-      style={{    
-        zIndex: 999999,    
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Clean grey overlay  
-        backdropFilter: 'blur(4px)',    
-        position: 'fixed',    
-        top: 0,    
-        left: 0,    
-        right: 0,    
-        bottom: 0,    
-        width: '100vw',    
-        height: '100vh'    
-      }}    
-      onClick={onClose}    
-    >    
-      <div    
-        className="rounded-lg shadow-xl w-full p-6 max-h-[90vh] overflow-y-auto"    
-        style={{    
-          backgroundColor: '#34343b', // Your specified modal background color  
-          maxWidth: '400px',    
-          color: COLORS.textWhite, // White text  
-          fontFamily: FONTS.elegant.fontFamily, // Your Inter font  
-          border: '1px solid rgba(255, 255, 255, 0.1)' // Subtle border  
-        }}    
-        onClick={(e) => e.stopPropagation()}    
-      >    
-        {children}    
-      </div>    
-    </div>,    
-    modalRoot    
-  );    
+
+  return ReactDOM.createPortal(
+    <div
+      style={STYLES.modalOverlay}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          ...STYLES.modal,
+          animation: 'slideIn 0.3s ease'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    modalRoot
+  );
 };
 
-const DishCard: React.FC<DishCardProps> = ({    
-  dish,    
-  currentUserId,    
-  onDelete,    
-  onUpdateRating,    
-  onUpdateDishName,    
-  onAddComment,    
-  onUpdateComment,    
-  onDeleteComment,    
-  onAddPhoto,    
-  onDeletePhoto,    
-  isSubmittingComment,    
-  isExpanded,    
-  onToggleExpand    
-}) => {    
-  // Early return if dish is null    
-  if (!dish) {    
-    return null;    
+
+const DishCard: React.FC<DishCardProps> = ({
+  dish,
+  currentUserId,
+  onDelete,
+  onUpdateRating,
+  onUpdateDishName,
+  onAddComment,
+  onUpdateComment,
+  onDeleteComment,
+  onAddPhoto,
+  onDeletePhoto,
+  isSubmittingComment,
+  isExpanded,
+  onToggleExpand
+}) => {
+  if (!dish) {
+    return null;
   }
 
-  const [showComments, setShowComments] = useState(false);    
-  const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);    
-  const [showPhotoUpload, setShowPhotoUpload] = useState(false);    
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);    
-  const [selectedPhotoModal, setSelectedPhotoModal] = useState<{ photo: DishPhoto; index: number } | null>(null);    
-  const [showCommentModal, setShowCommentModal] = useState(false);    
-  const [isEditingName, setIsEditingName] = useState(false);    
-  const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);  
+
+  const [showComments, setShowComments] = useState(false);
+  const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [selectedPhotoModal, setSelectedPhotoModal] = useState<{ photo: DishPhoto; index: number } | null>(null);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // DEBUGGING: Add extensive logging and state monitoring
-  console.log('DishCard render - selectedPhotoModal:', selectedPhotoModal);
-  console.log('DishCard render - dish photos count:', dish?.dish_photos?.length);
-
-  // DEBUGGING: Monitor selectedPhotoModal state changes
-  useEffect(() => {
-    console.log('selectedPhotoModal state changed:', selectedPhotoModal);
-  }, [selectedPhotoModal]);
 
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
 
-  const handleDeleteDish = () => {    
-    if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {    
-      onDelete(dish.id);    
-    }    
+
+  const handleDeleteDish = () => {
+    if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {
+      onDelete(dish.id);
+    }
   };
 
-  const handleAddCommentInternal = async (text: string) => {    
-    await onAddComment(dish.id, text);    
-    setShowCommentModal(false);    
-    setShowComments(true);    
+
+  const handleAddCommentInternal = async (text: string) => {
+    await onAddComment(dish.id, text);
+    setShowCommentModal(false);
+    setShowComments(true);
   };
 
-  const handleUpdateCommentInternal = async (commentId: string, text: string) => {    
-    await onUpdateComment(commentId, dish.id, text);    
-    setEditingComment(null);    
+
+  const handleUpdateCommentInternal = async (commentId: string, text: string) => {
+    await onUpdateComment(commentId, dish.id, text);
+    setEditingComment(null);
   };
 
-  const handleDeleteCommentInternal = async (commentId: string) => {    
-    if (window.confirm('Are you sure you want to delete this comment?')) {    
-      await onDeleteComment(dish.id, commentId);    
-    }    
+
+  const handleDeleteCommentInternal = async (commentId: string) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      await onDeleteComment(dish.id, commentId);
+    }
   };
 
-  // Direct photo upload - skip the "Choose Photo" step  
-  const handleDirectPhotoUpload = () => {    
-    fileInputRef.current?.click();    
+
+  const handleDirectPhotoUpload = () => {
+    fileInputRef.current?.click();
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {    
-    const file = event.target.files?.[0];    
-    if (file) {    
-      // Validate file type    
-      if (!file.type.startsWith('image/')) {    
-        alert('Please select an image file');    
-        return;    
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
       }
 
-      // Validate file size (5MB limit)    
-      if (file.size > 5 * 1024 * 1024) {    
-        alert('File size must be less than 5MB');    
-        return;    
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
       }
 
-      // Store the file and open upload modal  
-      setSelectedFileForUpload(file);  
-      setShowPhotoUpload(true);    
-    }    
+
+      setSelectedFileForUpload(file);
+      setShowPhotoUpload(true);
+    }
   };
 
-  const handlePhotoUpload = async (file: File, caption?: string) => {    
-    setIsUploadingPhoto(true);    
-    try {    
-      await onAddPhoto(dish.id, file, caption);    
-      setShowPhotoUpload(false);    
-      setSelectedFileForUpload(null);  
-      // Reset file input  
-      if (fileInputRef.current) {    
-        fileInputRef.current.value = '';    
-      }    
-    } catch (error) {    
-      console.error('Error uploading photo:', error);    
-    } finally {    
-      setIsUploadingPhoto(false);    
-    }    
+
+  const handlePhotoUpload = async (file: File, caption?: string) => {
+    setIsUploadingPhoto(true);
+    try {
+      await onAddPhoto(dish.id, file, caption);
+      setShowPhotoUpload(false);
+      setSelectedFileForUpload(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
-  const handleDeletePhoto = async (photoId: string) => {    
-    await onDeletePhoto(dish.id, photoId);    
-    if (dish.dish_photos.length <= 1) {    
-      setSelectedPhotoModal(null);    
-    }    
+
+  const handleDeletePhoto = async (photoId: string) => {
+    await onDeletePhoto(dish.id, photoId);
+    if (dish.dish_photos.length <= 1) {
+      setSelectedPhotoModal(null);
+    }
   };
 
-  const handleEditName = async (newName: string) => {    
-    if (onUpdateDishName) {    
-      const success = await onUpdateDishName(dish.id, newName);    
-      if (success) {    
-        setIsEditingName(false);    
-      }    
-    }    
+
+  const handleEditName = async (newName: string) => {
+    if (onUpdateDishName) {
+      const success = await onUpdateDishName(dish.id, newName);
+      if (success) {
+        setIsEditingName(false);
+      }
+    }
   };
 
-  // Collapsed view    
-  if (!isExpanded) {    
-    return (    
-      <div    
-        className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"    
-        onClick={onToggleExpand}    
-      >    
-        <h3    
-          style={{    
-            ...FONTS.elegant,    
-            fontWeight: '500',    
-            color: COLORS.text,    
-            fontSize: '1.1rem',    
-            lineHeight: '1.3',    
-            margin: 0,    
-            marginBottom: '8px'    
-          }}    
-          className="break-words"    
-        >    
-          {dish.name}    
-        </h3>    
-        <CollapsedRatingDisplay    
-          personalRating={personalRating}    
-          communityAverage={dish.average_rating}    
-        />    
-      </div>    
-    );    
+
+  // Collapsed view - Progressive Disclosure
+  if (!isExpanded) {
+    return (
+      <div
+        style={{
+          ...STYLES.card,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease'
+        }}
+        onClick={onToggleExpand}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = COLORS.primary;
+          e.currentTarget.style.boxShadow = STYLES.shadowMedium;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = COLORS.gray200;
+          e.currentTarget.style.boxShadow = 'none';
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{
+              ...FONTS.heading,
+              fontSize: TYPOGRAPHY.lg.fontSize,
+              color: COLORS.gray900,
+              margin: 0,
+              marginBottom: SPACING[2]
+            }}>
+              {dish.name}
+            </h3>
+            <RatingSummary
+              personalRating={personalRating}
+              communityAverage={dish.average_rating}
+              totalRatings={dish.total_ratings}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3] }}>
+            {/* Photo preview thumbnail */}
+            {dish.dish_photos.length > 0 && (
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: STYLES.borderRadiusMedium,
+                overflow: 'hidden',
+                flexShrink: 0
+              }}>
+                <img
+                  src={dish.dish_photos[0].url}
+                  alt="Dish photo"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              </div>
+            )}
+            {/* Expand indicator */}
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              style={{ color: COLORS.gray400 }}
+            >
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Expanded view    
-  return (    
-    <>    
-      <div  
-        className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors relative cursor-pointer"  
-        // UPDATED: Only toggle if the click was directly on this div, not a child  
-        onClick={(e) => {  
-          if (e.target === e.currentTarget) {  
-            onToggleExpand();  
-          }  
-        }}  
-      >    
-        <DishHeader    
-          name={dish.name}    
-          dateAdded={dish.dateAdded}    
-          createdBy={dish.created_by}    
-          currentUserId={currentUserId}    
-          onDelete={handleDeleteDish}    
-          onToggleEditMode={() => setIsEditingName(true)}    
-          onToggleExpand={onToggleExpand} // Pass the toggle function
-          isEditing={isEditingName}    
-          onEditName={handleEditName}    
-          onSaveEdit={() => setIsEditingName(false)}    
-          onCancelEdit={() => setIsEditingName(false)}    
+
+  // Expanded view
+  return (
+    <>
+      <div
+        style={{
+          ...STYLES.card,
+          borderColor: COLORS.primary,
+          boxShadow: STYLES.shadowLarge,
+          cursor: 'default',
+        }}
+      >
+        <DishHeader
+          name={dish.name}
+          dateAdded={dish.dateAdded}
+          createdBy={dish.created_by}
+          currentUserId={currentUserId}
+          onDelete={handleDeleteDish}
+          onToggleEditMode={() => setIsEditingName(true)}
+          onToggleExpand={onToggleExpand}
+          isEditing={isEditingName}
+          onEditName={handleEditName}
+          onSaveEdit={() => setIsEditingName(false)}
+          onCancelEdit={() => setIsEditingName(false)}
         />
 
-        <RatingBreakdown    
-          personalRating={personalRating}    
-          communityAverage={dish.average_rating}    
-          totalRatings={dish.total_ratings}    
-          onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}    
+
+        <RatingBreakdown
+          personalRating={personalRating}
+          communityAverage={dish.average_rating}
+          totalRatings={dish.total_ratings}
+          onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}
         />
 
-        {/* Add Photo Button - Fixed styling with reduced height */}  
-        <div className="mt-4">    
-          <button    
+
+        {/* Add Photo Button */}
+        <div style={{ marginTop: SPACING[4] }}>
+          <button
             onClick={(e) => { e.stopPropagation(); handleDirectPhotoUpload(); }}
-            style={{    
-              backgroundColor: '#3B82F6',
-              color: 'white',
-              border: '2px solid black',
-              borderRadius: '8px',
-              padding: '8px 16px', // Reduced from 12px to 8px (33% reduction)
-              width: '100%',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              fontFamily: FONTS.elegant.fontFamily,
-              transition: 'background-color 0.2s ease',
-              // Reset any default button styles
-              backgroundImage: 'none',
-              textDecoration: 'none',
-              outline: 'none',
-              boxSizing: 'border-box',
-              display: 'block'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563EB';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#3B82F6';
-            }}
-          >    
-            Add Photo    
-          </button>    
+            style={STYLES.primaryButton}
+          >
+            Add Photo
+          </button>
         </div>
 
-        {/* Hidden file input for direct photo upload */}    
-        <input    
-          ref={fileInputRef}    
-          type="file"    
-          accept="image/*"    
-          onChange={handleFileSelect}    
-          className="hidden"    
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
         />
 
-        {/* Photo Carousel - Only show if photos exist */}    
-        {dish.dish_photos.length > 0 && (    
-          <div className="mt-3">    
-            <PhotoCarousel    
-              photos={dish.dish_photos}    
-              // DEBUGGED: Add extensive logging and stops propagation here.  
-              onPhotoClick={(photo, index, e) => { 
-                console.log('PhotoCarousel onPhotoClick called:', { photo: photo.id, index, url: photo.url });
-                e.stopPropagation(); 
-                console.log('About to setSelectedPhotoModal with:', { photo, index });
-                setSelectedPhotoModal({ photo, index }); 
-                console.log('setSelectedPhotoModal called - state should update');
-              }}    
-            />    
-          </div>    
+
+        {/* Photo Carousel */}
+        {dish.dish_photos.length > 0 && (
+          <div style={{ marginTop: SPACING[3] }}>
+            <PhotoCarousel
+              photos={dish.dish_photos}
+              onPhotoClick={(photo, index, e) => {
+                e.stopPropagation();
+                setSelectedPhotoModal({ photo, index });
+              }}
+            />
+          </div>
         )}
 
-        {/* Add Comment Button - Fixed styling with reduced height */}  
-        <div className="mt-4">    
-          <button    
+
+        {/* Add Comment Button */}
+        <div style={{ marginTop: SPACING[4] }}>
+          <button
             onClick={(e) => { e.stopPropagation(); setShowCommentModal(true); }}
-            style={{    
-              backgroundColor: '#3B82F6',
-              color: 'white',
-              border: '2px solid black',
-              borderRadius: '8px',
-              padding: '8px 16px', // Reduced from 12px to 8px (33% reduction)
-              width: '100%',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              fontFamily: FONTS.elegant.fontFamily,
-              transition: 'background-color 0.2s ease',
-              // Reset any default button styles
-              backgroundImage: 'none',
-              textDecoration: 'none',
-              outline: 'none',
-              boxSizing: 'border-box',
-              display: 'block'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563EB';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#3B82F6';
-            }}
-          >    
-            Add Comment    
-          </button>    
+            style={STYLES.primaryButton}
+          >
+            Add Comment
+          </button>
         </div>
 
-        {/* Comments Accordion - Added more spacing */}    
-        <div className="mt-6">
-          <CommentsAccordion    
-            comments={dish.dish_comments}    
-            showComments={showComments}    
-            onToggle={() => setShowComments(!showComments)} // onToggle prop remains simple, stopPropagation is handled inside CommentsAccordion  
-            currentUserId={currentUserId}    
-            editingComment={editingComment}    
-            onEditComment={(comment) => setEditingComment({ id: comment.id, currentText: comment.comment_text })}    
-            onUpdateComment={handleUpdateCommentInternal}    
-            onDeleteComment={handleDeleteCommentInternal}    
-            onCancelEdit={() => setEditingComment(null)}    
-            isSubmittingComment={isSubmittingComment}    
-          />    
-        </div>    
+
+        {/* Comments Section */}
+        <CommentsSection
+          comments={dish.dish_comments}
+          showComments={showComments}
+          onToggle={() => setShowComments(!showComments)}
+          currentUserId={currentUserId}
+          editingComment={editingComment}
+          onEditComment={(comment) => setEditingComment({ id: comment.id, currentText: comment.comment_text })}
+          onUpdateComment={handleUpdateCommentInternal}
+          onDeleteComment={handleDeleteCommentInternal}
+          onCancelEdit={() => setEditingComment(null)}
+          isSubmittingComment={isSubmittingComment}
+        />
       </div>
 
-      {/* Comment Modal - Updated Button Styling */}    
-      <PortalModal    
-        isOpen={showCommentModal}    
-        onClose={() => setShowCommentModal(false)}    
-      >    
-        <h3 style={{    
-          ...FONTS.elegant,    
-          fontSize: '1.2rem',    
-          fontWeight: '600',    
-          color: COLORS.textWhite,    
-          marginBottom: '16px'    
-        }}>    
-          Add Comment about {dish.name}    
-        </h3>    
-        <CommentForm    
-          onSubmit={handleAddCommentInternal}    
-          onCancel={() => setShowCommentModal(false)}    
-          isLoading={isSubmittingComment}    
-        />    
+
+      {/* Comment Modal */}
+      <PortalModal
+        isOpen={showCommentModal}
+        onClose={() => setShowCommentModal(false)}
+      >
+        <h3 style={{
+          ...FONTS.heading,
+          fontSize: TYPOGRAPHY.xl.fontSize,
+          color: COLORS.gray900,
+          marginBottom: SPACING[4]
+        }}>
+          Add Comment about {dish.name}
+        </h3>
+        <CommentForm
+          onSubmit={handleAddCommentInternal}
+          onCancel={() => setShowCommentModal(false)}
+          isLoading={isSubmittingComment}
+        />
       </PortalModal>
 
-      {/* Photo Upload Modal - Pre-selected file */}    
-      <PortalModal    
-        isOpen={showPhotoUpload}    
-        onClose={() => {    
-          setShowPhotoUpload(false);    
-          setSelectedFileForUpload(null);  
-          if (fileInputRef.current) {    
-            fileInputRef.current.value = '';    
-          }    
-        }}    
-      >    
-        <PhotoUpload    
-          onUpload={handlePhotoUpload}    
-          onCancel={() => {    
-            setShowPhotoUpload(false);    
-            setSelectedFileForUpload(null);  
-            if (fileInputRef.current) {    
-              fileInputRef.current.value = '';    
-            }    
-          }}    
-          isUploading={isUploadingPhoto}    
-          initialFile={selectedFileForUpload || undefined}    
-          skipFileSelection={true}    
-        />    
+
+      {/* Photo Upload Modal */}
+      <PortalModal
+        isOpen={showPhotoUpload}
+        onClose={() => {
+          setShowPhotoUpload(false);
+          setSelectedFileForUpload(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }}
+      >
+        <PhotoUpload
+          onUpload={handlePhotoUpload}
+          onCancel={() => {
+            setShowPhotoUpload(false);
+            setSelectedFileForUpload(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+          }}
+          isUploading={isUploadingPhoto}
+          initialFile={selectedFileForUpload || undefined}
+          // MODIFIED: Changed skipFileSelection to boolean type
+          skipFileSelection={true} 
+        />
       </PortalModal>
 
-      {/* PhotoModal rendering - TypeScript fixed */}    
+
+      {/* Photo Modal */}
       {selectedPhotoModal && (
-        <PhotoModal    
-          photos={dish.dish_photos}    
-          initialIndex={selectedPhotoModal.index}    
-          currentUserId={currentUserId}    
+        <PhotoModal
+          photos={dish.dish_photos}
+          initialIndex={selectedPhotoModal.index}
+          currentUserId={currentUserId}
           onClose={() => {
-            console.log('PhotoModal onClose called');
             setSelectedPhotoModal(null);
-          }}    
-          onDelete={handleDeletePhoto}    
+          }}
+          onDelete={handleDeletePhoto}
         />
       )}
-    </>    
-  );    
+    </>
+  );
 };
+
 
 export default DishCard;
