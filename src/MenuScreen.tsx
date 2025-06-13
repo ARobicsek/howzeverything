@@ -10,12 +10,14 @@ import type { DishSearchResult } from './hooks/useDishes';
 import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
 
+
 interface MenuScreenProps {
   restaurantId: string;
   onNavigateBack: () => void;
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;
   currentAppScreen: GlobalAppScreenType;
 }
+
 
 // Enhanced search component with better visual hierarchy
 const DishSearchSection: React.FC<{
@@ -51,7 +53,7 @@ const DishSearchSection: React.FC<{
           </button>
         )}
       </div>
-      
+     
       <input
         type="text"
         value={searchTerm}
@@ -72,11 +74,12 @@ const DishSearchSection: React.FC<{
         }}
         autoFocus
       />
-      
+     
       <p style={{...FONTS.elegant, fontSize: '0.85rem', color: COLORS.text, opacity: 0.8, marginTop: '8px', marginBottom: 0}}>
         Search first to see if we already have your dish
       </p>
     </div>
+
 
     {/* Search Results */}
     {hasSearched && (
@@ -118,13 +121,14 @@ const DishSearchSection: React.FC<{
   </div>
 );
 
+
 // Component to show add dish option when search yields results
 const AddDishPrompt: React.FC<{
   hasResults: boolean;
   onShowAddForm: () => void;
 }> = ({ hasResults, onShowAddForm }) => {
   if (!hasResults) return null;
-  
+ 
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">
       <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>
@@ -143,6 +147,7 @@ const AddDishPrompt: React.FC<{
   );
 };
 
+
 // Enhanced Add Dish Form with pre-filled search term
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -152,6 +157,7 @@ const EnhancedAddDishForm: React.FC<{
   const [dishName, setDishName] = useState(initialDishName);
   const [rating, setRating] = useState(5);
 
+
   const handleSubmit = async () => {
     if (dishName.trim()) {
       await onSubmit(dishName, rating);
@@ -159,6 +165,7 @@ const EnhancedAddDishForm: React.FC<{
       setRating(5);
     }
   };
+
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">
@@ -182,6 +189,7 @@ const EnhancedAddDishForm: React.FC<{
           }}
         />
       </div>
+
 
       <div>
         <label style={{...FONTS.elegant, fontSize: '0.9rem', color: COLORS.text, display: 'block', marginBottom: '8px'}}>
@@ -211,6 +219,7 @@ const EnhancedAddDishForm: React.FC<{
           </span>
         </div>
       </div>
+
 
       <div className="flex gap-3 w-full max-w-full">
         <button
@@ -243,6 +252,7 @@ const EnhancedAddDishForm: React.FC<{
   );
 };
 
+
 const MenuScreen: React.FC<MenuScreenProps> = ({
   restaurantId,
   onNavigateBack,
@@ -255,6 +265,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [allExpanded, setAllExpanded] = useState(false);
+
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);
   const {
@@ -275,13 +286,16 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     deletePhoto
   } = useDishes(restaurantId, sortBy);
 
+
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
 
+
   const hasSearched = searchTerm.trim().length > 0;
   const hasSearchResults = hasSearched && searchResults.length > 0;
   const hasDishes = dishes.length > 0;
+
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
@@ -290,14 +304,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
 
   const handleAddDish = async (name: string, rating: number) => {
     const success = await addDish(name, rating);
@@ -307,6 +324,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
+
   const handleAddComment = async (dishId: string, text: string) => {
     try {
       await addComment(dishId, text);
@@ -314,6 +332,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setError(`Failed to add comment: ${err.message}`);
     }
   };
+
 
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     try {
@@ -323,6 +342,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     try {
       await deleteComment(dishId, commentId);
@@ -330,6 +350,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setError(`Failed to delete comment: ${err.message}`);
     }
   };
+
 
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
@@ -339,6 +360,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
+
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
     try {
       await deletePhoto(dishId, photoId);
@@ -346,6 +368,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setError(`Failed to delete photo: ${err.message}`);
     }
   };
+
 
   const handleToggleAllExpanded = () => {
     if (allExpanded) {
@@ -356,6 +379,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       // All dishes will be expanded via the allExpanded flag
     }
   };
+
 
   const handleToggleDishExpanded = (dishId: string) => {
     if (allExpanded) {
@@ -368,9 +392,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>
@@ -431,6 +457,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </div>
       </header>
 
+
       {/* Main Content */}
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
         <div className="max-w-md mx-auto space-y-6">
@@ -439,6 +466,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{color: COLORS.danger, ...FONTS.elegant}}>{dishesError}</p>
             </div>
           )}
+
 
           {showAdvancedSort && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -492,6 +520,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>
           )}
 
+
           {/* Only show search section if dishes exist AND not showing add form */}
           {!showAddForm && hasDishes && (
             <DishSearchSection
@@ -503,6 +532,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               onShowAddForm={handleShowAddForm}
             />
           )}
+
 
           {!showAddForm && (
             <div className="space-y-4">
@@ -535,7 +565,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       )}
                     </div>
                   ))}
-                  
+                 
                   {/* Add dish prompt AFTER search results */}
                   <AddDishPrompt
                     hasResults={hasSearchResults}
@@ -543,6 +573,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   />
                 </>
               )}
+
 
               {(hasSearched ? searchResults : dishes).length > 0 && !hasSearchResults ? (
                 <>
@@ -591,6 +622,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </div>
           )}
 
+
           {showAddForm && (
             <div className="space-y-4">
               <EnhancedAddDishForm
@@ -603,9 +635,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </div>
       </main>
 
+
       <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen}/>
     </div>
   );
 };
+
 
 export default MenuScreen;

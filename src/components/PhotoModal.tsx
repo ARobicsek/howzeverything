@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import { COLORS, FONTS } from '../constants';
 import type { DishPhoto } from '../hooks/useDishes';
 
+
 interface PhotoModalProps {  
   photos: DishPhoto[];  
   initialIndex: number;  
@@ -12,6 +13,7 @@ interface PhotoModalProps {
   onDelete: (photoId: string) => Promise<void>;  
   onDoubleClickDelete?: boolean;  
 }
+
 
 const PhotoModal: React.FC<PhotoModalProps> = ({  
   photos,  
@@ -28,8 +30,10 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
   // Use a ref for double click timer  
   const doubleClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+
   const currentPhoto = photos[currentIndex];  
   const isOwner = currentPhoto?.user_id === currentUserId;
+
 
   useEffect(() => {  
     // FIXED: Remove unused prevIndex parameter that was causing TypeScript error
@@ -37,13 +41,16 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
     // If photos becomes empty, the DishCard will stop rendering PhotoModal entirely, so `0` is a safe default.  
   }, [initialIndex, photos.length]);
 
+
   const handleNext = useCallback(() => {  
     setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);  
   }, [photos.length]);
 
+
   const handlePrev = useCallback(() => {  
     setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);  
   }, [photos.length]);
+
 
   useEffect(() => {  
     const handleKeyDown = (e: KeyboardEvent) => {  
@@ -52,9 +59,11 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
       if (e.key === 'ArrowRight') handleNext();  
     };
 
+
     document.addEventListener('keydown', handleKeyDown);  
     return () => document.removeEventListener('keydown', handleKeyDown);  
   }, [handlePrev, handleNext, onClose]);
+
 
   useEffect(() => {  
     // Show delete hint for photo owners  
@@ -64,6 +73,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
       return () => clearTimeout(timer);  
     }  
   }, [currentIndex, isOwner, onDoubleClickDelete]);
+
 
   const handleDelete = async () => {  
     if (window.confirm('Are you sure you want to delete this photo?')) {  
@@ -82,11 +92,13 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
     }  
   };
 
+
   const handlePhotoDoubleClick = useCallback(() => {  
     if (isOwner && onDoubleClickDelete) {  
       handleDelete();  
     }  
   }, [isOwner, onDoubleClickDelete, handleDelete]);
+
 
   // Handle single and double click for delete  
   const handlePhotoClick = useCallback(() => {  
@@ -102,10 +114,12 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
     }  
   }, [handlePhotoDoubleClick]);
 
+
   if (!currentPhoto) {  
       console.warn("PhotoModal: No current photo to display. Rendering null.");  
       return null; // Ensure currentPhoto is valid  
   }
+
 
   // Get the modal root element for portal rendering  
   const modalRoot = document.getElementById('modal-root');  
@@ -113,6 +127,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
     console.error("PhotoModal: Modal root element with ID 'modal-root' not found in index.html. Modals may not render correctly.");  
     return null; // Don't render if the portal target isn't found  
   }
+
 
   // Use a portal to render the modal outside the current DOM hierarchy  
   return ReactDOM.createPortal(  
@@ -138,6 +153,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>  
           </svg>  
         </button>
+
 
         {/* Navigation arrows - positioned in upper right */}  
         {photos.length > 1 && (  
@@ -173,6 +189,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
           </div>  
         )}
 
+
         {/* Photo counter with improved visibility */}  
         {photos.length > 1 && (  
           <div className="absolute top-4 left-4 z-10">  
@@ -191,6 +208,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
           </div>  
         )}
 
+
         {/* Image container */}  
         <div className="flex-1 flex items-center justify-center">  
           <img  
@@ -202,6 +220,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             onClick={handlePhotoClick}  
           />  
         </div>
+
 
         {/* Photo information with improved visibility */}  
         <div className="mt-4 space-y-2">  
@@ -220,6 +239,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             </div>  
           )}
 
+
           {/* Photographer and date */}  
           <div className="flex items-center justify-between">  
             <div  
@@ -233,6 +253,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                 by {currentPhoto.photographer_name || 'Anonymous'} • {new Date(currentPhoto.created_at).toLocaleDateString()}  
               </p>  
             </div>
+
 
             {/* Delete button for owners */}  
             {isOwner && !onDoubleClickDelete && (  
@@ -254,6 +275,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             )}  
           </div>
 
+
           {/* Delete hint */}  
           {showDeleteHint && isOwner && onDoubleClickDelete && (  
             <div  
@@ -274,5 +296,6 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
     modalRoot // Target DOM node for the portal  
   );  
 };
+
 
 export default PhotoModal;

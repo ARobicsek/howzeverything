@@ -2,14 +2,18 @@
 import React from 'react';
 import type { DishPhoto } from '../hooks/useDishes';
 
+
 interface PhotoCarouselProps {  
   photos: DishPhoto[];  
-  onPhotoClick: (photo: DishPhoto, index: number) => void;  
+  // UPDATED: onPhotoClick now expects the React.MouseEvent event object
+  onPhotoClick: (photo: DishPhoto, index: number, event: React.MouseEvent) => void;  
 }
+
 
 const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, onPhotoClick }) => {  
   // Remove the artificial limit - show all photos
   const displayPhotos = photos; // Show all photos instead of limiting to 5
+
 
   return (  
     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">  
@@ -17,7 +21,8 @@ const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, onPhotoClick }) =
       {displayPhotos.map((photo, index) => (  
         <button  
           key={photo.id}  
-          onClick={() => onPhotoClick(photo, index)}  
+          // UPDATED: Pass the event object (e) to the onPhotoClick handler
+          onClick={(e) => onPhotoClick(photo, index, e)}  
           className="relative flex-shrink-0 rounded-md overflow-hidden hover:opacity-80 transition-opacity group"  
           style={{  
             width: '80px',  
@@ -36,5 +41,6 @@ const PhotoCarousel: React.FC<PhotoCarouselProps> = ({ photos, onPhotoClick }) =
     </div>  
   );  
 };
+
 
 export default PhotoCarousel;

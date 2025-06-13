@@ -8,6 +8,7 @@ import PhotoCarousel from './PhotoCarousel';
 import PhotoModal from './PhotoModal';
 import PhotoUpload from './PhotoUpload';
 
+
 interface DishCardProps {  
   dish: DishWithDetails | null;  
   currentUserId: string | null;  
@@ -23,6 +24,7 @@ interface DishCardProps {
   isExpanded: boolean;  
   onToggleExpand: () => void;  
 }
+
 
 const StarRating: React.FC<{  
   rating: number;  
@@ -43,13 +45,14 @@ const StarRating: React.FC<{
     community: { filled: COLORS.starCommunity, empty: COLORS.starEmpty }  
   };
 
+
   return (  
     <div className="flex items-center gap-px">  
       <div className="flex gap-px">  
         {[1, 2, 3, 4, 5].map((star) => (  
           <button  
             key={star}  
-            onClick={() => !readonly && onRatingChange?.(star)}  
+            onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }} // Stop propagation
             disabled={readonly}  
             className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-105 focus:outline-none'}`}  
             style={{  
@@ -69,7 +72,7 @@ const StarRating: React.FC<{
       {/* Clear rating button */}  
       {!readonly && showClearButton && rating > 0 && (  
         <button  
-          onClick={() => onRatingChange?.(0)}  
+          onClick={(e) => { e.stopPropagation(); onRatingChange?.(0); }} // Stop propagation
           className="ml-2 text-xs hover:opacity-80 transition-opacity focus:outline-none"  
           style={{ color: COLORS.danger }}  
           aria-label="Clear rating"  
@@ -80,6 +83,7 @@ const StarRating: React.FC<{
     </div>  
   );  
 };
+
 
 const RatingBreakdown: React.FC<{  
   personalRating: number | null;  
@@ -113,6 +117,7 @@ const RatingBreakdown: React.FC<{
         </div>  
       </div>
 
+
       {/* Community Rating Section */}  
       <div className="flex-1 min-w-0">  
         <div className="mb-2">  
@@ -139,12 +144,13 @@ const RatingBreakdown: React.FC<{
   </div>  
 );
 
+
 const DishHeader: React.FC<{  
   name: string;  
   dateAdded: string;  
   createdBy: string;  
   currentUserId: string | null;  
-  onDelete: () => void;  
+  onDelete: () => void; // This is the onDelete prop
   onToggleEditMode: () => void;  
   isEditing?: boolean;  
   onEditName?: (newName: string) => void;  
@@ -155,7 +161,7 @@ const DishHeader: React.FC<{
   dateAdded,  
   createdBy,  
   currentUserId,  
-  onDelete,  
+  onDelete, // Destructure the onDelete prop here
   onToggleEditMode,  
   isEditing = false,  
   onEditName,  
@@ -164,9 +170,11 @@ const DishHeader: React.FC<{
 }) => {  
   const [editedName, setEditedName] = useState(name);
 
+
   useEffect(() => {  
     setEditedName(name);  
   }, [name]);
+
 
   return (  
     <div className="mb-4">  
@@ -187,16 +195,13 @@ const DishHeader: React.FC<{
                 autoFocus  
               />  
               <button  
-                onClick={() => {  
-                  onEditName?.(editedName);  
-                  onSaveEdit?.();  
-                }}  
+                onClick={(e) => { e.stopPropagation(); onEditName?.(editedName); onSaveEdit?.(); }} // Stop propagation
                 className="px-2 py-1 rounded bg-green-500 text-white text-sm"  
               >  
                 Save  
               </button>  
               <button  
-                onClick={onCancelEdit}  
+                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }} // Stop propagation
                 className="px-2 py-1 rounded bg-gray-500 text-white text-sm"  
               >  
                 Cancel  
@@ -229,7 +234,7 @@ const DishHeader: React.FC<{
           {/* Edit button - only show if user created the dish */}  
           {!isEditing && currentUserId && createdBy === currentUserId && (  
             <button  
-              onClick={onToggleEditMode}  
+              onClick={(e) => { e.stopPropagation(); onToggleEditMode(); }} // Stop propagation here
               className="p-2 rounded-full transition-colors focus:outline-none"  
               style={{  
                 backgroundColor: '#000000',  
@@ -247,9 +252,10 @@ const DishHeader: React.FC<{
             </button>  
           )}
 
+
           {/* Delete button */}  
           <button  
-            onClick={onDelete}  
+            onClick={(e) => { e.stopPropagation(); onDelete(); }} // NOW CORRECTLY CALLS the onDelete PROP
             className="p-2 rounded-full transition-colors focus:outline-none flex-shrink-0"  
             aria-label={`Delete ${name}`}  
             style={{  
@@ -279,6 +285,7 @@ const DishHeader: React.FC<{
   );  
 };
 
+
 const CollapsedRatingDisplay: React.FC<{  
   personalRating: number | null;  
   communityAverage: number;  
@@ -293,10 +300,11 @@ const CollapsedRatingDisplay: React.FC<{
   </div>  
 );
 
+
 const CommentsAccordion: React.FC<{  
   comments: any[];  
   showComments: boolean;  
-  onToggle: () => void;  
+  onToggle: () => void; // Prop expects no arguments
   currentUserId: string | null;  
   editingComment: { id: string; currentText: string } | null;  
   onEditComment: (comment: any) => void;  
@@ -319,6 +327,7 @@ const CommentsAccordion: React.FC<{
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);  
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
+
   useEffect(() => {  
     const handleClickOutside = (event: MouseEvent) => {  
       if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {  
@@ -335,14 +344,25 @@ const CommentsAccordion: React.FC<{
     };  
   }, [openActionMenuCommentId]);
 
+
   if (comments.length === 0) return null;
+
 
   return (  
     <div className="mt-4">  
+      {/* Modified Comments button styling */}
       <button  
-        onClick={onToggle}  
+        onClick={(e) => { e.stopPropagation(); onToggle(); }} // Stop propagation here, call the prop with no arguments
         className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity focus:outline-none"  
-        style={{...FONTS.elegant, color: COLORS.text, fontWeight: '500'}}  
+        style={{  
+          ...FONTS.elegant,  
+          color: COLORS.text,  
+          fontWeight: '500',  
+          background: 'none', // Remove background
+          border: 'none',     // Remove border
+          padding: '0',       // Remove padding to make it 'text only'
+          cursor: 'pointer'   // Ensure cursor remains pointer
+        }}  
       >  
         <span>Comments ({comments.length})</span>  
         <svg  
@@ -358,6 +378,7 @@ const CommentsAccordion: React.FC<{
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>  
         </svg>  
       </button>
+
 
       {showComments && (  
         <div className="mt-3 space-y-3">  
@@ -401,8 +422,8 @@ const CommentsAccordion: React.FC<{
                       </button>  
                       {openActionMenuCommentId === comment.id && (  
                         <div ref={actionMenuRef} className="absolute bottom-full mb-1 w-32 bg-white rounded-md shadow-lg z-20 border" style={{ borderColor: COLORS.text + '30', background: COLORS.background, right: '0' }}>  
-                          <button onClick={() => { onEditComment(comment); setOpenActionMenuCommentId(null); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-t-md" style={{...FONTS.elegant, color: COLORS.text}}>Edit</button>  
-                          <button onClick={() => { onDeleteComment(comment.id); setOpenActionMenuCommentId(null); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-b-md" style={{...FONTS.elegant, color: COLORS.danger}}>Delete</button>  
+                          <button onClick={(e) => { e.stopPropagation(); onEditComment(comment); setOpenActionMenuCommentId(null); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-t-md" style={{...FONTS.elegant, color: COLORS.text}}>Edit</button>  
+                          <button onClick={(e) => { e.stopPropagation(); onDeleteComment(comment.id); setOpenActionMenuCommentId(null); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 rounded-b-md" style={{...FONTS.elegant, color: COLORS.danger}}>Delete</button>  
                         </div>  
                       )}  
                     </div>  
@@ -417,11 +438,13 @@ const CommentsAccordion: React.FC<{
   );  
 };
 
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {  
   if (!userId) return null;  
   const userRating = dishRatings.find(rating => rating.user_id === userId);  
   return userRating ? userRating.rating : null;  
 };
+
 
 // Portal Modal Component - Clean Production Version with Updated Button Styling
 const PortalModal: React.FC<{  
@@ -434,6 +457,7 @@ const PortalModal: React.FC<{
   if (!isOpen || !modalRoot) {  
     return null;  
   }
+
 
   return ReactDOM.createPortal(  
     <div  
@@ -470,6 +494,7 @@ const PortalModal: React.FC<{
   );  
 };
 
+
 const DishCard: React.FC<DishCardProps> = ({  
   dish,  
   currentUserId,  
@@ -490,6 +515,7 @@ const DishCard: React.FC<DishCardProps> = ({
     return null;  
   }
 
+
   const [showComments, setShowComments] = useState(false);  
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);  
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);  
@@ -500,7 +526,9 @@ const DishCard: React.FC<DishCardProps> = ({
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
+
 
   const handleDeleteDish = () => {  
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {  
@@ -508,16 +536,19 @@ const DishCard: React.FC<DishCardProps> = ({
     }  
   };
 
+
   const handleAddCommentInternal = async (text: string) => {  
     await onAddComment(dish.id, text);  
     setShowCommentModal(false);  
     setShowComments(true);  
   };
 
+
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {  
     await onUpdateComment(commentId, dish.id, text);  
     setEditingComment(null);  
   };
+
 
   const handleDeleteCommentInternal = async (commentId: string) => {  
     if (window.confirm('Are you sure you want to delete this comment?')) {  
@@ -525,10 +556,12 @@ const DishCard: React.FC<DishCardProps> = ({
     }  
   };
 
+
   // Direct photo upload - skip the "Choose Photo" step
   const handleDirectPhotoUpload = () => {  
     fileInputRef.current?.click();  
   };
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {  
     const file = event.target.files?.[0];  
@@ -539,17 +572,20 @@ const DishCard: React.FC<DishCardProps> = ({
         return;  
       }
 
+
       // Validate file size (5MB limit)  
       if (file.size > 5 * 1024 * 1024) {  
         alert('File size must be less than 5MB');  
         return;  
       }
 
+
       // Store the file and open upload modal
       setSelectedFileForUpload(file);
       setShowPhotoUpload(true);  
     }  
   };
+
 
   const handlePhotoUpload = async (file: File, caption?: string) => {  
     setIsUploadingPhoto(true);  
@@ -568,12 +604,14 @@ const DishCard: React.FC<DishCardProps> = ({
     }  
   };
 
+
   const handleDeletePhoto = async (photoId: string) => {  
     await onDeletePhoto(dish.id, photoId);  
     if (dish.dish_photos.length <= 1) {  
       setSelectedPhotoModal(null);  
     }  
   };
+
 
   const handleEditName = async (newName: string) => {  
     if (onUpdateDishName) {  
@@ -583,6 +621,7 @@ const DishCard: React.FC<DishCardProps> = ({
       }  
     }  
   };
+
 
   // Collapsed view  
   if (!isExpanded) {  
@@ -613,10 +652,19 @@ const DishCard: React.FC<DishCardProps> = ({
     );  
   }
 
+
   // Expanded view  
   return (  
     <>  
-      <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors relative">  
+      <div
+        className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors relative cursor-pointer"
+        // UPDATED: Only toggle if the click was directly on this div, not a child
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onToggleExpand();
+          }
+        }}
+      >  
         <DishHeader  
           name={dish.name}  
           dateAdded={dish.dateAdded}  
@@ -630,6 +678,7 @@ const DishCard: React.FC<DishCardProps> = ({
           onCancelEdit={() => setIsEditingName(false)}  
         />
 
+
         <RatingBreakdown  
           personalRating={personalRating}  
           communityAverage={dish.average_rating}  
@@ -637,33 +686,12 @@ const DishCard: React.FC<DishCardProps> = ({
           onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}  
         />
 
-        {/* Photo Carousel - Only show if photos exist */}  
-        {dish.dish_photos.length > 0 && (  
-          <div className="mt-3">  
-            <PhotoCarousel  
-              photos={dish.dish_photos}  
-              onPhotoClick={(photo, index) => setSelectedPhotoModal({ photo, index })}  
-            />  
-          </div>  
-        )}
 
-        {/* Direct Action Buttons - Updated Styling (No Emojis) */}  
-        <div className="mt-4 flex gap-3">  
+        {/* Add Photo Button - Moved to immediately on top of any photos */}
+        <div className="mt-4">  
           <button  
-            onClick={() => setShowCommentModal(true)}  
-            className="flex-1 py-2 px-4 border border-black text-white bg-blue-500 hover:bg-blue-600 transition-colors focus:outline-none"  
-            style={{  
-              ...FONTS.elegant,  
-              fontSize: '0.9rem',  
-              fontWeight: '500'  
-            }}  
-          >  
-            Add Comment  
-          </button>  
-           
-          <button  
-            onClick={handleDirectPhotoUpload}  
-            className="flex-1 py-2 px-4 border border-black text-white bg-blue-500 hover:bg-blue-600 transition-colors focus:outline-none"  
+            onClick={(e) => { e.stopPropagation(); handleDirectPhotoUpload(); }} // Stop propagation
+            className="flex-1 py-2 px-4 border border-black text-white bg-blue-500 hover:bg-blue-600 transition-colors focus:outline-none w-full"  
             style={{  
               ...FONTS.elegant,  
               fontSize: '0.9rem',  
@@ -674,6 +702,7 @@ const DishCard: React.FC<DishCardProps> = ({
           </button>  
         </div>
 
+
         {/* Hidden file input for direct photo upload */}  
         <input  
           ref={fileInputRef}  
@@ -683,11 +712,40 @@ const DishCard: React.FC<DishCardProps> = ({
           className="hidden"  
         />
 
+
+        {/* Photo Carousel - Only show if photos exist */}  
+        {dish.dish_photos.length > 0 && (  
+          <div className="mt-3">  
+            <PhotoCarousel  
+              photos={dish.dish_photos}  
+              // Now passes event object and stops propagation here.
+              onPhotoClick={(photo, index, e) => { e.stopPropagation(); setSelectedPhotoModal({ photo, index }); }}  
+            />  
+          </div>  
+        )}
+
+
+        {/* Add Comment Button - Moved to immediately on top of comments section */}
+        <div className="mt-4">  
+          <button  
+            onClick={(e) => { e.stopPropagation(); setShowCommentModal(true); }} // Stop propagation
+            className="flex-1 py-2 px-4 border border-black text-white bg-blue-500 hover:bg-blue-600 transition-colors focus:outline-none w-full"  
+            style={{  
+              ...FONTS.elegant,  
+              fontSize: '0.9rem',  
+              fontWeight: '500'  
+            }}  
+          >  
+            Add Comment  
+          </button>  
+        </div>
+
+
         {/* Comments Accordion */}  
         <CommentsAccordion  
           comments={dish.dish_comments}  
           showComments={showComments}  
-          onToggle={() => setShowComments(!showComments)}  
+          onToggle={() => setShowComments(!showComments)} // onToggle prop remains simple, stopPropagation is handled inside CommentsAccordion
           currentUserId={currentUserId}  
           editingComment={editingComment}  
           onEditComment={(comment) => setEditingComment({ id: comment.id, currentText: comment.comment_text })}  
@@ -697,6 +755,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isSubmittingComment={isSubmittingComment}  
         />  
       </div>
+
 
       {/* Comment Modal - Updated Button Styling */}  
       <PortalModal  
@@ -718,6 +777,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isLoading={isSubmittingComment}  
         />  
       </PortalModal>
+
 
       {/* Photo Upload Modal - Pre-selected file */}  
       <PortalModal  
@@ -745,6 +805,7 @@ const DishCard: React.FC<DishCardProps> = ({
         />  
       </PortalModal>
 
+
       {/* PhotoModal is handled with its own portal logic internally */}  
       {selectedPhotoModal && (  
         <PhotoModal  
@@ -759,5 +820,6 @@ const DishCard: React.FC<DishCardProps> = ({
     </>  
   );  
 };
+
 
 export default DishCard;
