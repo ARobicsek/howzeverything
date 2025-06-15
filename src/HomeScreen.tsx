@@ -2,7 +2,10 @@
 import React from 'react';
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
-import { COLORS, SIZES, STYLES } from './constants'; // FONTS removed as it's unused
+// MODIFIED: Updated imports to include FONTS, SPACING, TYPOGRAPHY
+import { COLORS, FONTS, SIZES, STYLES, TYPOGRAPHY } from './constants';
+
+
 
 
 interface HomeScreenProps {  
@@ -11,10 +14,14 @@ interface HomeScreenProps {
 }
 
 
+
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {  
   return (  
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>  
       {/* Header Removed */}
+
+
 
 
       {/* Main Content */}  
@@ -25,8 +32,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
           paddingBottom: STYLES.mainContentPadding  
         }}  
       >  
-        <div className="max-w-md mx-auto w-full text-center flex flex-col items-center" style={{ gap: SIZES['2xl'] /* Space between logo and button */ }}>  
-          {/* Logo Section - Moved to top, increased size slightly */}  
+        <div className="max-w-md mx-auto w-full text-center flex flex-col items-center" style={{ gap: SIZES['2xl'] /* Space between logo and text box */ }}>  
+          {/* Logo Section */}  
           <div className="flex justify-center">  
             <img  
               src="/logo.png"  
@@ -39,33 +46,38 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
           </div>
 
 
-          {/* Action Button Section - Moved up, colored blue */}  
-          <div className="flex justify-center w-full">  
-            <button  
-              onClick={() => onNavigateToScreen('restaurants')}  
-              className="transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"  
-              style={{  
-                ...STYLES.addButton,  
-                fontSize: '1.125rem',  
-                fontWeight: '500',  
-                maxWidth: '320px',  
-                width: '100%',  
-                boxShadow: '0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 6px 10px -5px rgba(0, 0, 0, 0.04)',  
-              }}  
-              onMouseEnter={(e) => {  
-                e.currentTarget.style.transform = 'scale(1.03)';  
-                e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover
-              }}  
-              onMouseLeave={(e) => {  
-                e.currentTarget.style.transform = 'scale(1)';  
-                e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg
-              }}  
-            >  
-              Restaurants  
-            </button>  
-          </div>  
+
+
+          {/* MODIFIED: Replaced Action Button Section with text box. maxWidth reverted to 180px */}
+          <div
+            style={{
+              ...STYLES.card, // Apply Dish Card styling
+              maxWidth: '180px', // MODIFIED: Set to exactly 180px to match logo
+              display: 'flex', // Use flex to easily center text
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box' // Ensure max-width includes padding and border
+            }}
+          >
+            <p
+              style={{
+                ...FONTS.elegant, // Same typeface as restaurant names
+                fontWeight: TYPOGRAPHY.medium, // '500' based on RestaurantCard
+                color: COLORS.text, // Same color as primary text
+                fontSize: TYPOGRAPHY.lg.fontSize, // '1.125rem' based on RestaurantCard
+                lineHeight: '1.3', // '1.3' based on RestaurantCard
+                margin: 0, // Remove default paragraph margin
+                textAlign: 'center', // Ensure text is centered within the box
+                wordBreak: 'break-word', // Allow long words to break
+              }}
+            >
+              Rate and discover great dishes
+            </p>
+          </div>
         </div>  
       </main>
+
+
 
 
       {/* Bottom Navigation */}  
@@ -76,6 +88,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
     </div>  
   );  
 };
+
+
 
 
 export default HomeScreen;
