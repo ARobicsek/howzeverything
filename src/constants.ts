@@ -1,6 +1,7 @@
 // src/constants.ts
 import React from 'react'; // Import React to get React.CSSProperties
 
+
 export const COLORS = {
   // Primary Colors
   primary: '#2563EB', // Main accent, buttons, links
@@ -61,6 +62,8 @@ export const COLORS = {
 };
 
 
+
+
 export const FONTS = {
   primary: {
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -83,6 +86,8 @@ export const FONTS = {
 };
 
 
+
+
 export const TYPOGRAPHY = {
   // Font Sizes & Line Heights
   xs: { fontSize: '0.75rem', lineHeight: '1rem' }, // 12px
@@ -99,6 +104,8 @@ export const TYPOGRAPHY = {
   semibold: '600',
   bold: '700',
 };
+
+
 
 
 export const SPACING = {
@@ -118,6 +125,8 @@ export const SPACING = {
   sectionGap: '1.5rem', // 24px
   cardPadding: '1.25rem', // 20px
 };
+
+
 
 
 export const STYLES = {
@@ -326,6 +335,8 @@ export const STYLES = {
 };
 
 
+
+
 // Legacy SIZES for compatibility
 export const SIZES = {
   xs: '0.5rem', // 8px
@@ -337,6 +348,8 @@ export const SIZES = {
   '3xl': '3rem', // 48px
   '4xl': '4rem', // 64px
 };
+
+
 
 
 // Breakpoints for responsive design

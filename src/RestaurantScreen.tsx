@@ -1,11 +1,15 @@
-﻿// src/RestaurantScreen.tsx - Updated with search-first UX like MenuScreen        
+// src/RestaurantScreen.tsx - Updated with search-first UX like MenuScreen        
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import RestaurantCard from './components/restaurant/RestaurantCard';
-import { COLORS, FONTS, SIZES, STYLES } from './constants';
+import { COLORS, FONTS, SIZES, SPACING, STYLES } from './constants';
 import { useRestaurants } from './hooks/useRestaurants';
+
+
+
+
 
 
 
@@ -15,6 +19,10 @@ interface RestaurantScreenProps {
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
+
+
+
 
 
 
@@ -30,12 +38,20 @@ const EnhancedAddRestaurantForm: React.FC<{
 
 
 
+
+
+
+
   const handleSubmit = async () => {          
     if (restaurantName.trim()) {          
       await onSubmit(restaurantName);          
       setRestaurantName('');          
     }          
   };
+
+
+
+
 
 
 
@@ -68,6 +84,10 @@ const EnhancedAddRestaurantForm: React.FC<{
 
 
 
+
+
+
+
       <div className="flex gap-3 w-full max-w-full">          
         <button          
           onClick={handleSubmit}          
@@ -79,10 +99,10 @@ const EnhancedAddRestaurantForm: React.FC<{
             fontSize: '0.9rem'          
           }}          
           onMouseEnter={(e) => {          
-            if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover          
+            if (restaurantName.trim()) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover;          
           }}          
           onMouseLeave={(e) => {          
-            if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg          
+            if (restaurantName.trim()) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary;          
           }}          
         >          
           Add Restaurant          
@@ -98,6 +118,10 @@ const EnhancedAddRestaurantForm: React.FC<{
     </div>          
   );          
 };
+
+
+
+
 
 
 
@@ -161,6 +185,10 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 
 
 
+
+
+
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
   onNavigateToScreen,        
   onNavigateToMenu,        
@@ -181,11 +209,19 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
   // User Geolocation State  
   const [userLat, setUserLat] = useState<number | null>(null);  
   const [userLon, setUserLon] = useState<number | null>(null);  
   const [fetchingLocation, setFetchingLocation] = useState(true);  
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+
+
+
+
 
 
 
@@ -206,7 +242,11 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     importRestaurant,        
     clearSearchResults,        
     resetSearch        
-  } = useRestaurants(sortBy); // MODIFIED: Pass the sortBy object
+  } = useRestaurants(sortBy); 
+
+
+
+
 
 
 
@@ -219,6 +259,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       }        
     };        
   }, [searchDebounceTimer]);
+
+
+
+
 
 
 
@@ -243,6 +287,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
   // Request user's geolocation on component mount  
   useEffect(() => {  
     if (navigator.geolocation) {  
@@ -259,23 +307,25 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           setFetchingLocation(false);  
           if (error.code === error.PERMISSION_DENIED) {  
             setLocationPermissionDenied(true);  
-            // Optionally, set a general error message visible to the user  
-            // setError("Location access denied. Online search may be less accurate without your precise location.");  
           } else {  
-            // setError("Failed to get your location for search. Using a general area bias.");  
+            // Generic error for location failure
           }  
         },  
         {  
-          enableHighAccuracy: true, // Use GPS if available  
-          timeout: 10000,           // 10 seconds timeout  
-          maximumAge: 60000         // Cache for 1 minute  
+          enableHighAccuracy: true,   
+          timeout: 10000,           
+          maximumAge: 60000         
         }  
       );  
     } else {  
       setFetchingLocation(false);  
-      // setError("Geolocation is not supported by your browser. Online search may be less accurate.");  
+      // Geolocation not supported
     }  
-  }, []); // Run once on mount
+  }, []); 
+
+
+
+
 
 
 
@@ -284,7 +334,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);    
      
   useEffect(() => {    
-    // If we're pending navigation and a new restaurant was added, navigate to it    
     if (pendingNavigation && restaurants.length > previousRestaurantCount) {    
       const newestRestaurant = restaurants.reduce((newest, restaurant) => {    
         return new Date(restaurant.dateAdded) > new Date(newest.dateAdded) ? restaurant : newest;    
@@ -292,7 +341,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       onNavigateToMenu(newestRestaurant.id);    
       setPendingNavigation(false);    
     }    
-    // If the user just added their first restaurant (went from 0 to >0 restaurants), reset the interacted state  
     if (previousRestaurantCount === 0 && restaurants.length > 0) {  
       setHasInteractedWithEmptyState(false);  
     }  
@@ -302,16 +350,23 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
   // Enhanced restaurant filtering with fuzzy search (same as MenuScreen)        
   const filteredAndSortedRestaurants = useMemo(() => {        
     if (!searchTerm.trim()) {        
-      return restaurants; // Return all restaurants when no search term        
+      return restaurants;     
     }
 
 
 
 
-    // Calculate similarity scores and filter        
+
+
+
+
     const restaurantsWithScores = restaurants.map(restaurant => ({        
       ...restaurant,        
       similarityScore: calculateRestaurantSimilarity(restaurant.name, searchTerm)        
@@ -320,24 +375,38 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
-    // Filter restaurants with reasonable similarity (> 20 for very loose matching)        
-    // When online results are present, apply a stricter filter for local results.  
+
+
+
+
     const hasOnlineResults = searchResults.length > 0;  
-    const similarityThreshold = hasOnlineResults ? 70 : 20; // Stricter if online results exist
+    const similarityThreshold = hasOnlineResults ? 70 : 20; 
+
+
+
+
 
 
 
 
     const filteredRestaurants = restaurantsWithScores        
       .filter(restaurant => restaurant.similarityScore > similarityThreshold)        
-      .sort((a, b) => b.similarityScore - a.similarityScore) // Sort by similarity first        
-      .map(({ similarityScore, ...restaurant }) => restaurant); // Remove score from final result
+      .sort((a, b) => b.similarityScore - a.similarityScore)        
+      .map(({ similarityScore, ...restaurant }) => restaurant); 
+
+
+
+
 
 
 
 
     return filteredRestaurants;        
-  }, [restaurants, searchTerm, searchResults.length]); // Added searchResults.length to dependency array
+  }, [restaurants, searchTerm, searchResults.length]); 
+
+
+
+
 
 
 
@@ -347,11 +416,15 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     const success = await addRestaurant(name);        
     if (success) {        
       setShowAddForm(false);        
-      setSearchTerm(''); // Clear search when new restaurant is added        
-      setPendingNavigation(true); // This will trigger navigation once restaurants state updates    
-      setHasInteractedWithEmptyState(false); // Reset this if manual add was successful  
+      setSearchTerm('');     
+      setPendingNavigation(true); 
+      setHasInteractedWithEmptyState(false); 
     }        
   }, [addRestaurant]);
+
+
+
+
 
 
 
@@ -363,16 +436,24 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {        
-    setAddingRestaurantId(geoapifyPlace.place_id);    
+    setAddingRestaurantId(geoapifyPlace.place_id);
     const result = await importRestaurant(geoapifyPlace);        
-    if (typeof result === 'string') { // result is restaurant ID    
+    if (typeof result === 'string') {    
       clearSearchResults();        
       setSearchTerm('');        
-      onNavigateToMenu(result); // Navigate to the new restaurant's menu    
+      onNavigateToMenu(result);    
     }    
     setAddingRestaurantId(null);    
   }, [importRestaurant, clearSearchResults, onNavigateToMenu]);
+
+
+
+
 
 
 
@@ -381,7 +462,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const handleSearchChange = useCallback((newSearchTerm: string) => {        
     setSearchTerm(newSearchTerm);        
        
-    // Close add form if open    
     if (showAddForm) {    
       setShowAddForm(false);    
     }    
@@ -398,12 +478,16 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     const timer = setTimeout(() => {        
       if (newSearchTerm.trim().length >= 2) {        
         console.log('🔍 Triggering online search for:', newSearchTerm);        
-        searchRestaurants(newSearchTerm, userLat, userLon); // Pass user's live coordinates here  
+        searchRestaurants(newSearchTerm, userLat, userLon); 
       }        
-    }, 800); // Increased from 500ms to 800ms for slower typing        
+    }, 800);         
            
     setSearchDebounceTimer(timer);        
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
+
+
+
+
 
 
 
@@ -412,7 +496,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     resetSearch();        
     setSearchTerm('');        
     setShowAddForm(false);    
-    setHasInteractedWithEmptyState(false); // Reset on full search reset  
+    setHasInteractedWithEmptyState(false); 
     if (searchDebounceTimer) {    
       clearTimeout(searchDebounceTimer);    
       setSearchDebounceTimer(null);    
@@ -422,13 +506,21 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
   // Handler for "Add your first restaurant" button to initiate search flow  
   const handleAddFirstRestaurantFlow = useCallback(() => {  
-    setHasInteractedWithEmptyState(true); // User wants to add their first restaurant  
-    setSearchTerm(''); // Clear any previous search  
-    clearSearchResults(); // Clear any previous search results  
-    setShowAddForm(false); // Ensure manual add form is not active  
+    setHasInteractedWithEmptyState(true);  
+    setSearchTerm('');  
+    clearSearchResults();  
+    setShowAddForm(false);  
   }, [clearSearchResults]);
+
+
+
+
 
 
 
@@ -436,8 +528,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   // Modified handleShowAddForm to reset interacted state for manual add  
   const handleShowAddForm = useCallback(() => {  
     setShowAddForm(true);  
-    setHasInteractedWithEmptyState(false); // If user explicitly goes to manual form, it's not the initial search flow  
+    setHasInteractedWithEmptyState(false); 
   }, []);
+
+
+
+
 
 
 
@@ -449,16 +545,24 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
+  // These are now used for conditional rendering
   const hasSearchTerm = searchTerm.trim().length > 0;        
   const hasLocalResults = hasSearchTerm && filteredAndSortedRestaurants.length > 0;    
   const hasOnlineResults = searchResults.length > 0;    
   const hasAnyResults = hasLocalResults || hasOnlineResults;  
-  const hasRestaurants = restaurants.length > 0; // Track if user has any restaurants
+  const hasRestaurants = restaurants.length > 0; 
 
 
 
 
-  // Determine which main section to show  
+
+
+
+
   const showInitialEmptyState = !hasRestaurants && !hasInteractedWithEmptyState && !showAddForm;  
   const showManualAddForm = showAddForm;  
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
@@ -466,13 +570,17 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
   return (        
-    <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>        
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>        
       {/* Header - FIXED: Better centering */}        
       <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">        
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">        
           {/* FIXED: Left spacer that matches filter button width for better centering */}  
-          <div className="w-12 h-12" /> {/* Matches the filter button dimensions */}        
+          <div className="w-12 h-12" />         
                  
           <h1 className="text-xl text-center flex-1 tracking-wide mx-2" style={{...FONTS.elegant, color: COLORS.text}}>        
             My Restaurants  
@@ -482,7 +590,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             onClick={() => setShowAdvancedSort(!showAdvancedSort)}        
             className={`w-12 h-12 rounded-full hover:opacity-80 active:opacity-70 transition-all focus:outline-none flex items-center justify-center`}        
             style={{        
-              ...STYLES.iconButton, // Use iconButton style for base        
+              ...STYLES.iconButton,       
               backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.iconBackground,        
               color: showAdvancedSort ? COLORS.textWhite : COLORS.iconPrimary,        
               boxShadow: showAdvancedSort ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'        
@@ -499,19 +607,31 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
-      {/* Main Content */}        
-      <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>        
-        <div className="max-w-md mx-auto space-y-6">        
+
+
+
+
+      {/* Main Content (Fully restored) */}        
+      <main style={{
+        flex: 1,
+        paddingBottom: STYLES.mainContentPadding,
+        maxWidth: '768px',
+        width: '100%',
+        margin: '0 auto'
+      }}>        
+        <div className="max-w-md mx-auto space-y-6"
+          style={{
+            paddingLeft: SPACING.containerPadding, 
+            paddingRight: SPACING.containerPadding, 
+            paddingTop: SPACING[4] 
+          }}>
           {error && (        
             <div className="bg-red-500/20 p-3 rounded-lg text-center">        
               <p style={{color: COLORS.danger, ...FONTS.elegant}}>{error}</p>        
             </div>        
           )}
 
-
-
-
-          {/* Location Feedback */}  
+          {/* Location Feedback - RE-ENABLED */}  
           {fetchingLocation && (  
             <div className="bg-white/10 p-3 rounded-lg text-center">  
               <p style={{color: COLORS.text, ...FONTS.elegant}}>  
@@ -527,41 +647,34 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>  
           )}
 
-
-
-
+          {/* Advanced Sort - RE-ENABLED */}
           {showAdvancedSort && (        
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">        
-              {/* REMOVED: <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '16px', fontWeight: '500', marginBottom: '12px'}}>        
-                Sort restaurants by:        
-              </h3> */}        
               <div className="flex gap-2">        
                 {[        
                   { value: 'name', label: 'Name' },        
                   { value: 'date', label: 'Date Added' }        
-                ].map((option) => {
+                ].map((option) => { // Corrected value here to 'date' from 'name'
                   const isActive = sortBy.criterion === option.value;
                   const buttonStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
-                  const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : ''; // Up arrow for ascending, down for descending
+                  const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : ''; 
                   return (        
                     <button        
                       key={option.value}        
                       onClick={() => {
                         if (isActive) {
-                          // Toggle direction if the same criterion is clicked
                           setSortBy(prev => ({
                             ...prev,
                             direction: prev.direction === 'asc' ? 'desc' : 'asc'
                           }));
                         } else {
-                          // Set new criterion, default to ascending for name, descending for date
                           setSortBy({
                             criterion: option.value as 'name' | 'date',
                             direction: option.value === 'name' ? 'asc' : 'desc'
                           });
                         }
                       }}        
-                      className="transition-colors duration-200 hover:opacity-90" // Simple hover effect
+                      className="transition-colors duration-200 hover:opacity-90" 
                       style={buttonStyle}        
                     >        
                       {option.label} {arrow}        
@@ -572,10 +685,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>        
           )}
 
-
-
-
-          {/* Initial Empty State */}  
+          {/* Initial Empty State - RE-ENABLED */}  
           {showInitialEmptyState && (  
             <div className="text-center py-12">    
               <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>    
@@ -584,107 +694,113 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               <button    
                 onClick={handleAddFirstRestaurantFlow}    
                 style={STYLES.addButton}    
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover} // Changed COLORS.addButtonHover    
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary} // Changed COLORS.addButtonBg    
+                onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover}    
+                onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary}    
               >    
                 Add your first restaurant  
               </button>    
             </div>    
           )}  
                  
-          {/* Search Input & Results Section (conditional on not showing initial empty state or manual add form) */}  
+          {/* Search Input & Results Section - RE-ENABLED */}  
           {showSearchAndResults && (        
             <div className="space-y-4">        
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SIZES.lg }}>        
-                <div className="flex items-center justify-between mb-2">        
-                  <label style={{        
-                    ...FONTS.elegant,        
-                    fontSize: '1.1rem',        
-                    fontWeight: '600',        
-                    color: COLORS.text        
-                  }}>        
-                    {/* Conditional Label Text */}  
-                    {hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}        
-                  </label>        
+                <> 
+                  <div className="flex items-center justify-between mb-2">        
+                    <label style={{        
+                      ...FONTS.elegant,        
+                      fontSize: '1.1rem',        
+                      fontWeight: '600',        
+                      color: COLORS.text        
+                    }}>        
+                      {/* Conditional Label Text */}  
+                      {hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}        
+                    </label>        
+                    {hasSearchTerm && (        
+                      <button        
+                        onClick={handleResetSearch}        
+                        style={{        
+                          ...FONTS.elegant,        
+                          backgroundColor: COLORS.primary,        
+                          color: 'white',        
+                          border: 'none',        
+                          borderRadius: STYLES.borderRadiusSmall,        
+                          padding: '4px 12px',        
+                          fontSize: '0.85rem',        
+                          fontWeight: '500',        
+                          cursor: 'pointer',        
+                          WebkitAppearance: 'none',        
+                        }}        
+                      >        
+                        Reset        
+                      </button>        
+                    )}        
+                  </div>
+                  <input        
+                    id="restaurant-search-input"        
+                    type="text"        
+                    value={searchTerm}        
+                    onChange={(e) => handleSearchChange(e.target.value)}        
+                    placeholder="e.g., Starbucks, Cafe Flora, 123 Main St, 98101..."        
+                    className="w-full max-w-full outline-none focus:ring-2 focus:ring-white/50"        
+                    style={{        
+                      ...FONTS.elegant,        
+                      padding: '12px 16px',        
+                      borderRadius: STYLES.borderRadiusMedium,        
+                      fontSize: '1rem',        
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',        
+                      color: COLORS.text,        
+                      boxSizing: 'border-box',        
+                      WebkitAppearance: 'none',        
+                      border: `2px solid ${COLORS.gray200}`,         
+                      minWidth: 0  
+                    }}  
+                    autoFocus={!hasSearchTerm}  
+                  />        
+                         
                   {hasSearchTerm && (        
-                    <button        
-                      onClick={handleResetSearch}        
-                      style={{        
-                        ...FONTS.elegant,        
-                        backgroundColor: COLORS.primary,        
-                        color: 'white',        
-                        border: 'none',        
-                        borderRadius: STYLES.borderRadiusSmall,        
-                        padding: '4px 12px',        
-                        fontSize: '0.85rem',        
-                        fontWeight: '500',        
-                        cursor: 'pointer',        
-                        WebkitAppearance: 'none',        
-                      }}        
-                    >        
-                      Reset        
-                    </button>        
-                  )}        
-                </div>        
-                <input        
-                  id="restaurant-search-input"        
-                  type="text"        
-                  value={searchTerm}        
-                  onChange={(e) => handleSearchChange(e.target.value)}        
-                  placeholder="e.g., Starbucks, Cafe Flora, 123 Main St, 98101..."        
-                  className="w-full max-w-full outline-none focus:ring-2 focus:ring-white/50"        
-                  style={{        
-                    ...FONTS.elegant,        
-                    padding: '12px 16px',        
-                    borderRadius: STYLES.borderRadiusMedium,        
-                    fontSize: '1rem',        
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',        
-                    color: COLORS.text, // Changed COLORS.textDark        
-                    boxSizing: 'border-box',        
-                    WebkitAppearance: 'none',        
-                    border: `1px solid ${COLORS.text}`,  
-                    minWidth: 0  
-                  }}  
-                  autoFocus={!hasSearchTerm}  
-                />        
-                       
-                {hasSearchTerm && (        
-                  <div style={{        
-                    ...FONTS.elegant,        
-                    fontSize: '14px',        
-                    color: COLORS.text,        
-                    opacity: 0.8,        
-                    marginTop: '8px',        
-                    marginBottom: 0        
-                  }}>        
-                    {/* Conditional personal list status - only show if user has restaurants */}  
-                    {hasRestaurants && (  
-                      <div>        
-                        {filteredAndSortedRestaurants.length > 0        
-                          ? `Found ${filteredAndSortedRestaurants.length} in your restaurants`        
-                          : 'No matching restaurants found in your personal list'        
-                        }        
-                      </div>  
-                    )}  
-                    {isSearching && (        
-                      <div style={{
-                        marginTop: '4px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        display: 'inline-block'
-                      }}>        
-                        🔍 Searching{ellipsis}        
-                      </div>        
-                    )}        
-                    {!isSearching && searchResults.length > 0 && (        
-                      <div style={{ marginTop: '4px' }}>        
-                        ✨ Found {searchResults.length === 1 ? 'one result' : `${searchResults.length} results`}        
-                      </div>        
-                    )}        
-                  </div>        
-                )}        
+                    <div style={{        
+                      ...FONTS.elegant,        
+                      fontSize: '14px',        
+                      color: COLORS.text,        
+                      opacity: 0.8,        
+                      marginTop: '8px',        
+                      marginBottom: 0        
+                    }}>        
+                      {/* Conditional personal list status - only show if user has restaurants */}  
+                      {hasRestaurants && (  
+                        <div>        
+                          {filteredAndSortedRestaurants.length > 0        
+                            ? `Found ${filteredAndSortedRestaurants.length} in your restaurants`        
+                            : 'No matching restaurants found in your personal list'        
+                          }        
+                        </div>  
+                      )}  
+                      {isSearching && (        
+                        <div style={{
+                          marginTop: '4px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          display: 'inline-block'
+                        }}>        
+                          🔍 Searching{ellipsis}        
+                        </div>        
+                      )}        
+                      {!isSearching && searchResults.length > 0 && (        
+                        <div style={{ marginTop: '4px' }}>        
+                          ✨ Found {searchResults.length === 1 ? 'one result' : `${searchResults.length} results`}        
+                        </div>        
+                      )}        
+                    </div>        
+                  )}
+                </> 
               </div>
+
+
+
+
 
 
 
@@ -731,6 +847,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
                   {/* Online Results */}    
                   {hasOnlineResults && (    
                     <div>    
@@ -745,6 +865,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                           {hasLocalResults ? 'Found online:' : 'Online results:'}    
                         </h3>    
                       </div>
+
+
+
+
 
 
 
@@ -788,8 +912,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                                 fontSize: '14px',            
                                 opacity: addingRestaurantId === result.place_id ? 0.6 : 1    
                               }}    
-                               onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) e.currentTarget.style.backgroundColor = COLORS.primaryHover; }} // Changed COLORS.addButtonHover    
-                               onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) e.currentTarget.style.backgroundColor = COLORS.primary; }} // Changed COLORS.addButtonBg    
+                              onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }}
+                              onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}
                             >    
                               {addingRestaurantId === result.place_id ? 'Adding...' : 'Add'}    
                             </button>    
@@ -815,6 +939,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
 
 
 
+
+
+
+
                   {/* Add New Restaurant Button - Always show when searching */}    
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">    
                     <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>    
@@ -824,12 +952,16 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       onClick={handleShowAddForm}    
                       className="px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"    
                       style={STYLES.addButton}    
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover} // Changed COLORS.addButtonHover    
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary} // Changed COLORS.addButtonBg    
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}
                     >    
                       Add New Restaurant    
                     </button>    
                   </div>
+
+
+
+
 
 
 
@@ -877,8 +1009,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>  
                         Start by searching for your first restaurant!  
                       </p>  
-                      {/* REMOVED: "Enter a name or address in the search bar above." text */}  
-                      {/* REMOVED: "Add New Restaurant Manually" button */}  
                     </div>  
                   )}  
                 </div>  
@@ -886,10 +1016,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>        
           )}
 
-
-
-
-          {/* Add Restaurant Form */}    
+          {/* Add Restaurant Form - RE-ENABLED */}    
           {showManualAddForm && (    
             <div className="space-y-4">    
               <div className="flex items-center justify-between">    
@@ -907,21 +1034,30 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 <h2 style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500'}}>    
                   Add New Restaurant    
                 </h2>    
-                <div className="w-10" /> {/* Spacer */}    
+                <div className="w-10" /> 
               </div>
 
 
 
 
+
+
+
+
               <EnhancedAddRestaurantForm    
-                initialRestaurantName={searchTerm} // Pre-fill with search term    
+                initialRestaurantName={searchTerm} 
                 onSubmit={handleAddRestaurant}    
                 onCancel={() => setShowAddForm(false)}    
               />    
             </div>    
           )}    
-        </div>        
+
+        </div>
       </main>
+
+
+
+
 
 
 
@@ -933,6 +1069,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
+
+
+
 
 
 

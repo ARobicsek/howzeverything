@@ -3,6 +3,8 @@ import React from 'react';
 import { COLORS, FONTS } from '../constants';
 
 
+
+
 interface SearchAndSortProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -10,6 +12,8 @@ interface SearchAndSortProps {
   onSortChange: (sort: 'name' | 'rating' | 'date') => void;
   disabled?: boolean;
 }
+
+
 
 
 const SearchAndSort: React.FC<SearchAndSortProps> = ({
@@ -32,7 +36,8 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
           fontSize: '1rem',
           ...FONTS.elegant,
           color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
-          cursor: disabled ? 'not-allowed' : 'auto'
+          cursor: disabled ? 'not-allowed' : 'auto',
+          border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
         }}
         disabled={disabled}
       />
@@ -57,6 +62,8 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
     </div>
   </div>
 );
+
+
 
 
 export default SearchAndSort;

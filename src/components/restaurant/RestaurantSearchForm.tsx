@@ -1,6 +1,8 @@
-﻿// src/components/restaurant/RestaurantSearchForm.tsx
+// src/components/restaurant/RestaurantSearchForm.tsx
 import React, { useEffect, useState } from 'react';
 import { COLORS, FONTS } from '../../constants';
+
+
 
 
 interface RestaurantSearchFormProps {
@@ -9,6 +11,8 @@ interface RestaurantSearchFormProps {
   isSearching: boolean;
   disabled?: boolean;
 }
+
+
 
 
 const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
@@ -21,6 +25,8 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
   const [location, setLocation] = useState('Seattle, WA');
 
 
+
+
   // Reset function to clear form and results
   const handleReset = () => {
     setQuery('');
@@ -31,6 +37,8 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
   };
 
 
+
+
   // OPTIMIZED: Longer debounce to reduce API calls + minimum query length
   useEffect(() => {
     // Require at least 3 characters to search (reduces API calls)
@@ -39,14 +47,20 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
     }
 
 
+
+
     // Increased debounce from 500ms to 1000ms (reduces API calls)
     const timeoutId = setTimeout(() => {
       onSearch(query, location);
     }, 1000);
 
 
+
+
     return () => clearTimeout(timeoutId);
   }, [query, location]);
+
+
 
 
   return (
@@ -79,9 +93,11 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
         </div>
 
 
+
+
         <div>
-          <label 
-            className="block text-sm mb-2" 
+          <label
+            className="block text-sm mb-2"
             style={{...FONTS.elegant, color: COLORS.text}}
           >
             Search for restaurants:
@@ -97,24 +113,25 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
               fontSize: '1rem',
               ...FONTS.elegant,
               color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
-              cursor: disabled ? 'not-allowed' : 'auto'
+              cursor: disabled ? 'not-allowed' : 'auto',
+              border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
             }}
             disabled={disabled}
           />
-          <p 
-            className="text-xs mt-1" 
+          <p
+            className="text-xs mt-1"
             style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6}}
           >
-            {query.length < 3 ? 
+            {query.length < 3 ?
               `Type at least 3 characters to search (${query.length}/3)` :
               'Optimized for restaurant names - finds exact matches first!'
             }
           </p>
         </div>
-        
+       
         <div>
-          <label 
-            className="block text-sm mb-2" 
+          <label
+            className="block text-sm mb-2"
             style={{...FONTS.elegant, color: COLORS.text}}
           >
             Location:
@@ -130,17 +147,20 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
               fontSize: '1rem',
               ...FONTS.elegant,
               color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
-              cursor: disabled ? 'not-allowed' : 'auto'
+              cursor: disabled ? 'not-allowed' : 'auto',
+              border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
             }}
             disabled={disabled}
           />
-          <p 
-            className="text-xs mt-1" 
+          <p
+            className="text-xs mt-1"
             style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6}}
           >
             Location cached to save API calls - change only when needed
           </p>
         </div>
+
+
 
 
         {isSearching && (
@@ -150,6 +170,8 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
             </p>
           </div>
         )}
+
+
 
 
         {/* API Usage Indicator */}
@@ -162,6 +184,8 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
     </div>
   );
 };
+
+
 
 
 export default RestaurantSearchForm;

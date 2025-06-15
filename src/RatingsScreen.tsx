@@ -1,10 +1,10 @@
 ﻿// src/screens/RatingsScreen.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, STYLES } from './constants';
+import { COLORS, FONTS, SIZES, SPACING, STYLES } from './constants'; // Import SIZES and SPACING
 import type { DishRating, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 
@@ -254,22 +254,22 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
   // Search functionality
-  const performSearch = (term: string) => {
+  const performSearch = useCallback((term: string) => {
     if (!term.trim()) {
       setFilteredGroups(restaurantGroups);
       return;
     }
 
 
-    const searchTerm = term.toLowerCase().trim();
+    const searchTermLower = term.toLowerCase().trim();
    
-    const filteredGroups = restaurantGroups.map(group => {
+    const filtered = restaurantGroups.map(group => {
       // Check if restaurant name matches
-      const restaurantMatches = group.restaurant.name.toLowerCase().includes(searchTerm);
+      const restaurantMatches = group.restaurant.name.toLowerCase().includes(searchTermLower);
      
       // Filter dishes that match the search term
       const matchingDishes = group.dishes.filter(dish => {
-        const dishNameMatches = dish.name.toLowerCase().includes(searchTerm);
+        const dishNameMatches = dish.name.toLowerCase().includes(searchTermLower);
         return dishNameMatches;
       });
      
@@ -277,7 +277,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       if (restaurantMatches || matchingDishes.length > 0) {
         return {
           ...group,
-          dishes: restaurantMatches ? group.dishes : matchingDishes
+          // If restaurant name matches, show all its dishes. Otherwise, only show matching dishes.
+          dishes: group.dishes.filter(dish =>
+            dish.name.toLowerCase().includes(searchTermLower) || restaurantMatches // Include dishes matching term, or all if restaurant matches
+          )
         };
       }
      
@@ -285,13 +288,19 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }).filter(Boolean) as RestaurantGroup[];
 
 
-    setFilteredGroups(filteredGroups);
-  };
+    setFilteredGroups(filtered);
+  }, [restaurantGroups]);
 
 
   useEffect(() => {
     performSearch(searchTerm);
-  }, [searchTerm, restaurantGroups]);
+  }, [searchTerm, performSearch]);
+
+  const handleResetSearch = useCallback(() => {
+    setSearchTerm('');
+    setShowSearch(false); // Hide the search bar on reset
+    setFilteredGroups(restaurantGroups); // Reset to all groups
+  }, [restaurantGroups]);
 
 
   // Dish management functions for DishCard integration
@@ -386,7 +395,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         }));
 
 
-      setRestaurantGroups(updateGroups);
+      setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
       console.error('Error updating rating:', err);
@@ -423,7 +432,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         }));
 
 
-      setRestaurantGroups(updateGroups);
+      setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
      
       return true;
@@ -490,7 +499,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           }));
 
 
-        setRestaurantGroups(updateGroups);
+        setRestaurantGroups(updateGroups(restaurantGroups));
         setFilteredGroups(prev => updateGroups(prev));
       }
     } catch (err: any) {
@@ -538,7 +547,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         }));
 
 
-      setRestaurantGroups(updateGroups);
+      setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
       console.error('Error updating comment:', err);
@@ -577,7 +586,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         }));
 
 
-      setRestaurantGroups(updateGroups);
+      setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
       console.error('Error deleting comment:', err);
@@ -671,7 +680,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           }));
 
 
-        setRestaurantGroups(updateGroups);
+        setRestaurantGroups(updateGroups(restaurantGroups));
         setFilteredGroups(prev => updateGroups(prev));
       }
     } catch (err: any) {
@@ -728,7 +737,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         }));
 
 
-      setRestaurantGroups(updateGroups);
+      setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
       console.error('Error deleting photo:', err);
@@ -741,33 +750,39 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
   const totalRatedDishes = userRatings?.length || 0;
+  const hasSearchTerm = searchTerm.trim().length > 0;
 
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: COLORS.background }}>
       {/* Header */}
-      <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full">
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl flex-1 tracking-wide" style={{
-            ...FONTS.elegant,
+      <header className="bg-white/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-10 w-full"> {/* Border on header element */}
+        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between"> {/* Removed border-b here */}
+          {/* Left spacer that matches filter button width for better centering */}
+          <div className="w-12 h-12" /> 
+                 
+          <h1 className="text-xl text-center flex-1 tracking-wide mx-2" style={{
+            ...FONTS.elegant, // Uses default font weight from FONTS.elegant
             color: COLORS.text,
-            fontWeight: '600'
+            // Removed fontWeight: '600' to match RestaurantScreen
           }}>
             My Ratings
           </h1>
          
-          {/* Search Icon - Updated to match trash icon styling */}
+          {/* Search Icon - Updated to match RestaurantScreen styling (search icon SVG) */}
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="p-2 rounded-full transition-all focus:outline-none"
+            className={`w-12 h-12 rounded-full hover:opacity-80 active:opacity-70 transition-all focus:outline-none flex items-center justify-center`}
             style={{
               ...STYLES.iconButton,
               backgroundColor: showSearch ? COLORS.primary : COLORS.iconBackground,
               color: showSearch ? COLORS.textWhite : COLORS.iconPrimary,
               boxShadow: showSearch ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'
             }}
+            aria-label="Toggle search"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            {/* Search Icon SVG */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
               <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
           </button>
@@ -775,11 +790,41 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
        
         {/* Search Bar - Updated to match RestaurantScreen format */}
         {showSearch && (
-          <div className="px-4 pb-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+          // This div now directly acts as the card wrapper
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mx-auto max-w-md" style={{ marginBottom: SIZES.lg }}>
+            <> {/* Fragment to wrap multiple top-level elements inside the card */}
+              <div className="flex items-center justify-between mb-2">        
+                <label style={{        
+                  ...FONTS.elegant,        
+                  fontSize: '1.1rem',        
+                  fontWeight: '600',        
+                  color: COLORS.text        
+                }}>        
+                  Search for a restaurant or a dish      
+                </label>        
+                {hasSearchTerm && (        
+                  <button        
+                    onClick={handleResetSearch}        
+                    style={{        
+                      ...FONTS.elegant,        
+                      backgroundColor: COLORS.primary,        
+                      color: 'white',        
+                      border: 'none',        
+                      borderRadius: STYLES.borderRadiusSmall,        
+                      padding: '4px 12px',        
+                      fontSize: '0.85rem',        
+                      fontWeight: '500',        
+                      cursor: 'pointer',        
+                      WebkitAppearance: 'none',        
+                    }}        
+                  >        
+                    Reset        
+                  </button>        
+                )}        
+              </div>
               <input
                 type="text"
-                placeholder="Search restaurants and dishes..."
+                placeholder="e.g. Cafe Flora, Apple pie" // Updated placeholder
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full outline-none focus:ring-2 focus:ring-white/50"
@@ -789,22 +834,48 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                   borderRadius: STYLES.borderRadiusMedium,
                   fontSize: '1rem',
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  color: COLORS.text, // Changed COLORS.textDark
+                  color: COLORS.text, 
                   boxSizing: 'border-box',
                   WebkitAppearance: 'none',
-                  border: `1px solid ${COLORS.text}`,
+                  border: `2px solid ${COLORS.gray200}`, // Changed border to grey
+                  minWidth: 0 // Ensure it shrinks properly
                 }}
                 autoFocus
               />
-            </div>
+              {hasSearchTerm && (        
+                <div style={{        
+                  ...FONTS.elegant,        
+                  fontSize: '14px',        
+                  color: COLORS.text,        
+                  opacity: 0.8,        
+                  marginTop: '8px',        
+                  marginBottom: 0        
+                }}>        
+                  {filteredGroups.length > 0        
+                    ? `Found ${filteredGroups.length} result${filteredGroups.length !== 1 ? 's' : ''}`        
+                    : 'No matching ratings found'        
+                  }        
+                </div>        
+              )}
+            </>
           </div>
         )}
       </header>
 
 
       {/* Main Content */}
-      <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
-        <div className="max-w-md mx-auto space-y-4">
+      <main style={{
+        flex: 1,
+        paddingBottom: STYLES.mainContentPadding,
+        maxWidth: '768px',
+        width: '100%',
+        margin: '0 auto'
+      }}>
+        <div className="max-w-md mx-auto space-y-6" style={{ // Changed to space-y-6 and added paddings
+          paddingLeft: SPACING.containerPadding,
+          paddingRight: SPACING.containerPadding,
+          paddingTop: SPACING[4]
+        }}>
           {error && (
             <div className="bg-red-500/20 p-3 rounded-lg text-center">
               <p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p>
@@ -822,7 +893,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                   fontSize: '0.9rem'
                 }}>
                   {searchTerm ? `Search results` : `You've rated ${totalRatedDishes} dish${totalRatedDishes !== 1 ? 'es' : ''}`}
-                  {searchTerm && ` for "${searchTerm}"`}
+                  {hasSearchTerm && ` for "${searchTerm}"`} {/* Adjusted conditional */}
                 </p>
               </div>
              
@@ -833,7 +904,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                     <div className="mb-4">
                       <h2 style={{
                         ...FONTS.elegant,
-                        fontSize: '1.6rem', // Increased from 1.3rem
+                        fontSize: '1.6rem', 
                         fontWeight: '600',
                         color: COLORS.text,
                         margin: '0 0 4px 0'
@@ -890,8 +961,8 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                     {groupIndex < filteredGroups.length - 1 && (
                       <hr style={{
                         border: 'none',
-                        height: '2px', // Thicker than dish separators
-                        backgroundColor: 'rgba(255, 255, 255, 0.4)', // More opaque white
+                        height: '2px', 
+                        backgroundColor: 'rgba(255, 255, 255, 0.4)', 
                         margin: '0 0 24px 0'
                       }} />
                     )}
@@ -909,7 +980,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                 fontWeight: '500',
                 marginBottom: '8px'
               }}>
-                {searchTerm ? 'No results found' : 'No ratings yet'}
+                {hasSearchTerm ? 'No results found' : 'No ratings yet'} {/* Adjusted message for search terms */}
               </p>
               <p style={{
                 ...FONTS.elegant,
@@ -917,25 +988,19 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                 opacity: 0.7,
                 marginBottom: '16px'
               }}>
-                {searchTerm
+                {hasSearchTerm
                   ? `No dishes or restaurants match "${searchTerm}"`
                   : 'Start rating dishes to see them here!'
                 }
               </p>
-              {!searchTerm && (
+              {!hasSearchTerm && ( // Changed from !searchTerm to !hasSearchTerm for consistency
                 <button
                   onClick={() => onNavigateToScreen('restaurants')}
                   style={{
-                    ...FONTS.elegant,
-                    backgroundColor: COLORS.primary,
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '12px 24px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    cursor: 'pointer'
+                    ...STYLES.addButton // Using STYLES.addButton for consistency
                   }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}
                 >
                   Find Restaurants
                 </button>

@@ -13,6 +13,10 @@ import { useRestaurant } from './hooks/useRestaurant';
 
 
 
+
+
+
+
 interface MenuScreenProps {
   restaurantId: string;
   onNavigateBack: () => void;
@@ -23,15 +27,19 @@ interface MenuScreenProps {
 
 
 
+
+
+
+
 // Enhanced search component with modern design
 const DishSearchSection: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onReset: () => void;
   searchResults: DishSearchResult[];
-  hasSearched: boolean;
+  hasSearched: boolean; // Correct prop name
   onShowAddForm: () => void;
-}> = ({ searchTerm, onSearchChange, onReset, searchResults, hasSearched, onShowAddForm }) => (
+}> = ({ searchTerm, onSearchChange, onReset, searchResults, hasSearched, onShowAddForm }) => ( // Correct prop usage
   <div style={{ marginBottom: SPACING[6] }}>
     {/* Search Input */}
     <div style={{
@@ -69,7 +77,7 @@ const DishSearchSection: React.FC<{
         type="text"
         value={searchTerm}
         onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}
-        placeholder="Search for your dish (e.g., Margherita Pizza, Chicken Alfredo...)"
+        placeholder="Search for your dish"
         style={{
           ...STYLES.input,
           fontSize: TYPOGRAPHY.base.fontSize,
@@ -87,6 +95,10 @@ const DishSearchSection: React.FC<{
         Search first to see if we already have your dish
       </p>
     </div>
+
+
+
+
 
 
 
@@ -163,6 +175,10 @@ const DishSearchSection: React.FC<{
 
 
 
+
+
+
+
 // Component to show add dish option when search yields results
 const AddDishPrompt: React.FC<{
   hasResults: boolean;
@@ -206,6 +222,10 @@ const AddDishPrompt: React.FC<{
 
 
 
+
+
+
+
 // Enhanced Add Dish Form with modern design
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -219,6 +239,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
   const handleSubmit = async () => {
     if (dishName.trim() && !isSubmitting) {
       setIsSubmitting(true);
@@ -228,6 +252,10 @@ const EnhancedAddDishForm: React.FC<{
       setIsSubmitting(false);
     }
   };
+
+
+
+
 
 
 
@@ -252,6 +280,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
       <div style={{ marginBottom: SPACING[5] }}>
         <label style={{
           ...FONTS.body,
@@ -272,6 +304,10 @@ const EnhancedAddDishForm: React.FC<{
           disabled={isSubmitting}
         />
       </div>
+
+
+
+
 
 
 
@@ -331,6 +367,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
       <div style={{ display: 'flex', gap: SPACING[3] }}>
         <button
           onClick={handleSubmit}
@@ -374,6 +414,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
 const MenuScreen: React.FC<MenuScreenProps> = ({
   restaurantId,
   onNavigateBack,
@@ -386,6 +430,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [allExpanded, setAllExpanded] = useState(false);
+
+
+
+
 
 
 
@@ -412,6 +460,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
@@ -419,9 +471,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const hasSearched = searchTerm.trim().length > 0;
   const hasSearchResults = hasSearched && searchResults.length > 0;
   const hasDishes = dishes.length > 0;
+
+
+
+
 
 
 
@@ -436,6 +496,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
@@ -444,9 +508,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
+
+
+
 
 
 
@@ -462,11 +534,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleAddComment = async (dishId: string, text: string) => {
     try {
       await addComment(dishId, text);
-    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
-      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setError(`Failed to add comment: ${err.message}`);
       } else {
         setError(`Failed to add comment: An unknown error occurred.`);
@@ -477,11 +553,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     try {
       await updateComment(commentId, dishId, newText);
-    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
-      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setError(`Failed to update comment: ${err.message}`);
       } else {
         setError(`Failed to update comment: An unknown error occurred.`);
@@ -492,11 +572,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     try {
       await deleteComment(dishId, commentId);
-    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
-      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setError(`Failed to delete comment: ${err.message}`);
       } else {
         setError(`Failed to delete comment: An unknown error occurred.`);
@@ -507,11 +591,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
       await addPhoto(dishId, file, caption);
-    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
-      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setError(`Failed to add photo: ${err.message}`);
       } else {
         setError(`Failed to add photo: An unknown error occurred.`);
@@ -522,17 +610,25 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
     try {
       await deletePhoto(dishId, photoId);
-    } catch (err: unknown) { // --- MODIFIED: Changed err: any to err: unknown ---
-      if (err instanceof Error) { // --- MODIFIED: Added type guard ---
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setError(`Failed to delete photo: ${err.message}`);
       } else {
         setError(`Failed to delete photo: An unknown error occurred.`);
       }
     }
-  };
+  }
+
+
+
+
 
 
 
@@ -549,6 +645,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleToggleDishExpanded = (dishId: string) => {
     if (allExpanded) {
       setAllExpanded(false);
@@ -561,9 +661,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
+
+
+
 
 
 
@@ -628,7 +736,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 {allExpanded ? (
                   <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/>
                 ) : (
-                  <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                  <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
                 )}
               </svg>
             </button>
@@ -654,16 +762,20 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       {/* Main Content */}
       <main style={{
         flex: 1,
-        // MODIFIED: Removed padding from here
+        // Removed padding from here
         paddingBottom: STYLES.mainContentPadding,
         maxWidth: '768px',
         width: '100%',
         margin: '0 auto'
       }}>
-        {/* MODIFIED: Added horizontal and top padding to this inner div for consistent alignment */}
+        {/* Added horizontal and top padding to this inner div for consistent alignment */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -683,6 +795,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>
             </div>
           )}
+
+
+
+
 
 
 
@@ -747,6 +863,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
           {/* Only show search section if dishes exist AND not showing add form */}
           {!showAddForm && hasDishes && (
             <DishSearchSection
@@ -758,6 +878,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               onShowAddForm={handleShowAddForm}
             />
           )}
+
+
+
+
 
 
 
@@ -789,7 +913,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       onDeleteComment={handleDeleteComment}
                       onAddPhoto={handleAddPhoto}
                       onDeletePhoto={handleDeletePhoto}
-                      // --- MODIFIED: isSubmittingComment is boolean now ---
                       isSubmittingComment={false}
                       isExpanded={allExpanded || expandedDishId === dish.id}
                       onToggleExpand={() => handleToggleDishExpanded(dish.id)}
@@ -803,6 +926,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   />
                 </>
               )}
+
+
+
+
 
 
 
@@ -877,6 +1004,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
           {showAddForm && (
             <div>
               <EnhancedAddDishForm
@@ -892,10 +1023,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen}/>
     </div>
   );
 };
+
+
+
+
 
 
 
