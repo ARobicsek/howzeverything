@@ -11,12 +11,16 @@ import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
 
 
+
+
 interface MenuScreenProps {
   restaurantId: string;
   onNavigateBack: () => void;
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;
   currentAppScreen: GlobalAppScreenType;
 }
+
+
 
 
 // Enhanced search component with modern design
@@ -83,6 +87,8 @@ const DishSearchSection: React.FC<{
         Search first to see if we already have your dish
       </p>
     </div>
+
+
 
 
     {/* Search Results */}
@@ -155,6 +161,8 @@ const DishSearchSection: React.FC<{
 );
 
 
+
+
 // Component to show add dish option when search yields results
 const AddDishPrompt: React.FC<{
   hasResults: boolean;
@@ -196,6 +204,8 @@ const AddDishPrompt: React.FC<{
 };
 
 
+
+
 // Enhanced Add Dish Form with modern design
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -207,6 +217,8 @@ const EnhancedAddDishForm: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
+
+
   const handleSubmit = async () => {
     if (dishName.trim() && !isSubmitting) {
       setIsSubmitting(true);
@@ -216,6 +228,8 @@ const EnhancedAddDishForm: React.FC<{
       setIsSubmitting(false);
     }
   };
+
+
 
 
   return (
@@ -234,6 +248,8 @@ const EnhancedAddDishForm: React.FC<{
       }}>
         Add New Dish
       </h3>
+
+
 
 
       <div style={{ marginBottom: SPACING[5] }}>
@@ -256,6 +272,8 @@ const EnhancedAddDishForm: React.FC<{
           disabled={isSubmitting}
         />
       </div>
+
+
 
 
       <div style={{ marginBottom: SPACING[6] }}>
@@ -311,6 +329,8 @@ const EnhancedAddDishForm: React.FC<{
       </div>
 
 
+
+
       <div style={{ display: 'flex', gap: SPACING[3] }}>
         <button
           onClick={handleSubmit}
@@ -352,6 +372,8 @@ const EnhancedAddDishForm: React.FC<{
 };
 
 
+
+
 const MenuScreen: React.FC<MenuScreenProps> = ({
   restaurantId,
   onNavigateBack,
@@ -364,6 +386,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [allExpanded, setAllExpanded] = useState(false);
+
+
 
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);
@@ -386,14 +410,20 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   } = useDishes(restaurantId, sortBy);
 
 
+
+
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
 
 
+
+
   const hasSearched = searchTerm.trim().length > 0;
   const hasSearchResults = hasSearched && searchResults.length > 0;
   const hasDishes = dishes.length > 0;
+
+
 
 
   const handleSearchChange = (term: string) => {
@@ -404,15 +434,21 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
 
+
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
+
 
 
   const handleAddDish = async (name: string, rating: number) => {
@@ -422,6 +458,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setSearchTerm('');
     }
   };
+
+
 
 
   const handleAddComment = async (dishId: string, text: string) => {
@@ -437,6 +475,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     try {
       await updateComment(commentId, dishId, newText);
@@ -448,6 +488,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
 
 
   const handleDeleteComment = async (dishId: string, commentId: string) => {
@@ -463,6 +505,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
       await addPhoto(dishId, file, caption);
@@ -474,6 +518,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
 
 
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
@@ -489,6 +535,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleToggleAllExpanded = () => {
     if (allExpanded) {
       setAllExpanded(false);
@@ -497,6 +545,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setAllExpanded(true);
     }
   };
+
+
 
 
   const handleToggleDishExpanded = (dishId: string) => {
@@ -509,9 +559,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
+
 
 
   return (
@@ -598,16 +652,26 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       </header>
 
 
+
+
       {/* Main Content */}
       <main style={{
         flex: 1,
-        padding: SPACING[4],
+        // MODIFIED: Removed padding from here
         paddingBottom: STYLES.mainContentPadding,
         maxWidth: '768px',
         width: '100%',
         margin: '0 auto'
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
+        {/* MODIFIED: Added horizontal and top padding to this inner div for consistent alignment */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: SPACING[4],
+          paddingLeft: SPACING.containerPadding,
+          paddingRight: SPACING.containerPadding,
+          paddingTop: SPACING[4],
+        }}>
           {dishesError && (
             <div style={{
               backgroundColor: '#FEE2E2',
@@ -619,6 +683,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>
             </div>
           )}
+
+
 
 
           {showAdvancedSort && (
@@ -679,6 +745,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           )}
 
 
+
+
           {/* Only show search section if dishes exist AND not showing add form */}
           {!showAddForm && hasDishes && (
             <DishSearchSection
@@ -692,8 +760,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           )}
 
 
+
+
           {!showAddForm && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
+            <> {/* Fragment added here to correctly enclose the conditional rendering below */}
               {hasSearchResults && (
                 <>
                   <div style={{ textAlign: 'center' }}>
@@ -720,7 +790,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       onAddPhoto={handleAddPhoto}
                       onDeletePhoto={handleDeletePhoto}
                       // --- MODIFIED: isSubmittingComment is boolean now ---
-                      isSubmittingComment={false} 
+                      isSubmittingComment={false}
                       isExpanded={allExpanded || expandedDishId === dish.id}
                       onToggleExpand={() => handleToggleDishExpanded(dish.id)}
                     />
@@ -735,9 +805,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               )}
 
 
-              {(hasSearched ? searchResults : dishes).length > 0 && !hasSearchResults ? (
+
+
+              {/* This block was incorrectly nested before, re-structured for clarity and correct logic */}
+              {(!hasSearched || (hasSearched && !hasSearchResults)) && dishes.length > 0 && (
                 <>
-                  {(hasSearched ? searchResults : dishes).map((dish) => (
+                  {(!hasSearched ? dishes : searchResults).map((dish) => (
                     <DishCard
                       key={dish.id}
                       dish={dish}
@@ -750,57 +823,58 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       onDeleteComment={handleDeleteComment}
                       onAddPhoto={handleAddPhoto}
                       onDeletePhoto={handleDeletePhoto}
-                      // --- MODIFIED: isSubmittingComment is boolean now ---
-                      isSubmittingComment={false} 
+                      isSubmittingComment={false}
                       isExpanded={allExpanded || expandedDishId === dish.id}
                       onToggleExpand={() => handleToggleDishExpanded(dish.id)}
                     />
                   ))}
                 </>
-              ) : (
-                !hasSearched && dishes.length === 0 && (
-                  <div style={{
-                    textAlign: 'center',
-                    padding: `${SPACING[12]} 0`,
-                    backgroundColor: COLORS.white,
-                    borderRadius: STYLES.borderRadiusLarge,
-                    boxShadow: STYLES.shadowMedium,
-                    border: `1px solid ${COLORS.gray200}`
-                  }}>
-                    <div style={{ fontSize: '3rem', marginBottom: SPACING[3] }}>🍽️</div>
-                    <p style={{
-                      ...FONTS.heading,
-                      fontSize: TYPOGRAPHY.lg.fontSize,
-                      color: COLORS.gray900,
-                      marginBottom: SPACING[2]
-                    }}>
-                      No dishes yet
-                    </p>
-                    <p style={{
-                      ...FONTS.body,
-                      fontSize: TYPOGRAPHY.base.fontSize,
-                      color: COLORS.textSecondary,
-                      marginBottom: SPACING[4]
-                    }}>
-                      Be the first to add a dish from {restaurant.name}!
-                    </p>
-                    <button
-                      onClick={() => setShowAddForm(true)}
-                      style={STYLES.primaryButton}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = COLORS.primaryHover;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = COLORS.primary;
-                      }}
-                    >
-                      Add First Dish
-                    </button>
-                  </div>
-                )
               )}
-            </div>
+              {/* Only show "No dishes yet" if no search term AND no dishes */}
+              {!hasSearched && dishes.length === 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: `${SPACING[12]} 0`,
+                  backgroundColor: COLORS.white,
+                  borderRadius: STYLES.borderRadiusLarge,
+                  boxShadow: STYLES.shadowMedium,
+                  border: `1px solid ${COLORS.gray200}`
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: SPACING[3] }}>🍽️</div>
+                  <p style={{
+                    ...FONTS.heading,
+                    fontSize: TYPOGRAPHY.lg.fontSize,
+                    color: COLORS.gray900,
+                    marginBottom: SPACING[2]
+                  }}>
+                    No dishes yet
+                  </p>
+                  <p style={{
+                    ...FONTS.body,
+                    fontSize: TYPOGRAPHY.base.fontSize,
+                    color: COLORS.textSecondary,
+                    marginBottom: SPACING[4]
+                  }}>
+                    Be the first to add a dish from {restaurant.name}!
+                  </p>
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    style={STYLES.primaryButton}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = COLORS.primary;
+                    }}
+                  >
+                    Add First Dish
+                  </button>
+                </div>
+              )}
+            </>
           )}
+
+
 
 
           {showAddForm && (
@@ -816,10 +890,14 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       </main>
 
 
+
+
       <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen}/>
     </div>
   );
 };
+
+
 
 
 export default MenuScreen;
