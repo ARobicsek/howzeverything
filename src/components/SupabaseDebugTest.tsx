@@ -1,22 +1,26 @@
-// src/components/SupabaseDebugTest.tsx  
-import React, { useState } from 'react'  
-import { supabase, withTimeout } from '../supabaseClient'  
-import { COLORS, FONTS } from '../constants'  
-import type { PostgrestSingleResponse } from '@supabase/supabase-js'  
-import type { DatabaseUser } from '../supabaseClient' // Assuming DatabaseUser from supabaseClient.ts
+﻿// src/components/SupabaseDebugTest.tsx  
+import type { PostgrestSingleResponse } from '@supabase/supabase-js'
+import React, { useState } from 'react'
+import { COLORS, FONTS } from '../constants'
+import type { DatabaseUser } from '../supabaseClient'; // Assuming DatabaseUser from supabaseClient.ts  
+import { supabase, withTimeout } from '../supabaseClient'
+
 
 const SupabaseDebugTest: React.FC = () => {  
   const [results, setResults] = useState<string[]>([])  
   const [testing, setTesting] = useState(false)
+
 
   const log = (message: string) => {  
     console.log(message)  
     setResults(prev => [...prev, `${new Date().toISOString()}: ${message}`])  
   }
 
+
   const runTests = async () => {  
     setTesting(true)  
     setResults([])
+
 
     try {  
       // Test 1: Check auth status  
@@ -32,12 +36,15 @@ const SupabaseDebugTest: React.FC = () => {
         return  
       }
 
+
       if (!session) {  
         log('⚠️ Cannot proceed without authentication')  
         return  
       }
 
+
       const userId = session.user.id
+
 
       // Test 2: Direct database connection test  
       log('🔍 Test 2: Testing database connection...')  
@@ -62,6 +69,7 @@ const SupabaseDebugTest: React.FC = () => {
       } catch (err: any) {  
         log(`❌ Database exception: ${err.message}`)  
       }
+
 
       // Test 3: Test RLS policy for current user  
       log('🔍 Test 3: Testing RLS policy for current user...')  
@@ -99,6 +107,7 @@ const SupabaseDebugTest: React.FC = () => {
       } catch (err: any) {  
         log(`❌ Profile query exception: ${err.message}`)  
       }
+
 
       // Test 4: Test creating a profile  
       log('🔍 Test 4: Testing profile creation (if needed)...')  
@@ -154,6 +163,7 @@ const SupabaseDebugTest: React.FC = () => {
         log(`❌ Profile creation exception: ${err.message}`)  
       }
 
+
       // Test 5: Test RLS policies work correctly  
       log('🔍 Test 5: Testing RLS policy restrictions...')  
       try {  
@@ -181,6 +191,7 @@ const SupabaseDebugTest: React.FC = () => {
         log(`❌ RLS test exception: ${err.message}`)  
       }
 
+
     } catch (err: any) {  
       log(`❌ Test suite error: ${err.message}`)  
     } finally {  
@@ -188,6 +199,7 @@ const SupabaseDebugTest: React.FC = () => {
       log('🏁 Tests completed')  
     }  
   }
+
 
   return (  
     <div style={{  
@@ -222,7 +234,7 @@ const SupabaseDebugTest: React.FC = () => {
         style={{  
           ...FONTS.elegant,  
           padding: '12px 24px',  
-          backgroundColor: testing ? COLORS.disabled : COLORS.primary,  
+          backgroundColor: testing ? COLORS.gray300 : COLORS.primary, // Changed COLORS.disabled
           color: 'white',  
           border: 'none',  
           borderRadius: '8px',  
@@ -244,7 +256,7 @@ const SupabaseDebugTest: React.FC = () => {
         lineHeight: '1.5'  
       }}>  
         {results.length === 0 ? (  
-          <p style={{ color: COLORS.disabled }}>Click "Run Debug Tests" to start...</p>  
+          <p style={{ color: COLORS.gray300 }}>Click "Run Debug Tests" to start...</p>  
         ) : (  
           results.map((result, index) => (  
             <div key={index} style={{ marginBottom: '4px' }}>  
@@ -256,5 +268,6 @@ const SupabaseDebugTest: React.FC = () => {
     </div>  
   )  
 }
+
 
 export default SupabaseDebugTest

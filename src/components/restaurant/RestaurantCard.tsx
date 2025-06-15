@@ -2,6 +2,7 @@
 import React from 'react';
 import { COLORS, FONTS } from '../../constants';
 
+
 interface Restaurant {
   id: string;
   name: string;
@@ -19,11 +20,13 @@ interface Restaurant {
   longitude?: number;
 }
 
+
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onDelete: (restaurantId: string) => void;
   onNavigateToMenu: (restaurantId: string) => void;
 }
+
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
   restaurant,
@@ -36,12 +39,14 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     }
   };
 
+
   const handleViewWebsite = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (restaurant.website_url) {
       window.open(restaurant.website_url, '_blank', 'noopener,noreferrer');
     }
   };
+
 
   return (
     <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors relative">
@@ -60,12 +65,12 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
             onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
-            <h2 
-              className="hover:underline mb-2" 
+            <h2
+              className="hover:underline mb-2"
               style={{
-                ...FONTS.elegant, 
-                fontWeight: '500', 
-                color: COLORS.text, 
+                ...FONTS.elegant,
+                fontWeight: '500',
+                color: COLORS.text,
                 fontSize: '1.125rem',
                 lineHeight: '1.3',
                 margin: 0,
@@ -77,13 +82,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               {restaurant.name}
             </h2>
           </button>
-          
+         
           {restaurant.address && (
-            <p 
+            <p
               className="text-sm mb-2"
               style={{
-                ...FONTS.elegant, 
-                color: COLORS.text, 
+                ...FONTS.elegant,
+                color: COLORS.text,
                 opacity: 0.7,
                 fontSize: '0.8rem',
                 lineHeight: '1.3'
@@ -92,12 +97,12 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               📍 {restaurant.address}
             </p>
           )}
-          
-          <p 
-            className="text-xs" 
+         
+          <p
+            className="text-xs"
             style={{
-              ...FONTS.elegant, 
-              color: COLORS.text, 
+              ...FONTS.elegant,
+              color: COLORS.text,
               opacity: 0.5,
               fontSize: '0.7rem',
               lineHeight: '1.3'
@@ -106,6 +111,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             {new Date(restaurant.dateAdded).toLocaleDateString()}
           </p>
         </div>
+
 
         <div className="flex flex-col justify-between flex-shrink-0 h-full" style={{ marginLeft: '20px', minHeight: '80px' }}>
           <button
@@ -120,16 +126,16 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
             </svg>
           </button>
-          
+         
           <div className="flex-1"></div>
-          
+         
           {restaurant.website_url && (
             <button
               onClick={handleViewWebsite}
               className="p-2 rounded-full hover:bg-blue-500/20 transition-colors focus:outline-none"
               aria-label={`View ${restaurant.name} website`}
               style={{ color: COLORS.primary }}
-              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.addButtonHover} // Use darker blue for text/icon hover
+              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primaryHover} // Changed COLORS.addButtonHover
               onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary}
               title="View Menu Online"
             >
@@ -143,5 +149,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     </div>
   );
 };
+
 
 export default RestaurantCard;

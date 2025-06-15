@@ -1,4 +1,4 @@
-// src/screens/RatingsScreen.tsx
+﻿// src/screens/RatingsScreen.tsx
 import React, { useEffect, useState } from 'react';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
@@ -8,10 +8,12 @@ import { COLORS, FONTS, STYLES } from './constants';
 import type { DishRating, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 
+
 interface RatingsScreenProps {
   onNavigateToScreen: (screen: NavigableScreenType) => void;
   currentAppScreen: AppScreenType;
 }
+
 
 interface UserRatingWithDish extends DishRating {
   dish: DishWithDetails;
@@ -21,6 +23,7 @@ interface UserRatingWithDish extends DishRating {
   };
 }
 
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -28,6 +31,7 @@ interface RestaurantGroup {
   };
   dishes: DishWithDetails[];
 }
+
 
 const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {
   const [userRatings, setUserRatings] = useState<UserRatingWithDish[]>([]);
@@ -41,6 +45,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
 
+
   // Get current user
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -49,6 +54,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     };
     getCurrentUser();
   }, []);
+
 
   useEffect(() => {
     const fetchUserRatings = async () => {
@@ -59,6 +65,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           setIsLoading(false);
           return;
         }
+
 
         // Fetch all user ratings with complete dish and restaurant data
         const { data, error: fetchError } = await supabase
@@ -134,12 +141,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
+
         if (fetchError) throw fetchError;
+
 
         // Transform and group the data
         const ratingsWithDishes: UserRatingWithDish[] = (data || []).map((rating: any) => {
           const dish = rating.restaurant_dishes;
           if (!dish) return null;
+
 
           // Process comments to include user information
           const commentsWithUserInfo = (dish.dish_comments || []).map((comment: any) => ({
@@ -153,12 +163,13 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             commenter_email: comment.users?.email
           }));
 
+
           // Process photos to include user information and generate URLs
           const photosWithUrls = (dish.dish_photos || []).map((photo: any) => {
             const { data } = supabase.storage
               .from('dish-photos')
               .getPublicUrl(photo.storage_path);
-            
+           
             return {
               id: photo.id,
               dish_id: photo.dish_id,
@@ -174,6 +185,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             };
           });
 
+
           const dishWithDetails: DishWithDetails = {
             ...dish,
             dish_comments: commentsWithUserInfo,
@@ -181,6 +193,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             dish_photos: photosWithUrls,
             dateAdded: dish.created_at
           };
+
 
           return {
             ...rating,
@@ -192,7 +205,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           };
         }).filter(Boolean) as UserRatingWithDish[];
 
+
         setUserRatings(ratingsWithDishes);
+
 
         // Group by restaurant and alphabetize both restaurants and dishes
         // FIXED: Only include dishes that the user has actually rated
@@ -204,14 +219,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
               dishes: []
             };
           }
-          
+         
           // Only add the specific dish that this user has rated
           if (!groups[restaurantId].dishes.find(d => d.id === rating.dish.id)) {
             groups[restaurantId].dishes.push(rating.dish);
           }
-          
+         
           return groups;
         }, {});
+
 
         // Sort restaurants alphabetically and dishes within each restaurant alphabetically
         const groupsArray = Object.values(groupedByRestaurant)
@@ -220,6 +236,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             dishes: group.dishes.sort((a, b) => a.name.localeCompare(b.name))
           }))
           .sort((a, b) => a.restaurant.name.localeCompare(b.restaurant.name));
+
 
         setRestaurantGroups(groupsArray);
         setFilteredGroups(groupsArray);
@@ -231,8 +248,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       }
     };
 
+
     fetchUserRatings();
   }, []);
+
 
   // Search functionality
   const performSearch = (term: string) => {
@@ -241,18 +260,19 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       return;
     }
 
+
     const searchTerm = term.toLowerCase().trim();
-    
+   
     const filteredGroups = restaurantGroups.map(group => {
       // Check if restaurant name matches
       const restaurantMatches = group.restaurant.name.toLowerCase().includes(searchTerm);
-      
+     
       // Filter dishes that match the search term
       const matchingDishes = group.dishes.filter(dish => {
         const dishNameMatches = dish.name.toLowerCase().includes(searchTerm);
         return dishNameMatches;
       });
-      
+     
       // Include the group if restaurant matches OR if it has matching dishes
       if (restaurantMatches || matchingDishes.length > 0) {
         return {
@@ -260,16 +280,19 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           dishes: restaurantMatches ? group.dishes : matchingDishes
         };
       }
-      
+     
       return null;
     }).filter(Boolean) as RestaurantGroup[];
+
 
     setFilteredGroups(filteredGroups);
   };
 
+
   useEffect(() => {
     performSearch(searchTerm);
   }, [searchTerm, restaurantGroups]);
+
 
   // Dish management functions for DishCard integration
   const handleDeleteDish = async (dishId: string) => {
@@ -281,17 +304,19 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         .eq('dish_id', dishId)
         .eq('user_id', currentUserId);
 
+
       if (error) throw error;
+
 
       // Remove from local state
       setUserRatings(prev => prev.filter(rating => rating.dish.id !== dishId));
-      
+     
       // Update grouped data
       const updatedGroups = restaurantGroups.map(group => ({
         ...group,
         dishes: group.dishes.filter(dish => dish.id !== dishId)
       })).filter(group => group.dishes.length > 0);
-      
+     
       setRestaurantGroups(updatedGroups);
       setFilteredGroups(updatedGroups);
     } catch (err: any) {
@@ -300,6 +325,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     try {
       // Handle clearing rating (rating = 0)
@@ -307,6 +333,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         await handleDeleteDish(dishId);
         return;
       }
+
 
       const { error } = await supabase
         .from('dish_ratings')
@@ -317,7 +344,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         .eq('dish_id', dishId)
         .eq('user_id', currentUserId);
 
+
       if (error) throw error;
+
 
       // Update local state
       setUserRatings(prev => prev.map(rating =>
@@ -325,6 +354,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           ? { ...rating, rating: newRating }
           : rating
       ));
+
 
       // Update the dish ratings in the groups
       const updateGroups = (groups: RestaurantGroup[]) =>
@@ -337,11 +367,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                   ? { ...r, rating: newRating, updated_at: new Date().toISOString() }
                   : r
               );
-              
+             
               const totalRatings = updatedRatings.length;
               const averageRating = totalRatings > 0
                 ? updatedRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
                 : 0;
+
 
               return {
                 ...dish,
@@ -354,6 +385,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           })
         }));
 
+
       setRestaurantGroups(updateGroups);
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -362,19 +394,22 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleUpdateDishName = async (dishId: string, newName: string): Promise<boolean> => {
     if (!newName.trim()) return false;
-    
+   
     try {
       const { error } = await supabase
         .from('restaurant_dishes')
-        .update({ 
+        .update({
           name: newName.trim(),
           updated_at: new Date().toISOString()
         })
         .eq('id', dishId);
 
+
       if (error) throw error;
+
 
       // Update local state
       const updateGroups = (groups: RestaurantGroup[]) =>
@@ -387,9 +422,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           )
         }));
 
+
       setRestaurantGroups(updateGroups);
       setFilteredGroups(prev => updateGroups(prev));
-      
+     
       return true;
     } catch (err: any) {
       console.error('Error updating dish name:', err);
@@ -398,9 +434,11 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleAddComment = async (dishId: string, commentText: string) => {
     if (!commentText.trim()) return;
     setIsSubmittingComment(true);
+
 
     try {
       const { data: newComment, error } = await supabase
@@ -424,7 +462,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         `)
         .single();
 
+
       if (error) throw error;
+
 
       if (newComment) {
         const commentWithUserInfo = {
@@ -438,6 +478,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           commenter_email: (newComment.users as any)?.email
         };
 
+
         const updateGroups = (groups: RestaurantGroup[]) =>
           groups.map(group => ({
             ...group,
@@ -447,6 +488,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                 : dish
             )
           }));
+
 
         setRestaurantGroups(updateGroups);
         setFilteredGroups(prev => updateGroups(prev));
@@ -459,9 +501,11 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     if (!newText.trim()) return;
     setIsSubmittingComment(true);
+
 
     try {
       const { error } = await supabase
@@ -472,7 +516,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         })
         .eq('id', commentId);
 
+
       if (error) throw error;
+
 
       const updateGroups = (groups: RestaurantGroup[]) =>
         groups.map(group => ({
@@ -491,6 +537,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           )
         }));
 
+
       setRestaurantGroups(updateGroups);
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -501,8 +548,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     setIsSubmittingComment(true);
+
 
     try {
       const { error } = await supabase
@@ -510,7 +559,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         .delete()
         .eq('id', commentId);
 
+
       if (error) throw error;
+
 
       const updateGroups = (groups: RestaurantGroup[]) =>
         groups.map(group => ({
@@ -525,6 +576,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           )
         }));
 
+
       setRestaurantGroups(updateGroups);
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -535,6 +587,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   // Photo management functions
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
@@ -543,17 +596,21 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       const fileName = `${timestamp}.${fileExt}`;
       const filePath = `${currentUserId}/${dishId}/${fileName}`;
 
+
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('dish-photos')
         .upload(filePath, file);
 
+
       if (uploadError) throw uploadError;
+
 
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('dish-photos')
         .getPublicUrl(filePath);
+
 
       // Get image dimensions
       const img = new Image();
@@ -562,6 +619,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         img.onerror = reject;
         img.src = URL.createObjectURL(file);
       });
+
 
       // Save metadata to database
       const { data: newPhoto, error: dbError } = await supabase
@@ -590,7 +648,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         `)
         .single();
 
+
       if (dbError) throw dbError;
+
 
       if (newPhoto) {
         const photoWithUrl = {
@@ -598,6 +658,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           url: publicUrl,
           photographer_name: (newPhoto.users as any)?.full_name || 'Anonymous'
         };
+
 
         const updateGroups = (groups: RestaurantGroup[]) =>
           groups.map(group => ({
@@ -609,6 +670,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             )
           }));
 
+
         setRestaurantGroups(updateGroups);
         setFilteredGroups(prev => updateGroups(prev));
       }
@@ -617,6 +679,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setError(`Failed to add photo: ${err.message}`);
     }
   };
+
 
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
     try {
@@ -627,14 +690,18 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         .eq('id', photoId)
         .single();
 
+
       if (fetchError) throw fetchError;
+
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('dish-photos')
         .remove([photo.storage_path]);
 
+
       if (storageError) throw storageError;
+
 
       // Delete from database
       const { error: dbError } = await supabase
@@ -642,7 +709,9 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         .delete()
         .eq('id', photoId);
 
+
       if (dbError) throw dbError;
+
 
       // Update local state
       const updateGroups = (groups: RestaurantGroup[]) =>
@@ -658,6 +727,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           )
         }));
 
+
       setRestaurantGroups(updateGroups);
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -666,9 +736,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   if (isLoading) return <LoadingScreen />;
 
+
   const totalRatedDishes = userRatings?.length || 0;
+
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: COLORS.background }}>
@@ -682,7 +755,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           }}>
             My Ratings
           </h1>
-          
+         
           {/* Search Icon - Updated to match trash icon styling */}
           <button
             onClick={() => setShowSearch(!showSearch)}
@@ -699,7 +772,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             </svg>
           </button>
         </div>
-        
+       
         {/* Search Bar - Updated to match RestaurantScreen format */}
         {showSearch && (
           <div className="px-4 pb-3">
@@ -716,7 +789,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                   borderRadius: STYLES.borderRadiusMedium,
                   fontSize: '1rem',
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  color: COLORS.textDark,
+                  color: COLORS.text, // Changed COLORS.textDark
                   boxSizing: 'border-box',
                   WebkitAppearance: 'none',
                   border: `1px solid ${COLORS.text}`,
@@ -728,6 +801,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         )}
       </header>
 
+
       {/* Main Content */}
       <main className="flex-1 px-4 sm:px-6 py-4" style={{ paddingBottom: STYLES.mainContentPadding }}>
         <div className="max-w-md mx-auto space-y-4">
@@ -736,6 +810,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
               <p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p>
             </div>
           )}
+
 
           {totalRatedDishes > 0 ? (
             <>
@@ -750,7 +825,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                   {searchTerm && ` for "${searchTerm}"`}
                 </p>
               </div>
-              
+             
               <div className="space-y-6">
                 {filteredGroups.map((group, groupIndex) => (
                   <div key={group.restaurant.id}>
@@ -775,6 +850,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                         {group.dishes?.length || 0} dish{(group.dishes?.length || 0) !== 1 ? 'es' : ''} rated
                       </p>
                     </div>
+
 
                     {/* Dishes with subtle grey separators */}
                     <div className="space-y-4 mb-6">
@@ -808,6 +884,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                         </div>
                       ))}
                     </div>
+
 
                     {/* Thicker white line separator between restaurants (except for last group) */}
                     {groupIndex < filteredGroups.length - 1 && (
@@ -868,9 +945,11 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         </div>
       </main>
 
+
       <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen} />
     </div>
   );
 };
+
 
 export default RatingsScreen;

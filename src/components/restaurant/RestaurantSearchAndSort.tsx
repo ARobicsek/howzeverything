@@ -2,6 +2,7 @@
 import React from 'react';
 import { COLORS, FONTS } from '../../constants';
 
+
 interface RestaurantSearchAndSortProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -9,6 +10,7 @@ interface RestaurantSearchAndSortProps {
   onSortChange: (sort: 'name' | 'date') => void;
   disabled?: boolean;
 }
+
 
 const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
   searchTerm,
@@ -26,10 +28,10 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
         placeholder="Search restaurants..."
         className={`px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full ${disabled ? 'opacity-60' : 'text-gray-800'}`}
         style={{
-          background: disabled ? COLORS.disabled : 'white',
+          background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
           fontSize: '1rem',
           ...FONTS.elegant,
-          color: disabled ? COLORS.text : COLORS.textDark,
+          color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
           cursor: disabled ? 'not-allowed' : 'auto'
         }}
         disabled={disabled}
@@ -42,7 +44,7 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
             className={`px-3 py-1 rounded-lg text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-white ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{
               background: sortBy === option ? 'white' : 'transparent',
-              color: sortBy === option ? COLORS.textDark : COLORS.text,
+              color: sortBy === option ? COLORS.text : COLORS.text, // Changed COLORS.textDark
               border: sortBy === option ? 'none' : `1px solid ${COLORS.text}30`,
               ...FONTS.elegant
             }}
@@ -55,5 +57,6 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
     </div>
   </div>
 );
+
 
 export default RestaurantSearchAndSort;

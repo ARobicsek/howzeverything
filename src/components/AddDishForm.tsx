@@ -1,13 +1,15 @@
 // Updated AddDishForm with fixed overflow and responsive constraints
 // src/components/AddDishForm.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS } from '../constants';
+import { COLORS, FONTS, STYLES } from '../constants'; // Import STYLES for secondary button
+
 
 interface AddDishFormProps {
   show: boolean;
   onToggleShow: () => void;
   onSubmit: (name: string, rating: number) => Promise<void>;
 }
+
 
 const StarRating: React.FC<{
   rating: number;
@@ -20,7 +22,7 @@ const StarRating: React.FC<{
         onClick={() => onRatingChange(star)}
         className="transition-all duration-200 cursor-pointer hover:scale-105 focus:outline-none"
         style={{
-          color: star <= rating ? COLORS.star : COLORS.starEmpty,
+          color: star <= rating ? COLORS.primary : COLORS.ratingEmpty, // Changed COLORS.star and COLORS.starEmpty
           background: 'none',
           border: 'none',
           padding: '0 1px',
@@ -35,9 +37,11 @@ const StarRating: React.FC<{
   </div>
 );
 
+
 const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit }) => {
   const [dishName, setDishName] = useState('');
   const [rating, setRating] = useState(5);
+
 
   const handleSubmit = async () => {
     if (dishName.trim()) {
@@ -47,11 +51,13 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
     }
   };
 
+
   const handleCancel = () => {
     setDishName('');
     setRating(5);
     onToggleShow();
   };
+
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 w-full max-w-full">
@@ -62,7 +68,7 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
             onClick={onToggleShow}
             className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full"
             style={{
-              backgroundColor: COLORS.addButtonBg,
+              backgroundColor: COLORS.primary, // Changed COLORS.addButtonBg
               color: COLORS.textWhite,
               border: 'none',
               borderRadius: '12px',
@@ -72,8 +78,8 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
               fontSize: '1rem',
               width: '100%'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover} // Changed COLORS.addButtonHover
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary} // Changed COLORS.addButtonBg
           >
             + Add New Dish
           </button>
@@ -91,7 +97,7 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
                 background: 'white',
                 fontSize: '1rem',
                 ...FONTS.elegant,
-                color: COLORS.textDark,
+                color: COLORS.text, // Changed COLORS.textDark
                 maxWidth: 'calc(100% - 16px)', // Account for container padding
                 boxSizing: 'border-box',
               }}
@@ -107,7 +113,7 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
             </p>
             <StarRating rating={rating} onRatingChange={setRating} />
           </div>
-          
+         
           {/* Add Dish and Cancel buttons */}
           <div className="flex justify-center gap-3 w-full max-w-full">
             {/* Add Dish button with consistent styling */}
@@ -116,7 +122,7 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
               disabled={!dishName.trim()}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
-                backgroundColor: !dishName.trim() ? COLORS.disabled : COLORS.addButtonBg,
+                backgroundColor: !dishName.trim() ? COLORS.gray300 : COLORS.primary, // Changed COLORS.disabled and COLORS.addButtonBg
                 color: COLORS.textWhite,
                 border: 'none',
                 ...FONTS.elegant,
@@ -124,29 +130,25 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
                 fontSize: '1rem'
               }}
               onMouseEnter={(e) => {
-                if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonHover;
+                if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover
               }}
               onMouseLeave={(e) => {
-                if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonBg;
+                if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg
               }}
             >
               Add Dish
             </button>
-            
+           
             {/* Cancel button with consistent secondary styling */}
             <button
               onClick={handleCancel}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
-                backgroundColor: COLORS.viewCommentsBg,
-                color: COLORS.textWhite,
-                border: 'none',
-                ...FONTS.elegant,
-                fontWeight: '500',
-                fontSize: '1rem'
+                ...STYLES.secondaryButton, // Use secondaryButton style
+                color: COLORS.primary // Ensure text color is primary as per secondaryButton style
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5b6574'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.viewCommentsBg}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.gray700} // Hardcoded '#5b6574' replaced with COLORS.gray700
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.white} // Changed COLORS.viewCommentsBg to COLORS.white to revert to secondaryButton's background
             >
               Cancel
             </button>
@@ -156,5 +158,6 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
     </div>
   );
 };
+
 
 export default AddDishForm;

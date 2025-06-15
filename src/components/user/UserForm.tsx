@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react'
 import { COLORS, FONTS } from '../../constants'
 import { useAuth } from '../../hooks/useAuth'
 
+
 interface UserFormProps {  
   onSuccess?: () => void  
   onCancel?: () => void  
 }
+
 
 const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {  
   const { profile, updateProfile, loading, error, clearError } = useAuth()  
@@ -16,6 +18,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
   })  
   const [validationError, setValidationError] = useState('')  
   const [isSubmitting, setIsSubmitting] = useState(false)
+
 
   // Initialize form with current profile data  
   useEffect(() => {  
@@ -27,19 +30,23 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
     }  
   }, [profile])
 
+
   const validateForm = (): boolean => {  
     setValidationError('')  
     clearError()
+
 
     if (!formData.full_name.trim()) {  
       setValidationError('Full name is required')  
       return false  
     }
 
+
     if (formData.full_name.trim().length < 2) {  
       setValidationError('Full name must be at least 2 characters')  
       return false  
     }
+
 
     // Basic URL validation for avatar  
     if (formData.avatar_url && !isValidUrl(formData.avatar_url)) {  
@@ -47,8 +54,10 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
       return false  
     }
 
+
     return true  
   }
+
 
   const isValidUrl = (string: string): boolean => {  
     try {  
@@ -59,6 +68,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
     }  
   }
 
+
   const handleInputChange = (field: keyof typeof formData) => (  
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>  
   ) => {  
@@ -68,10 +78,12 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
     }))  
   }
 
+
   const handleSubmit = async (e: React.FormEvent) => {  
     e.preventDefault()  
      
     if (!validateForm()) return
+
 
     setIsSubmitting(true)  
      
@@ -80,6 +92,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
         full_name: formData.full_name.trim(),  
         avatar_url: formData.avatar_url.trim() || null  
       })
+
 
       if (success) {  
         console.log('Profile updated successfully')  
@@ -94,7 +107,9 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
     }  
   }
 
+
   const displayError = validationError || error
+
 
   return (  
     <div style={{  
@@ -134,12 +149,13 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
           <p style={{  
             ...FONTS.elegant,  
             fontSize: '14px',  
-            color: COLORS.textDark,  
+            color: COLORS.text, 
             margin: 0  
           }}>  
             Update your profile information  
           </p>  
         </div>
+
 
         {/* Error Display */}  
         {displayError && (  
@@ -160,6 +176,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
             </p>  
           </div>  
         )}
+
 
         {/* Form */}  
         <form onSubmit={handleSubmit}>  
@@ -188,13 +205,14 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
                 borderRadius: '8px',  
                 fontSize: '16px',  
                 backgroundColor: 'white',  
-                boxSizing: 'border-box',  
+                boxSizing: 'border-box', // Corrected from 'border-sizing'
                 WebkitAppearance: 'none'  
               }}  
               disabled={loading || isSubmitting}  
               required  
             />  
           </div>
+
 
           {/* Avatar URL */}  
           <div style={{ marginBottom: '24px' }}>  
@@ -221,7 +239,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
                 borderRadius: '8px',  
                 fontSize: '16px',  
                 backgroundColor: 'white',  
-                boxSizing: 'border-box',  
+                boxSizing: 'border-box', // Corrected from 'border-sizing'
                 WebkitAppearance: 'none'  
               }}  
               disabled={loading || isSubmitting}  
@@ -229,12 +247,13 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
             <p style={{  
               ...FONTS.elegant,  
               fontSize: '12px',  
-              color: COLORS.textDark,  
+              color: COLORS.text, 
               margin: '4px 0 0 0'  
             }}>  
               Enter a URL to an image for your profile picture  
             </p>  
           </div>
+
 
           {/* Action Buttons */}  
           <div style={{  
@@ -248,7 +267,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
               style={{  
                 ...FONTS.elegant,  
                 height: '50px',  
-                backgroundColor: (loading || isSubmitting) ? '#9CA3AF' : COLORS.primary,  
+                backgroundColor: (loading || isSubmitting) ? COLORS.gray300 : COLORS.primary, 
                 color: 'white',  
                 border: 'none',  
                 borderRadius: '8px',  
@@ -262,6 +281,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
               {isSubmitting ? 'Saving...' : 'Save Changes'}  
             </button>
 
+
             {onCancel && (  
               <button  
                 type="button"  
@@ -271,7 +291,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
                   ...FONTS.elegant,  
                   height: '44px',  
                   backgroundColor: 'transparent',  
-                  color: COLORS.textDark,  
+                  color: COLORS.text, 
                   border: '1px solid #D1D5DB',  
                   borderRadius: '8px',  
                   fontSize: '14px',  
@@ -289,5 +309,6 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
     </div>  
   )  
 }
+
 
 export default UserForm

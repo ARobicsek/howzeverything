@@ -1,18 +1,21 @@
-// src/HomeScreen.tsx  
+﻿// src/HomeScreen.tsx  
 import React from 'react';
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import { COLORS, SIZES, STYLES } from './constants'; // FONTS removed as it's unused
+
 
 interface HomeScreenProps {  
   onNavigateToScreen: (screen: NavigableScreenType) => void;  
   currentAppScreen: AppScreenType;  
 }
 
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {  
   return (  
     <div className="min-h-screen flex flex-col font-sans" style={{backgroundColor: COLORS.background}}>  
       {/* Header Removed */}
+
 
       {/* Main Content */}  
       <main  
@@ -35,6 +38,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
             />  
           </div>
 
+
           {/* Action Button Section - Moved up, colored blue */}  
           <div className="flex justify-center w-full">  
             <button  
@@ -50,11 +54,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
               }}  
               onMouseEnter={(e) => {  
                 e.currentTarget.style.transform = 'scale(1.03)';  
-                e.currentTarget.style.backgroundColor = COLORS.addButtonHover;  
+                e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover
               }}  
               onMouseLeave={(e) => {  
                 e.currentTarget.style.transform = 'scale(1)';  
-                e.currentTarget.style.backgroundColor = COLORS.addButtonBg;  
+                e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg
               }}  
             >  
               Restaurants  
@@ -62,6 +66,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
           </div>  
         </div>  
       </main>
+
 
       {/* Bottom Navigation */}  
       <BottomNavigation    
@@ -71,5 +76,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
     </div>  
   );  
 };
+
 
 export default HomeScreen;

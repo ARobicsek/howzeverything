@@ -1,6 +1,7 @@
-// src/components/restaurant/RestaurantSearchForm.tsx
-import React, { useState, useEffect } from 'react';
+﻿// src/components/restaurant/RestaurantSearchForm.tsx
+import React, { useEffect, useState } from 'react';
 import { COLORS, FONTS } from '../../constants';
+
 
 interface RestaurantSearchFormProps {
   onSearch: (query: string, location: string) => void;
@@ -8,6 +9,7 @@ interface RestaurantSearchFormProps {
   isSearching: boolean;
   disabled?: boolean;
 }
+
 
 const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
   onSearch,
@@ -18,6 +20,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('Seattle, WA');
 
+
   // Reset function to clear form and results
   const handleReset = () => {
     setQuery('');
@@ -27,6 +30,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
     }
   };
 
+
   // OPTIMIZED: Longer debounce to reduce API calls + minimum query length
   useEffect(() => {
     // Require at least 3 characters to search (reduces API calls)
@@ -34,13 +38,16 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
       return;
     }
 
+
     // Increased debounce from 500ms to 1000ms (reduces API calls)
     const timeoutId = setTimeout(() => {
       onSearch(query, location);
     }, 1000);
 
+
     return () => clearTimeout(timeoutId);
   }, [query, location]);
+
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
@@ -71,6 +78,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
           )}
         </div>
 
+
         <div>
           <label 
             className="block text-sm mb-2" 
@@ -85,10 +93,10 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
             placeholder="Type restaurant name (e.g., 'Cafe Flora', 'Starbucks')..."
             className={`px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full ${disabled ? 'opacity-60' : 'text-gray-800'}`}
             style={{
-              background: disabled ? COLORS.disabled : 'white',
+              background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
               fontSize: '1rem',
               ...FONTS.elegant,
-              color: disabled ? COLORS.text : COLORS.textDark,
+              color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
               cursor: disabled ? 'not-allowed' : 'auto'
             }}
             disabled={disabled}
@@ -118,10 +126,10 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
             placeholder="Seattle, WA"
             className={`px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full ${disabled ? 'opacity-60' : 'text-gray-800'}`}
             style={{
-              background: disabled ? COLORS.disabled : 'white',
+              background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
               fontSize: '1rem',
               ...FONTS.elegant,
-              color: disabled ? COLORS.text : COLORS.textDark,
+              color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
               cursor: disabled ? 'not-allowed' : 'auto'
             }}
             disabled={disabled}
@@ -134,6 +142,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
           </p>
         </div>
 
+
         {isSearching && (
           <div className="text-center py-2">
             <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>
@@ -141,6 +150,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
             </p>
           </div>
         )}
+
 
         {/* API Usage Indicator */}
         <div className="text-center">
@@ -152,5 +162,6 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
     </div>
   );
 };
+
 
 export default RestaurantSearchForm;

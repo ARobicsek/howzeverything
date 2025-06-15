@@ -1,6 +1,7 @@
-// src/components/restaurant/RestaurantSearchResults.tsx
+﻿// src/components/restaurant/RestaurantSearchResults.tsx
 import React from 'react';
 import { COLORS, FONTS } from '../../constants'; // STYLES removed as it's unused
+
 
 interface GeoapifyPlace {
   place_id: string;
@@ -23,6 +24,7 @@ interface GeoapifyPlace {
   };
 }
 
+
 interface RestaurantSearchResultsProps {
   results: GeoapifyPlace[];
   onSelectRestaurant: (restaurant: GeoapifyPlace) => void;
@@ -30,6 +32,7 @@ interface RestaurantSearchResultsProps {
   isLoadingDetails?: boolean;
   restaurantErrors?: Map<string, string>;
 }
+
 
 const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
   results,
@@ -48,6 +51,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
     );
   }
 
+
   const getCategoryDisplay = (categories: string[]) => {
     const categoryMap: { [key: string]: string } = {
       'catering.restaurant': 'Restaurant',
@@ -57,11 +61,13 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
       'catering.pub': 'Pub'
     };
 
+
     return categories
       .slice(0, 2)
       .map(cat => categoryMap[cat] || cat.split('.').pop() || 'Restaurant')
       .join(', ');
   };
+
 
   const getDistanceDisplay = (lat: number, lon: number) => {
     const seattleLat = 47.6062;
@@ -69,11 +75,12 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
    
     const distance = Math.sqrt(
       Math.pow(lat - seattleLat, 2) + Math.pow(lon - seattleLon, 2)
-    ) * 69; 
+    ) * 69;
    
     if (distance < 1) return 'Nearby';
     return `~${distance.toFixed(1)} mi`;
   };
+
 
   return (
     <div className="space-y-3">
@@ -185,7 +192,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center"
                     style={{
-                      background: hasError ? COLORS.danger : COLORS.addButtonBg 
+                      background: hasError ? COLORS.danger : COLORS.primary // Changed COLORS.addButtonBg
                     }}
                   >
                     {hasError ? (
@@ -213,5 +220,6 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
     </div>
   );
 };
+
 
 export default RestaurantSearchResults;

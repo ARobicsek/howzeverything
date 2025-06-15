@@ -2,18 +2,21 @@
 import React, { useState } from 'react';
 import { COLORS, FONTS, STYLES } from '../../constants';
 
+
 interface AddRestaurantFormProps {
   show: boolean;
   onToggleShow: () => void;
   onSubmit: (name: string) => Promise<void>;
 }
 
-const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({ 
-  show, 
-  onToggleShow, 
-  onSubmit 
+
+const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
+  show,
+  onToggleShow,
+  onSubmit
 }) => {
   const [restaurantName, setRestaurantName] = useState('');
+
 
   const handleSubmit = async () => {
     if (restaurantName.trim()) {
@@ -23,10 +26,12 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
     }
   };
 
+
   const handleCancel = () => {
     setRestaurantName('');
     onToggleShow();
   };
+
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
@@ -36,8 +41,8 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
             onClick={onToggleShow}
             className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full"
             style={STYLES.addButton} // Use consistent blue add button style
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonHover}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.addButtonBg}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover} // Changed COLORS.addButtonHover
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary} // Changed COLORS.addButtonBg
           >
             + Add New Restaurant
           </button>
@@ -55,7 +60,7 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
                 background: 'white',
                 fontSize: '1rem',
                 ...FONTS.elegant,
-                color: COLORS.textDark 
+                color: COLORS.text // Changed COLORS.textDark
               }}
               autoFocus
               onKeyPress={(e) => {
@@ -70,13 +75,13 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
                 ...STYLES.addButton, // Standardize to blue button
-                backgroundColor: !restaurantName.trim() ? COLORS.disabled : COLORS.addButtonBg
+                backgroundColor: !restaurantName.trim() ? COLORS.gray300 : COLORS.primary // Changed COLORS.disabled and COLORS.addButtonBg
               }}
               onMouseEnter={(e) => {
-                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonHover;
+                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover
               }}
               onMouseLeave={(e) => {
-                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.addButtonBg;
+                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg
               }}
             >
               Save Restaurant
@@ -85,8 +90,8 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
               onClick={handleCancel}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={STYLES.secondaryButton}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.secondaryHover} // Use defined secondaryHover
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.secondary}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.gray700} // Changed COLORS.secondaryHover to COLORS.gray700
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.white} // Revert to white (STYLES.secondaryButton default)
             >
               Cancel
             </button>
@@ -96,5 +101,6 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
     </div>
   );
 };
+
 
 export default AddRestaurantForm;
