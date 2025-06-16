@@ -9,6 +9,7 @@ import PhotoCarousel from './PhotoCarousel';
 import PhotoModal from './PhotoModal';
 import PhotoUpload from './PhotoUpload';
 
+
 interface DishCardProps {    
   dish: DishWithDetails | null;    
   currentUserId: string | null;    
@@ -25,6 +26,7 @@ interface DishCardProps {
   isExpanded: boolean;    
   onToggleExpand: () => void;    
 }
+
 
 const StarRating: React.FC<{    
   rating: number;    
@@ -44,6 +46,7 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.primary, empty: COLORS.ratingEmpty },    
     community: { filled: COLORS.ratingGold, empty: COLORS.ratingEmpty }    
   };
+
 
   return (    
     <div className="flex items-center gap-1">    
@@ -84,33 +87,45 @@ const StarRating: React.FC<{
   );    
 };
 
+
 const RatingSummary: React.FC<{    
   personalRating: number | null;    
   communityAverage: number;    
   totalRatings: number;    
 }> = ({ personalRating, communityAverage, totalRatings }) => (    
-  // MODIFIED: Changed to column layout for stacking "You" and "Community" ratings    
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: SPACING[1], fontSize: TYPOGRAPHY.sm.fontSize }}>    
+  // MODIFIED: Changed to column layout for stacking "Average" and "You" ratings (Swapped order, changed "Community" to "Average", updated font styles for labels)
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: SPACING[1] }}>    
     <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>    
-      <span style={{ color: COLORS.textSecondary }}>You:</span>    
+      <span style={{    
+        ...FONTS.body,    
+        fontSize: TYPOGRAPHY.sm.fontSize,    
+        color: COLORS.textSecondary,    
+        fontWeight: TYPOGRAPHY.medium    
+      }}>Average:</span>    
       <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>    
-        <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />    
-        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium }}>    
-          {personalRating || '—'}    
+        <StarRating rating={communityAverage} readonly variant="community" size="sm" />    
+        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>    
+          {communityAverage.toFixed(1)}    
         </span>    
       </div>    
     </div>    
     <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>    
-      <span style={{ color: COLORS.textSecondary }}>Community:</span>    
+      <span style={{    
+        ...FONTS.body,    
+        fontSize: TYPOGRAPHY.sm.fontSize,    
+        color: COLORS.textSecondary,    
+        fontWeight: TYPOGRAPHY.medium    
+      }}>You:</span>    
       <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>    
-        <StarRating rating={communityAverage} readonly variant="community" size="sm" />    
-        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium }}>    
-          {communityAverage.toFixed(1)}    
+        <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />    
+        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>    
+          {personalRating || '—'}    
         </span>    
       </div>    
     </div>    
   </div>    
 );
+
 
 const RatingBreakdown: React.FC<{    
   personalRating: number | null;    
@@ -132,7 +147,41 @@ const RatingBreakdown: React.FC<{
     marginTop: SPACING[4]    
   }}>    
     <div style={{ display: 'flex', gap: SPACING[8], flexWrap: 'wrap' }}>    
-      {/* Personal Rating Section */}    
+      {/* Community Rating Section (Moved to top as per request) */}    
+      <div style={{ flex: 1, minWidth: '200px' }}>    
+        <div style={{ marginBottom: SPACING[2] }}>    
+          <span style={{    
+            ...FONTS.body,    
+            fontSize: TYPOGRAPHY.sm.fontSize,    
+            color: COLORS.textSecondary,    
+            fontWeight: TYPOGRAPHY.medium    
+          }}>    
+            Average    
+          </span>    
+        </div>    
+        <div>    
+          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>    
+            <StarRating    
+              rating={communityAverage}    
+              readonly={true}    
+              variant="community"    
+              size="md"    
+            />    
+          </div>    
+          <div style={{ marginTop: SPACING[1] }}>    
+            <span style={{    
+              ...FONTS.body,    
+              fontSize: TYPOGRAPHY.xs.fontSize,    
+              color: COLORS.textSecondary    
+            }}>    
+              {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}    
+            </span>    
+          </div>    
+        </div>    
+      </div>    
+
+
+      {/* Personal Rating Section (Moved below Community Section as per request) */}    
       <div style={{ flex: 1, minWidth: '200px' }}>    
         <div style={{ marginBottom: SPACING[2] }}>    
           <span style={{    
@@ -162,43 +211,11 @@ const RatingBreakdown: React.FC<{
             </span>    
           )}    
         </div>    
-      </div>
-
-      {/* Community Rating Section */}    
-      <div style={{ flex: 1, minWidth: '200px' }}>    
-        <div style={{ marginBottom: SPACING[2] }}>    
-          <span style={{    
-            ...FONTS.body,    
-            fontSize: TYPOGRAPHY.sm.fontSize,    
-            color: COLORS.textSecondary,    
-            fontWeight: TYPOGRAPHY.medium    
-          }}>    
-            Community Average    
-          </span>    
-        </div>    
-        <div>    
-          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>    
-            <StarRating    
-              rating={communityAverage}    
-              readonly={true}    
-              variant="community"    
-              size="md"    
-            />    
-          </div>    
-          <div style={{ marginTop: SPACING[1] }}>    
-            <span style={{    
-              ...FONTS.body,    
-              fontSize: TYPOGRAPHY.xs.fontSize,    
-              color: COLORS.textSecondary    
-            }}>    
-              {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}    
-            </span>    
-          </div>    
-        </div>    
       </div>    
     </div>    
   </div>    
 );
+
 
 const DishHeader: React.FC<{    
   name: string;    
@@ -227,12 +244,15 @@ const DishHeader: React.FC<{
 }) => {    
   const [editedName, setEditedName] = useState(name);
 
+
   useEffect(() => {    
     setEditedName(name);    
   }, [name]);
 
+
   // Check if current user can delete this dish  
   const canDelete = currentUserId && createdBy === currentUserId;
+
 
   return (    
     <div style={{ marginBottom: SPACING[4] }}>    
@@ -335,6 +355,7 @@ const DishHeader: React.FC<{
   );    
 };
 
+
 const CommentsSection: React.FC<{    
   // MODIFIED: comments type changed to DishComment[]    
   comments: DishComment[];    
@@ -364,6 +385,7 @@ const CommentsSection: React.FC<{
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);    
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
+
   useEffect(() => {    
     const handleClickOutside = (event: MouseEvent) => {    
       if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {    
@@ -380,7 +402,9 @@ const CommentsSection: React.FC<{
     };    
   }, [openActionMenuCommentId]);
 
+
   if (comments.length === 0) return null;
+
 
   return (    
     <div style={{ marginTop: SPACING[6] }}>    
@@ -417,6 +441,7 @@ const CommentsSection: React.FC<{
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>    
         </svg>    
       </button>
+
 
       {showComments && (    
         <div style={{ marginTop: SPACING[3], display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>    
@@ -583,11 +608,13 @@ const CommentsSection: React.FC<{
   );    
 };
 
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {    
   if (!userId) return null;    
   const userRating = dishRatings.find(rating => rating.user_id === userId);    
   return userRating ? userRating.rating : null;    
 };
+
 
 // Portal Modal Component    
 const PortalModal: React.FC<{    
@@ -600,6 +627,7 @@ const PortalModal: React.FC<{
   if (!isOpen || !modalRoot) {    
     return null;    
   }
+
 
   return ReactDOM.createPortal(    
     <div    
@@ -620,6 +648,7 @@ const PortalModal: React.FC<{
   );    
 };
 
+
 const DishCard: React.FC<DishCardProps> = ({    
   dish,    
   currentUserId,    
@@ -639,6 +668,7 @@ const DishCard: React.FC<DishCardProps> = ({
     return null;    
   }
 
+
   const [showComments, setShowComments] = useState(false);    
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);    
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);    
@@ -649,7 +679,9 @@ const DishCard: React.FC<DishCardProps> = ({
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);    
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
+
 
   const handleDeleteDish = () => {    
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {    
@@ -657,16 +689,19 @@ const DishCard: React.FC<DishCardProps> = ({
     }    
   };
 
+
   const handleAddCommentInternal = async (text: string) => {    
     await onAddComment(dish.id, text);    
     setShowCommentModal(false);    
     setShowComments(true);    
   };
 
+
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {    
     await onUpdateComment(commentId, dish.id, text);    
     setEditingComment(null);    
   };
+
 
   const handleDeleteCommentInternal = async (commentId: string) => {    
     if (window.confirm('Are you sure you want to delete this comment?')) {    
@@ -674,9 +709,11 @@ const DishCard: React.FC<DishCardProps> = ({
     }    
   };
 
+
   const handleDirectPhotoUpload = () => {    
     fileInputRef.current?.click();    
   };
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {    
     const file = event.target.files?.[0];    
@@ -686,16 +723,19 @@ const DishCard: React.FC<DishCardProps> = ({
         return;    
       }
 
+
       // UPDATED: Changed from 5MB to 10MB limit    
       if (file.size > 10 * 1024 * 1024) {    
         alert('File size must be less than 10MB');    
         return;    
       }
 
+
       setSelectedFileForUpload(file);    
       setShowPhotoUpload(true);    
     }    
   };
+
 
   const handlePhotoUpload = async (file: File, caption?: string) => {    
     setIsUploadingPhoto(true);    
@@ -713,12 +753,14 @@ const DishCard: React.FC<DishCardProps> = ({
     }    
   };
 
+
   const handleDeletePhoto = async (photoId: string) => {    
     await onDeletePhoto(dish.id, photoId);    
     if (dish.dish_photos.length <= 1) {    
       setSelectedPhotoModal(null);    
     }    
   };
+
 
   const handleEditName = async (newName: string) => {    
     if (onUpdateDishName) {    
@@ -728,6 +770,7 @@ const DishCard: React.FC<DishCardProps> = ({
       }    
     }    
   };
+
 
   // Collapsed view - Progressive Disclosure    
   if (!isExpanded) {    
@@ -802,6 +845,7 @@ const DishCard: React.FC<DishCardProps> = ({
     );    
   }
 
+
   // Expanded view    
   return (    
     <>    
@@ -827,6 +871,7 @@ const DishCard: React.FC<DishCardProps> = ({
           onCancelEdit={() => setIsEditingName(false)}    
         />
 
+
         <RatingBreakdown    
           personalRating={personalRating}    
           communityAverage={dish.average_rating}    
@@ -834,17 +879,8 @@ const DishCard: React.FC<DishCardProps> = ({
           onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}    
         />
 
-        {/* Add Photo Button */}    
-        <div style={{ marginTop: SPACING[4] }}>    
-          <button    
-            onClick={(e) => { e.stopPropagation(); handleDirectPhotoUpload(); }}    
-            style={STYLES.primaryButton}    
-          >    
-            Add Photo    
-          </button>    
-        </div>
 
-        {/* Hidden file input */}    
+        {/* Hidden file input (stays with photo button logic) */}    
         <input    
           ref={fileInputRef}    
           type="file"    
@@ -852,6 +888,7 @@ const DishCard: React.FC<DishCardProps> = ({
           onChange={handleFileSelect}    
           style={{ display: 'none' }}    
         />
+
 
         {/* Photo Carousel */}    
         {dish.dish_photos.length > 0 && (    
@@ -866,6 +903,18 @@ const DishCard: React.FC<DishCardProps> = ({
           </div>    
         )}
 
+
+        {/* Add Photo Button (Moved below carousel as per request) */}    
+        <div style={{ marginTop: SPACING[4] }}>    
+          <button    
+            onClick={(e) => { e.stopPropagation(); handleDirectPhotoUpload(); }}    
+            style={STYLES.primaryButton}    
+          >    
+            Add Photo    
+          </button>    
+        </div>
+
+
         {/* Add Comment Button */}    
         <div style={{ marginTop: SPACING[4] }}>    
           <button    
@@ -875,6 +924,7 @@ const DishCard: React.FC<DishCardProps> = ({
             Add Comment    
           </button>    
         </div>
+
 
         {/* Comments Section */}    
         <CommentsSection    
@@ -890,6 +940,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isSubmittingComment={isSubmittingComment}    
         />    
       </div>
+
 
       {/* Comment Modal */}    
       <PortalModal    
@@ -910,6 +961,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isLoading={isSubmittingComment}    
         />    
       </PortalModal>
+
 
       {/* Photo Upload Modal */}    
       <PortalModal    
@@ -938,6 +990,7 @@ const DishCard: React.FC<DishCardProps> = ({
         />    
       </PortalModal>
 
+
       {/* Photo Modal */}    
       {selectedPhotoModal && (    
         <PhotoModal    
@@ -953,5 +1006,6 @@ const DishCard: React.FC<DishCardProps> = ({
     </>    
   );    
 };
+
 
 export default DishCard;
