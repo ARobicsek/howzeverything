@@ -21,13 +21,19 @@ const LocationPermissionBanner: React.FC<{
 }> = ({ onRequestPermission, isRequestingPermission, isPermissionBlocked }) => {
   const handleClick = () => {
     if (isPermissionBlocked) {
-      // Show instructions for manual browser settings
+      // ENHANCED: Better guidance for blocked permissions
       alert(
-        "Location access is currently blocked. To enable it:\n\n" +
-        "1. Click the lock/location icon in your browser's address bar\n" +
-        "2. Select 'Allow' for location access\n" +
-        "3. Refresh this page\n\n" +
-        "Or check your browser's privacy/location settings."
+        "Location access is blocked in your browser settings.\n\n" +
+        "To enable location services:\n\n" +
+        "📱 On Mobile:\n" +
+        "• Tap the location/lock icon in your browser's address bar\n" +
+        "• Select 'Allow' for location access\n" +
+        "• Refresh this page\n\n" +
+        "💻 On Desktop:\n" +
+        "• Click the location icon in your browser's address bar\n" +
+        "• Choose 'Always allow' for this site\n" +
+        "• Refresh the page\n\n" +
+        "Or check your browser's privacy/location settings in the main menu."
       );
     } else {
       onRequestPermission();
