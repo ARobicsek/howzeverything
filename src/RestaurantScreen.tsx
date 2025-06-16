@@ -4,7 +4,7 @@ import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import RestaurantCard from './components/restaurant/RestaurantCard';
-import { COLORS, FONTS, SIZES, SPACING, STYLES } from './constants';
+import { COLORS, FONTS, SPACING, STYLES } from './constants';
 import { useRestaurants } from './hooks/useRestaurants';
 
 interface RestaurantScreenProps {    
@@ -17,9 +17,25 @@ interface RestaurantScreenProps {
 const LocationPermissionBanner: React.FC<{
   onRequestPermission: () => void;
   isRequestingPermission: boolean;
-}> = ({ onRequestPermission, isRequestingPermission }) => {
+  isPermissionBlocked: boolean;
+}> = ({ onRequestPermission, isRequestingPermission, isPermissionBlocked }) => {
+  const handleClick = () => {
+    if (isPermissionBlocked) {
+      // Show instructions for manual browser settings
+      alert(
+        "Location access is currently blocked. To enable it:\n\n" +
+        "1. Click the lock/location icon in your browser's address bar\n" +
+        "2. Select 'Allow' for location access\n" +
+        "3. Refresh this page\n\n" +
+        "Or check your browser's privacy/location settings."
+      );
+    } else {
+      onRequestPermission();
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-4">
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4" style={{ marginBottom: SPACING[4] }}>
       <div className="flex items-start gap-3">
         {/* Location Icon */}
         <div className="flex-shrink-0 mt-0.5">
@@ -49,7 +65,7 @@ const LocationPermissionBanner: React.FC<{
           }}>
             Your experience will be better with location services{' '}
             <button
-              onClick={onRequestPermission}
+              onClick={handleClick}
               disabled={isRequestingPermission}
               className="inline-flex items-center gap-1 transition-all duration-200 focus:outline-none"
               style={{
@@ -87,24 +103,13 @@ const LocationPermissionBanner: React.FC<{
                 </>
               ) : (
                 <>
-                  <span>turned on</span>
+                  <span>{isPermissionBlocked ? 'blocked - tap for help' : 'turned on'}</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M7 17L17 7M17 7H7M17 7V17"/>
                   </svg>
                 </>
               )}
             </button>
-          </p>
-          
-          {/* Subtext for additional context */}
-          <p style={{
-            ...FONTS.primary,
-            fontSize: '13px',
-            color: COLORS.gray500,
-            margin: '4px 0 0 0',
-            lineHeight: '1.4'
-          }}>
-            We'll sort restaurants by distance and improve search results.
           </p>
         </div>
       </div>
@@ -336,6 +341,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   // NEW: Enhanced location permission state
   const [isRequestingLocationPermission, setIsRequestingLocationPermission] = useState(false);
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(false);
+  const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
   // Custom Hooks    
   const {    
@@ -384,10 +390,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             // Permission explicitly denied
             setFetchingLocation(false);
             setShouldShowLocationBanner(true);
+            setIsLocationPermissionBlocked(true);
           } else if (permission.state === 'prompt') {
             // Permission not yet requested
             setFetchingLocation(false);
             setShouldShowLocationBanner(true);
+            setIsLocationPermissionBlocked(false);
           }
         } catch (error) {
           // Permissions API not supported or failed, fallback to direct request
@@ -666,6 +674,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             <LocationPermissionBanner 
               onRequestPermission={requestLocationPermission}
               isRequestingPermission={isRequestingLocationPermission}
+              isPermissionBlocked={isLocationPermissionBlocked}
             />
           )}
 
@@ -764,7 +773,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           {/* Search Input & Results Section - RE-ENABLED */}    
           {showSearchAndResults && (    
             <div className="space-y-4">    
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SIZES.lg }}>    
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SPACING[4] }}>    
                 <>    
                   <div className="flex items-center justify-between mb-2">    
                     <label style={{    

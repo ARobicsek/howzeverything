@@ -47,9 +47,9 @@ const StarRating: React.FC<{
     community: { filled: COLORS.ratingGold, empty: COLORS.ratingEmpty }    
   };
 
-
   return (    
-    <div className="flex items-center gap-1">    
+    // MODIFIED: Changed items-center back to items-start. The trash button will be moved up separately.
+    <div className="flex items-start gap-1">    
       <div className="flex gap-0.5">    
         {[1, 2, 3, 4, 5].map((star) => (    
           <button    
@@ -74,7 +74,8 @@ const StarRating: React.FC<{
       {!readonly && showClearButton && rating > 0 && (    
         <button    
           onClick={(e) => { e.stopPropagation(); onRatingChange?.(0); }}    
-          style={STYLES.deleteButton}    
+          // MODIFIED: Added marginTop: '-10px' to shift the trash button up, aligning its middle with the stars.
+          style={{ ...STYLES.deleteButton, marginTop: '-10px' }}    
           aria-label="Clear rating"    
           title="Clear rating"    
         >    
@@ -146,9 +147,11 @@ const RatingBreakdown: React.FC<{
     borderRadius: STYLES.borderRadiusMedium,    
     marginTop: SPACING[4]    
   }}>    
-    <div style={{ display: 'flex', gap: SPACING[8], flexWrap: 'wrap' }}>    
-      {/* Community Rating Section (Moved to top as per request) */}    
-      <div style={{ flex: 1, minWidth: '200px' }}>    
+    {/* MODIFIED: Removed flexWrap: 'wrap' and added alignItems: 'flex-start' for side-by-side alignment */}
+    <div style={{ display: 'flex', gap: SPACING[8], alignItems: 'flex-start' }}>    
+      {/* Community Rating Section (Average) */}    
+      {/* MODIFIED: Set minWidth to 0 to allow shrinking */}
+      <div style={{ flex: 1, minWidth: 0 }}>    
         <div style={{ marginBottom: SPACING[2] }}>    
           <span style={{    
             ...FONTS.body,    
@@ -181,8 +184,9 @@ const RatingBreakdown: React.FC<{
       </div>    
 
 
-      {/* Personal Rating Section (Moved below Community Section as per request) */}    
-      <div style={{ flex: 1, minWidth: '200px' }}>    
+      {/* Personal Rating Section (Your Rating) */}    
+      {/* MODIFIED: Set minWidth to 0 to allow shrinking */}
+      <div style={{ flex: 1, minWidth: 0 }}>    
         <div style={{ marginBottom: SPACING[2] }}>    
           <span style={{    
             ...FONTS.body,    
