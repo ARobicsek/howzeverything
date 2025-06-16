@@ -22,16 +22,16 @@ const getDeviceInfo = () => {
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /android/i.test(ua);
   
-  // Detect browser
+  // Detect browser - order matters since Chrome includes Safari in UA
   let browser = 'Browser';
-  if (ua.includes('Chrome') && !ua.includes('Edg')) {
+  if (ua.includes('Edg')) {
+    browser = 'Edge';
+  } else if (ua.includes('Chrome')) {
     browser = 'Chrome';
-  } else if (ua.includes('Safari') && !ua.includes('Chrome')) {
-    browser = 'Safari';
   } else if (ua.includes('Firefox')) {
     browser = 'Firefox';
-  } else if (ua.includes('Edg')) {
-    browser = 'Edge';
+  } else if (ua.includes('Safari')) {
+    browser = 'Safari';
   }
   
   return {
@@ -67,7 +67,7 @@ const LocationPermissionBanner: React.FC<{
           `📱 Find and tap "${browser}"\n` +
           `✅ Select "Ask Next Time" or "While Using App"\n` +
           `🔄 Return to this page and refresh\n\n` +
-          `Note: You may need to refresh the page after changing settings.`;
+          `Note: Menu names may vary by Android version.`;
       } else if (isAndroid) {
         // Android instructions with common paths
         instructions = 
@@ -85,8 +85,7 @@ const LocationPermissionBanner: React.FC<{
           `🔍 Find and tap "${browser}"\n` +
           `🔒 Tap Permissions\n` +
           `📍 Tap Location and select "Allow"\n\n` +
-          `🔄 Return to this page and refresh\n\n` +
-          `Note: Menu names may vary by Android version.`;
+          `🔄 Return to this page and refresh`;
       } else {
         // Fallback for unknown devices
         instructions = 
