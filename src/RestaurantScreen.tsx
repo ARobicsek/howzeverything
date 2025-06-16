@@ -341,13 +341,59 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [hasInteractedWithEmptyState, setHasInteractedWithEmptyState] = useState(false);  
 
   // User Geolocation State    
-  const [userLat, setUserLat] = useState<number | null>(null);    
-  const [userLon, setUserLon] = useState<number | null>(null);    
+  const [userLat, setUserLat] = useState<number | null>(() => {
+    // FIXED: Initialize from localStorage to persist across page navigations
+    const saved = localStorage.getItem('howzeverything-user-location');
+    if (saved) {
+      try {
+        const { lat, lon, timestamp } = JSON.parse(saved);
+        // Use saved location if it's less than 1 hour old
+        if (Date.now() - timestamp < 60 * 60 * 1000) {
+          console.log('📍 Restored saved location:', lat, lon);
+          return lat;
+        }
+      } catch (e) {
+        console.log('📍 Failed to parse saved location, will request fresh');
+      }
+    }
+    return null;
+  });    
+  const [userLon, setUserLon] = useState<number | null>(() => {
+    // FIXED: Initialize from localStorage to persist across page navigations
+    const saved = localStorage.getItem('howzeverything-user-location');
+    if (saved) {
+      try {
+        const { lon, timestamp } = JSON.parse(saved);
+        // Use saved location if it's less than 1 hour old
+        if (Date.now() - timestamp < 60 * 60 * 1000) {
+          return lon;
+        }
+      } catch (e) {
+        // Invalid saved data, will fall through to null
+      }
+    }
+    return null;
+  });    
   const [fetchingLocation, setFetchingLocation] = useState(true);    
   // NEW: Enhanced location permission state
   const [isRequestingLocationPermission, setIsRequestingLocationPermission] = useState(false);
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(false);
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
+
+  // FIXED: Helper function to save location to localStorage
+  const saveLocationToStorage = useCallback((lat: number, lon: number) => {
+    try {
+      const locationData = {
+        lat,
+        lon,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('howzeverything-user-location', JSON.stringify(locationData));
+      console.log('📍 Saved location to localStorage:', lat, lon);
+    } catch (e) {
+      console.warn('📍 Failed to save location to localStorage:', e);
+    }
+  }, []);
 
   // Custom Hooks    
   const {    
