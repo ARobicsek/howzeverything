@@ -22,16 +22,31 @@ const getDeviceInfo = () => {
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /android/i.test(ua);
   
-  // Detect browser - order matters since Chrome includes Safari in UA
+  // Detect browser - special handling for iOS where all browsers use WebKit
   let browser = 'Browser';
-  if (ua.includes('Edg')) {
-    browser = 'Edge';
-  } else if (ua.includes('Chrome')) {
-    browser = 'Chrome';
-  } else if (ua.includes('Firefox')) {
-    browser = 'Firefox';
-  } else if (ua.includes('Safari')) {
-    browser = 'Safari';
+  
+  if (isIOS) {
+    // On iOS, detect browser more carefully since all use WebKit
+    if (ua.includes('CriOS') || ua.includes('Chrome')) {
+      browser = 'Chrome';
+    } else if (ua.includes('FxiOS') || ua.includes('Firefox')) {
+      browser = 'Firefox';
+    } else if (ua.includes('EdgiOS') || ua.includes('Edge')) {
+      browser = 'Edge';
+    } else if (ua.includes('Safari')) {
+      browser = 'Safari';
+    }
+  } else {
+    // Non-iOS detection (original logic)
+    if (ua.includes('Edg')) {
+      browser = 'Edge';
+    } else if (ua.includes('Chrome')) {
+      browser = 'Chrome';
+    } else if (ua.includes('Firefox')) {
+      browser = 'Firefox';
+    } else if (ua.includes('Safari')) {
+      browser = 'Safari';
+    }
   }
   
   return {
@@ -66,8 +81,7 @@ const LocationPermissionBanner: React.FC<{
           `📍 Tap Location Services\n` +
           `📱 Find and tap "${browser}"\n` +
           `✅ Select "Ask Next Time" or "While Using App"\n` +
-          `🔄 Return to this page and refresh\n\n` +
-          `Note: Menu names may vary by Android version.`;
+          `🔄 Return to this page and refresh`;
       } else if (isAndroid) {
         // Android instructions with common paths
         instructions = 
