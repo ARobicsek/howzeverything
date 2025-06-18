@@ -3,17 +3,21 @@ import React, { useEffect, useState } from 'react';
 import { BORDERS, COLORS, SHADOWS, SPACING, STYLES, TYPOGRAPHY } from './constants'; // Added STYLES import
 import { supabase } from './supabaseClient';
 
+
 interface Restaurant {
   id: string;
   name: string;
   address: string;
   city: string;
-  state: string;
-  zip_code: string;
-  country: string; // Added country
+  state: string | null; // Changed to allow null
+  zip_code: string | null; // Changed to allow null
+  country: string | null; // Changed to allow null
   manually_added: boolean;
   created_at: string;
+  latitude: number | null; // Changed to allow null
+  longitude: number | null; // Changed to allow null
 }
+
 
 interface Dish {
   id: string;
@@ -22,6 +26,7 @@ interface Dish {
   restaurant_name?: string;
   created_at: string;
 }
+
 
 interface Comment {
   id: string;
@@ -34,9 +39,64 @@ interface Comment {
   username?: string;
 }
 
+
 interface AdminScreenProps {
   user: User | null;
 }
+
+// Common countries for autofill suggestions
+const COMMON_COUNTRIES = [
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Israel',
+  'Australia',
+  'Germany',
+  'France',
+  'Japan',
+  'Mexico',
+  'Brazil',
+  'India',
+  'China'
+];
+
+interface GeocodedCoordinates {
+  lat: number;
+  lon: number;
+}
+
+const geocodeAddress = async (address: string): Promise<GeocodedCoordinates | null> => {
+  const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
+  if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+    console.warn('Geoapify API key is missing. Geocoding aborted.');
+    return null;
+  }
+  if (!address.trim()) {
+    console.warn('Address is empty, cannot geocode.');
+    return null;
+  }
+
+  try {
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(address)}&limit=1&apiKey=${apiKey}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Geoapify geocoding failed with status: ${response.status} - ${await response.text()}`);
+    }
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const properties = data.features[0].properties;
+      return {
+        lat: properties.lat,
+        lon: properties.lon
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('Error geocoding address:', err);
+    return null;
+  }
+};
+
 
 const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes' | 'comments'>('restaurants');
@@ -45,15 +105,16 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+ 
   // Form states for adding restaurant
   const [newRestaurantName, setNewRestaurantName] = useState('');
   const [newRestaurantAddress, setNewRestaurantAddress] = useState('');
   const [newRestaurantCity, setNewRestaurantCity] = useState('');
   const [newRestaurantState, setNewRestaurantState] = useState('');
   const [newRestaurantZip, setNewRestaurantZip] = useState('');
-  const [newRestaurantCountry, setNewRestaurantCountry] = useState('United States'); // Default to USA
-  
+  // MODIFIED: Stop defaulting country to USA, initialize to empty string
+  const [newRestaurantCountry, setNewRestaurantCountry] = useState(''); 
+ 
   // Edit states
   const [editingRestaurantId, setEditingRestaurantId] = useState<string | null>(null);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
@@ -64,8 +125,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [editZip, setEditZip] = useState('');
   const [editCountry, setEditCountry] = useState('');
 
+
   // Check if user is admin (you may want to implement proper admin role checking)
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
+
 
   useEffect(() => {
     if (isAdmin) {
@@ -73,17 +136,18 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   }, [activeTab, isAdmin]);
 
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
-    
+   
     try {
       if (activeTab === 'restaurants') {
         const { data, error } = await supabase
           .from('restaurants')
           .select('*')
           .order('created_at', { ascending: false });
-        
+       
         if (error) throw error;
         setRestaurants(data || []);
       } else if (activeTab === 'dishes') {
@@ -96,7 +160,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             )
           `)
           .order('created_at', { ascending: false });
-        
+       
         if (error) throw error;
         setDishes(data?.map(d => ({
           ...d,
@@ -118,7 +182,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             )
           `)
           .order('created_at', { ascending: false });
-        
+       
         if (error) throw error;
         setComments(data?.map(c => ({
           ...c,
@@ -135,6 +199,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   };
 
+
   const addRestaurant = async () => {
     // Only name, address and city are strictly required for manual entry. State/Zip/Country can be optional.
     if (!newRestaurantName.trim() || !newRestaurantAddress.trim() || !newRestaurantCity.trim()) {
@@ -142,8 +207,34 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       return;
     }
 
+
     setLoading(true);
     setError(null);
+
+    const fullAddress = [
+        newRestaurantAddress.trim(), 
+        newRestaurantCity.trim(), 
+        newRestaurantState.trim(), 
+        newRestaurantZip.trim(), 
+        newRestaurantCountry.trim()
+    ].filter(Boolean).join(', ');
+    
+    let lat: number | null = null;
+    let lon: number | null = null;
+
+    try {
+        const coords = await geocodeAddress(fullAddress);
+        if (coords) {
+            lat = coords.lat;
+            lon = coords.lon;
+        } else {
+            console.warn('Geocoding failed for new restaurant address:', fullAddress);
+            setError('Could not geocode address. Restaurant added without coordinates for distance sorting.');
+        }
+    } catch (geocodeErr) {
+        console.error('Error during geocoding for new restaurant:', geocodeErr);
+        setError('Error during address geocoding. Restaurant added without coordinates for distance sorting.');
+    }
 
     try {
       const { error } = await supabase
@@ -156,12 +247,13 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           zip_code: newRestaurantZip.trim() || null, // Optional
           country: newRestaurantCountry.trim() || null, // Optional
           manually_added: true,
-          // Add empty coordinates for manually added restaurants
-          latitude: 0,
-          longitude: 0
+          latitude: lat,
+          longitude: lon
         });
 
+
       if (error) throw error;
+
 
       // Clear form
       setNewRestaurantName('');
@@ -169,8 +261,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setNewRestaurantCity('');
       setNewRestaurantState('');
       setNewRestaurantZip('');
-      setNewRestaurantCountry('United States'); // Reset to default
-      
+      setNewRestaurantCountry(''); // MODIFIED: Reset to empty string
+     
       // Reload data
       loadData();
     } catch (err) {
@@ -181,19 +273,57 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   };
 
+
   const startEditRestaurant = (restaurant: Restaurant) => {
     setEditingRestaurantId(restaurant.id);
     setEditName(restaurant.name);
     setEditAddress(restaurant.address);
     setEditCity(restaurant.city);
-    setEditState(restaurant.state);
+    // FIXED: Ensure state is always a string, even if null from DB
+    setEditState(restaurant.state || ''); 
     setEditZip(restaurant.zip_code || '');
     setEditCountry(restaurant.country || '');
   };
 
+
   const updateRestaurant = async (id: string) => {
     setLoading(true);
     setError(null);
+
+    const currentRestaurant = restaurants.find(r => r.id === id);
+    const fullAddress = [
+        editAddress.trim(), 
+        editCity.trim(), 
+        editState.trim(), 
+        editZip.trim(), 
+        editCountry.trim()
+    ].filter(Boolean).join(', ');
+
+    let updatedLat: number | null = currentRestaurant?.latitude || null;
+    let updatedLon: number | null = currentRestaurant?.longitude || null;
+
+    // Only re-geocode if address components have changed
+    const addressChanged = editAddress !== currentRestaurant?.address ||
+                            editCity !== currentRestaurant?.city ||
+                            editState !== currentRestaurant?.state ||
+                            editZip !== currentRestaurant?.zip_code ||
+                            editCountry !== currentRestaurant?.country;
+
+    if (addressChanged) {
+        try {
+            const coords = await geocodeAddress(fullAddress);
+            if (coords) {
+                updatedLat = coords.lat;
+                updatedLon = coords.lon;
+            } else {
+                console.warn('Geocoding failed for updated restaurant address:', fullAddress);
+                setError('Could not geocode updated address. Coordinates might be outdated.');
+            }
+        } catch (geocodeErr) {
+            console.error('Error during geocoding for updated restaurant:', geocodeErr);
+            setError('Error during address geocoding. Coordinates might be outdated.');
+        }
+    }
 
     try {
       const { error } = await supabase
@@ -205,10 +335,14 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           state: editState.trim() || null, // Optional
           zip_code: editZip.trim() || null, // Optional
           country: editCountry.trim() || null, // Optional
+          latitude: updatedLat,
+          longitude: updatedLon
         })
         .eq('id', id);
 
+
       if (error) throw error;
+
 
       setEditingRestaurantId(null);
       loadData();
@@ -220,13 +354,16 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   };
 
+
   const deleteRestaurant = async (id: string) => {
     if (!confirm('Are you sure you want to delete this restaurant? This will also delete all associated dishes, ratings, and comments.')) {
       return;
     }
 
+
     setLoading(true);
     setError(null);
+
 
     try {
       const { error } = await supabase
@@ -234,7 +371,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         .delete()
         .eq('id', id);
 
+
       if (error) throw error;
+
 
       loadData();
     } catch (err) {
@@ -245,14 +384,17 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   };
 
+
   const startEditDish = (dish: Dish) => {
     setEditingDishId(dish.id);
     setEditName(dish.name);
   };
 
+
   const updateDish = async (id: string) => {
     setLoading(true);
     setError(null);
+
 
     try {
       const { error } = await supabase
@@ -262,7 +404,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         })
         .eq('id', id);
 
+
       if (error) throw error;
+
 
       setEditingDishId(null);
       loadData();
@@ -274,13 +418,16 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   };
 
+
   const deleteDish = async (id: string) => {
     if (!confirm('Are you sure you want to delete this dish? This will also delete all associated ratings and comments.')) {
       return;
     }
 
+
     setLoading(true);
     setError(null);
+
 
     try {
       const { error } = await supabase
@@ -288,7 +435,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         .delete()
         .eq('id', id);
 
+
       if (error) throw error;
+
 
       loadData();
     } catch (err) {
@@ -299,13 +448,16 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
   };
 
+
   const deleteComment = async (id: string) => {
     if (!confirm('Are you sure you want to delete this comment?')) {
       return;
     }
 
+
     setLoading(true);
     setError(null);
+
 
     try {
       const { error } = await supabase
@@ -313,7 +465,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         .delete()
         .eq('id', id);
 
+
       if (error) throw error;
+
 
       loadData();
     } catch (err) {
@@ -323,6 +477,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
+
 
   if (!isAdmin) {
     return (
@@ -335,14 +490,16 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     );
   }
 
+
   return (
     <div style={{ padding: SPACING[4], maxWidth: '1200px', margin: '0 auto' }}>
       <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Admin Panel</h1>
 
+
       {/* Tab Navigation */}
-      <div style={{ 
-        display: 'flex', 
-        gap: SPACING[2], 
+      <div style={{
+        display: 'flex',
+        gap: SPACING[2],
         marginBottom: SPACING[6],
         borderBottom: `2px solid ${COLORS.border}`,
         paddingBottom: SPACING[2]
@@ -391,6 +548,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         </button>
       </div>
 
+
       {/* Error Message */}
       {error && (
         <div style={{
@@ -405,12 +563,14 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         </div>
       )}
 
+
       {/* Loading State */}
       {loading && (
         <div style={{ textAlign: 'center', padding: SPACING[6] }}>
           <p style={TYPOGRAPHY.body}>Loading...</p>
         </div>
       )}
+
 
       {/* Restaurants Tab */}
       {activeTab === 'restaurants' && !loading && (
@@ -466,6 +626,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                   placeholder="Country"
                   value={newRestaurantCountry}
                   onChange={(e) => setNewRestaurantCountry(e.target.value)}
+                  list="common-countries" // ADDED: Datalist for autofill
                   style={STYLES.input} // Use STYLES.input for consistent sizing
                 />
               </div>
@@ -487,6 +648,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               </button>
             </div>
           </div>
+
 
           {/* Restaurant List */}
           <div style={{ display: 'grid', gap: SPACING[4] }}>
@@ -537,6 +699,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                         type="text"
                         value={editCountry}
                         onChange={(e) => setEditCountry(e.target.value)}
+                        list="common-countries" // ADDED: Datalist for autofill
                         style={STYLES.input}
                       />
                     </div>
@@ -623,8 +786,15 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               </div>
             ))}
           </div>
+          {/* Datalist for common countries */}
+          <datalist id="common-countries">
+            {COMMON_COUNTRIES.map(country => (
+              <option key={country} value={country} />
+            ))}
+          </datalist>
         </div>
       )}
+
 
       {/* Dishes Tab */}
       {activeTab === 'dishes' && !loading && (
@@ -721,6 +891,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         </div>
       )}
 
+
       {/* Comments Tab */}
       {activeTab === 'comments' && !loading && (
         <div style={{ display: 'grid', gap: SPACING[4] }}>
@@ -738,8 +909,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 "{comment.comment}"
               </p>
               <p style={{ ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[2] }}>
-                By: {comment.username || 'Unknown'} | 
-                Dish: {comment.dish_name || 'Unknown'} | 
+                By: {comment.username || 'Unknown'} |
+                Dish: {comment.dish_name || 'Unknown'} |
                 Restaurant: {comment.restaurant_name || 'Unknown'}
               </p>
               <button
@@ -763,5 +934,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     </div>
   );
 };
+
 
 export default AdminScreen;

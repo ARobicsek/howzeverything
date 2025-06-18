@@ -1,24 +1,10 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React from 'react';
 import { COLORS, FONTS } from '../../constants';
+import { Restaurant } from '../../types/restaurant'; // MODIFIED: Import Restaurant interface from central type file
 
 
-interface Restaurant {
-  id: string;
-  name: string;
-  dateAdded: string;
-  created_at: string;
-  geoapify_place_id?: string;
-  address?: string;
-  phone?: string;
-  website_url?: string;
-  rating?: number;
-  price_tier?: number;
-  category?: string;
-  opening_hours?: any;
-  latitude?: number;
-  longitude?: number;
-}
+// REMOVED: Local Restaurant interface definition
 
 
 interface RestaurantCardProps {
@@ -108,7 +94,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               lineHeight: '1.3'
             }}
           >
-            {new Date(restaurant.dateAdded).toLocaleDateString()}
+            {new Date(restaurant.dateAdded!).toLocaleDateString()} {/* Added null check for dateAdded */}
           </p>
         </div>
 
