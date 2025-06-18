@@ -1,6 +1,7 @@
 // src/constants.ts  
 import React from 'react'; // Import React to get React.CSSProperties
 
+
 export const COLORS = {  
   // Primary Colors  
   primary: '#2563EB', // Main accent, buttons, links  
@@ -58,7 +59,14 @@ export const COLORS = {
   secondary: '#6B7280', // Secondary color  
   iconPrimary: '#374151', // Icon color  
   iconBackground: '#FFFFFF', // Icon button backgrounds  
+  
+  // NEW: Aliases for common color usages in AdminScreen
+  error: '#EF4444', // Maps to danger
+  surface: '#FFFFFF', // Maps to white/cardBg
+  border: '#E5E7EB', // Maps to gray200
+  textPrimary: '#374151', // Maps to text
 };
+
 
 export const FONTS = {  
   primary: {  
@@ -81,6 +89,7 @@ export const FONTS = {
   }  
 };
 
+
 export const TYPOGRAPHY = {  
   // Font Sizes & Line Heights  
   xs: { fontSize: '0.75rem', lineHeight: '1rem' }, // 12px  
@@ -96,7 +105,16 @@ export const TYPOGRAPHY = {
   medium: '500',  
   semibold: '600',  
   bold: '700',  
+  
+  // NEW: Composite typography styles for common elements
+  h1: { ...FONTS.heading, fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties, // 30px - Maps to TYPOGRAPHY['3xl']
+  h2: { ...FONTS.heading, fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties, // 24px - Maps to TYPOGRAPHY['2xl']
+  h3: { ...FONTS.heading, fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties, // 20px - Maps to TYPOGRAPHY.xl
+  body: { ...FONTS.body, fontSize: '1rem', lineHeight: '1.5rem' } as React.CSSProperties, // 16px - Maps to TYPOGRAPHY.base
+  caption: { ...FONTS.body, fontSize: '0.875rem', lineHeight: '1.25rem' } as React.CSSProperties, // 14px - Maps to TYPOGRAPHY.sm
+  button: { ...FONTS.primary, fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties, // Maps to TYPOGRAPHY.base, semibold
 };
+
 
 export const SPACING = {  
   // Consistent spacing scale  
@@ -116,28 +134,30 @@ export const SPACING = {
   cardPadding: '1.25rem', // 20px  
 };
 
+
 // NEW: Image compression settings
 export const IMAGE_COMPRESSION = {
   // File size limits
   MAX_FILE_SIZE_MB: 2.5, // Target max file size after compression
   MAX_ORIGINAL_SIZE_MB: 50, // Reject files larger than this before compression
-  
+ 
   // Image dimensions
   MAX_WIDTH: 1920, // Maximum width in pixels
   MAX_HEIGHT: 1920, // Maximum height in pixels
-  
+ 
   // Quality settings
   INITIAL_QUALITY: 0.9, // Start with 90% quality
   MIN_QUALITY: 0.3, // Don't go below 30% quality
   QUALITY_STEP: 0.1, // Reduce quality by 10% each iteration
-  
+ 
   // Formats
   OUTPUT_FORMAT: 'image/jpeg', // Always convert to JPEG for consistency
   MIME_TYPE: 'image/jpeg',
-  
+ 
   // Performance
   COMPRESSION_TIMEOUT: 15000, // 15 seconds max for compression
 };
+
 
 export const STYLES = {  
   // Border Radius  
@@ -254,7 +274,7 @@ export const STYLES = {
    
   input: {  
     backgroundColor: COLORS.white,  
-    border: '2px solid ' + COLORS.gray200,  
+    border: '1px solid ' + COLORS.gray200, // Changed to 1px for consistency with screenshot
     borderRadius: '8px',  
     padding: '10px 16px',  
     fontSize: TYPOGRAPHY.base.fontSize,  
@@ -344,6 +364,23 @@ export const STYLES = {
   } as React.CSSProperties, // Added casting  
 };
 
+
+// NEW: Export BORDERS and SHADOWS, mapping to STYLES for consistency
+export const BORDERS = {
+  radius: {
+    small: STYLES.borderRadiusSmall,
+    medium: STYLES.borderRadiusMedium,
+    large: STYLES.borderRadiusLarge,
+    full: STYLES.borderRadiusFull,
+  },
+};
+
+export const SHADOWS = {
+  small: STYLES.shadowSmall,
+  medium: STYLES.shadowMedium,
+  large: STYLES.shadowLarge,
+};
+
 // Legacy SIZES for compatibility  
 export const SIZES = {  
   xs: '0.5rem', // 8px  
@@ -355,6 +392,7 @@ export const SIZES = {
   '3xl': '3rem', // 48px  
   '4xl': '4rem', // 64px  
 };
+
 
 // Breakpoints for responsive design  
 export const BREAKPOINTS = {  
