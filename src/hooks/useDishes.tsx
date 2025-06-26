@@ -1,6 +1,8 @@
 // src/hooks/useDishes.tsx    
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { enhancedDishSearch, findSimilarDishes } from '../utils/dishSearch';
+
 
 // Photo interface    
 export interface DishPhoto {    
@@ -20,6 +22,7 @@ export interface DishPhoto {
   url?: string;    
 }
 
+
 // Updated interfaces to include user information in comments    
 export interface DishComment {    
   id: string;    
@@ -33,6 +36,7 @@ export interface DishComment {
   commenter_email?: string;    
 }
 
+
 export interface DishRating {    
   id: string;    
   user_id: string;    
@@ -43,6 +47,7 @@ export interface DishRating {
   updated_at: string;    
   dish_id: string;    
 }
+
 
 export interface RestaurantDish {    
   id: string;    
@@ -59,6 +64,7 @@ export interface RestaurantDish {
   updated_at: string;    
 }
 
+
 export interface DishWithDetails extends RestaurantDish {    
   dish_comments: DishComment[];    
   dish_ratings: DishRating[];    
@@ -66,12 +72,14 @@ export interface DishWithDetails extends RestaurantDish {
   dateAdded: string;    
 }
 
+
 // New interface for search/discovery results    
 export interface DishSearchResult extends DishWithDetails {    
   similarityScore?: number;    
   isExactMatch?: boolean;    
   matchType?: 'exact' | 'fuzzy' | 'partial';    
 }
+
 
 // MODIFIED: Reusable sorting function for dishes, now accepts currentUserId    
 const sortDishesArray = (    
@@ -104,12 +112,14 @@ const sortDishesArray = (
   });    
 };
 
+
 // MODIFIED: Updated sortBy type    
 export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }) => {    
   const [dishes, setDishes] = useState<DishWithDetails[]>([]);    
   const [isLoading, setIsLoading] = useState(true);    
   const [error, setError] = useState<string | null>(null);    
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
 
   // Get current user on mount    
   useEffect(() => {    
@@ -119,6 +129,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     };    
     getCurrentUser();    
   }, []);
+
 
   useEffect(() => {    
     const fetchDishes = async () => {    
@@ -136,6 +147,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         let dbOrderByColumn: 'name' | 'average_rating' | 'created_at' = 'name';    
         let dbOrderAscending = true;
 
+
         if (sortBy.criterion === 'community_rating') {    
           dbOrderByColumn = 'average_rating';    
           dbOrderAscending = sortBy.direction === 'asc';    
@@ -146,6 +158,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           dbOrderByColumn = 'name';    
           dbOrderAscending = sortBy.direction === 'asc';    
         }
+
 
         const { data, error: fetchError } = await supabase    
           .from('restaurant_dishes')    
@@ -197,23 +210,16 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           .order('created_at', { foreignTable: 'dish_ratings', ascending: false }) // Still sort ratings by creation date for fetching purposes    
           .order('created_at', { foreignTable: 'dish_photos', ascending: false }); // Sort photos by newest first
 
+
         if (fetchError) throw fetchError;    
            
         const dishesWithDetails = data?.map(d => {    
           const ratings = (d.dish_ratings as DishRating[]) || [];    
           const actualTotalRatings = ratings.length;    
           const actualAverageRating = actualTotalRatings > 0    
-            ? ratings.reduce((sum, r) => sum + r.rating, 0) / actualTotalRatings    
+            ? ratings.reduce((sum: number, r: DishRating) => sum + r.rating, 0) / actualTotalRatings    
             : 0;
 
-          // Debug logging for initial fetch    
-          if (ratings.length > 0) {    
-            console.log(`🔍 Initial fetch debug for dish "${d.name}":`);    
-            console.log('Ratings:', ratings.map(r => ({ user_id: r.user_id.substring(0,8) + '...', rating: r.rating })));    
-            console.log('Individual ratings:', ratings.map(r => r.rating));    
-            console.log('Calculated average:', actualAverageRating);    
-            console.log('Database stored average:', d.average_rating);    
-          }
 
           // Process comments to include user information    
           const commentsWithUserInfo = (d.dish_comments as any[])?.map((comment: any) => ({    
@@ -227,9 +233,10 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             commenter_email: comment.users?.email    
           })) || [];
 
+
           // Process photos to include user information and URLs    
           const photosWithInfo = (d.dish_photos as any[])?.map((photo: any) => {    
-            const { data } = supabase.storage    
+            const { data: urlData } = supabase.storage    
               .from('dish-photos')    
               .getPublicUrl(photo.storage_path);    
                
@@ -245,9 +252,10 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
               updated_at: photo.updated_at,    
               photographer_name: photo.users?.full_name || 'Anonymous User',    
               photographer_email: photo.users?.email,    
-              url: data?.publicUrl    
+              url: urlData?.publicUrl    
             };    
           }) || [];
+
 
           return {    
             ...d,    
@@ -271,88 +279,35 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }    
     };
 
+
     // MODIFIED: Update dependency array for sortBy object and currentUserId    
     fetchDishes();    
   }, [restaurantId, sortBy.criterion, sortBy.direction, currentUserId]);
 
-  // Enhanced search function with better matching    
-  const searchDishes = (searchTerm: string): DishSearchResult[] => {    
-    if (!searchTerm.trim()) return dishes.map(d => ({ ...d, similarityScore: 100 }));
 
-    const term = searchTerm.toLowerCase().trim();    
-       
-    return dishes.map(dish => {    
-      const dishName = dish.name.toLowerCase();    
-      let score = 0;    
-      let matchType: 'exact' | 'fuzzy' | 'partial' = 'fuzzy';
+  // Enhanced search function using the new dishSearch utility
+  const searchDishes = (searchTerm: string): DishSearchResult[] => {
+    if (!searchTerm.trim()) {
+      return dishes.map(dish => ({
+        ...dish,
+        similarityScore: 100,
+        isExactMatch: false,
+        matchType: 'exact' as const
+      }));
+    }
 
-      // Exact match    
-      if (dishName === term) {    
-        score = 100;    
-        matchType = 'exact';    
-      }    
-      // Exact word match    
-      else if (dishName.includes(term) || term.includes(dishName)) {    
-        score = 95;    
-        matchType = 'partial';    
-      }    
-      // Word-by-word matching    
-      else {    
-        const dishWords = dishName.split(/\s+/);    
-        const searchWords = term.split(/\s+/);    
-        let wordMatches = 0;    
-        let partialMatches = 0;
 
-        searchWords.forEach(searchWord => {    
-          if (dishWords.some(dishWord => dishWord === searchWord)) {    
-            wordMatches++;    
-          } else if (dishWords.some(dishWord =>    
-            dishWord.includes(searchWord) ||    
-            searchWord.includes(dishWord) ||    
-            // Handle common character substitutions    
-            dishWord.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e') === searchWord    
-          )) {    
-            partialMatches++;    
-          }    
-        });
-
-        if (wordMatches > 0 || partialMatches > 0) {    
-          const exactScore = (wordMatches / searchWords.length) * 80;    
-          const partialScore = (partialMatches / searchWords.length) * 60;    
-          score = Math.min(95, 40 + exactScore + partialScore);    
-        } else {    
-          // Character similarity as fallback    
-          const longer = dishName.length > term.length ? dishName : term;    
-          const shorter = dishName.length > term.length ? term : dishName;    
-          if (longer.length === 0) {    
-            score = 100;    
-          } else {    
-            let matches = 0;    
-            for (let i = 0; i < shorter.length; i++) {    
-              if (longer.includes(shorter[i])) matches++;    
-            }    
-            score = Math.max(0, (matches / longer.length) * 30);    
-          }    
-        }    
-      }
-
-      return {    
-        ...dish,    
-        similarityScore: score,    
-        isExactMatch: matchType === 'exact',    
-        matchType    
-      };    
-    })    
-    .filter(dish => dish.similarityScore > 20)    
-    .sort((a, b) => {    
-      // Prioritize exact matches    
-      if (a.isExactMatch && !b.isExactMatch) return -1;    
-      if (!a.isExactMatch && b.isExactMatch) return 1;    
-      // Then by similarity score    
-      return (b.similarityScore || 0) - (a.similarityScore || 0);    
-    });    
+    return enhancedDishSearch(dishes, searchTerm);
   };
 
+
+  // Function to find similar dishes for duplicate detection
+  const findSimilarDishesForDuplicate = (newDishName: string): DishSearchResult[] => {
+    return findSimilarDishes(dishes, newDishName, 75); // 75% similarity threshold
+  };
+
+
+  // MODIFIED: Rating is now optional
   const addDish = async (name: string, rating: number) => {    
     if (!name.trim()) return false;    
        
@@ -364,7 +319,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         return false;    
       }
 
-      // First, add the dish (let the trigger calculate the stats)    
+
+      // First, add the dish    
       const { data: dishData, error: dishError } = await supabase    
         .from('restaurant_dishes')    
         .insert([{    
@@ -373,16 +329,18 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           created_by: user.id,    
           is_active: true,    
           verified_by_restaurant: false    
-          // Don't set total_ratings/average_rating - let the trigger handle it    
         }])    
         .select()    
         .single();
 
+
       if (dishError) throw dishError;
 
+
       if (dishData) {    
-        // Only add the rating if it's not 0 (0 means no rating provided)
-        if (rating > 0) {    
+        let tempRating: DishRating | null = null;
+        // MODIFIED: Only add a rating if one was provided (rating > 0)
+        if (rating > 0) {
           const { error: ratingError } = await supabase    
             .from('dish_ratings')    
             .insert([{    
@@ -392,531 +350,442 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             }]);
 
           if (ratingError) {    
-            console.warn('Failed to create rating:', ratingError);    
+            // This is not a fatal error, the dish was still created.
+            console.warn('Failed to create initial rating:', ratingError);    
           }
-        }
 
-        // Create the new dish object with the user's rating included (if provided)    
-        const tempRating: DishRating | null = rating > 0 ? {    
-          id: 'temp-' + Date.now(),    
-          user_id: user.id,    
-          rating: rating,    
-          notes: null,    
-          date_tried: new Date().toISOString(),    
-          created_at: new Date().toISOString(),    
-          updated_at: new Date().toISOString(),    
-          dish_id: dishData.id    
-        } : null;
+          tempRating = {    
+            id: 'temp-' + Date.now(),    
+            user_id: user.id,    
+            rating: rating,    
+            notes: null,    
+            date_tried: new Date().toISOString(),    
+            created_at: new Date().toISOString(),    
+            updated_at: new Date().toISOString(),    
+            dish_id: dishData.id    
+          };
+        }
 
         const newDish: DishWithDetails = {    
           ...(dishData as RestaurantDish),    
           dish_comments: [],    
-          dish_ratings: tempRating ? [tempRating] : [],    
+          dish_ratings: tempRating ? [tempRating] : [], // Add rating only if it exists
           dish_photos: [],    
-          // Calculate from actual ratings    
           total_ratings: tempRating ? 1 : 0,    
           average_rating: tempRating ? rating : 0,    
           dateAdded: dishData.created_at    
-        };
-
-        // MODIFIED: Apply sort to include new dish, passing currentUserId    
-        const updatedDishes = sortDishesArray([...dishes, newDish], sortBy, currentUserId);    
-        setDishes(updatedDishes);    
-      }
-
-      return true;    
+        };    
+           
+        setDishes(prev => sortDishesArray([...prev, newDish], sortBy, currentUserId));    
+        return true;    
+      }    
     } catch (err: any) {    
       console.error('Error adding dish:', err);    
       setError(`Failed to add dish: ${err.message}`);    
       return false;    
     }    
+    return false;    
   };
+
 
   const deleteDish = async (dishId: string) => {    
     setError(null);    
     try {    
       const { data: { user } } = await supabase.auth.getUser();    
       if (!user) {    
-        setError('You must be logged in to delete a dish');    
-        return;    
+        setError('You must be logged in to delete dishes');    
+        return false;    
+      }    
+         
+      const dish = dishes.find(d => d.id === dishId);    
+         
+      if (dish && user && dish.created_by !== user.id) {    
+        const { data: profile } = await supabase    
+          .from('users')    
+          .select('is_admin')    
+          .eq('id', user.id)    
+          .single();    
+           
+        if (!profile?.is_admin) {    
+          setError('You can only delete dishes you created');    
+          return false;    
+        }    
       }
 
-      // Try to delete the dish    
-      const { error: deleteError } = await supabase    
+
+      const { error } = await supabase    
         .from('restaurant_dishes')    
         .delete()    
-        .eq('id', dishId)    
-        .eq('created_by', user.id);
-
-      if (deleteError) {    
-        if (deleteError.code === 'PGRST116') {    
-          setError('You can only delete dishes you created');    
-        } else {    
-          throw deleteError;    
-        }    
-        return;    
-      }
-
-      // Update local state    
-      setDishes(dishes.filter(d => d.id !== dishId));    
+        .eq('id', dishId);    
+         
+      if (error) throw error;    
+         
+      setDishes(prev => prev.filter(dish => dish.id !== dishId));    
+      return true;    
     } catch (err: any) {    
       console.error('Error deleting dish:', err);    
       setError(`Failed to delete dish: ${err.message}`);    
+      return false;    
     }    
   };
 
-  const updateDishRating = async (dishId: string, rating: number) => {    
-    setError(null);    
-    try {    
-      const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to rate a dish');    
-        return;    
-      }
 
-      // Debug logging for rating update    
-      console.log('📝 Updating rating:', { dishId, userId: user.id, newRating: rating });
+  const updateDishName = async (dishId: string, newName: string) => {
+    setError(null);
+    try {
+        const { error: updateError } = await supabase
+            .from('restaurant_dishes')
+            .update({ name: newName.trim(), updated_at: new Date().toISOString() })
+            .eq('id', dishId);
 
-      // Update existing rating or create new one    
-      const { data: existingRating, error: fetchError } = await supabase    
-        .from('dish_ratings')    
-        .select('*')    
-        .eq('dish_id', dishId)    
-        .eq('user_id', user.id)    
-        .single();
+        if (updateError) throw updateError;
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"    
-        throw fetchError;    
-      }
-
-      if (existingRating) {    
-        // Update existing rating    
-        const { error: updateError } = await supabase    
-          .from('dish_ratings')    
-          .update({ rating, updated_at: new Date().toISOString() })    
-          .eq('id', existingRating.id);
-
-        if (updateError) throw updateError;    
-        console.log('✅ Updated existing rating:', existingRating.id);    
-      } else {    
-        // Create new rating    
-        const { data: newRating, error: insertError } = await supabase    
-          .from('dish_ratings')    
-          .insert([{    
-            dish_id: dishId,    
-            user_id: user.id,    
-            rating: rating    
-          }])    
-          .select()    
-          .single();
-
-        if (insertError) throw insertError;    
-        console.log('✅ Created new rating:', newRating?.id);    
-      }
-
-      // Fetch updated dish data immediately    
-      const { data: updatedDish, error: dishFetchError } = await supabase    
-        .from('restaurant_dishes')    
-        .select(`    
-          *,    
-          dish_comments (    
-            id,    
-            dish_id,    
-            comment_text,    
-            created_at,    
-            updated_at,    
-            user_id,    
-            users (    
-              full_name,    
-              email    
-            )    
-          ),    
-          dish_ratings (    
-            id,    
-            user_id,    
-            rating,    
-            notes,    
-            date_tried,    
-            created_at,    
-            updated_at,    
-            dish_id    
-          ),    
-          dish_photos (    
-            id,    
-            dish_id,    
-            user_id,    
-            storage_path,    
-            caption,    
-            width,    
-            height,    
-            created_at,    
-            updated_at,    
-            users (    
-              full_name,    
-              email    
-            )    
-          )    
-        `)    
-        .eq('id', dishId)    
-        .single();
-
-      if (dishFetchError) throw dishFetchError;
-
-      if (updatedDish) {    
-        const ratings = (updatedDish.dish_ratings as DishRating[]) || [];    
-        const actualTotalRatings = ratings.length;    
-        const actualAverageRating = actualTotalRatings > 0    
-          ? ratings.reduce((sum, r) => sum + r.rating, 0) / actualTotalRatings    
-          : 0;
-
-        // Debug logging for rating update    
-        console.log(`🔍 After rating update for dish "${updatedDish.name}":`);    
-        console.log('All ratings:', ratings.map(r => ({ user_id: r.user_id.substring(0,8) + '...', rating: r.rating })));    
-        console.log('Current user rating:', ratings.find(r => r.user_id === user.id)?.rating);    
-        console.log('Calculated average:', actualAverageRating);
-
-        // Process comments and photos    
-        const commentsWithUserInfo = (updatedDish.dish_comments as any[])?.map((comment: any) => ({    
-          id: comment.id,    
-          dish_id: comment.dish_id || dishId,    
-          comment_text: comment.comment_text,    
-          created_at: comment.created_at,    
-          updated_at: comment.updated_at,    
-          user_id: comment.user_id,    
-          commenter_name: comment.users?.full_name || 'Anonymous User',    
-          commenter_email: comment.users?.email    
-        })) || [];
-
-        const photosWithInfo = (updatedDish.dish_photos as any[])?.map((photo: any) => {    
-          const { data } = supabase.storage    
-            .from('dish-photos')    
-            .getPublicUrl(photo.storage_path);    
-               
-          return {    
-            id: photo.id,    
-            dish_id: photo.dish_id || dishId,    
-            user_id: photo.user_id,    
-            storage_path: photo.storage_path,    
-            caption: photo.caption,    
-            width: photo.width,    
-            height: photo.height,    
-            created_at: photo.created_at,    
-            updated_at: photo.updated_at,    
-            photographer_name: photo.users?.full_name || 'Anonymous User',    
-            photographer_email: photo.users?.email,    
-            url: data?.publicUrl    
-          };    
-        }) || [];
-
-        const updatedDishWithDetails: DishWithDetails = {    
-          ...updatedDish,    
-          dish_comments: commentsWithUserInfo,    
-          dish_ratings: ratings,    
-          dish_photos: photosWithInfo,    
-          total_ratings: actualTotalRatings,    
-          average_rating: Math.round(actualAverageRating * 10) / 10,    
-          dateAdded: updatedDish.created_at    
-        };
-
-        // MODIFIED: Update and re-sort dishes, passing currentUserId    
-        const newDishes = dishes.map(d =>    
-          d.id === dishId ? updatedDishWithDetails : d    
-        );    
-        setDishes(sortDishesArray(newDishes, sortBy, currentUserId));    
-      }    
-    } catch (err: any) {    
-      console.error('Error updating rating:', err);    
-      setError(`Failed to update rating: ${err.message}`);    
-    }    
-  };
-
-  const updateDishName = async (dishId: string, newName: string) => {    
-    if (!newName.trim()) return;    
-       
-    setError(null);    
-    try {    
-      const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to update a dish');    
-        return;    
-      }
-
-      const { error: updateError } = await supabase    
-        .from('restaurant_dishes')    
-        .update({ name: newName.trim() })    
-        .eq('id', dishId)    
-        .eq('created_by', user.id);
-
-      if (updateError) {    
-        if (updateError.code === 'PGRST116') {    
-          setError('You can only edit dishes you created');    
-        } else {    
-          throw updateError;    
-        }    
-        return;    
-      }
-
-      // Update local state    
-      setDishes(dishes.map(dish =>    
-        dish.id === dishId ? { ...dish, name: newName.trim() } : dish    
-      ));    
-    } catch (err: any) {    
-      console.error('Error updating dish name:', err);    
-      setError(`Failed to update dish name: ${err.message}`);    
-    }    
-  };
-
-  const addComment = async (dishId: string, text: string) => {    
-    if (!text.trim()) return;    
-    setError(null);    
-       
-    try {    
-      const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to add a comment');    
-        return;    
-      }
-
-      const { error } = await supabase    
-        .from('dish_comments')    
-        .insert([{    
-          dish_id: dishId,    
-          user_id: user.id,    
-          comment_text: text.trim()    
-        }]);
-
-      if (error) throw error;    
-    } catch (err: any) {    
-      console.error('Error adding comment:', err);    
-      setError(`Failed to add comment: ${err.message}`);    
-    }    
-  };
-
-  const updateComment = async (commentId: string, dishId: string, newText: string) => {    
-    if (!newText.trim()) return;    
-    setError(null);    
-       
-    try {    
-      const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to update a comment');    
-        return;    
-      }
-
-      const { error } = await supabase    
-        .from('dish_comments')    
-        .update({ comment_text: newText.trim() })    
-        .eq('id', commentId)    
-        .eq('dish_id', dishId)    
-        .eq('user_id', user.id);
-
-      if (error) throw error;    
-    } catch (err: any) {    
-      console.error('Error updating comment:', err);    
-      setError(`Failed to update comment: ${err.message}`);    
-    }    
-  };
-
-  const deleteComment = async (dishId: string, commentId: string) => {    
-    setError(null);    
-       
-    try {    
-      const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to delete a comment');    
-        return;    
-      }
-
-      const { error } = await supabase    
-        .from('dish_comments')    
-        .delete()    
-        .eq('id', commentId)    
-        .eq('dish_id', dishId)    
-        .eq('user_id', user.id);
-
-      if (error) throw error;    
-    } catch (err: any) {    
-      console.error('Error deleting comment:', err);    
-      setError(`Failed to delete comment: ${err.message}`);    
-    }    
-  };
-
-  // Utility function to calculate string similarity (Levenshtein distance based)
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const s1 = str1.toLowerCase().trim();
-    const s2 = str2.toLowerCase().trim();
-    
-    // Exact match
-    if (s1 === s2) return 100;
-    
-    // Check if one string contains the other
-    if (s1.includes(s2) || s2.includes(s1)) {
-      const longerLength = Math.max(s1.length, s2.length);
-      const shorterLength = Math.min(s1.length, s2.length);
-      return (shorterLength / longerLength) * 90; // Up to 90% for contains
+        setDishes(prev => {
+            const updatedDishes = prev.map(dish => {
+                if (dish.id === dishId) {
+                    return { ...dish, name: newName.trim() };
+                }
+                return dish;
+            });
+            // Re-sort the array to maintain order
+            return sortDishesArray(updatedDishes, sortBy, currentUserId);
+        });
+        return true;
+    } catch (err: any) {
+        console.error('Error updating dish name:', err);
+        setError(`Failed to update dish name: ${err.message}`);
+        return false;
     }
-    
-    // Levenshtein distance calculation
-    const matrix: number[][] = [];
-    
-    for (let i = 0; i <= s2.length; i++) {
-      matrix[i] = [i];
+  };
+
+
+  // MODIFIED: Implemented optimistic updates for instant UI feedback.
+  const updateDishRating = async (dishId: string, rating: number, notes?: string, dateTried?: string) => {    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError('User not authenticated');
+      return;
     }
-    
-    for (let j = 0; j <= s1.length; j++) {
-      matrix[0][j] = j;
-    }
-    
-    for (let i = 1; i <= s2.length; i++) {
-      for (let j = 1; j <= s1.length; j++) {
-        if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substitution
-            matrix[i][j - 1] + 1,     // insertion
-            matrix[i - 1][j] + 1      // deletion
-          );
+
+    const originalDishes = [...dishes];
+
+    // Optimistically update the UI
+    setDishes(prevDishes => prevDishes.map(dish => {
+      if (dish.id === dishId) {
+        let updatedRatings: DishRating[];
+
+        if (rating === 0) { // Deleting the rating
+          updatedRatings = dish.dish_ratings.filter(r => r.user_id !== user.id);
+        } else { // Adding or updating the rating
+          const otherUserRatings = dish.dish_ratings.filter(r => r.user_id !== user.id);
+          const newOrUpdatedRating: DishRating = {
+            id: `temp-${Date.now()}`,
+            user_id: user.id,
+            rating,
+            notes: notes || null,
+            date_tried: dateTried || new Date().toISOString().split('T')[0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            dish_id: dishId,
+          };
+          updatedRatings = [...otherUserRatings, newOrUpdatedRating];
         }
-      }
-    }
-    
-    const distance = matrix[s2.length][s1.length];
-    const maxLength = Math.max(s1.length, s2.length);
-    return Math.max(0, (1 - distance / maxLength) * 100);
-  };
-
-  // Check for similar dishes with a specific threshold
-  const checkForSimilarDishes = (dishName: string, threshold: number = 80): DishSearchResult[] => {
-    const trimmedName = dishName.trim();
-    if (!trimmedName) return [];
-
-    return dishes
-      .map(dish => {
-        const similarityScore = calculateSimilarity(dish.name, trimmedName);
+        
+        const total_ratings = updatedRatings.length;
+        const average_rating = total_ratings > 0 ? updatedRatings.reduce((sum, r) => sum + r.rating, 0) / total_ratings : 0;
+        
         return {
           ...dish,
-          similarityScore,
-          isExactMatch: similarityScore === 100,
-          matchType: similarityScore === 100 ? 'exact' : similarityScore > 90 ? 'partial' : 'fuzzy'
-        } as DishSearchResult;
-      })
-      .filter(dish => dish.similarityScore >= threshold)
-      .sort((a, b) => (b.similarityScore || 0) - (a.similarityScore || 0));
+          dish_ratings: updatedRatings,
+          total_ratings,
+          average_rating: Math.round(average_rating * 10) / 10,
+        };
+      }
+      return dish;
+    }));
+
+    // Perform the database operation
+    try {    
+      if (rating === 0) {
+        const { error: deleteError } = await supabase
+          .from('dish_ratings')
+          .delete()
+          .eq('dish_id', dishId)
+          .eq('user_id', user.id);
+        if (deleteError) throw deleteError;
+      } else {
+        const { error: upsertError } = await supabase
+          .from('dish_ratings')
+          .upsert({
+              dish_id: dishId,
+              user_id: user.id,
+              rating,
+              notes: notes || null,
+              date_tried: dateTried || new Date().toISOString().split('T')[0],
+            }, {
+              onConflict: 'dish_id,user_id',
+            });
+        if (upsertError) throw upsertError;
+      }
+    } catch (err) {    
+      console.error("Error updating dish rating:", err);
+      setError(err instanceof Error ? err.message : 'Failed to update dish rating');
+      // Revert to original state on failure
+      setDishes(originalDishes);
+    }    
   };
 
-  const addPhoto = async (dishId: string, file: File, caption?: string) => {    
-    setError(null);    
-       
+
+  const addComment = async (dishId: string, commentText: string) => {    
     try {    
       const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to add a photo');    
-        return;    
-      }
-
-      // Upload file to storage    
-      const fileExt = file.name.split('.').pop();    
-      const fileName = `${user.id}_${dishId}_${Date.now()}.${fileExt}`;    
-      const filePath = `dish-photos/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage    
-        .from('dish-photos')    
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get image dimensions    
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {    
-        const img = new Image();    
-        img.onload = () => resolve({ width: img.width, height: img.height });    
-        img.src = URL.createObjectURL(file);    
-      });
-
-      // Create photo record    
-      const { error: dbError } = await supabase    
-        .from('dish_photos')    
-        .insert([{    
+      if (!user) throw new Error('User not authenticated');    
+      const { data, error } = await supabase    
+        .from('dish_comments')    
+        .insert({    
           dish_id: dishId,    
           user_id: user.id,    
-          storage_path: filePath,    
-          caption: caption?.trim() || null,    
-          width: dimensions.width,    
-          height: dimensions.height    
-        }]);
-
-      if (dbError) {    
-        // Try to clean up the uploaded file    
-        await supabase.storage.from('dish-photos').remove([filePath]);    
-        throw dbError;    
-      }    
-    } catch (err: any) {    
-      console.error('Error adding photo:', err);    
-      setError(`Failed to add photo: ${err.message}`);    
+          comment_text: commentText    
+        })    
+        .select(`    
+          *,    
+          users (    
+            full_name,    
+            email    
+          )    
+        `)    
+        .single();    
+      if (error) throw error;    
+      // Update local state    
+      const newComment = {    
+        ...data,    
+        commenter_name: data.users?.full_name || 'Unknown User',    
+        commenter_email: data.users?.email || ''    
+      };    
+      setDishes(prevDishes => {    
+        return prevDishes.map(dish => {    
+          if (dish.id === dishId) {    
+            return {    
+              ...dish,    
+              dish_comments: [...dish.dish_comments, newComment]    
+            };    
+          }    
+          return dish;    
+        });    
+      });    
+    } catch (err) {    
+      throw err instanceof Error ? err : new Error('Failed to add comment');    
     }    
   };
 
-  const deletePhoto = async (dishId: string, photoId: string) => {    
-    setError(null);    
-       
+
+  const deleteComment = async (commentId: string) => {    
     try {    
       const { data: { user } } = await supabase.auth.getUser();    
-      if (!user) {    
-        setError('You must be logged in to delete a photo');    
-        return;    
-      }
-
-      // Get photo details before deleting    
-      const { data: photo, error: fetchError } = await supabase    
-        .from('dish_photos')    
-        .select('storage_path')    
-        .eq('id', photoId)    
-        .eq('user_id', user.id)    
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Delete from database    
-      const { error: deleteError } = await supabase    
-        .from('dish_photos')    
-        .delete()    
-        .eq('id', photoId)    
-        .eq('user_id', user.id);
-
-      if (deleteError) throw deleteError;
-
-      // Delete from storage    
-      if (photo?.storage_path) {    
-        const { error: storageError } = await supabase.storage    
-          .from('dish-photos')    
-          .remove([photo.storage_path]);
-
-        if (storageError) {    
-          console.error('Error deleting photo from storage:', storageError);    
-        }    
+      if (!user) throw new Error('User not authenticated');    
+      // First, check if the user is the creator of the comment    
+      const allComments = dishes.flatMap(dish => dish.dish_comments);    
+      const comment = allComments.find(c => c.id === commentId);    
+      if (!comment) throw new Error('Comment not found');    
+      if (comment.user_id !== user.id) {    
+        throw new Error('You can only delete your own comments');    
       }    
-    } catch (err: any) {    
-      console.error('Error deleting photo:', err);    
-      setError(`Failed to delete photo: ${err.message}`);    
+      const { error } = await supabase    
+        .from('dish_comments')    
+        .delete()    
+        .eq('id', commentId);    
+      if (error) throw error;    
+      // Update local state    
+      setDishes(prevDishes => {    
+        return prevDishes.map(dish => ({    
+          ...dish,    
+          dish_comments: dish.dish_comments.filter(c => c.id !== commentId)    
+        }));    
+      });    
+    } catch (err) {    
+      throw err instanceof Error ? err : new Error('Failed to delete comment');    
     }    
   };
+
+
+  const updateComment = async (commentId: string, commentText: string) => {    
+    try {    
+      const { data: { user } } = await supabase.auth.getUser();    
+      if (!user) throw new Error('User not authenticated');    
+      // First, check if the user is the creator of the comment    
+      const allComments = dishes.flatMap(dish => dish.dish_comments);    
+      const comment = allComments.find(c => c.id === commentId);    
+      if (!comment) throw new Error('Comment not found');    
+      if (comment.user_id !== user.id) {    
+        throw new Error('You can only edit your own comments');    
+      }    
+      const { error } = await supabase    
+        .from('dish_comments')    
+        .update({ comment_text: commentText })    
+        .eq('id', commentId);    
+      if (error) throw error;    
+      // Update local state    
+      setDishes(prevDishes => {    
+        return prevDishes.map(dish => ({    
+          ...dish,    
+          dish_comments: dish.dish_comments.map(c =>    
+            c.id === commentId ? { ...c, comment_text: commentText } : c    
+          )    
+        }));    
+      });    
+    } catch (err) {    
+      throw err instanceof Error ? err : new Error('Failed to update comment');    
+    }    
+  };
+
+
+  const addPhoto = async (dishId: string, file: File, caption?: string) => {    
+    try {    
+      const { data: { user } } = await supabase.auth.getUser();    
+      if (!user) throw new Error('User not authenticated');    
+      // Resize image before upload    
+      const resizedFile = await resizeImage(file, 800, 800);    
+      // Generate unique filename    
+      const timestamp = Date.now();    
+      const randomId = Math.random().toString(36).substring(2, 15);    
+      const fileExtension = file.name.split('.').pop();    
+      const filename = `${dishId}/${timestamp}_${randomId}.${fileExtension}`;    
+      // Upload to Supabase storage    
+      const { error: uploadError } = await supabase.storage    
+        .from('dish-photos')    
+        .upload(filename, resizedFile);    
+      if (uploadError) throw uploadError;    
+      // Save photo record to database    
+      const { data, error: dbError } = await supabase    
+        .from('dish_photos')    
+        .insert({    
+          dish_id: dishId,    
+          user_id: user.id,    
+          storage_path: filename,    
+          caption: caption || null,    
+          width: 800,    
+          height: 800    
+        })    
+        .select(`    
+          *,    
+          users (    
+            full_name,    
+            email    
+          )    
+        `)    
+        .single();    
+      if (dbError) throw dbError;    
+      // Update local state    
+      const baseUrl = supabase.storage.from('dish-photos').getPublicUrl('').data.publicUrl;    
+      const newPhoto = {    
+        ...data,    
+        photographer_name: data.users?.full_name || 'Unknown User',    
+        photographer_email: data.users?.email || '',    
+        url: `${baseUrl}${filename}`    
+      };    
+      setDishes(prevDishes => {    
+        return prevDishes.map(dish => {    
+          if (dish.id === dishId) {    
+            return {    
+              ...dish,    
+              dish_photos: [newPhoto, ...dish.dish_photos]    
+            };    
+          }    
+          return dish;    
+        });    
+      });    
+    } catch (err) {    
+      throw err instanceof Error ? err : new Error('Failed to upload photo');    
+    }    
+  };
+
+
+  const deletePhoto = async (photoId: string) => {    
+    try {    
+      const { data: { user } } = await supabase.auth.getUser();    
+      if (!user) throw new Error('User not authenticated');    
+      // Find the photo to get its storage path and check ownership    
+      const allPhotos = dishes.flatMap(dish => dish.dish_photos);    
+      const photo = allPhotos.find(p => p.id === photoId);    
+      if (!photo) throw new Error('Photo not found');    
+      if (photo.user_id !== user.id) {    
+        throw new Error('You can only delete your own photos');    
+      }    
+      // Delete from storage    
+      const { error: storageError } = await supabase.storage    
+        .from('dish-photos')    
+        .remove([photo.storage_path]);    
+      if (storageError) throw storageError;    
+      // Delete from database    
+      const { error: dbError } = await supabase    
+        .from('dish_photos')    
+        .delete()    
+        .eq('id', photoId);    
+      if (dbError) throw dbError;    
+      // Update local state    
+      setDishes(prevDishes => {    
+        return prevDishes.map(dish => ({    
+          ...dish,    
+          dish_photos: dish.dish_photos.filter(p => p.id !== photoId)    
+        }));    
+      });    
+    } catch (err) {    
+      throw err instanceof Error ? err : new Error('Failed to delete photo');    
+    }    
+  };
+
+
+  const refetch = async () => {    
+    if (!restaurantId) return;    
+    setIsLoading(true);    
+    // This will trigger the useEffect to refetch    
+    const { data: { user } } = await supabase.auth.getUser();    
+    setCurrentUserId(user?.id || null);    
+  };
+
 
   return {    
     dishes,    
     isLoading,    
     error,    
-    currentUserId,    
-    setError,    
+    setError,
     addDish,    
     deleteDish,    
-    updateDishRating,    
-    updateDishName,    
-    searchDishes,    
-    checkForSimilarDishes,
+    updateDishRating,
+    updateDishName,
     addComment,    
-    updateComment,    
     deleteComment,    
-    addPhoto,    
-    deletePhoto    
+    updateComment,    
+    addPhoto,
+    deletePhoto,    
+    refetch,    
+    searchDishes, // Enhanced search function
+    findSimilarDishesForDuplicate, // New duplicate detection function
+    currentUserId    
   };    
+};
+
+
+// Helper function to resize images    
+const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {    
+  return new Promise((resolve) => {    
+    const canvas = document.createElement('canvas');    
+    const ctx = canvas.getContext('2d')!;    
+    const img = new Image();    
+    img.onload = () => {    
+      const { width, height } = img;    
+      const scale = Math.min(maxWidth / width, maxHeight / height);    
+      canvas.width = width * scale;    
+      canvas.height = height * scale;    
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);    
+      canvas.toBlob((blob) => {    
+        const resizedFile = new File([blob!], file.name, {    
+          type: file.type,    
+          lastModified: Date.now()    
+        });    
+        resolve(resizedFile);    
+      }, file.type, 0.8);    
+    };    
+    img.src = URL.createObjectURL(file);    
+  });    
 };

@@ -10,6 +10,8 @@ import PhotoModal from './PhotoModal';
 import PhotoUpload from './PhotoUpload';
 
 
+
+
 interface DishCardProps {    
   dish: DishWithDetails | null;    
   currentUserId: string | null;    
@@ -26,6 +28,8 @@ interface DishCardProps {
   isExpanded: boolean;    
   onToggleExpand: () => void;    
 }
+
+
 
 
 const StarRating: React.FC<{    
@@ -47,9 +51,9 @@ const StarRating: React.FC<{
     community: { filled: COLORS.ratingGold, empty: COLORS.ratingEmpty }    
   };
 
+
   return (    
-    // MODIFIED: Changed items-center back to items-start. The trash button will be moved up separately.
-    <div className="flex items-start gap-1">    
+    <div className="flex items-center gap-3"> {/* MODIFIED: Increased gap from 2 to 3 to add more space */}
       <div className="flex gap-0.5">    
         {[1, 2, 3, 4, 5].map((star) => (    
           <button    
@@ -71,22 +75,34 @@ const StarRating: React.FC<{
           </button>    
         ))}    
       </div>    
+      {/* MODIFIED: Replaced trash icon with a styled "Reset" button */}
       {!readonly && showClearButton && rating > 0 && (    
         <button    
           onClick={(e) => { e.stopPropagation(); onRatingChange?.(0); }}    
-          // MODIFIED: Added marginTop: '-10px' to shift the trash button up, aligning its middle with the stars.
-          style={{ ...STYLES.deleteButton, marginTop: '-10px' }}    
+          style={{
+            ...FONTS.elegant,
+            padding: `${SPACING[1]} ${SPACING[2]}`,
+            fontSize: TYPOGRAPHY.xs.fontSize,
+            color: 'white',
+            backgroundColor: COLORS.danger,
+            border: 'none',
+            borderRadius: STYLES.borderRadiusMedium,
+            cursor: 'pointer',
+            transition: 'opacity 0.2s ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           aria-label="Clear rating"    
           title="Clear rating"    
         >    
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">    
-            <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />    
-          </svg>    
+          Reset
         </button>    
       )}    
     </div>    
   );    
 };
+
+
 
 
 const RatingSummary: React.FC<{    
@@ -126,6 +142,8 @@ const RatingSummary: React.FC<{
     </div>    
   </div>    
 );
+
+
 
 
 const RatingBreakdown: React.FC<{    
@@ -184,6 +202,8 @@ const RatingBreakdown: React.FC<{
       </div>    
 
 
+
+
       {/* Personal Rating Section (Your Rating) */}    
       {/* MODIFIED: Set minWidth to 0 to allow shrinking */}
       <div style={{ flex: 1, minWidth: 0 }}>    
@@ -205,20 +225,13 @@ const RatingBreakdown: React.FC<{
             size="md"    
             showClearButton={true}    
           />    
-          {!personalRating && (    
-            <span style={{    
-              ...FONTS.body,    
-              fontSize: TYPOGRAPHY.xs.fontSize,    
-              color: COLORS.gray400    
-            }}>    
-              Tap to rate    
-            </span>    
-          )}    
         </div>    
       </div>    
     </div>    
   </div>    
 );
+
+
 
 
 const DishHeader: React.FC<{    
@@ -249,13 +262,19 @@ const DishHeader: React.FC<{
   const [editedName, setEditedName] = useState(name);
 
 
+
+
   useEffect(() => {    
     setEditedName(name);    
   }, [name]);
 
 
+
+
   // Check if current user can delete this dish  
   const canDelete = currentUserId && createdBy === currentUserId;
+
+
 
 
   return (    
@@ -360,6 +379,8 @@ const DishHeader: React.FC<{
 };
 
 
+
+
 const CommentsSection: React.FC<{    
   // MODIFIED: comments type changed to DishComment[]    
   comments: DishComment[];    
@@ -390,6 +411,8 @@ const CommentsSection: React.FC<{
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
 
+
+
   useEffect(() => {    
     const handleClickOutside = (event: MouseEvent) => {    
       if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {    
@@ -407,7 +430,11 @@ const CommentsSection: React.FC<{
   }, [openActionMenuCommentId]);
 
 
+
+
   if (comments.length === 0) return null;
+
+
 
 
   return (    
@@ -445,6 +472,8 @@ const CommentsSection: React.FC<{
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>    
         </svg>    
       </button>
+
+
 
 
       {showComments && (    
@@ -613,11 +642,15 @@ const CommentsSection: React.FC<{
 };
 
 
+
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {    
   if (!userId) return null;    
   const userRating = dishRatings.find(rating => rating.user_id === userId);    
   return userRating ? userRating.rating : null;    
 };
+
+
 
 
 // Portal Modal Component    
@@ -631,6 +664,8 @@ const PortalModal: React.FC<{
   if (!isOpen || !modalRoot) {    
     return null;    
   }
+
+
 
 
   return ReactDOM.createPortal(    
@@ -653,6 +688,8 @@ const PortalModal: React.FC<{
 };
 
 
+
+
 const DishCard: React.FC<DishCardProps> = ({    
   dish,    
   currentUserId,    
@@ -673,6 +710,8 @@ const DishCard: React.FC<DishCardProps> = ({
   }
 
 
+
+
   const [showComments, setShowComments] = useState(false);    
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);    
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);    
@@ -682,9 +721,14 @@ const DishCard: React.FC<DishCardProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);    
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);    
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+
+
 
 
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
+
+
 
 
   const handleDeleteDish = () => {    
@@ -694,6 +738,8 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+
+
   const handleAddCommentInternal = async (text: string) => {    
     await onAddComment(dish.id, text);    
     setShowCommentModal(false);    
@@ -701,10 +747,14 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+
+
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {    
     await onUpdateComment(commentId, dish.id, text);    
     setEditingComment(null);    
   };
+
+
 
 
   const handleDeleteCommentInternal = async (commentId: string) => {    
@@ -714,9 +764,13 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+
+
   const handleDirectPhotoUpload = () => {    
     fileInputRef.current?.click();    
   };
+
+
 
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {    
@@ -728,6 +782,8 @@ const DishCard: React.FC<DishCardProps> = ({
       }
 
 
+
+
       // UPDATED: Changed from 5MB to 10MB limit    
       if (file.size > 10 * 1024 * 1024) {    
         alert('File size must be less than 10MB');    
@@ -735,10 +791,14 @@ const DishCard: React.FC<DishCardProps> = ({
       }
 
 
+
+
       setSelectedFileForUpload(file);    
       setShowPhotoUpload(true);    
     }    
   };
+
+
 
 
   const handlePhotoUpload = async (file: File, caption?: string) => {    
@@ -758,12 +818,16 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+
+
   const handleDeletePhoto = async (photoId: string) => {    
     await onDeletePhoto(dish.id, photoId);    
     if (dish.dish_photos.length <= 1) {    
       setSelectedPhotoModal(null);    
     }    
   };
+
+
 
 
   const handleEditName = async (newName: string) => {    
@@ -776,6 +840,8 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+
+
   // Collapsed view - Progressive Disclosure    
   if (!isExpanded) {    
     return (    
@@ -783,17 +849,13 @@ const DishCard: React.FC<DishCardProps> = ({
         style={{    
           ...STYLES.card,    
           cursor: 'pointer',    
-          transition: 'all 0.3s ease'    
+          transition: 'all 0.3s ease',
+          borderColor: isHovering ? COLORS.primary : COLORS.gray200,
+          boxShadow: isHovering ? STYLES.shadowMedium : STYLES.shadowSmall,
         }}    
         onClick={onToggleExpand}    
-        onMouseEnter={(e) => {    
-          e.currentTarget.style.borderColor = COLORS.primary;    
-          e.currentTarget.style.boxShadow = STYLES.shadowMedium;    
-        }}    
-        onMouseLeave={(e) => {    
-          e.currentTarget.style.borderColor = COLORS.gray200;    
-          e.currentTarget.style.boxShadow = 'none';    
-        }}    
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >    
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>    
           <div style={{ flex: 1, minWidth: 0 }}>    
@@ -850,6 +912,8 @@ const DishCard: React.FC<DishCardProps> = ({
   }
 
 
+
+
   // Expanded view    
   return (    
     <>    
@@ -876,12 +940,16 @@ const DishCard: React.FC<DishCardProps> = ({
         />
 
 
+
+
         <RatingBreakdown    
           personalRating={personalRating}    
           communityAverage={dish.average_rating}    
           totalRatings={dish.total_ratings}    
           onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}    
         />
+
+
 
 
         {/* Hidden file input (stays with photo button logic) */}    
@@ -892,6 +960,8 @@ const DishCard: React.FC<DishCardProps> = ({
           onChange={handleFileSelect}    
           style={{ display: 'none' }}    
         />
+
+
 
 
         {/* Photo Carousel */}    
@@ -908,6 +978,8 @@ const DishCard: React.FC<DishCardProps> = ({
         )}
 
 
+
+
         {/* Add Photo Button (Moved below carousel as per request) */}    
         <div style={{ marginTop: SPACING[4] }}>    
           <button    
@@ -919,6 +991,8 @@ const DishCard: React.FC<DishCardProps> = ({
         </div>
 
 
+
+
         {/* Add Comment Button */}    
         <div style={{ marginTop: SPACING[4] }}>    
           <button    
@@ -928,6 +1002,8 @@ const DishCard: React.FC<DishCardProps> = ({
             Add Comment    
           </button>    
         </div>
+
+
 
 
         {/* Comments Section */}    
@@ -944,6 +1020,8 @@ const DishCard: React.FC<DishCardProps> = ({
           isSubmittingComment={isSubmittingComment}    
         />    
       </div>
+
+
 
 
       {/* Comment Modal */}    
@@ -965,6 +1043,8 @@ const DishCard: React.FC<DishCardProps> = ({
           isLoading={isSubmittingComment}    
         />    
       </PortalModal>
+
+
 
 
       {/* Photo Upload Modal */}    
@@ -995,6 +1075,8 @@ const DishCard: React.FC<DishCardProps> = ({
       </PortalModal>
 
 
+
+
       {/* Photo Modal */}    
       {selectedPhotoModal && (    
         <PhotoModal    
@@ -1010,6 +1092,8 @@ const DishCard: React.FC<DishCardProps> = ({
     </>    
   );    
 };
+
+
 
 
 export default DishCard;
