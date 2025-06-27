@@ -1,5 +1,5 @@
 // src/MenuScreen.tsx - Original UI with Enhanced Search Logic Only
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
@@ -8,6 +8,10 @@ import BottomNavigation from './components/navigation/BottomNavigation';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
+
+
+
+
 
 
 
@@ -23,6 +27,10 @@ interface MenuScreenProps {
 
 
 
+
+
+
+
 // NEW: Consolidated component replacing DishSearchSection and AddDishPrompt
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
@@ -31,6 +39,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
   onShowAddForm: () => void;
 }> = ({ searchTerm, onSearchChange, onReset, onShowAddForm }) => {
   const hasTyped = searchTerm.length > 0;
+
 
   return (
     <div style={{ marginBottom: SPACING[4] }}>
@@ -72,7 +81,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
             </button>
           )}
         </div>
-        
+       
         <input
           type="text"
           value={searchTerm}
@@ -84,7 +93,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
           }}
           autoFocus
         />
-        
+       
         {hasTyped && (
           <div style={{ marginTop: SPACING[2], textAlign: 'center', paddingTop: SPACING[2] }}>
             <p style={{
@@ -115,6 +124,10 @@ const ConsolidatedSearchAndAdd: React.FC<{
 
 
 
+
+
+
+
 // ORIGINAL Add Dish Form with enhanced design        
 const EnhancedAddDishForm: React.FC<{        
   initialDishName?: string;        
@@ -128,6 +141,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
   const handleSubmit = async () => {        
     if (dishName.trim() && !isSubmitting) {        
       setIsSubmitting(true);        
@@ -137,6 +154,10 @@ const EnhancedAddDishForm: React.FC<{
       setIsSubmitting(false);        
     }        
   };
+
+
+
+
 
 
 
@@ -161,6 +182,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
       <div style={{ marginBottom: SPACING[5] }}>        
         <label style={{        
           ...FONTS.body,        
@@ -181,6 +206,10 @@ const EnhancedAddDishForm: React.FC<{
           disabled={isSubmitting}        
         />        
       </div>
+
+
+
+
 
 
 
@@ -241,6 +270,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
       <div style={{ display: 'flex', gap: SPACING[3] }}>        
         <button        
           onClick={handleSubmit}        
@@ -284,6 +317,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
 const MenuScreen: React.FC<MenuScreenProps> = ({        
   restaurantId,        
   onNavigateBack,        
@@ -296,6 +333,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);        
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);        
   const [allExpanded, setAllExpanded] = useState(false);
+  const [justAddedDishId, setJustAddedDishId] = useState<string | null>(null);
+
+
+
+
 
 
 
@@ -322,6 +364,33 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+  // This effect handles scrolling to a newly added dish.
+  // It runs when `justAddedDishId` is set, which happens only after a successful add.
+  useEffect(() => {
+    if (justAddedDishId) {
+      // The DOM update might not be immediate, so we use a short timeout
+      // to give React time to render the new dish card.
+      const scrollTimer = setTimeout(() => {
+        const element = document.getElementById(`dish-card-${justAddedDishId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        // Reset the trigger so this doesn't run again on subsequent renders.
+        setJustAddedDishId(null);
+      }, 150); // A small delay like 150ms should be sufficient.
+
+
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [justAddedDishId]);
+
+
+
+
+
+
+
+
   // ENHANCED: Use the new searchDishes function with fuzzy matching and synonyms
   const searchResults = useMemo(() => {        
     return searchDishes(searchTerm);        
@@ -330,7 +399,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const hasDishes = dishes.length > 0;
+
+
+
+
 
 
 
@@ -345,10 +422,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleResetSearch = () => {        
     setSearchTerm('');        
     setShowAddForm(false);        
   };
+
+
+
+
 
 
 
@@ -360,13 +445,24 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleAddDish = async (name: string, rating: number) => {        
-    const success = await addDish(name, rating);        
-    if (success) {        
+    const newDish = await addDish(name, rating);        
+    if (newDish) {        
       setShowAddForm(false);        
       setSearchTerm('');        
+      // Expand the new card and trigger the scroll effect.
+      setExpandedDishId(newDish.id);
+      setJustAddedDishId(newDish.id);
     }        
   };
+
+
+
+
 
 
 
@@ -386,6 +482,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {        
     try {        
       await updateComment(commentId, newText);        
@@ -397,6 +497,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }        
     }        
   };
+
+
+
+
 
 
 
@@ -416,6 +520,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {        
     try {        
       await addPhoto(dishId, file, caption);        
@@ -427,6 +535,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }        
     }        
   };
+
+
+
+
 
 
 
@@ -446,6 +558,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleToggleAllExpanded = () => {        
     if (allExpanded) {        
       setAllExpanded(false);        
@@ -454,6 +570,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setAllExpanded(true);        
     }        
   };
+
+
+
+
 
 
 
@@ -470,9 +590,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;        
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;        
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
+
+
+
 
 
 
@@ -543,7 +671,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </button>        
             {/* Sort button */}        
             <button        
-              onClick={() => setShowAdvancedSort(!showAdvancedSort)}        
+              onClick={() => {
+                setShowAdvancedSort(!showAdvancedSort);
+                // MODIFIED: Scroll to top to ensure sort options are visible.
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}        
               style={{        
                 ...STYLES.iconButton,        
                 backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white,        
@@ -559,6 +691,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           </div>        
         </div>        
       </header>
+
+
+
+
 
 
 
@@ -590,6 +726,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>        
             </div>        
           )}
+
+
+
+
 
 
 
@@ -654,6 +794,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
           {/* MODIFIED: Use the new consolidated search component */}
           {!showAddForm && hasDishes && (
             <ConsolidatedSearchAndAdd
@@ -663,6 +807,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               onShowAddForm={handleShowAddForm}
             />
           )}
+
+
+
+
 
 
 
@@ -724,6 +872,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   </div>
                 )
               )}
+
 
               {/* FULL LIST (No search) */}
               {searchTerm.length === 0 && (
@@ -807,6 +956,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       {/* Bottom Navigation */}        
       <BottomNavigation        
         activeScreenValue={currentAppScreen}        
@@ -815,6 +968,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     </div>        
   );        
 };
+
+
+
+
 
 
 

@@ -8,11 +8,15 @@ import { COLORS, FONTS, SPACING, STYLES } from './constants';
 import { useRestaurants } from './hooks/useRestaurants';
 
 
+
+
 interface RestaurantScreenProps {        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
+
 
 
 // Device and browser detection utilities
@@ -58,6 +62,8 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
+
 
 
 // NEW: Enhanced Location Permission Banner Component with OS/Browser Detection    
@@ -122,6 +128,8 @@ const LocationPermissionBanner: React.FC<{
       onRequestPermission();    
     }    
   };
+
+
 
 
   return (    
@@ -221,6 +229,8 @@ const LocationPermissionBanner: React.FC<{
 };
 
 
+
+
 // Enhanced Add Restaurant Form with pre-filled search term (like MenuScreen)        
 const EnhancedAddRestaurantForm: React.FC<{        
   initialRestaurantName?: string;        
@@ -230,12 +240,16 @@ const EnhancedAddRestaurantForm: React.FC<{
   const [restaurantName, setRestaurantName] = useState(initialRestaurantName);
 
 
+
+
   const handleSubmit = async () => {        
     if (restaurantName.trim()) {        
       await onSubmit(restaurantName);        
       setRestaurantName('');        
     }        
   };
+
+
 
 
   return (        
@@ -262,6 +276,8 @@ const EnhancedAddRestaurantForm: React.FC<{
           }}        
         />        
       </div>
+
+
 
 
       <div className="flex gap-3 w-full max-w-full">        
@@ -296,10 +312,14 @@ const EnhancedAddRestaurantForm: React.FC<{
 };
 
 
+
+
 // NEW: Enhanced Search Animation Component      
 const SearchingIndicator: React.FC = () => {      
   const [dotCount, setDotCount] = useState(1);      
   const [pulsePhase, setPulsePhase] = useState(0);
+
+
 
 
   useEffect(() => {      
@@ -308,9 +328,13 @@ const SearchingIndicator: React.FC = () => {
     }, 600);
 
 
+
+
     const pulseInterval = setInterval(() => {      
       setPulsePhase(prev => (prev + 1) % 4);      
     }, 200);
+
+
 
 
     return () => {      
@@ -320,8 +344,12 @@ const SearchingIndicator: React.FC = () => {
   }, []);
 
 
+
+
   const dots = '•'.repeat(dotCount).padEnd(3, ' ');      
   const pulseOpacity = 0.3 + (Math.sin(pulsePhase * Math.PI / 2) * 0.4);
+
+
 
 
   return (      
@@ -374,6 +402,8 @@ const SearchingIndicator: React.FC = () => {
     </div>      
   );      
 };
+
+
 
 
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)        
@@ -433,6 +463,8 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 };
 
 
+
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
   onNavigateToScreen,        
   onNavigateToMenu,        
@@ -448,6 +480,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [addingRestaurantId, setAddingRestaurantId] = useState<string | null>(null);        
   const [pendingNavigation, setPendingNavigation] = useState(false);        
   const [hasInteractedWithEmptyState, setHasInteractedWithEmptyState] = useState(false);  
+
+
 
 
   // User Geolocation State        
@@ -504,6 +538,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
 
+
+
   // FIXED: Helper function to save location to localStorage    
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {    
     try {    
@@ -518,6 +554,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       console.warn('📍 Failed to save location to localStorage:', e);    
     }    
   }, []);
+
+
 
 
   // Custom Hooks        
@@ -539,6 +577,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   } = useRestaurants(sortBy, userLat, userLon);
 
 
+
+
   // Cleanup debounce timer on unmount        
   useEffect(() => {        
     return () => {        
@@ -549,6 +589,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [searchDebounceTimer]);
 
 
+
+
   // Enhanced location permission checking    
   useEffect(() => {    
     const checkLocationPermissionStatus = async () => {    
@@ -556,6 +598,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         setFetchingLocation(false);    
         return;    
       }
+
+
 
 
       // If we already have location data, try to refresh it in the background  
@@ -582,6 +626,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         );  
         return;  
       }
+
+
 
 
       // Try to detect permission state using Permissions API if available    
@@ -621,6 +667,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     };
 
 
+
+
     const requestLocationActually = () => {    
       setFetchingLocation(true);    
       navigator.geolocation.getCurrentPosition(    
@@ -654,8 +702,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     };
 
 
+
+
     checkLocationPermissionStatus();    
   }, []); // Remove dependencies to only run once on mount
+
+
 
 
   // Handle navigation after adding restaurant        
@@ -676,11 +728,15 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [restaurants, pendingNavigation, previousRestaurantCount, onNavigateToMenu]);
 
 
+
+
   // Enhanced restaurant filtering with fuzzy search (same as MenuScreen)        
   const filteredAndSortedRestaurants = useMemo(() => {        
     if (!searchTerm.trim()) {        
       return restaurants;        
     }
+
+
 
 
     const restaurantsWithScores = restaurants.map(restaurant => ({        
@@ -689,8 +745,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }));
 
 
+
+
     const hasOnlineResults = searchResults.length > 0;        
     const similarityThreshold = hasOnlineResults ? 70 : 20;
+
+
 
 
     const filteredRestaurants = restaurantsWithScores        
@@ -699,8 +759,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       .map(({ similarityScore, ...restaurant }) => restaurant);
 
 
+
+
     return filteredRestaurants;        
   }, [restaurants, searchTerm, searchResults.length]);
+
+
 
 
   // NEW: Enhanced function to request location permission with better UX    
@@ -743,6 +807,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [isRequestingLocationPermission, saveLocationToStorage]);
 
 
+
+
   // NEW: Handle distance sort with location permission check        
   const handleDistanceSort = useCallback(() => {        
     if (userLat === null || userLon === null) {        
@@ -759,6 +825,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [userLat, userLon, requestLocationPermission]);
 
 
+
+
   // Handlers        
   const handleAddRestaurant = useCallback(async (name: string) => {        
     const success = await addRestaurant(name);        
@@ -771,9 +839,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [addRestaurant]);
 
 
+
+
   const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {        
     await deleteRestaurant(restaurantId);        
   }, [deleteRestaurant]);
+
+
 
 
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {        
@@ -786,6 +858,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }        
     setAddingRestaurantId(null);        
   }, [importRestaurant, clearSearchResults, onNavigateToMenu]);
+
+
 
 
   // Enhanced search handler that triggers both local and online search        
@@ -816,6 +890,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
 
 
+
+
   const handleResetSearch = useCallback(() => {        
     resetSearch();        
     setSearchTerm('');        
@@ -828,6 +904,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [resetSearch, searchDebounceTimer]);
 
 
+
+
   // Handler for "Add your first restaurant" button to initiate search flow        
   const handleAddFirstRestaurantFlow = useCallback(() => {        
     setHasInteractedWithEmptyState(true);        
@@ -837,6 +915,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [clearSearchResults]);
 
 
+
+
   // Modified handleShowAddForm to reset interacted state for manual add        
   const handleShowAddForm = useCallback(() => {        
     setShowAddForm(true);        
@@ -844,9 +924,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, []);
 
 
+
+
   if (isLoading) {        
     return <LoadingScreen />;        
   }
+
+
 
 
   // These are now used for conditional rendering        
@@ -857,9 +941,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const hasRestaurants = restaurants.length > 0;
 
 
+
+
   const showInitialEmptyState = !hasRestaurants && !hasInteractedWithEmptyState && !showAddForm;        
   const showManualAddForm = showAddForm;        
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
+
+
 
 
   return (        
@@ -893,6 +981,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       </header>
 
 
+
+
       {/* Main Content */}        
       <main style={{        
         flex: 1,        
@@ -914,6 +1004,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
           {/* NEW: Enhanced Location Permission Banner */}    
           {shouldShowLocationBanner && !fetchingLocation && (    
             <LocationPermissionBanner    
@@ -924,6 +1016,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
           {/* Location Feedback - Only show fetching state */}        
           {fetchingLocation && (        
             <div className="bg-white/10 p-3 rounded-lg text-center">        
@@ -932,6 +1026,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </p>        
             </div>        
           )}
+
+
 
 
           {/* Advanced Sort - UPDATED: Added Distance option */}        
@@ -1002,6 +1098,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
           {/* Initial Empty State - RE-ENABLED */}        
           {showInitialEmptyState && (        
             <div className="text-center py-12">        
@@ -1034,25 +1132,28 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       {/* Conditional Label Text */}        
                       {hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}        
                     </label>        
-                    {hasSearchTerm && (        
-                      <button        
-                        onClick={handleResetSearch}        
-                        style={{        
-                          ...FONTS.elegant,        
-                          backgroundColor: COLORS.primary,        
-                          color: 'white',        
-                          border: 'none',        
-                          borderRadius: STYLES.borderRadiusSmall,        
-                          padding: '4px 12px',        
-                          fontSize: '0.85rem',        
-                          fontWeight: '500',        
-                          cursor: 'pointer',        
-                          WebkitAppearance: 'none',        
-                        }}        
-                      >        
-                        Reset        
-                      </button>        
-                    )}        
+                    {/* MODIFIED: Replaced the text "Reset" button with a styled icon button for consistency. */}      
+                    {hasSearchTerm && (      
+                      <button      
+                        onClick={handleResetSearch}      
+                        style={{      
+                          background: 'transparent',      
+                          border: 'none',      
+                          padding: 0,      
+                          cursor: 'pointer',      
+                          color: COLORS.textSecondary,      
+                          transition: 'color 0.2s ease, transform 0.2s ease',      
+                        }}      
+                        onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}      
+                        onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}      
+                        aria-label="Clear search"      
+                        title="Clear search"      
+                      >      
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">      
+                          <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />      
+                        </svg>      
+                      </button>      
+                    )}      
                   </div>        
                   <input        
                     id="restaurant-search-input"        
@@ -1107,6 +1208,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </div>
 
 
+
+
               {/* Conditional Display of Results or Info Message */}        
               {hasSearchTerm ? (        
                 <div className="space-y-4">        
@@ -1147,6 +1250,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   )}
 
 
+
+
                   {/* Online Results */}        
                   {hasOnlineResults && (        
                     <div>        
@@ -1161,6 +1266,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                           {hasLocalResults ? 'Found online:' : 'Online results:'}        
                         </h3>        
                       </div>
+
+
 
 
                       {searchError && (        
@@ -1227,6 +1334,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   )}
 
 
+
+
                   {/* Add New Restaurant Button - Always show when searching */}        
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">        
                     <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>        
@@ -1242,6 +1351,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       Add New Restaurant        
                     </button>        
                   </div>
+
+
 
 
                   {/* No Results Message */}        
@@ -1295,6 +1406,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
           {/* Add Restaurant Form - RE-ENABLED */}        
           {showManualAddForm && (        
             <div className="space-y-4">        
@@ -1317,6 +1430,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </div>
 
 
+
+
               <EnhancedAddRestaurantForm        
                 initialRestaurantName={searchTerm}        
                 onSubmit={handleAddRestaurant}        
@@ -1326,8 +1441,12 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
         </div>        
       </main>
+
+
 
 
       <BottomNavigation        
@@ -1337,6 +1456,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
+
 
 
 export default RestaurantScreen;

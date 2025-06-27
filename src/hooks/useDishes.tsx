@@ -4,6 +4,8 @@ import { supabase } from '../supabaseClient';
 import { enhancedDishSearch, findSimilarDishes } from '../utils/dishSearch';
 
 
+
+
 // Photo interface    
 export interface DishPhoto {    
   id: string;    
@@ -23,6 +25,8 @@ export interface DishPhoto {
 }
 
 
+
+
 // Updated interfaces to include user information in comments    
 export interface DishComment {    
   id: string;    
@@ -37,6 +41,8 @@ export interface DishComment {
 }
 
 
+
+
 export interface DishRating {    
   id: string;    
   user_id: string;    
@@ -47,6 +53,8 @@ export interface DishRating {
   updated_at: string;    
   dish_id: string;    
 }
+
+
 
 
 export interface RestaurantDish {    
@@ -65,6 +73,8 @@ export interface RestaurantDish {
 }
 
 
+
+
 export interface DishWithDetails extends RestaurantDish {    
   dish_comments: DishComment[];    
   dish_ratings: DishRating[];    
@@ -73,12 +83,16 @@ export interface DishWithDetails extends RestaurantDish {
 }
 
 
+
+
 // New interface for search/discovery results    
 export interface DishSearchResult extends DishWithDetails {    
   similarityScore?: number;    
   isExactMatch?: boolean;    
   matchType?: 'exact' | 'fuzzy' | 'partial';    
 }
+
+
 
 
 // MODIFIED: Reusable sorting function for dishes, now accepts currentUserId    
@@ -113,12 +127,16 @@ const sortDishesArray = (
 };
 
 
+
+
 // MODIFIED: Updated sortBy type    
 export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }) => {    
   const [dishes, setDishes] = useState<DishWithDetails[]>([]);    
   const [isLoading, setIsLoading] = useState(true);    
   const [error, setError] = useState<string | null>(null);    
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+
 
 
   // Get current user on mount    
@@ -129,6 +147,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     };    
     getCurrentUser();    
   }, []);
+
+
 
 
   useEffect(() => {    
@@ -148,6 +168,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         let dbOrderAscending = true;
 
 
+
+
         if (sortBy.criterion === 'community_rating') {    
           dbOrderByColumn = 'average_rating';    
           dbOrderAscending = sortBy.direction === 'asc';    
@@ -158,6 +180,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           dbOrderByColumn = 'name';    
           dbOrderAscending = sortBy.direction === 'asc';    
         }
+
+
 
 
         const { data, error: fetchError } = await supabase    
@@ -211,6 +235,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           .order('created_at', { foreignTable: 'dish_photos', ascending: false }); // Sort photos by newest first
 
 
+
+
         if (fetchError) throw fetchError;    
            
         const dishesWithDetails = data?.map(d => {    
@@ -219,6 +245,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           const actualAverageRating = actualTotalRatings > 0    
             ? ratings.reduce((sum: number, r: DishRating) => sum + r.rating, 0) / actualTotalRatings    
             : 0;
+
+
 
 
           // Process comments to include user information    
@@ -232,6 +260,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             commenter_name: comment.users?.full_name || 'Anonymous User',    
             commenter_email: comment.users?.email    
           })) || [];
+
+
 
 
           // Process photos to include user information and URLs    
@@ -257,6 +287,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           }) || [];
 
 
+
+
           return {    
             ...d,    
             dish_comments: commentsWithUserInfo,    
@@ -280,9 +312,13 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     };
 
 
+
+
     // MODIFIED: Update dependency array for sortBy object and currentUserId    
     fetchDishes();    
   }, [restaurantId, sortBy.criterion, sortBy.direction, currentUserId]);
+
+
 
 
   // Enhanced search function using the new dishSearch utility
@@ -297,8 +333,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
 
 
+
+
     return enhancedDishSearch(dishes, searchTerm);
   };
+
+
 
 
   // Function to find similar dishes for duplicate detection
@@ -307,17 +347,21 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
-  // MODIFIED: Rating is now optional
-  const addDish = async (name: string, rating: number) => {    
-    if (!name.trim()) return false;    
+
+
+  // MODIFIED: `addDish` returns the created dish object or null, to enable post-add actions.
+  const addDish = async (name: string, rating: number): Promise<DishWithDetails | null> => {    
+    if (!name.trim()) return null;    
        
     setError(null);    
     try {    
       const { data: { user } } = await supabase.auth.getUser();    
       if (!user) {    
         setError('You must be logged in to add a dish');    
-        return false;    
+        return null;    
       }
+
+
 
 
       // First, add the dish    
@@ -334,7 +378,11 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         .single();
 
 
+
+
       if (dishError) throw dishError;
+
+
 
 
       if (dishData) {    
@@ -349,10 +397,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
               rating: rating    
             }]);
 
+
           if (ratingError) {    
             // This is not a fatal error, the dish was still created.
             console.warn('Failed to create initial rating:', ratingError);    
           }
+
 
           tempRating = {    
             id: 'temp-' + Date.now(),    
@@ -366,6 +416,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           };
         }
 
+
         const newDish: DishWithDetails = {    
           ...(dishData as RestaurantDish),    
           dish_comments: [],    
@@ -377,17 +428,20 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         };    
            
         setDishes(prev => sortDishesArray([...prev, newDish], sortBy, currentUserId));    
-        return true;    
+        return newDish; // Return the full dish object    
       }    
     } catch (err: any) {    
       console.error('Error adding dish:', err);    
       setError(`Failed to add dish: ${err.message}`);    
-      return false;    
+      return null;    
     }    
-    return false;    
+    return null;    
   };
 
 
+
+
+  // MODIFIED: Robust delete handling to confirm deletion on the server.
   const deleteDish = async (dishId: string) => {    
     setError(null);    
     try {    
@@ -399,6 +453,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
          
       const dish = dishes.find(d => d.id === dishId);    
          
+      // Client-side permission check is still good for immediate feedback.    
       if (dish && user && dish.created_by !== user.id) {    
         const { data: profile } = await supabase    
           .from('users')    
@@ -413,21 +468,38 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }
 
 
-      const { error } = await supabase    
+
+
+      // Chain .select() to get feedback on what was deleted.    
+      const { data: deletedData, error } = await supabase    
         .from('restaurant_dishes')    
         .delete()    
-        .eq('id', dishId);    
+        .eq('id', dishId)    
+        .select(); // Important: This returns the deleted item(s)    
          
-      if (error) throw error;    
+      if (error) {    
+        // This will catch foreign key violations or other db errors.    
+        throw error;    
+      }    
          
-      setDishes(prev => prev.filter(dish => dish.id !== dishId));    
+      // Check if the delete operation actually removed a row.    
+      // If `deletedData` is null or empty, it means RLS prevented the deletion.    
+      if (!deletedData || deletedData.length === 0) {    
+        throw new Error("Deletion failed. You may not have permission, or the dish does not exist.");    
+      }    
+         
+      // If we reach here, deletion was successful. Now update the local state.    
+      setDishes(prev => prev.filter(d => d.id !== dishId));    
       return true;    
     } catch (err: any) {    
       console.error('Error deleting dish:', err);    
+      // Provide a specific error to the user via the `error` state.    
       setError(`Failed to delete dish: ${err.message}`);    
       return false;    
     }    
   };
+
+
 
 
   const updateDishName = async (dishId: string, newName: string) => {
@@ -438,7 +510,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             .update({ name: newName.trim(), updated_at: new Date().toISOString() })
             .eq('id', dishId);
 
+
         if (updateError) throw updateError;
+
 
         setDishes(prev => {
             const updatedDishes = prev.map(dish => {
@@ -459,6 +533,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
   // MODIFIED: Implemented optimistic updates for instant UI feedback.
   const updateDishRating = async (dishId: string, rating: number, notes?: string, dateTried?: string) => {    
     const { data: { user } } = await supabase.auth.getUser();
@@ -467,12 +543,15 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       return;
     }
 
+
     const originalDishes = [...dishes];
+
 
     // Optimistically update the UI
     setDishes(prevDishes => prevDishes.map(dish => {
       if (dish.id === dishId) {
         let updatedRatings: DishRating[];
+
 
         if (rating === 0) { // Deleting the rating
           updatedRatings = dish.dish_ratings.filter(r => r.user_id !== user.id);
@@ -490,10 +569,10 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           };
           updatedRatings = [...otherUserRatings, newOrUpdatedRating];
         }
-        
+       
         const total_ratings = updatedRatings.length;
         const average_rating = total_ratings > 0 ? updatedRatings.reduce((sum, r) => sum + r.rating, 0) / total_ratings : 0;
-        
+       
         return {
           ...dish,
           dish_ratings: updatedRatings,
@@ -503,6 +582,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }
       return dish;
     }));
+
 
     // Perform the database operation
     try {    
@@ -534,6 +614,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       setDishes(originalDishes);
     }    
   };
+
+
 
 
   const addComment = async (dishId: string, commentText: string) => {    
@@ -579,6 +661,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
   const deleteComment = async (commentId: string) => {    
     try {    
       const { data: { user } } = await supabase.auth.getUser();    
@@ -606,6 +690,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       throw err instanceof Error ? err : new Error('Failed to delete comment');    
     }    
   };
+
+
 
 
   const updateComment = async (commentId: string, commentText: string) => {    
@@ -637,6 +723,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       throw err instanceof Error ? err : new Error('Failed to update comment');    
     }    
   };
+
+
 
 
   const addPhoto = async (dishId: string, file: File, caption?: string) => {    
@@ -700,6 +788,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
   const deletePhoto = async (photoId: string) => {    
     try {    
       const { data: { user } } = await supabase.auth.getUser();    
@@ -735,6 +825,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
   const refetch = async () => {    
     if (!restaurantId) return;    
     setIsLoading(true);    
@@ -742,6 +834,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     const { data: { user } } = await supabase.auth.getUser();    
     setCurrentUserId(user?.id || null);    
   };
+
+
 
 
   return {    
@@ -764,6 +858,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     currentUserId    
   };    
 };
+
+
 
 
 // Helper function to resize images    
