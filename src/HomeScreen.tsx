@@ -4,10 +4,12 @@ import type { AppScreenType, NavigableScreenType } from './components/navigation
 import BottomNavigation from './components/navigation/BottomNavigation';
 import { COLORS, FONTS, SIZES, STYLES } from './constants';
 
+
 interface HomeScreenProps {    
   onNavigateToScreen: (screen: NavigableScreenType) => void;    
   currentAppScreen: AppScreenType;    
 }
+
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {    
   return (    
@@ -33,6 +35,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
             />    
           </div>
 
+
           {/* Hero Typography Tagline */}
           <div style={{
             maxWidth: '320px',
@@ -54,7 +57,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
               ...FONTS.elegant,
               fontSize: '1.5rem',
               fontWeight: '600', // Bold for emphasis on key phrase
-              color: COLORS.primary,
+              color: '#b0afa8', // MODIFIED: Changed color from COLORS.primary
               lineHeight: '1.4',
               margin: 0,
               marginTop: '4px',
@@ -66,6 +69,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
         </div>    
       </main>
 
+
       {/* Bottom Navigation */}    
       <BottomNavigation      
         onNav={onNavigateToScreen}      
@@ -74,5 +78,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToScreen, currentAppS
     </div>    
   );    
 };
+
 
 export default HomeScreen;
