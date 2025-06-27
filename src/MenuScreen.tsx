@@ -10,6 +10,8 @@ import { useDishes } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
 
 
+
+
 // Updated interface to match what App.tsx sends
 interface MenuScreenProps {        
   restaurantId: string;        
@@ -19,117 +21,98 @@ interface MenuScreenProps {
 }
 
 
-// Enhanced search component with ORIGINAL design        
-const DishSearchSection: React.FC<{        
-  searchTerm: string;        
-  onSearchChange: (term: string) => void;        
-  onReset: () => void;        
-  hasSearched: boolean;        
-}> = ({ searchTerm, onSearchChange, onReset, hasSearched }) => (        
-  <div style={{ marginBottom: SPACING[6] }}>        
-    {/* Search Input */}        
-    <div style={{        
-      backgroundColor: COLORS.white,        
-      borderRadius: STYLES.borderRadiusLarge,        
-      padding: SPACING[5],        
-      boxShadow: STYLES.shadowMedium,        
-      border: `1px solid ${COLORS.gray200}`        
-    }}>        
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[3] }}>        
-        <h2 style={{        
-          ...FONTS.heading,        
-          fontSize: TYPOGRAPHY.lg.fontSize,        
-          color: COLORS.gray900,        
-          margin: 0        
-        }}>        
-          Find Your Dish        
-        </h2>        
-        {hasSearched && (        
-          <button        
-            onClick={onReset}        
-            style={{        
-              ...STYLES.secondaryButton,        
-              padding: `${SPACING[2]} ${SPACING[4]}`,        
-              minHeight: '36px',        
-              fontSize: TYPOGRAPHY.sm.fontSize        
-            }}        
-          >        
-            Clear        
-          </button>        
-        )}        
-      </div>        
-             
-      <input        
-        type="text"        
-        value={searchTerm}        
-        onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}        
-        placeholder="Search for your dish"        
-        style={{        
-          ...STYLES.input,        
-          fontSize: TYPOGRAPHY.base.fontSize,        
-          marginBottom: SPACING[2]        
-        }}        
-        autoFocus        
-      />        
-             
-      <p style={{        
-        ...FONTS.body,        
-        fontSize: TYPOGRAPHY.sm.fontSize,        
-        color: COLORS.textSecondary,        
-        margin: 0        
-      }}>        
-        Search first to see if we already have your dish        
-      </p>        
-    </div>        
-  </div>        
-);
 
 
-// Component to show add dish option - ORIGINAL design        
-const AddDishPrompt: React.FC<{        
-  hasSearched: boolean;  
-  onShowAddForm: () => void;        
-}> = ({ hasSearched, onShowAddForm }) => {        
-  if (!hasSearched) return null;        
-         
-  return (        
-    <div style={{        
-      backgroundColor: COLORS.white,        
-      borderRadius: STYLES.borderRadiusLarge,        
-      padding: SPACING[3], // Reduced from SPACING[5] to make it thinner  
-      textAlign: 'center',        
-      boxShadow: STYLES.shadowMedium,        
-      border: `1px solid ${COLORS.gray200}`,  
-      marginBottom: SPACING[4] // Add margin to separate from search results below  
-    }}>        
-      <p style={{        
-        ...FONTS.body,        
-        fontSize: TYPOGRAPHY.sm.fontSize, // Smaller text to make it more compact        
-        color: COLORS.textSecondary,        
-        marginBottom: SPACING[2], // Reduced margin        
-        margin: `0 0 ${SPACING[2]} 0` // Ensure no default margins  
-      }}>        
-        Don't see it below?        
-      </p>        
-      <button        
-        onClick={onShowAddForm}        
-        style={{  
-          ...STYLES.primaryButton,  
-          padding: `${SPACING[2]} ${SPACING[4]}`, // Smaller padding for compact look  
-          fontSize: TYPOGRAPHY.sm.fontSize // Smaller font size  
-        }}        
-        onMouseEnter={(e) => {        
-          e.currentTarget.style.backgroundColor = COLORS.primaryHover;        
-        }}        
-        onMouseLeave={(e) => {        
-          e.currentTarget.style.backgroundColor = COLORS.primary;        
-        }}        
-      >        
-        Add New Dish        
-      </button>        
-    </div>        
-  );        
+// NEW: Consolidated component replacing DishSearchSection and AddDishPrompt
+const ConsolidatedSearchAndAdd: React.FC<{
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+  onReset: () => void;
+  onShowAddForm: () => void;
+}> = ({ searchTerm, onSearchChange, onReset, onShowAddForm }) => {
+  const hasTyped = searchTerm.length > 0;
+
+  return (
+    <div style={{ marginBottom: SPACING[4] }}>
+      <div style={{
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusLarge,
+        padding: SPACING[4],
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[3] }}>
+          <h2 style={{
+            ...FONTS.heading,
+            fontSize: TYPOGRAPHY.lg.fontSize,
+            color: COLORS.gray900,
+            margin: 0
+          }}>
+            Find Your Dish
+          </h2>
+          {hasTyped && (
+            <button
+              onClick={onReset}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                color: COLORS.textSecondary,
+                transition: 'color 0.2s ease, transform 0.2s ease',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+              </svg>
+            </button>
+          )}
+        </div>
+        
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}
+          placeholder="Start typing to find a dish..."
+          style={{
+            ...STYLES.input,
+            fontSize: TYPOGRAPHY.base.fontSize,
+          }}
+          autoFocus
+        />
+        
+        {hasTyped && (
+          <div style={{ marginTop: SPACING[4], textAlign: 'center', borderTop: `1px solid ${COLORS.gray200}`, paddingTop: SPACING[4] }}>
+            <p style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.sm.fontSize,
+              color: COLORS.textSecondary,
+              margin: `0 0 ${SPACING[2]} 0`
+            }}>
+              Don't see it below?
+            </p>
+            <button
+              onClick={onShowAddForm}
+              style={{
+                ...STYLES.primaryButton,
+                padding: `${SPACING[2]} ${SPACING[4]}`,
+                fontSize: TYPOGRAPHY.sm.fontSize
+              }}
+            >
+              Add New Dish
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
+
+
 
 
 // ORIGINAL Add Dish Form with enhanced design        
@@ -143,6 +126,8 @@ const EnhancedAddDishForm: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
+
+
   const handleSubmit = async () => {        
     if (dishName.trim() && !isSubmitting) {        
       setIsSubmitting(true);        
@@ -152,6 +137,8 @@ const EnhancedAddDishForm: React.FC<{
       setIsSubmitting(false);        
     }        
   };
+
+
 
 
   return (        
@@ -170,6 +157,8 @@ const EnhancedAddDishForm: React.FC<{
       }}>        
         Add New Dish        
       </h3>
+
+
 
 
       <div style={{ marginBottom: SPACING[5] }}>        
@@ -192,6 +181,8 @@ const EnhancedAddDishForm: React.FC<{
           disabled={isSubmitting}        
         />        
       </div>
+
+
 
 
       <div style={{ marginBottom: SPACING[6] }}>        
@@ -248,6 +239,8 @@ const EnhancedAddDishForm: React.FC<{
       </div>
 
 
+
+
       <div style={{ display: 'flex', gap: SPACING[3] }}>        
         <button        
           onClick={handleSubmit}        
@@ -289,6 +282,8 @@ const EnhancedAddDishForm: React.FC<{
 };
 
 
+
+
 const MenuScreen: React.FC<MenuScreenProps> = ({        
   restaurantId,        
   onNavigateBack,        
@@ -301,6 +296,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);        
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);        
   const [allExpanded, setAllExpanded] = useState(false);
+
+
 
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);        
@@ -323,15 +320,19 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   } = useDishes(restaurantId, sortBy);
 
 
+
+
   // ENHANCED: Use the new searchDishes function with fuzzy matching and synonyms
   const searchResults = useMemo(() => {        
     return searchDishes(searchTerm);        
   }, [dishes, searchTerm, searchDishes]);
 
 
-  const hasSearched = searchTerm.trim().length > 0;        
-  const hasSearchResults = hasSearched && searchResults.length > 0;        
+
+
   const hasDishes = dishes.length > 0;
+
+
 
 
   const handleSearchChange = (term: string) => {        
@@ -342,15 +343,21 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleResetSearch = () => {        
     setSearchTerm('');        
     setShowAddForm(false);        
   };
 
 
+
+
   const handleShowAddForm = () => {        
     setShowAddForm(true);        
   };
+
+
 
 
   const handleAddDish = async (name: string, rating: number) => {        
@@ -360,6 +367,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setSearchTerm('');        
     }        
   };
+
+
 
 
   const handleAddComment = async (dishId: string, text: string) => {        
@@ -375,6 +384,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {        
     try {        
       await updateComment(commentId, newText);        
@@ -386,6 +397,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }        
     }        
   };
+
+
 
 
   const handleDeleteComment = async (_dishId: string, commentId: string) => {        
@@ -401,6 +414,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {        
     try {        
       await addPhoto(dishId, file, caption);        
@@ -412,6 +427,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }        
     }        
   };
+
+
 
 
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {        
@@ -427,6 +444,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleToggleAllExpanded = () => {        
     if (allExpanded) {        
       setAllExpanded(false);        
@@ -435,6 +454,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setAllExpanded(true);        
     }        
   };
+
+
 
 
   const handleToggleDishExpanded = (dishId: string) => {        
@@ -447,9 +468,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;        
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;        
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
+
 
 
   return (        
@@ -536,6 +561,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       </header>
 
 
+
+
       {/* Main Content */}        
       <main style={{        
         flex: 1,        
@@ -563,6 +590,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>        
             </div>        
           )}
+
+
 
 
           {showAdvancedSort && (        
@@ -623,172 +652,159 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           )}
 
 
-          {/* Only show search section if dishes exist AND not showing add form */}        
-          {!showAddForm && hasDishes && (        
-            <DishSearchSection        
-              searchTerm={searchTerm}        
-              onSearchChange={handleSearchChange}        
-              onReset={handleResetSearch}        
-              hasSearched={hasSearched}        
-            />        
+
+
+          {/* MODIFIED: Use the new consolidated search component */}
+          {!showAddForm && hasDishes && (
+            <ConsolidatedSearchAndAdd
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              onReset={handleResetSearch}
+              onShowAddForm={handleShowAddForm}
+            />
           )}
 
 
-          {!showAddForm && (        
-            <>        
-              {hasSearched && (        
-                <>        
-                  {/* Add dish prompt FIRST when search has been performed */}        
-                  <AddDishPrompt        
-                    hasSearched={hasSearched}        
-                    onShowAddForm={handleShowAddForm}        
-                  />
 
 
-                  {/* Show search results if they exist */}  
-                  {hasSearchResults && (  
-                    <>  
-                      {/* Simple text above search results */}  
-                      <p style={{  
-                        ...FONTS.body,  
-                        fontSize: TYPOGRAPHY.base.fontSize,  
-                        color: COLORS.textSecondary,  
-                        margin: `0 0 ${SPACING[3]} 0`,  
-                        paddingLeft: SPACING[4]  
-                      }}>  
-                        Looking for this?  
-                      </p>  
-                      {searchResults.map((dish) => (        
-                        <DishCard        
-                          key={dish.id}        
-                          dish={dish}        
-                          currentUserId={currentUserId}        
-                          onDelete={deleteDish}        
-                          onUpdateRating={updateDishRating}        
-                          onUpdateDishName={updateDishName}        
-                          onAddComment={handleAddComment}        
-                          onUpdateComment={handleUpdateComment}        
-                          onDeleteComment={handleDeleteComment}        
-                          onAddPhoto={handleAddPhoto}        
-                          onDeletePhoto={handleDeletePhoto}        
-                          isSubmittingComment={false}        
-                          isExpanded={allExpanded || expandedDishId === dish.id}        
-                          onToggleExpand={() => handleToggleDishExpanded(dish.id)}        
-                        />        
-                      ))}        
-                    </>  
-                  )}
-
-
-                  {/* Show "No dishes found" message if search yields no results */}  
-                  {!hasSearchResults && (  
-                    <div style={{        
-                      textAlign: 'center',        
-                      padding: SPACING[6],  
-                      backgroundColor: COLORS.white,        
-                      borderRadius: STYLES.borderRadiusLarge,  
-                      boxShadow: STYLES.shadowMedium,        
-                      border: `1px solid ${COLORS.gray200}`  
-                    }}>        
-                      <p style={{        
-                        ...FONTS.body,        
-                        fontSize: TYPOGRAPHY.base.fontSize,        
-                        color: COLORS.textSecondary,        
-                        margin: 0        
-                      }}>        
-                        No dishes found matching "{searchTerm}"        
-                      </p>        
-                    </div>  
-                  )}  
-                </>        
+          {/* MODIFIED: Display logic for search results and lists */}
+          {!showAddForm ? (
+            <>
+              {/* SEARCH ACTIVE (2+ characters) */}
+              {searchTerm.length >= 2 && (
+                searchResults.length > 0 ? (
+                  <>
+                    {/* Header for search results */}
+                    <p style={{
+                      ...FONTS.body,
+                      fontSize: TYPOGRAPHY.base.fontSize,
+                      color: COLORS.textSecondary,
+                      margin: `-${SPACING[2]} 0 ${SPACING[2]} 0`, // MODIFIED: Reduced top and bottom margins
+                      paddingLeft: SPACING[4]
+                    }}>
+                      Looking for this?
+                    </p>
+                    {searchResults.map((dish) => (
+                      <DishCard
+                        key={dish.id}
+                        dish={dish}
+                        currentUserId={currentUserId}
+                        onDelete={deleteDish}
+                        onUpdateRating={updateDishRating}
+                        onUpdateDishName={updateDishName}
+                        onAddComment={handleAddComment}
+                        onUpdateComment={handleUpdateComment}
+                        onDeleteComment={handleDeleteComment}
+                        onAddPhoto={handleAddPhoto}
+                        onDeletePhoto={handleDeletePhoto}
+                        isSubmittingComment={false}
+                        isExpanded={allExpanded || expandedDishId === dish.id}
+                        onToggleExpand={() => handleToggleDishExpanded(dish.id)}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  /* "No dishes found" message */
+                  <div style={{
+                    textAlign: 'center',
+                    padding: SPACING[6],
+                    backgroundColor: COLORS.white,
+                    borderRadius: STYLES.borderRadiusLarge,
+                    boxShadow: STYLES.shadowMedium,
+                    border: `1px solid ${COLORS.gray200}`
+                  }}>
+                    <p style={{
+                      ...FONTS.body,
+                      fontSize: TYPOGRAPHY.base.fontSize,
+                      color: COLORS.textSecondary,
+                      margin: 0
+                    }}>
+                      No dishes found matching "{searchTerm}"
+                    </p>
+                  </div>
+                )
               )}
 
-
-              {/* Show all dishes when no search is active */}        
-              {!hasSearched && hasDishes && (        
-                <>        
-                  {dishes.map((dish) => (        
-                    <DishCard        
-                      key={dish.id}        
-                      dish={dish}        
-                      currentUserId={currentUserId}        
-                      onDelete={deleteDish}        
-                      onUpdateRating={updateDishRating}        
-                      onUpdateDishName={updateDishName}        
-                      onAddComment={handleAddComment}        
-                      onUpdateComment={handleUpdateComment}        
-                      onDeleteComment={handleDeleteComment}        
-                      onAddPhoto={handleAddPhoto}        
-                      onDeletePhoto={handleDeletePhoto}        
-                      isSubmittingComment={false}        
-                      isExpanded={allExpanded || expandedDishId === dish.id}        
-                      onToggleExpand={() => handleToggleDishExpanded(dish.id)}        
-                    />        
-                  ))}        
-                </>        
+              {/* FULL LIST (No search) */}
+              {searchTerm.length === 0 && (
+                hasDishes ? (
+                  <>
+                    {dishes.map((dish) => (
+                      <DishCard
+                        key={dish.id}
+                        dish={dish}
+                        currentUserId={currentUserId}
+                        onDelete={deleteDish}
+                        onUpdateRating={updateDishRating}
+                        onUpdateDishName={updateDishName}
+                        onAddComment={handleAddComment}
+                        onUpdateComment={handleUpdateComment}
+                        onDeleteComment={handleDeleteComment}
+                        onAddPhoto={handleAddPhoto}
+                        onDeletePhoto={handleDeletePhoto}
+                        isSubmittingComment={false}
+                        isExpanded={allExpanded || expandedDishId === dish.id}
+                        onToggleExpand={() => handleToggleDishExpanded(dish.id)}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  /* EMPTY STATE (No dishes at all) */
+                  <div style={{
+                    backgroundColor: COLORS.white,
+                    borderRadius: STYLES.borderRadiusLarge,
+                    padding: SPACING[8],
+                    textAlign: 'center',
+                    boxShadow: STYLES.shadowMedium,
+                    border: `1px solid ${COLORS.gray200}`
+                  }}>
+                    <div style={{ fontSize: '4rem', marginBottom: SPACING[4] }}>
+                      🍽️
+                    </div>
+                    <h2 style={{
+                      ...FONTS.heading,
+                      fontSize: TYPOGRAPHY.xl.fontSize,
+                      color: COLORS.gray900,
+                      marginBottom: SPACING[3]
+                    }}>
+                      No dishes yet
+                    </h2>
+                    <p style={{
+                      ...FONTS.body,
+                      fontSize: TYPOGRAPHY.base.fontSize,
+                      color: COLORS.textSecondary,
+                      marginBottom: SPACING[5]
+                    }}>
+                      Be the first to add a dish to {restaurant.name}!
+                    </p>
+                    <button
+                      onClick={handleShowAddForm}
+                      style={STYLES.primaryButton}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = COLORS.primary;
+                      }}
+                    >
+                      Add First Dish
+                    </button>
+                  </div>
+                )
               )}
-
-
-              {/* Show empty state when there are no dishes at all */}        
-              {!hasDishes && !hasSearched && (        
-                <div style={{        
-                  backgroundColor: COLORS.white,        
-                  borderRadius: STYLES.borderRadiusLarge,        
-                  padding: SPACING[8],        
-                  textAlign: 'center',        
-                  boxShadow: STYLES.shadowMedium,        
-                  border: `1px solid ${COLORS.gray200}`        
-                }}>        
-                  <div style={{        
-                    fontSize: '4rem',        
-                    marginBottom: SPACING[4]        
-                  }}>        
-                    🍽️        
-                  </div>        
-                  <h2 style={{        
-                    ...FONTS.heading,        
-                    fontSize: TYPOGRAPHY.xl.fontSize,        
-                    color: COLORS.gray900,        
-                    marginBottom: SPACING[3]        
-                  }}>        
-                    No dishes yet        
-                  </h2>        
-                  <p style={{        
-                    ...FONTS.body,        
-                    fontSize: TYPOGRAPHY.base.fontSize,        
-                    color: COLORS.textSecondary,        
-                    marginBottom: SPACING[5]        
-                  }}>        
-                    Be the first to add a dish to {restaurant.name}!        
-                  </p>        
-                  <button        
-                    onClick={handleShowAddForm}        
-                    style={STYLES.primaryButton}        
-                    onMouseEnter={(e) => {        
-                      e.currentTarget.style.backgroundColor = COLORS.primaryHover;        
-                    }}        
-                    onMouseLeave={(e) => {        
-                      e.currentTarget.style.backgroundColor = COLORS.primary;        
-                    }}        
-                  >        
-                    Add First Dish        
-                  </button>        
-                </div>        
-              )}        
-            </>        
+            </>
+          ) : (
+            /* SHOW ADD DISH FORM */
+            <EnhancedAddDishForm
+              initialDishName={searchTerm}
+              onSubmit={handleAddDish}
+              onCancel={() => setShowAddForm(false)}
+            />
           )}
-
-
-          {/* Show Add Dish Form */}        
-          {showAddForm && (        
-            <EnhancedAddDishForm        
-              initialDishName={searchTerm}        
-              onSubmit={handleAddDish}        
-              onCancel={() => setShowAddForm(false)}        
-            />        
-          )}        
         </div>        
       </main>
+
+
 
 
       {/* Bottom Navigation */}        
@@ -799,6 +815,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     </div>        
   );        
 };
+
+
 
 
 export default MenuScreen;
