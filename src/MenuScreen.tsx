@@ -86,7 +86,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
         />
         
         {hasTyped && (
-          <div style={{ marginTop: SPACING[4], textAlign: 'center', borderTop: `1px solid ${COLORS.gray200}`, paddingTop: SPACING[4] }}>
+          <div style={{ marginTop: SPACING[2], textAlign: 'center', paddingTop: SPACING[2] }}>
             <p style={{
               ...FONTS.body,
               fontSize: TYPOGRAPHY.sm.fontSize,
@@ -679,7 +679,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       ...FONTS.body,
                       fontSize: TYPOGRAPHY.base.fontSize,
                       color: COLORS.textSecondary,
-                      margin: `-${SPACING[2]} 0 ${SPACING[2]} 0`, // MODIFIED: Reduced top and bottom margins
+                      margin: `-${SPACING[3]} 0 -${SPACING[2]} 0`,
                       paddingLeft: SPACING[4]
                     }}>
                       Looking for this?
