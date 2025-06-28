@@ -1,273 +1,173 @@
-﻿// src/components/SupabaseDebugTest.tsx  
-import type { PostgrestSingleResponse } from '@supabase/supabase-js'
-import React, { useState } from 'react'
-import { COLORS, FONTS } from '../constants'
-import type { DatabaseUser } from '../supabaseClient'; // Assuming DatabaseUser from supabaseClient.ts  
-import { supabase, withTimeout } from '../supabaseClient'
+﻿// src/components/SupabaseDebugTest.tsx
+import React, { useState } from 'react';
+import { COLORS, FONTS, STYLES } from '../constants';
 
+const SupabaseDebugTest: React.FC = () => {
+  const [name, setName] = useState('starbucks');
+  const [street, setStreet] = useState('promenade');
+  const [city, setCity] = useState('');
+  const [bias, setBias] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [testUrl, setTestUrl] = useState('');
 
-const SupabaseDebugTest: React.FC = () => {  
-  const [results, setResults] = useState<string[]>([])  
-  const [testing, setTesting] = useState(false)
+  const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
+  const runTest = async (strategy: 'structured' | 'combined_text') => {
+    setIsLoading(true);
+    setError(null);
+    setResults(null);
 
-  const log = (message: string) => {  
-    console.log(message)  
-    setResults(prev => [...prev, `${new Date().toISOString()}: ${message}`])  
-  }
+    // Hardcoded user location for bias testing (Seattle)
+    const userLat = 47.5398144;
+    const userLon = -122.2541312;
 
+    const params = new URLSearchParams({
+      apiKey: apiKey,
+      limit: '20',
+      type: 'amenity',
+    });
 
-  const runTests = async () => {  
-    setTesting(true)  
-    setResults([])
+    if (strategy === 'structured') {
+      if (name) params.append('name', name);
+      if (street) params.append('street', street);
+      if (city) params.append('city', city);
+    } else { // 'combined_text'
+      const textQuery = [name, street, city].filter(Boolean).join(' ');
+      params.append('text', textQuery);
+    }
 
+    if (bias && userLat && userLon) {
+      params.append('bias', `proximity:${userLon},${userLat}`);
+    }
 
-    try {  
-      // Test 1: Check auth status  
-      log('🔍 Test 1: Checking auth status...')  
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()  
-       
-      if (sessionError) {  
-        log(`❌ Auth error: ${sessionError.message}`)  
-      } else if (session) {  
-        log(`✅ Authenticated as: ${session.user.email} (ID: ${session.user.id})`)  
-      } else {  
-        log('❌ No active session')  
-        return  
+    const url = `https://api.geoapify.com/v1/geocode/search?${params.toString()}`;
+    setTestUrl(url);
+    console.log(`🧪 Testing URL: ${url}`);
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
       }
+      setResults(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  const labelStyle: React.CSSProperties = {
+    ...FONTS.elegant,
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: COLORS.text,
+    display: 'block',
+    marginBottom: '4px',
+  };
 
-      if (!session) {  
-        log('⚠️ Cannot proceed without authentication')  
-        return  
-      }
+  const inputStyle: React.CSSProperties = {
+    ...FONTS.elegant,
+    padding: '12px 16px',
+    borderRadius: STYLES.borderRadiusMedium,
+    fontSize: '1rem',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    color: COLORS.text,
+    boxSizing: 'border-box',
+    border: `2px solid ${COLORS.gray200}`,
+    width: '100%',
+  };
 
+  const buttonStyle: React.CSSProperties = {
+    ...STYLES.addButton,
+    marginTop: '1rem',
+    marginRight: '1rem',
+    fontSize: '0.9rem',
+    padding: '10px 15px',
+  };
 
-      const userId = session.user.id
+  return (
+    <div style={{ padding: '2rem', maxWidth: '768px', margin: 'auto', color: COLORS.text }}>
+      <h1 style={{ ...FONTS.elegant, fontSize: '2rem' }}>Geoapify API Testbed</h1>
+      <p style={{ opacity: 0.8, marginBottom: '2rem' }}>
+        Rapidly test different search strategies against the Geoapify API.
+      </p>
 
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="test-name" style={labelStyle}>Name</label>
+          <input id="test-name" type="text" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+        </div>
+        <div>
+          <label htmlFor="test-street" style={labelStyle}>Street</label>
+          <input id="test-street" type="text" value={street} onChange={(e) => setStreet(e.target.value)} style={inputStyle} />
+        </div>
+        <div>
+          <label htmlFor="test-city" style={labelStyle}>City</label>
+          <input id="test-city" type="text" value={city} onChange={(e) => setCity(e.target.value)} style={inputStyle} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <input type="checkbox" id="test-bias" checked={bias} onChange={(e) => setBias(e.target.checked)} style={{ marginRight: '10px' }} />
+          <label htmlFor="test-bias" style={{ ...FONTS.elegant }}>Apply proximity bias (to Seattle)?</label>
+        </div>
+      </div>
 
-      // Test 2: Direct database connection test  
-      log('🔍 Test 2: Testing database connection...')  
-      try {  
-        // Let TypeScript infer the correct type instead of explicit annotation
-        const result = await withTimeout(  
-          // Wrap the PostgrestFilterBuilder in Promise.resolve()  
-          Promise.resolve(  
-            supabase  
-              .from('users')  
-              .select('id')  
-              .limit(1)  
-          ),  
-          5000  
-        )  
-         
-        if (result.error) {  
-          log(`❌ Database connection error: ${result.error.message}`)  
-        } else {  
-          log('✅ Database connection successful')  
-        }  
-      } catch (err: any) {  
-        log(`❌ Database exception: ${err.message}`)  
-      }
+      <div>
+        <button onClick={() => runTest('structured')} disabled={isLoading} style={buttonStyle}>
+          Test (Structured)
+        </button>
+        <button onClick={() => runTest('combined_text')} disabled={isLoading} style={buttonStyle}>
+          Test (Combined Text)
+        </button>
+      </div>
 
+      {isLoading && <p>Loading...</p>}
 
-      // Test 3: Test RLS policy for current user  
-      log('🔍 Test 3: Testing RLS policy for current user...')  
-       
-      try {  
-        const startTime = Date.now()  
-        const result: PostgrestSingleResponse<DatabaseUser> = await withTimeout(  
-          // Wrap the PostgrestFilterBuilder in Promise.resolve()  
-          Promise.resolve(  
-            supabase  
-              .from('users')  
-              .select('*') // Use '*' for explicit full row selection  
-              .eq('id', userId)  
-              .single()  
-          ),  
-          5000  
-        )  
-         
-        const duration = Date.now() - startTime  
-        log(`⏱️ Query duration: ${duration}ms`)  
-         
-        if (result.error) {  
-          log(`❌ Profile query error: ${result.error.message}`)  
-          log(`❌ Error code: ${result.error.code}`)  
-          if (result.error.code === 'PGRST116' || result.error.code === '406') {  
-            log('ℹ️ 406/PGRST116 errors are common with certain Supabase configurations or if profile does not exist.')  
-            log('ℹ️ The app should still work despite these errors, especially if a profile is created subsequently.')  
-          }  
-        } else if (result.data) {  
-          log('✅ Profile query successful')  
-          log(`✅ Profile data: ${JSON.stringify(result.data, null, 2)}`)  
-        } else {  
-          log('⚠️ No profile found for current user (or query returned empty data)')  
-        }  
-      } catch (err: any) {  
-        log(`❌ Profile query exception: ${err.message}`)  
-      }
+      {testUrl && (
+        <div style={{ marginTop: '2rem' }}>
+          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>Request URL:</h2>
+          <pre style={{
+            background: '#222',
+            color: '#eee',
+            padding: '1rem',
+            borderRadius: '8px',
+            wordWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+            fontSize: '0.8rem',
+          }}>
+            {testUrl}
+          </pre>
+        </div>
+      )}
 
+      {error && (
+        <div style={{ marginTop: '2rem', color: COLORS.danger }}>
+          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>Error:</h2>
+          <pre style={{ background: '#400', padding: '1rem', borderRadius: '8px' }}>{error}</pre>
+        </div>
+      )}
 
-      // Test 4: Test creating a profile  
-      log('🔍 Test 4: Testing profile creation (if needed)...')  
-      try {  
-        // Let TypeScript infer the correct type instead of explicit annotation
-        const existingResult = await withTimeout(  
-          // Wrap the PostgrestFilterBuilder in Promise.resolve()  
-          Promise.resolve(  
-            supabase  
-              .from('users')  
-              .select('id') // This selects only 'id'  
-              .eq('id', userId)  
-              .single()  
-          ),  
-          5000  
-        )  
-         
-        if (existingResult.data) {  
-          log('ℹ️ Profile already exists, skipping creation test')  
-        } else {  
-          log('📝 Attempting to create profile...')  
-          const createResult: PostgrestSingleResponse<DatabaseUser> = await withTimeout(  
-            // Wrap the PostgrestFilterBuilder in Promise.resolve()  
-            Promise.resolve(  
-              supabase  
-                .from('users')  
-                .insert({  
-                  id: userId,  
-                  email: session.user.email!,  
-                  full_name: session.user.email?.split('@')[0] || 'Test User',  
-                  bio: 'Test profile',  
-                  location: 'Test Location',  
-                  is_admin: false  
-                })  
-                .select()  
-                .single()  
-            ),  
-            5000  
-          )  
-           
-          if (createResult.error) {  
-            log(`❌ Profile creation error: ${createResult.error.message}`)  
-            log(`❌ Error code: ${createResult.error.code}`)  
-            if (createResult.error.code === '23505') {  
-                log('ℹ️ Profile likely already exists, race condition or previous failed attempt.')  
-            }  
-          } else if (createResult.data) {  
-            log('✅ Profile created successfully')  
-            log(`✅ New profile: ${JSON.stringify(createResult.data, null, 2)}`)  
-          }  
-        }  
-      } catch (err: any) {  
-        log(`❌ Profile creation exception: ${err.message}`)  
-      }
+      {results && (
+        <div style={{ marginTop: '2rem' }}>
+          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>API Response:</h2>
+          <pre style={{
+            background: '#333',
+            color: '#fff',
+            padding: '1rem',
+            borderRadius: '8px',
+            maxHeight: '500px',
+            overflowY: 'auto',
+          }}>
+            {JSON.stringify(results, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+};
 
-
-      // Test 5: Test RLS policies work correctly  
-      log('🔍 Test 5: Testing RLS policy restrictions...')  
-      try {  
-        // Let TypeScript infer the correct type instead of explicit annotation
-        const otherResult = await withTimeout(  
-          // Wrap the PostgrestFilterBuilder in Promise.resolve()  
-          Promise.resolve(  
-            supabase  
-              .from('users')  
-              .select('*') // Use '*' for explicit full row selection  
-              .neq('id', userId)  
-              .limit(1)  
-          ),  
-          5000  
-        )  
-         
-        if (otherResult.error) {  
-          log(`ℹ️ RLS restriction error (expected if policy restricts): ${otherResult.error.message}`)  
-        } else if (otherResult.data && otherResult.data.length > 0) {  
-          log('✅ Can view other profiles (policy allows authenticated users to view all)')  
-        } else {  
-          log('ℹ️ No other profiles found or RLS restricts access (expected behavior for some RLS configurations)')  
-        }  
-      } catch (err: any) {  
-        log(`❌ RLS test exception: ${err.message}`)  
-      }
-
-
-    } catch (err: any) {  
-      log(`❌ Test suite error: ${err.message}`)  
-    } finally {  
-      setTesting(false)  
-      log('🏁 Tests completed')  
-    }  
-  }
-
-
-  return (  
-    <div style={{  
-      position: 'fixed',  
-      top: '50%',  
-      left: '50%',  
-      transform: 'translate(-50%, -50%)',  
-      backgroundColor: 'white',  
-      padding: '24px',  
-      borderRadius: '12px',  
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',  
-      maxWidth: '600px',  
-      width: '90%',  
-      maxHeight: '80vh',  
-      display: 'flex',  
-      flexDirection: 'column',  
-      zIndex: 1000  
-    }}>  
-      <h2 style={{  
-        ...FONTS.elegant,  
-        fontSize: '20px',  
-        fontWeight: '600',  
-        marginBottom: '16px',  
-        color: COLORS.text  
-      }}>  
-        Supabase Debug Test  
-      </h2>  
-       
-      <button  
-        onClick={runTests}  
-        disabled={testing}  
-        style={{  
-          ...FONTS.elegant,  
-          padding: '12px 24px',  
-          backgroundColor: testing ? COLORS.gray300 : COLORS.primary, // Changed COLORS.disabled
-          color: 'white',  
-          border: 'none',  
-          borderRadius: '8px',  
-          cursor: testing ? 'not-allowed' : 'pointer',  
-          marginBottom: '16px'  
-        }}  
-      >  
-        {testing ? 'Running Tests...' : 'Run Debug Tests'}  
-      </button>  
-       
-      <div style={{  
-        flex: 1,  
-        overflowY: 'auto',  
-        backgroundColor: '#f5f5f5',  
-        padding: '12px',  
-        borderRadius: '8px',  
-        fontFamily: 'monospace',  
-        fontSize: '12px',  
-        lineHeight: '1.5'  
-      }}>  
-        {results.length === 0 ? (  
-          <p style={{ color: COLORS.gray300 }}>Click "Run Debug Tests" to start...</p>  
-        ) : (  
-          results.map((result, index) => (  
-            <div key={index} style={{ marginBottom: '4px' }}>  
-              {result}  
-            </div>  
-          ))  
-        )}  
-      </div>  
-    </div>  
-  )  
-}
-
-
-export default SupabaseDebugTest
+export default SupabaseDebugTest;

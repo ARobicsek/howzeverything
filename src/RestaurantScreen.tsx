@@ -3,15 +3,19 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
+import AdvancedRestaurantSearchForm from './components/restaurant/AdvancedRestaurantSearchForm';
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import { COLORS, FONTS, SPACING, STYLES } from './constants';
+import type { AdvancedSearchQuery } from './hooks/useRestaurants';
 import { useRestaurants } from './hooks/useRestaurants';
+
 
 interface RestaurantScreenProps {        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
 
 // NEW: Helper hook to get the previous value of a prop or state
 const usePrevious = (value: boolean): boolean | undefined => {
@@ -21,6 +25,7 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
 
 // Device and browser detection utilities
 const getDeviceInfo = () => {
@@ -65,6 +70,7 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
 
 // NEW: Enhanced Location Permission Banner Component with OS/Browser Detection    
 const LocationPermissionBanner: React.FC<{    
@@ -128,6 +134,7 @@ const LocationPermissionBanner: React.FC<{
       onRequestPermission();    
     }    
   };
+
 
   return (    
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4" style={{ marginBottom: SPACING[4] }}>    
@@ -225,6 +232,7 @@ const LocationPermissionBanner: React.FC<{
   );    
 };
 
+
 // Enhanced Add Restaurant Form with pre-filled search term (like MenuScreen)        
 const EnhancedAddRestaurantForm: React.FC<{        
   initialRestaurantName?: string;        
@@ -233,12 +241,14 @@ const EnhancedAddRestaurantForm: React.FC<{
 }> = ({ initialRestaurantName = '', onSubmit, onCancel }) => {        
   const [restaurantName, setRestaurantName] = useState(initialRestaurantName);
 
+
   const handleSubmit = async () => {        
     if (restaurantName.trim()) {        
       await onSubmit(restaurantName);        
       setRestaurantName('');        
     }        
   };
+
 
   return (        
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">        
@@ -295,19 +305,23 @@ const EnhancedAddRestaurantForm: React.FC<{
   );        
 };
 
+
 // NEW: Enhanced Search Animation Component      
 const SearchingIndicator: React.FC = () => {      
   const [dotCount, setDotCount] = useState(1);      
   const [pulsePhase, setPulsePhase] = useState(0);
+
 
   useEffect(() => {      
     const dotInterval = setInterval(() => {      
       setDotCount(prev => prev >= 3 ? 1 : prev + 1);      
     }, 600);
 
+
     const pulseInterval = setInterval(() => {      
       setPulsePhase(prev => (prev + 1) % 4);      
     }, 200);
+
 
     return () => {      
       clearInterval(dotInterval);      
@@ -315,8 +329,10 @@ const SearchingIndicator: React.FC = () => {
     };      
   }, []);
 
+
   const dots = '•'.repeat(dotCount).padEnd(3, ' ');      
   const pulseOpacity = 0.3 + (Math.sin(pulsePhase * Math.PI / 2) * 0.4);
+
 
   return (      
     <div style={{      
@@ -368,6 +384,7 @@ const SearchingIndicator: React.FC = () => {
     </div>      
   );      
 };
+
 
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)        
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
@@ -425,6 +442,7 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   return Math.max(0, charSimilarity);        
 };
 
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
   onNavigateToScreen,        
   onNavigateToMenu,        
@@ -440,6 +458,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [pendingNavigation, setPendingNavigation] = useState(false);        
   const [hasInteractedWithEmptyState, setHasInteractedWithEmptyState] = useState(false);  
   const [lastSearchedTerm, setLastSearchedTerm] = useState('');
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
+  const [advancedQuery, setAdvancedQuery] = useState<AdvancedSearchQuery>({ name: '', street: '', city: '' });
+
 
   // User Geolocation State        
   const [userLat, setUserLat] = useState<number | null>(() => {    
@@ -486,6 +507,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   });    
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
+
   // Helper function to save location to localStorage    
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {    
     try {    
@@ -496,6 +518,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       console.warn('📍 Failed to save location to localStorage:', e);    
     }    
   }, []);
+
 
   // Custom Hooks        
   const {        
@@ -514,7 +537,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     resetSearch        
   } = useRestaurants(sortBy, userLat, userLon);
 
+
   const wasSearching = usePrevious(isSearching);
+
 
   useEffect(() => {        
     return () => {        
@@ -524,11 +549,13 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     };        
   }, [searchDebounceTimer]);
 
+
   useEffect(() => {
     if (wasSearching && !isSearching) {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
+
 
   useEffect(() => {    
     const checkLocationPermissionStatus = async () => {    
@@ -536,6 +563,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         setFetchingLocation(false);    
         return;    
       }
+
 
       if (userLat !== null && userLon !== null) {  
         navigator.geolocation.getCurrentPosition(    
@@ -554,6 +582,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         );  
         return;  
       }
+
 
       if ('permissions' in navigator) {    
         try {    
@@ -584,6 +613,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       }    
     };
 
+
     const requestLocationActually = () => {    
       setFetchingLocation(true);    
       navigator.geolocation.getCurrentPosition(    
@@ -611,8 +641,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       );    
     };
 
+
     checkLocationPermissionStatus();    
   }, []);
+
 
   const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);        
          
@@ -630,24 +662,29 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     setPreviousRestaurantCount(restaurants.length);        
   }, [restaurants, pendingNavigation, previousRestaurantCount, onNavigateToMenu]);
 
+
   const filteredAndSortedRestaurants = useMemo(() => {        
     if (!searchTerm.trim()) {        
       return restaurants;        
     }
+
 
     const restaurantsWithScores = restaurants.map(restaurant => ({        
       ...restaurant,        
       similarityScore: calculateRestaurantSimilarity(restaurant.name, searchTerm)        
     }));
 
+
     const hasOnlineResults = searchResults.length > 0;        
     const similarityThreshold = hasOnlineResults ? 70 : 20;
+
 
     return restaurantsWithScores        
       .filter(restaurant => restaurant.similarityScore > similarityThreshold)        
       .sort((a, b) => b.similarityScore - a.similarityScore)        
       .map(({ similarityScore, ...restaurant }) => restaurant);
   }, [restaurants, searchTerm, searchResults.length]);
+
 
   const requestLocationPermission = useCallback(async () => {    
     if (!navigator.geolocation || isRequestingLocationPermission) return;    
@@ -682,6 +719,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }    
   }, [isRequestingLocationPermission, saveLocationToStorage]);
 
+
   const handleDistanceSort = useCallback(() => {        
     if (userLat === null || userLon === null) {        
       requestLocationPermission();        
@@ -694,6 +732,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }));        
   }, [userLat, userLon, requestLocationPermission]);
 
+
   // Handlers        
   const handleAddRestaurant = useCallback(async (name: string) => {        
     const success = await addRestaurant(name);        
@@ -705,9 +744,11 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }        
   }, [addRestaurant]);
 
+
   const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {        
     await deleteRestaurant(restaurantId);        
   }, [deleteRestaurant]);
+
 
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {        
     setAddingRestaurantId(geoapifyPlace.place_id);        
@@ -719,6 +760,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }        
     setAddingRestaurantId(null);        
   }, [importRestaurant, clearSearchResults, onNavigateToMenu]);
+
 
   const handleSearchChange = useCallback((newSearchTerm: string) => {        
     setSearchTerm(newSearchTerm);        
@@ -738,7 +780,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
            
     const timer = setTimeout(() => {        
       if (newSearchTerm.trim().length >= 2) {        
-        console.log('🔍 Triggering online search for:', newSearchTerm);        
+        console.log('🔍 Triggering basic online search for:', newSearchTerm);        
         searchRestaurants(newSearchTerm, userLat, userLon);        
       }        
     }, 800);        
@@ -746,9 +788,34 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     setSearchDebounceTimer(timer);        
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
 
+
+  const handleAdvancedSearchChange = useCallback((newQuery: AdvancedSearchQuery) => {
+    setAdvancedQuery(newQuery);
+    // Keep basic term in sync for UI consistency (e.g., pre-filling add form)
+    setSearchTerm(newQuery.name);
+    
+    if (showAddForm) { setShowAddForm(false); }
+    if (searchDebounceTimer) { clearTimeout(searchDebounceTimer); }
+
+    if (!newQuery.name.trim()) {
+        clearSearchResults();
+        return;
+    }
+
+    const timer = setTimeout(() => {
+        if (newQuery.name.trim().length >= 2) {
+            console.log('🚀 Triggering advanced online search for:', newQuery);
+            searchRestaurants(newQuery, userLat, userLon);
+        }
+    }, 800);
+    setSearchDebounceTimer(timer);
+  }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
+
+
   const handleResetSearch = useCallback(() => {        
     resetSearch();        
     setSearchTerm('');        
+    setAdvancedQuery({ name: '', street: '', city: '' });
     setShowAddForm(false);        
     setHasInteractedWithEmptyState(false);        
     if (searchDebounceTimer) {        
@@ -757,6 +824,28 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }        
   }, [resetSearch, searchDebounceTimer]);
 
+
+  const handleToggleAdvancedSearch = () => {
+    const nextState = !isAdvancedSearch;
+    setIsAdvancedSearch(nextState);
+    
+    if (nextState) {
+      // Switching TO advanced
+      const currentAdvanced = { name: searchTerm, street: '', city: '' };
+      setAdvancedQuery(currentAdvanced);
+      if (searchTerm.trim().length >= 2) {
+        searchRestaurants(currentAdvanced, userLat, userLon);
+      }
+    } else {
+      // Switching TO basic
+      setSearchTerm(advancedQuery.name);
+      if (advancedQuery.name.trim().length >= 2) {
+        searchRestaurants(advancedQuery.name, userLat, userLon);
+      }
+    }
+  };
+
+
   const handleAddFirstRestaurantFlow = useCallback(() => {        
     setHasInteractedWithEmptyState(true);        
     setSearchTerm('');        
@@ -764,14 +853,17 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     setShowAddForm(false);        
   }, [clearSearchResults]);
 
+
   const handleShowAddForm = useCallback(() => {        
     setShowAddForm(true);        
     setHasInteractedWithEmptyState(false);        
   }, []);
 
+
   if (isLoading) {        
     return <LoadingScreen />;        
   }
+
 
   const hasSearchTerm = searchTerm.trim().length > 0;        
   const hasLocalResults = hasSearchTerm && filteredAndSortedRestaurants.length > 0;        
@@ -779,9 +871,11 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const hasAnyResults = hasLocalResults || hasOnlineResults;        
   const hasRestaurants = restaurants.length > 0;
 
+
   const showInitialEmptyState = !hasRestaurants && !hasInteractedWithEmptyState && !showAddForm;        
   const showManualAddForm = showAddForm;        
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
+
 
   return (        
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>        
@@ -809,6 +903,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         </div>        
       </header>
 
+
       <main style={{        
         flex: 1,        
         paddingBottom: STYLES.mainContentPadding,        
@@ -828,6 +923,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>        
           )}
 
+
           {shouldShowLocationBanner && !fetchingLocation && (    
             <LocationPermissionBanner    
               onRequestPermission={requestLocationPermission}    
@@ -836,6 +932,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             />    
           )}
 
+
           {fetchingLocation && (        
             <div className="bg-white/10 p-3 rounded-lg text-center">        
               <p style={{color: COLORS.text, ...FONTS.elegant}}>        
@@ -843,6 +940,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </p>        
             </div>        
           )}
+
 
           {showAdvancedSort && (        
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">        
@@ -909,6 +1007,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>        
           )}
 
+
           {showInitialEmptyState && (        
             <div className="text-center py-12">        
               <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px'}}>        
@@ -937,50 +1036,79 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       color: COLORS.text        
                     }}>        
                       {hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}        
-                    </label>        
-                    {hasSearchTerm && (      
-                      <button      
-                        onClick={handleResetSearch}      
-                        style={{      
-                          background: 'transparent',      
-                          border: 'none',      
-                          padding: 0,      
-                          cursor: 'pointer',      
-                          color: COLORS.textSecondary,      
-                          transition: 'color 0.2s ease, transform 0.2s ease',      
-                        }}      
-                        onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}      
-                        onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}      
-                        aria-label="Clear search"      
-                        title="Clear search"      
-                      >      
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">      
-                          <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />      
-                        </svg>      
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={handleToggleAdvancedSearch}
+                        style={{
+                          ...FONTS.elegant,
+                          background: 'none',
+                          border: 'none',
+                          color: COLORS.primary,
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          padding: '4px 8px',
+                          borderRadius: STYLES.borderRadiusSmall,
+                          transition: 'background-color 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryLight}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        title={isAdvancedSearch ? "Switch to a simpler search" : "Use separate fields for name and address"}
+                      >
+                        {isAdvancedSearch ? 'Basic' : 'Advanced'}
                       </button>      
-                    )}      
-                  </div>        
-                  <input        
-                    id="restaurant-search-input"        
-                    type="text"        
-                    value={searchTerm}        
-                    onChange={(e) => handleSearchChange(e.target.value)}        
-                    placeholder="e.g., Starbucks, Cafe Flora, 123 Main St, 98101..."        
-                    className="w-full max-w-full outline-none focus:ring-2 focus:ring-white/50"        
-                    style={{        
-                      ...FONTS.elegant,        
-                      padding: '12px 16px',        
-                      borderRadius: STYLES.borderRadiusMedium,        
-                      fontSize: '1rem',        
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',        
-                      color: COLORS.text,        
-                      boxSizing: 'border-box',        
-                      WebkitAppearance: 'none',        
-                      border: `2px solid ${COLORS.gray200}`,        
-                      minWidth: 0        
-                    }}        
-                    autoFocus={!hasSearchTerm}        
-                  />        
+                      {hasSearchTerm && (      
+                        <button      
+                          onClick={handleResetSearch}      
+                          style={{      
+                            background: 'transparent',      
+                            border: 'none',      
+                            padding: 0,      
+                            cursor: 'pointer',      
+                            color: COLORS.textSecondary,      
+                            transition: 'color 0.2s ease, transform 0.2s ease',      
+                          }}      
+                          onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}      
+                          onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}      
+                          aria-label="Clear search"      
+                          title="Clear search"      
+                        >      
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">      
+                            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />      
+                          </svg>      
+                        </button>      
+                      )}
+                    </div>
+                  </div>
+                  {isAdvancedSearch ? (
+                    <AdvancedRestaurantSearchForm
+                      onSearchChange={handleAdvancedSearchChange}
+                      initialQuery={advancedQuery}
+                    />
+                  ) : (      
+                    <input        
+                      id="restaurant-search-input"        
+                      type="text"        
+                      value={searchTerm}        
+                      onChange={(e) => handleSearchChange(e.target.value)}        
+                      placeholder="Restaurant name +/- city"        
+                      className="w-full max-w-full outline-none focus:ring-2 focus:ring-white/50"        
+                      style={{        
+                        ...FONTS.elegant,        
+                        padding: '12px 16px',        
+                        borderRadius: STYLES.borderRadiusMedium,        
+                        fontSize: '1rem',        
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',        
+                        color: COLORS.text,        
+                        boxSizing: 'border-box',        
+                        WebkitAppearance: 'none',        
+                        border: `2px solid ${COLORS.gray200}`,        
+                        minWidth: 0        
+                      }}        
+                      autoFocus={!hasSearchTerm}        
+                    />
+                  )}
                          
                   {hasSearchTerm && (        
                     <div style={{        
@@ -1009,6 +1137,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   )}        
                 </>        
               </div>
+
 
               {hasSearchTerm ? (        
                 <div className="space-y-4">        
@@ -1047,6 +1176,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     </div>        
                   )}
 
+
                   {hasOnlineResults && (        
                     <div>        
                       <div className="text-center mb-4">        
@@ -1060,6 +1190,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                           {hasLocalResults ? 'Found online:' : 'Online results:'}        
                         </h3>        
                       </div>
+
 
                       {searchError && (        
                         <div className="bg-red-500/20 p-3 rounded-lg text-center mb-4">        
@@ -1124,6 +1255,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                     </div>        
                   )}
 
+
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">        
                     <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>        
                       Can't find it?        
@@ -1138,6 +1270,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                       Add New Restaurant        
                     </button>        
                   </div>
+
 
                   {/* No Results Message */}        
                   {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (        
@@ -1184,6 +1317,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             </div>        
           )}
 
+
           {showManualAddForm && (        
             <div className="space-y-4">        
               <div className="flex items-center justify-between">        
@@ -1202,6 +1336,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 <div className="w-10" />        
               </div>
 
+
               <EnhancedAddRestaurantForm        
                 initialRestaurantName={searchTerm}        
                 onSubmit={handleAddRestaurant}        
@@ -1212,6 +1347,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         </div>        
       </main>
 
+
       <BottomNavigation        
         onNav={onNavigateToScreen}        
         activeScreenValue={currentAppScreen}        
@@ -1219,5 +1355,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
 
 export default RestaurantScreen;
