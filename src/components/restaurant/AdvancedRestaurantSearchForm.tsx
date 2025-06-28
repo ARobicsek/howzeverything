@@ -70,13 +70,13 @@ const AdvancedRestaurantSearchForm: React.FC<AdvancedRestaurantSearchFormProps> 
         />
       </div>
       <div>
-        <label htmlFor="adv-search-street" style={labelStyle}>Street Address (optional)</label>
+        <label htmlFor="adv-search-street" style={labelStyle}>Street Name / Address (optional)</label>
         <input
           id="adv-search-street"
           type="text"
           value={query.street}
           onChange={(e) => handleChange('street', e.target.value)}
-          placeholder="e.g., 2401 Promenade Blvd"
+          placeholder="e.g., 12 Main St."
           style={inputStyle}
         />
       </div>
