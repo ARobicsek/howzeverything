@@ -1,8 +1,8 @@
-
-// src/App.tsx - Production Version (Debug removed)    
+// src/App.tsx - Production Version (Debug removed) - MODIFIED for restaurant sharing support
 import React, { useEffect, useState } from 'react'
 import { COLORS, FONTS } from './constants'
 import { useAuth } from './hooks/useAuth'
+import { useRestaurants } from './hooks/useRestaurants'
 
 // Screens      
 import AdminScreen from './AdminScreen'
@@ -20,6 +20,9 @@ import UserForm from './components/user/UserForm'
 // Import types from BottomNavigation      
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation'
 
+// ADDED: Import sharing utilities
+import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler'
+
 // Create our own screen type that includes menu and admin      
 type AppScreen = NavigableScreenType | 'menu' | 'admin'
 
@@ -30,17 +33,19 @@ interface MenuScreenState {
 
 const App: React.FC = () => {      
   const { user, profile, loading: authLoading, createProfile } = useAuth()      
+  const { addToFavorites } = useRestaurants({ criterion: 'name', direction: 'asc' })
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home')      
   const [menuScreenState, setMenuScreenState] = useState<MenuScreenState | null>(null)      
   const [showLogin, setShowLogin] = useState(false)      
   const [showProfileEdit, setShowProfileEdit] = useState(false)
+  const [hasProcessedSharedContent, setHasProcessedSharedContent] = useState(false)
 
   // Check if user is admin
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email)
 
-  const navigateToMenu = (restaurantId: string) => {      
-    setMenuScreenState({ restaurantId, restaurantName: '' })      
-    setCurrentScreen('menu')      
+  const navigateToMenu = (restaurantId: string) => {
+    setMenuScreenState({ restaurantId, restaurantName: '' })
+    setCurrentScreen('menu')
   }
 
   const navigateBackFromMenu = () => {      
@@ -67,6 +72,43 @@ const App: React.FC = () => {
     setShowLogin(false)      
     setCurrentScreen('home') // Always go to home after sign-in      
   }
+
+  // ADDED: Handle shared content when app loads or user changes
+  useEffect(() => {
+    const processSharedContent = async () => {
+      if (!user || hasProcessedSharedContent) return
+      
+      const sharedContent = parseSharedUrl()
+      if (sharedContent) {
+        console.log('Processing shared content:', sharedContent)
+        
+        const success = await handleSharedContent(
+          sharedContent,
+          addToFavorites,
+          (restaurantId: string) => {
+            setMenuScreenState({ restaurantId, restaurantName: '' })
+            setCurrentScreen('menu')
+          },
+          (screen: string) => setCurrentScreen(screen as AppScreen)
+        )
+        
+        if (success) {
+          // Clear the URL parameters after processing
+          clearSharedUrlParams()
+          setHasProcessedSharedContent(true)
+        }
+      }
+    }
+
+    processSharedContent()
+  }, [user, addToFavorites, hasProcessedSharedContent])
+
+  // ADDED: Reset shared content processing when user logs out
+  useEffect(() => {
+    if (!user) {
+      setHasProcessedSharedContent(false)
+    }
+  }, [user])
 
   // Create profile if needed - but only once per user and avoid race conditions      
   useEffect(() => {      
@@ -224,7 +266,7 @@ const App: React.FC = () => {
             restaurantId={menuScreenState.restaurantId}      
             onNavigateBack={navigateBackFromMenu}      
             onNavigateToScreen={handleNavigateToScreen}      
-            currentAppScreen={getCurrentAppScreen()}      
+            currentAppScreen={getCurrentAppScreen()}
           />      
         )      
       case 'ratings':      
@@ -243,7 +285,7 @@ const App: React.FC = () => {
         )
       case 'admin':
         return (
-          <AdminScreen 
+          <AdminScreen
             user={user}
           />
         )      
@@ -264,7 +306,7 @@ const App: React.FC = () => {
       position: 'relative'      
     }}>      
       {renderCurrentScreen()}
-      
+     
       {/* Admin button for admin users */}
       {isAdmin && currentScreen !== 'admin' && (
         <button
@@ -288,7 +330,7 @@ const App: React.FC = () => {
           Admin Panel
         </button>
       )}
-      
+     
       {/* Back button for admin screen */}
       {currentScreen === 'admin' && (
         <button

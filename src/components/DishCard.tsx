@@ -40,6 +40,38 @@ import PhotoUpload from './PhotoUpload';
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 interface DishCardProps {    
   dish: DishWithDetails | null;    
   currentUserId: string | null;    
@@ -56,6 +88,38 @@ interface DishCardProps {
   isExpanded: boolean;    
   onToggleExpand: () => void;    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -106,6 +170,22 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.primary, empty: COLORS.ratingEmpty },    
     community: { filled: COLORS.ratingGold, empty: COLORS.ratingEmpty }    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -213,6 +293,38 @@ const StarRating: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const RatingSummary: React.FC<{    
   personalRating: number | null;    
   communityAverage: number;    
@@ -249,6 +361,38 @@ const RatingSummary: React.FC<{
     </div>    
   </div>    
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -367,6 +511,38 @@ const RatingBreakdown: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       {/* Personal Rating Section (Your Rating) */}    
       {/* MODIFIED: Set minWidth to 0 to allow shrinking */}
       <div style={{ flex: 1, minWidth: 0 }}>    
@@ -393,6 +569,38 @@ const RatingBreakdown: React.FC<{
     </div>    
   </div>    
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -483,6 +691,38 @@ const DishHeader: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   useEffect(() => {    
     setEditedName(name);    
   }, [name]);
@@ -518,8 +758,72 @@ const DishHeader: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Check if current user can delete this dish  
   const canDelete = currentUserId && createdBy === currentUserId;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -684,6 +988,38 @@ const DishHeader: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const CommentsSection: React.FC<{    
   // MODIFIED: comments type changed to DishComment[]    
   comments: DishComment[];    
@@ -712,6 +1048,38 @@ const CommentsSection: React.FC<{
 }) => {    
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);    
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -791,7 +1159,71 @@ const CommentsSection: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if (comments.length === 0) return null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -859,6 +1291,38 @@ const CommentsSection: React.FC<{
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>    
         </svg>    
       </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1087,11 +1551,75 @@ const CommentsSection: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {    
   if (!userId) return null;    
   const userRating = dishRatings.find(rating => rating.user_id === userId);    
   return userRating ? userRating.rating : null;    
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1135,6 +1663,38 @@ const PortalModal: React.FC<{
   if (!isOpen || !modalRoot) {    
     return null;    
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1217,6 +1777,38 @@ const PortalModal: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const DishCard: React.FC<DishCardProps> = ({    
   dish,    
   currentUserId,    
@@ -1235,6 +1827,38 @@ const DishCard: React.FC<DishCardProps> = ({
   if (!dish) {    
     return null;    
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1309,7 +1933,71 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1379,6 +2067,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleAddCommentInternal = async (text: string) => {    
     await onAddComment(dish.id, text);    
     setShowCommentModal(false);    
@@ -1416,10 +2136,74 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {    
     await onUpdateComment(commentId, dish.id, text);    
     setEditingComment(null);    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1489,9 +2273,73 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleDirectPhotoUpload = () => {    
     fileInputRef.current?.click();    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1563,6 +2411,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       // UPDATED: Changed from 5MB to 10MB limit    
       if (file.size > 10 * 1024 * 1024) {    
         alert('File size must be less than 10MB');    
@@ -1600,10 +2480,74 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       setSelectedFileForUpload(file);    
       setShowPhotoUpload(true);    
     }    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1683,12 +2627,76 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleDeletePhoto = async (photoId: string) => {    
     await onDeletePhoto(dish.id, photoId);    
     if (dish.dish_photos.length <= 1) {    
       setSelectedPhotoModal(null);    
     }    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1729,6 +2737,38 @@ const DishCard: React.FC<DishCardProps> = ({
       }    
     }    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1861,6 +2901,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Expanded view    
   return (    
     <>    
@@ -1886,6 +2958,38 @@ const DishCard: React.FC<DishCardProps> = ({
           onSaveEdit={() => setIsEditingName(false)}    
           onCancelEdit={() => setIsEditingName(false)}    
         />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1956,6 +3060,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         {/* Hidden file input (stays with photo button logic) */}    
         <input    
           ref={fileInputRef}    
@@ -1964,6 +3100,38 @@ const DishCard: React.FC<DishCardProps> = ({
           onChange={handleFileSelect}    
           style={{ display: 'none' }}    
         />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2040,6 +3208,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         {/* Add Photo Button (Moved below carousel as per request) */}    
         <div style={{ marginTop: SPACING[4] }}>    
           <button    
@@ -2081,6 +3281,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         {/* Add Comment Button */}    
         <div style={{ marginTop: SPACING[4] }}>    
           <button    
@@ -2090,6 +3322,38 @@ const DishCard: React.FC<DishCardProps> = ({
             Add Comment    
           </button>    
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2168,6 +3432,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       {/* Comment Modal */}    
       <PortalModal    
         isOpen={showCommentModal}    
@@ -2187,6 +3483,38 @@ const DishCard: React.FC<DishCardProps> = ({
           isLoading={isSubmittingComment}    
         />    
       </PortalModal>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2277,6 +3605,38 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       {/* Photo Modal */}    
       {selectedPhotoModal && (    
         <PhotoModal    
@@ -2324,4 +3684,39 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export default DishCard;
+
+
+

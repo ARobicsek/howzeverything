@@ -1,15 +1,14 @@
 // src/components/restaurant/RestaurantCard.tsx - MODIFIED
 import React, { useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
+import { useShare } from '../../hooks/useShare';
 import { Restaurant } from '../../types/restaurant';
-
 
 interface RestaurantCardProps {
   restaurant: Restaurant & { dishCount?: number; raterCount?: number; date_favorited?: string | null };
   onDelete: (restaurantId: string) => void;
   onNavigateToMenu: (restaurantId: string) => void;
 }
-
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
   restaurant,
@@ -22,16 +21,16 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const actionButtonSize = 34;
   // =================================================================
 
-
   // The icon size is calculated automatically to fit inside the button.
   // You can adjust the multiplier (e.g., 0.5 for smaller icons, 0.7 for larger).
   const svgIconSize = Math.round(actionButtonSize * 0.6);
 
-
   const [isDeleteHovered, setIsDeleteHovered] = useState(false);
   const [isWebsiteHovered, setIsWebsiteHovered] = useState(false);
+  const [isShareHovered, setIsShareHovered] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
+  const { shareItem } = useShare();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -40,7 +39,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     }
   };
 
-
   const handleViewWebsite = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (restaurant.website_url) {
@@ -48,6 +46,18 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     }
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await shareItem({
+        type: 'restaurant',
+        id: restaurant.id,
+        name: restaurant.name
+      });
+    } catch (error) {
+      console.error('Error sharing restaurant:', error);
+    }
+  };
 
   const smallIconButton: React.CSSProperties = {
     ...STYLES.deleteButton,
@@ -59,24 +69,26 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     justifyContent: 'center'
   };
 
-
   const deleteButtonStyle = {
     ...smallIconButton,
     backgroundColor: isDeleteHovered ? COLORS.primaryHover : COLORS.primary,
-    // Add margin only if the website button will also be rendered
-    marginBottom: restaurant.website_url ? SPACING[2] : 0,
+    // Add margin only if there are other buttons below
+    marginBottom: (restaurant.website_url || true) ? SPACING[2] : 0, // Always has margin now because of share button
   };
-
 
   const websiteButtonStyle = {
     ...smallIconButton,
-    backgroundColor: isWebsiteHovered ? COLORS.primaryHover : COLORS.primary
+    backgroundColor: isWebsiteHovered ? COLORS.primaryHover : COLORS.primary,
+    marginBottom: SPACING[2] // Add margin for share button below
   };
 
+  const shareButtonStyle = {
+    ...smallIconButton,
+    backgroundColor: isShareHovered ? COLORS.primaryHover : COLORS.primary
+  };
 
   const hasDishes = (restaurant.dishCount ?? 0) > 0;
   const hasRaters = (restaurant.raterCount ?? 0) > 0;
-
 
   return (
     <div
@@ -110,7 +122,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           >
             {restaurant.name}
           </h2>
-         
+           
           {restaurant.address && (
             <p
               className="text-sm"
@@ -126,7 +138,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               📍 {restaurant.address}
             </p>
           )}
-         
+           
           {(hasDishes || hasRaters) && (
              <div className="mt-2 flex items-center" style={{
                 fontFamily: FONTS.elegant.fontFamily,
@@ -159,7 +171,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           )}
         </div>
 
-
         <div className="flex flex-col flex-shrink-0">
           <button
             onClick={handleDelete}
@@ -173,7 +184,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
             </svg>
           </button>
-         
+           
           {restaurant.website_url && (
             <button
               onClick={handleViewWebsite}
@@ -191,11 +202,27 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               </svg>
             </button>
           )}
+
+          {/* Share Button */}
+          <button
+            onClick={handleShare}
+            style={shareButtonStyle}
+            onMouseEnter={() => setIsShareHovered(true)}
+            onMouseLeave={() => setIsShareHovered(false)}
+            aria-label={`Share ${restaurant.name}`}
+            title="Share Restaurant"
+          >
+            {/* Share icon */}
+            <svg width={svgIconSize} height={svgIconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v13"/>
+              <path d="m16 6-4-4-4 4"/>
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default RestaurantCard;
