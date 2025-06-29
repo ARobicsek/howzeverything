@@ -16,6 +16,18 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   onDelete,
   onNavigateToMenu
 }) => {
+  // =================================================================
+  // === PLAY WITH THIS NUMBER ===
+  // Change this value up or down to resize the buttons and icons.
+  const actionButtonSize = 30;
+  // =================================================================
+
+
+  // The icon size is calculated automatically to fit inside the button.
+  // You can adjust the multiplier (e.g., 0.5 for smaller icons, 0.7 for larger).
+  const svgIconSize = Math.round(actionButtonSize * 0.6);
+
+
   const [isDeleteHovered, setIsDeleteHovered] = useState(false);
   const [isWebsiteHovered, setIsWebsiteHovered] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -39,8 +51,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
   const smallIconButton: React.CSSProperties = {
     ...STYLES.deleteButton,
-    width: '24px',
-    height: '24px',
+    width: `${actionButtonSize}px`, // Uses the variable
+    height: `${actionButtonSize}px`, // Uses the variable
     border: `1.5px solid ${COLORS.black}`,
     display: 'flex',
     alignItems: 'center',
@@ -121,7 +133,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 fontSize: '0.8rem',
                 color: COLORS.gray600,
                 fontWeight: 500,
-                gap: SPACING[2], // Space between the two stat groups
+                gap: SPACING[4], // Space between the two stat groups
               }}>
                {hasDishes && (
                 <span className="flex items-center" style={{ gap: '2px' /* Tighter spacing */ }}>
@@ -156,8 +168,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             onMouseLeave={() => setIsDeleteHovered(false)}
             aria-label={`Delete ${restaurant.name}`}
           >
-            {/* Larger trash icon to match button size better */}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            {/* This icon's size is controlled by the svgIconSize variable */}
+            <svg width={svgIconSize} height={svgIconSize} viewBox="0 0 24 24" fill="currentColor">
               <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
             </svg>
           </button>
@@ -171,8 +183,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               aria-label={`View ${restaurant.name} website`}
               title="View Menu Online"
             >
-              {/* Better website icon - external link icon that's clearer */}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {/* This icon's size is also controlled by the svgIconSize variable */}
+              <svg width={svgIconSize} height={svgIconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 3h6v6"/>
                 <path d="M10 14 21 3"/>
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
