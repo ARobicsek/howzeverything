@@ -1,4 +1,4 @@
-// src/RestaurantScreen.tsx - Fixed location permission persistence        
+// src/RestaurantScreen.tsx - MODIFIED
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
@@ -10,11 +10,39 @@ import type { AdvancedSearchQuery } from './hooks/useRestaurants';
 import { useRestaurants } from './hooks/useRestaurants';
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 interface RestaurantScreenProps {        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // NEW: Helper hook to get the previous value of a prop or state
@@ -25,6 +53,20 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Device and browser detection utilities
@@ -70,6 +112,20 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // NEW: Enhanced Location Permission Banner Component with OS/Browser Detection    
@@ -134,6 +190,20 @@ const LocationPermissionBanner: React.FC<{
       onRequestPermission();    
     }    
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   return (    
@@ -233,6 +303,20 @@ const LocationPermissionBanner: React.FC<{
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Enhanced Add Restaurant Form with pre-filled search term (like MenuScreen)        
 const EnhancedAddRestaurantForm: React.FC<{        
   initialRestaurantName?: string;        
@@ -242,12 +326,40 @@ const EnhancedAddRestaurantForm: React.FC<{
   const [restaurantName, setRestaurantName] = useState(initialRestaurantName);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleSubmit = async () => {        
     if (restaurantName.trim()) {        
       await onSubmit(restaurantName);        
       setRestaurantName('');        
     }        
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   return (        
@@ -306,10 +418,38 @@ const EnhancedAddRestaurantForm: React.FC<{
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // NEW: Enhanced Search Animation Component      
 const SearchingIndicator: React.FC = () => {      
   const [dotCount, setDotCount] = useState(1);      
   const [pulsePhase, setPulsePhase] = useState(0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   useEffect(() => {      
@@ -318,9 +458,37 @@ const SearchingIndicator: React.FC = () => {
     }, 600);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const pulseInterval = setInterval(() => {      
       setPulsePhase(prev => (prev + 1) % 4);      
     }, 200);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     return () => {      
@@ -330,8 +498,36 @@ const SearchingIndicator: React.FC = () => {
   }, []);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const dots = '•'.repeat(dotCount).padEnd(3, ' ');      
   const pulseOpacity = 0.3 + (Math.sin(pulsePhase * Math.PI / 2) * 0.4);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   return (      
@@ -384,6 +580,20 @@ const SearchingIndicator: React.FC = () => {
     </div>      
   );      
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)        
@@ -443,6 +653,20 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
   onNavigateToScreen,        
   onNavigateToMenu,        
@@ -460,6 +684,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [lastSearchedTerm, setLastSearchedTerm] = useState('');
   const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
   const [advancedQuery, setAdvancedQuery] = useState<AdvancedSearchQuery>({ name: '', street: '', city: '' });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   // User Geolocation State        
@@ -508,6 +746,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Helper function to save location to localStorage    
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {    
     try {    
@@ -518,6 +770,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       console.warn('📍 Failed to save location to localStorage:', e);    
     }    
   }, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   // Custom Hooks        
@@ -538,7 +804,35 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   } = useRestaurants(sortBy, userLat, userLon);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const wasSearching = usePrevious(isSearching);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   useEffect(() => {        
@@ -550,11 +844,39 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [searchDebounceTimer]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   useEffect(() => {
     if (wasSearching && !isSearching) {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   useEffect(() => {    
@@ -563,6 +885,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         setFetchingLocation(false);    
         return;    
       }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
       if (userLat !== null && userLon !== null) {  
@@ -582,6 +918,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         );  
         return;  
       }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
       if ('permissions' in navigator) {    
@@ -614,6 +964,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const requestLocationActually = () => {    
       setFetchingLocation(true);    
       navigator.geolocation.getCurrentPosition(    
@@ -642,8 +1006,36 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     checkLocationPermissionStatus();    
   }, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);        
@@ -663,10 +1055,38 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [restaurants, pendingNavigation, previousRestaurantCount, onNavigateToMenu]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const filteredAndSortedRestaurants = useMemo(() => {        
     if (!searchTerm.trim()) {        
       return restaurants;        
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     const restaurantsWithScores = restaurants.map(restaurant => ({        
@@ -675,8 +1095,36 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }));
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const hasOnlineResults = searchResults.length > 0;        
     const similarityThreshold = hasOnlineResults ? 70 : 20;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     return restaurantsWithScores        
@@ -684,6 +1132,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       .sort((a, b) => b.similarityScore - a.similarityScore)        
       .map(({ similarityScore, ...restaurant }) => restaurant);
   }, [restaurants, searchTerm, searchResults.length]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const requestLocationPermission = useCallback(async () => {    
@@ -720,6 +1182,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [isRequestingLocationPermission, saveLocationToStorage]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleDistanceSort = useCallback(() => {        
     if (userLat === null || userLon === null) {        
       requestLocationPermission();        
@@ -731,6 +1207,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       direction: prev.criterion === 'distance' && prev.direction === 'asc' ? 'desc' : 'asc'        
     }));        
   }, [userLat, userLon, requestLocationPermission]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   // Handlers        
@@ -745,9 +1235,37 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [addRestaurant]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {        
     await deleteRestaurant(restaurantId);        
   }, [deleteRestaurant]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {        
@@ -760,6 +1278,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }        
     setAddingRestaurantId(null);        
   }, [importRestaurant, clearSearchResults, onNavigateToMenu]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const handleSearchChange = useCallback((newSearchTerm: string) => {        
@@ -789,18 +1321,46 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleAdvancedSearchChange = useCallback((newQuery: AdvancedSearchQuery) => {
     setAdvancedQuery(newQuery);
     // Keep basic term in sync for UI consistency (e.g., pre-filling add form)
     setSearchTerm(newQuery.name);
-    
+   
     if (showAddForm) { setShowAddForm(false); }
     if (searchDebounceTimer) { clearTimeout(searchDebounceTimer); }
+
+
+
+
+
+
+
 
     if (!newQuery.name.trim()) {
         clearSearchResults();
         return;
     }
+
+
+
+
+
+
+
 
     const timer = setTimeout(() => {
         if (newQuery.name.trim().length >= 2) {
@@ -810,6 +1370,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }, 800);
     setSearchDebounceTimer(timer);
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const handleResetSearch = useCallback(() => {        
@@ -825,10 +1399,24 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [resetSearch, searchDebounceTimer]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleToggleAdvancedSearch = () => {
     const nextState = !isAdvancedSearch;
     setIsAdvancedSearch(nextState);
-    
+   
     if (nextState) {
       // Switching TO advanced
       const currentAdvanced = { name: searchTerm, street: '', city: '' };
@@ -846,6 +1434,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleAddFirstRestaurantFlow = useCallback(() => {        
     setHasInteractedWithEmptyState(true);        
     setSearchTerm('');        
@@ -854,15 +1456,57 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   }, [clearSearchResults]);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleShowAddForm = useCallback(() => {        
     setShowAddForm(true);        
     setHasInteractedWithEmptyState(false);        
   }, []);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if (isLoading) {        
     return <LoadingScreen />;        
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   const hasSearchTerm = searchTerm.trim().length > 0;        
@@ -872,9 +1516,37 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const hasRestaurants = restaurants.length > 0;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const showInitialEmptyState = !hasRestaurants && !hasInteractedWithEmptyState && !showAddForm;        
   const showManualAddForm = showAddForm;        
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   return (        
@@ -904,6 +1576,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       </header>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       <main style={{        
         flex: 1,        
         paddingBottom: STYLES.mainContentPadding,        
@@ -911,7 +1597,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         width: '100%',        
         margin: '0 auto'        
       }}>        
-        <div className="max-w-md mx-auto space-y-6"        
+        <div className="max-w-md mx-auto space-y-4"        
           style={{        
             paddingLeft: SPACING.containerPadding,        
             paddingRight: SPACING.containerPadding,        
@@ -924,6 +1610,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           {shouldShowLocationBanner && !fetchingLocation && (    
             <LocationPermissionBanner    
               onRequestPermission={requestLocationPermission}    
@@ -933,6 +1633,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
           )}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           {fetchingLocation && (        
             <div className="bg-white/10 p-3 rounded-lg text-center">        
               <p style={{color: COLORS.text, ...FONTS.elegant}}>        
@@ -940,6 +1654,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </p>        
             </div>        
           )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
           {showAdvancedSort && (        
@@ -1006,6 +1734,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </div>        
             </div>        
           )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
           {showInitialEmptyState && (        
@@ -1139,67 +1881,100 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               {hasSearchTerm ? (        
                 <div className="space-y-4">        
                   {hasLocalResults && (        
-                    <div>        
-                      <div className="text-center mb-4">        
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>        
+                      <div className="text-center">        
                         <h3 style={{        
                           ...FONTS.elegant,        
                           color: COLORS.text,        
                           fontSize: '18px',        
                           fontWeight: '500',        
-                          margin: 0        
+                          margin: 0,
+                          paddingBottom: SPACING[2]
                         }}>        
                           Your restaurants:        
                         </h3>        
                       </div>        
-                             
-                      {filteredAndSortedRestaurants.map((restaurant, index) => (        
-                        <div key={restaurant.id}>        
-                          <RestaurantCard        
-                            restaurant={restaurant}        
-                            onDelete={handleDeleteRestaurant}        
-                            onNavigateToMenu={onNavigateToMenu}        
-                          />        
-                          {(index < filteredAndSortedRestaurants.length - 1 || hasOnlineResults) && (        
-                            <div        
-                              className="mx-4 mt-4"        
-                              style={{        
-                                height: '1px',        
-                                background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`        
-                              }}        
-                            />        
-                          )}        
-                        </div>        
+                      {filteredAndSortedRestaurants.map((restaurant) => (        
+                        <RestaurantCard        
+                          key={restaurant.id}
+                          restaurant={restaurant}        
+                          onDelete={handleDeleteRestaurant}        
+                          onNavigateToMenu={onNavigateToMenu}        
+                        />        
                       ))}        
                     </div>        
                   )}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                   {hasOnlineResults && (        
-                    <div>        
-                      <div className="text-center mb-4">        
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>        
+                      <div className="text-center">        
                         <h3 style={{        
                           ...FONTS.elegant,        
                           color: COLORS.text,        
                           fontSize: '18px',        
                           fontWeight: '500',        
-                          margin: 0        
+                          margin: 0,
+                          paddingBottom: SPACING[2]
                         }}>        
                           {hasLocalResults ? 'Found online:' : 'Online results:'}        
                         </h3>        
                       </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                       {searchError && (        
-                        <div className="bg-red-500/20 p-3 rounded-lg text-center mb-4">        
+                        <div className="bg-red-500/20 p-3 rounded-lg text-center">        
                           <p style={{color: COLORS.danger, ...FONTS.elegant}}>{searchError}</p>        
                         </div>        
                       )}        
                              
                       {searchResults.map((result) => (        
-                        <div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">        
+                        <div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4">        
                           <div className="flex justify-between items-start">        
                             <div className="flex-1 mr-4">        
                               <h4 style={{        
@@ -1256,6 +2031,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   )}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center">        
                     <p style={{...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px'}}>        
                       Can't find it?        
@@ -1272,6 +2061,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                   {/* No Results Message */}        
                   {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (        
                     <div className="text-center py-12">        
@@ -1285,25 +2088,15 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                   )}        
                 </div>        
               ) : (        
-                <div className="space-y-4">        
+                <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>        
                   {hasRestaurants ? (        
-                    restaurants.map((restaurant, index) => (        
-                      <div key={restaurant.id}>        
-                        <RestaurantCard        
-                          restaurant={restaurant}        
-                          onDelete={handleDeleteRestaurant}        
-                          onNavigateToMenu={onNavigateToMenu}        
-                        />        
-                          {(index < restaurants.length - 1) && (        
-                            <div        
-                              className="mx-4 mt-4"        
-                              style={{        
-                                height: '1px',        
-                                background: `linear-gradient(to right, transparent, ${COLORS.text}20, transparent)`        
-                              }}        
-                            />        
-                          )}        
-                      </div>        
+                    restaurants.map((restaurant) => (        
+                      <RestaurantCard        
+                        key={restaurant.id}
+                        restaurant={restaurant}        
+                        onDelete={handleDeleteRestaurant}        
+                        onNavigateToMenu={onNavigateToMenu}        
+                      />        
                     ))        
                   ) : (        
                     <div className="text-center py-12">        
@@ -1316,6 +2109,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               )}        
             </div>        
           )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
           {showManualAddForm && (        
@@ -1337,6 +2144,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
               </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               <EnhancedAddRestaurantForm        
                 initialRestaurantName={searchTerm}        
                 onSubmit={handleAddRestaurant}        
@@ -1348,6 +2169,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       </main>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       <BottomNavigation        
         onNav={onNavigateToScreen}        
         activeScreenValue={currentAppScreen}        
@@ -1355,6 +2190,20 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 export default RestaurantScreen;

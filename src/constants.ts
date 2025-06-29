@@ -1,6 +1,7 @@
 // src/constants.ts    
 import React from 'react'; // Import React to get React.CSSProperties
 
+
 export const COLORS = {    
   // Primary Colors    
   primary: '#2563EB', // Main accent, buttons, links    
@@ -14,21 +15,22 @@ export const COLORS = {
   gray300: '#D1D5DB', // Disabled states    
   gray400: '#9CA3AF', // Placeholder text    
   gray500: '#6B7280', // Secondary text    
+  gray600: '#586780', // Custom secondary text / stats    
   gray700: '#374151', // Primary text    
   gray900: '#111827', // Headers, emphasis    
      
   // Blue variants (needed for new components)
   blue50: '#EFF6FF',
-  blue100: '#DBEAFE', 
+  blue100: '#DBEAFE',
   blue200: '#BFDBFE',
   blue600: '#2563EB',
   blue700: '#1D4ED8',
   blue800: '#1E40AF',
-  
+ 
   // Green variants (needed for success states)
   green100: '#DCFCE7',
   green700: '#15803D',
-  
+ 
   // Red variants (needed for error states)
   red50: '#FEF2F2',
   red200: '#FECACA',
@@ -83,6 +85,7 @@ export const COLORS = {
   textPrimary: '#374151', // Maps to text  
 };
 
+
 export const FONTS = {    
   primary: {    
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',    
@@ -103,6 +106,7 @@ export const FONTS = {
     letterSpacing: '-0.01em',    
   }    
 };
+
 
 export const TYPOGRAPHY = {    
   // Font Sizes & Line Heights    
@@ -129,6 +133,7 @@ export const TYPOGRAPHY = {
   button: { ...FONTS.primary, fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties, // Maps to TYPOGRAPHY.base, semibold  
 };
 
+
 export const SPACING = {    
   // Consistent spacing scale    
   1: '0.25rem', // 4px    
@@ -146,6 +151,7 @@ export const SPACING = {
   sectionGap: '1.5rem', // 24px    
   cardPadding: '1.25rem', // 20px    
 };
+
 
 // NEW: Image compression settings  
 export const IMAGE_COMPRESSION = {  
@@ -169,6 +175,7 @@ export const IMAGE_COMPRESSION = {
   // Performance  
   COMPRESSION_TIMEOUT: 15000, // 15 seconds max for compression  
 };
+
 
 export const STYLES = {    
   // Border Radius    
@@ -375,6 +382,7 @@ export const STYLES = {
   } as React.CSSProperties, // Added casting    
 };
 
+
 // NEW: Export BORDERS and SHADOWS, mapping to STYLES for consistency  
 export const BORDERS = {  
   radius: {  
@@ -385,11 +393,13 @@ export const BORDERS = {
   },  
 };
 
+
 export const SHADOWS = {  
   small: STYLES.shadowSmall,  
   medium: STYLES.shadowMedium,  
   large: STYLES.shadowLarge,  
 };
+
 
 // Legacy SIZES for compatibility    
 export const SIZES = {    
@@ -402,6 +412,7 @@ export const SIZES = {
   '3xl': '3rem', // 48px    
   '4xl': '4rem', // 64px    
 };
+
 
 // Breakpoints for responsive design    
 export const BREAKPOINTS = {    

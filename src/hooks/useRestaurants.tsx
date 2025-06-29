@@ -10,18 +10,6 @@ import { Restaurant } from '../types/restaurant'; // MODIFIED: Import Restaurant
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 interface GeoapifyPlace {
   place_id: string;
   properties: {
@@ -42,18 +30,6 @@ interface GeoapifyPlace {
     };
   };
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -90,28 +66,12 @@ interface GeoapifyPlaceDetails {
 
 
 
-
-
-
-
 // NEW: Type for advanced search parameters
 export interface AdvancedSearchQuery {
   name: string;
   street: string;
   city: string;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -139,19 +99,11 @@ function normalizeText(text: string): string {
 
 
 
-
-
-
-
 interface QueryAnalysis {
   type: 'business' | 'address' | 'business_location_proposal';
   businessName?: string;
   location?: string;
 }
-
-
-
-
 
 
 
@@ -170,10 +122,6 @@ function analyzeQuery(query: string): QueryAnalysis {
 
 
 
-
-
-
-
     const commaParts = normalizedQuery.split(',');
     if (commaParts.length > 1) {
         const business = commaParts.slice(0, -1).join(',').trim();
@@ -182,10 +130,6 @@ function analyzeQuery(query: string): QueryAnalysis {
             return { type: 'business_location_proposal', businessName: business, location: location };
         }
     }
-
-
-
-
 
 
 
@@ -205,24 +149,8 @@ function analyzeQuery(query: string): QueryAnalysis {
 
 
 
-
-
-
-
     return { type: 'business', businessName: normalizedQuery };
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -256,18 +184,6 @@ function calculateEnhancedSimilarity(str1: string, str2: string): number {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Helper function for Haversine distance calculation (in miles)
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371e3;
@@ -284,21 +200,9 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Reusable sorting function for restaurants with distance support
 const sortRestaurantsArray = (
-  array: Restaurant[],
+  array: (Restaurant & { date_favorited?: string | null })[],
   sortBy: { criterion: 'name' | 'date' | 'distance'; direction: 'asc' | 'desc' },
   userLat?: number | null,
   userLon?: number | null
@@ -308,8 +212,8 @@ const sortRestaurantsArray = (
     if (sortBy.criterion === 'name') {
       comparison = a.name.localeCompare(b.name);
     } else if (sortBy.criterion === 'date') {
-      const dateA = new Date(a.dateAdded || a.created_at).getTime();
-      const dateB = new Date(b.dateAdded || b.created_at).getTime();
+      const dateA = new Date(a.date_favorited || a.created_at).getTime();
+      const dateB = new Date(b.date_favorited || b.created_at).getTime();
       comparison = dateA - dateB;
     } else if (sortBy.criterion === 'distance') {
       if (!userLat || !userLon) {
@@ -323,18 +227,6 @@ const sortRestaurantsArray = (
     return sortBy.direction === 'asc' ? comparison : -comparison;
   });
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -356,10 +248,6 @@ export const useRestaurants = (
 
 
 
-
-
-
-
   useEffect(() => {
     const fetchRestaurants = async () => {
       setIsLoading(true);
@@ -367,17 +255,24 @@ export const useRestaurants = (
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setError('User not authenticated'); setRestaurants([]); return; }
-        const { data: favoriteLinks, error: favError } = await supabase.from('user_favorite_restaurants').select('restaurant_id, added_at').eq('user_id', user.id);
-        if (favError) { console.error('Error fetching favorite links:', favError); setError('Failed to load your restaurant list. Please try again.'); return; }
-        if (!favoriteLinks || favoriteLinks.length === 0) { setRestaurants([]); return; }
-        const restaurantIds = favoriteLinks.map(link => link.restaurant_id);
-        const { data: restaurantDetails, error: detailsError } = await supabase.from('restaurants').select('*').in('id', restaurantIds);
-        if (detailsError) { console.error('Error fetching restaurant details:', detailsError); setError('Failed to load restaurant details. Please try again.'); return; }
+
+        const { data: restaurantDetails, error: rpcError } = await supabase
+          .rpc('get_user_favorite_restaurants_with_stats', { p_user_id: user.id });
+
+        if (rpcError) {
+          console.error('Error fetching restaurant stats:', rpcError);
+          setError('Failed to load your restaurant list. Please try again.');
+          return;
+        }
+
         if (restaurantDetails) {
-          const combinedData = restaurantDetails.map(restaurant => {
-            const favoriteLink = favoriteLinks.find(link => link.restaurant_id === restaurant.id);
-            return { ...restaurant, dateAdded: favoriteLink?.added_at || restaurant.created_at, date_favorited: favoriteLink?.added_at, };
-          });
+          const combinedData = restaurantDetails.map((r: any) => ({
+            ...r,
+            dishCount: r.dish_count,
+            raterCount: r.rater_count,
+            date_favorited: r.date_favorited,
+            dateAdded: r.dateAdded,
+          }));
           const sortedRestaurants = sortRestaurantsArray(combinedData as Restaurant[], sortBy, userLat, userLon);
           setRestaurants(sortedRestaurants);
         }
@@ -385,10 +280,6 @@ export const useRestaurants = (
     };
     fetchRestaurants();
   }, [sortBy.criterion, sortBy.direction, userLat, userLon]);
-
-
-
-
 
 
 
@@ -418,10 +309,6 @@ export const useRestaurants = (
 
 
 
-
-
-
-
   const isAlreadyFavorited = useCallback(async (restaurantId: string): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -434,15 +321,7 @@ export const useRestaurants = (
 
 
 
-
-
-
-
   const abortControllerRef = useRef<AbortController | null>(null);
-
-
-
-
 
 
 
@@ -458,10 +337,6 @@ export const useRestaurants = (
 
 
 
-
-
-
-
     if (!query.trim()) { setSearchResults([]); return; }
     if (abortControllerRef.current) { abortControllerRef.current.abort(); }
     const abortController = new AbortController();
@@ -469,10 +344,6 @@ export const useRestaurants = (
     setIsSearching(true);
     setSearchError(null);
     setSearchResults([]);
-
-
-
-
 
 
 
@@ -489,10 +360,6 @@ export const useRestaurants = (
 
 
 
-
-
-
-
       if (isAdvanced) {
         const { name, street, city } = searchParams as AdvancedSearchQuery;
         searchTextForSimilarity = [name, street, city].filter(Boolean).join(', ');
@@ -500,6 +367,8 @@ export const useRestaurants = (
        
         const params = new URLSearchParams({ apiKey: apiKey, type: 'amenity' });
         let clientSideFilter: ((feature: GeoapifyPlace) => boolean) | null = null;
+
+
 
 
         if (city) {
@@ -522,6 +391,8 @@ export const useRestaurants = (
           params.set('limit', '20');
 
 
+
+
         } else if (street) {
           const searchTextForApi = [name, street].filter(Boolean).join(', ');
           console.log(`💡 Advanced search with street, no city. Biasing to user location to prevent API error.`);
@@ -532,9 +403,13 @@ export const useRestaurants = (
           }
 
 
+
+
           const normalizedStreet = normalizeText(street);
           clientSideFilter = (feature) =>
             !!(feature.properties.formatted && normalizeText(feature.properties.formatted).includes(normalizedStreet));
+
+
 
 
         } else {
@@ -563,16 +438,18 @@ export const useRestaurants = (
         }
 
 
+
+
       } else {
         // --- BASIC SEARCH LOGIC ---
         const basicQuery = searchParams as string;
         const queryAnalysis = analyzeQuery(basicQuery);
         console.log('🔍 Initial Query analysis:', queryAnalysis);
         searchTextForSimilarity = basicQuery;
-        
+       
         if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
             console.log(`🤝 Performing dual search for ambiguous query: "${basicQuery}"`);
-            
+           
             const [smartResults, textResults] = await Promise.all([
                 // 1. "Smart" Search: Geocode location, then search for business.
                 (async () => {
@@ -580,9 +457,10 @@ export const useRestaurants = (
                     const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(queryAnalysis.location!)}&limit=1&apiKey=${apiKey}`;
                     const geocodeResponse = await fetch(geocodeUrl, { signal: abortController.signal });
                     if (!geocodeResponse.ok) return [];
-                    
+                   
                     const geocodeData = await geocodeResponse.json();
                     if (!geocodeData.features || geocodeData.features.length === 0) return [];
+
 
                     const { lat, lon } = geocodeData.features[0].properties;
                     console.log(`   > Smart Search: Location validated. Searching for "${queryAnalysis.businessName}" near new center.`);
@@ -590,19 +468,19 @@ export const useRestaurants = (
                     const filter = `circle:${lon},${lat},${radiusInMeters}`;
                     const bias = `proximity:${lon},${lat}`;
                     const smartSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(queryAnalysis.businessName!)}&type=amenity&limit=20&filter=${filter}&bias=${bias}&apiKey=${apiKey}`;
-                    
+                   
                     const response = await fetch(smartSearchUrl, { signal: abortController.signal });
                     if (!response.ok) return [];
                     const data = await response.json();
                     return data.features || [];
                 })(),
-                
+               
                 // 2. "Text" Search: Search for the literal full string, with NO location bias.
                 (async () => {
                     console.log(`   > Text Search: Searching for literal text "${basicQuery}" without location bias.`);
                     // FIX: Removed user location bias to allow for true global text search.
                     const textSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(basicQuery)}&type=amenity&limit=20&apiKey=${apiKey}`;
-                    
+                   
                     const response = await fetch(textSearchUrl, { signal: abortController.signal });
                     if (!response.ok) return [];
                     const data = await response.json();
@@ -610,19 +488,21 @@ export const useRestaurants = (
                 })()
             ]);
 
+
             console.log(`   > Smart search found ${smartResults.length}, Text search found ${textResults.length}`);
             const combined = [...smartResults, ...textResults];
             // De-duplicate the merged results
-            apiResults = combined.filter((result, index, self) => 
+            apiResults = combined.filter((result, index, self) =>
                 index === self.findIndex(r => r.properties.place_id === result.properties.place_id)
             );
             console.log(`   > Found ${apiResults.length} unique results after merge.`);
+
 
         } else {
             // Original logic for simple (non-proposal) basic searches
             const bias = (userLat && userLon) ? `&bias=proximity:${userLon},${userLat}` : '';
             const simpleSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(basicQuery)}&type=amenity&limit=20${bias}&apiKey=${apiKey}`;
-            
+           
             console.log(`⚡️ Performing simple Geoapify search with URL: ${simpleSearchUrl}`);
             const fuzzyResponse = await fetch(simpleSearchUrl, { signal: abortController.signal });
              if (fuzzyResponse.ok) {
@@ -635,6 +515,8 @@ export const useRestaurants = (
             }
         }
       }
+
+
 
 
       // --- COMMON PROCESSING FOR ALL SEARCH TYPES ---
@@ -655,9 +537,9 @@ export const useRestaurants = (
           databaseResults.push(...scoredDbRestaurants);
       }
      
-      
+     
       let allResults: (GeoapifyPlace & { score: number; distance: number })[] = [...databaseResults];
-      
+     
       const mappedApiResults = apiResults.map((feature: any) => {
           const place: GeoapifyPlace = {
             place_id: feature.properties.place_id || `geocode_${feature.properties.lat}_${feature.properties.lon}`,
@@ -672,6 +554,8 @@ export const useRestaurants = (
       const uniqueResults = allResults.filter((result, index, array) => array.findIndex(r => r.place_id === result.place_id) === index );
 
 
+
+
       const rankedResults = uniqueResults
         .sort((a, b) => {
           if (Math.abs(b.score - a.score) < 10) {
@@ -682,9 +566,13 @@ export const useRestaurants = (
         .slice(0, 15);
 
 
+
+
       const finalResults = rankedResults.map(({ score, distance, ...result }) => result);
       console.log(`🎯 Final results: ${finalResults.length} restaurants`);
       setSearchResults(finalResults);
+
+
 
 
     } catch (err: any) {
@@ -698,7 +586,11 @@ export const useRestaurants = (
   };
 
 
+
+
   // ... (rest of the hook is unchanged)
+
+
 
 
   const getRestaurantDetails = async (placeId: string): Promise<GeoapifyPlaceDetails | null> => {
@@ -721,6 +613,8 @@ export const useRestaurants = (
       setIsLoadingDetails(false);
     }
   };
+
+
 
 
   const addRestaurant = async (restaurantDataOrName: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> | string): Promise<Restaurant | boolean | null> => {
@@ -747,6 +641,8 @@ export const useRestaurants = (
   };
 
 
+
+
   const addToFavorites = async (restaurant: Restaurant): Promise<void> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -754,9 +650,11 @@ export const useRestaurants = (
       const alreadyFavorited = await isAlreadyFavorited(restaurant.id);
       if (alreadyFavorited) { return; }
       await supabase.from('user_favorite_restaurants').insert([{ user_id: user.id, restaurant_id: restaurant.id, added_at: new Date().toISOString(), }]);
-      setRestaurants(prev => sortRestaurantsArray([...prev, { ...restaurant, dateAdded: new Date().toISOString() }], sortBy, userLat, userLon));
+      setRestaurants(prev => sortRestaurantsArray([...prev, { ...restaurant, date_favorited: new Date().toISOString() }], sortBy, userLat, userLon));
     } catch (err: any) { throw err; }
   };
+
+
 
 
   const addRestaurantAndFavorite = async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>): Promise<Restaurant> => {
@@ -769,6 +667,8 @@ export const useRestaurants = (
   };
 
 
+
+
   const removeFromFavorites = async (restaurantId: string): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { throw new Error('User must be authenticated'); }
@@ -777,9 +677,13 @@ export const useRestaurants = (
   };
 
 
+
+
   const deleteRestaurant = async (restaurantId: string): Promise<void> => {
     return removeFromFavorites(restaurantId);
   };
+
+
 
 
   const importRestaurant = async (geoapifyPlace: GeoapifyPlace): Promise<string | null> => {
@@ -795,10 +699,14 @@ export const useRestaurants = (
   };
 
 
+
+
   const clearSearchResults = () => {
     setSearchResults([]);
     setSearchError(null);
   };
+
+
 
 
   const resetSearch = () => {
@@ -808,6 +716,8 @@ export const useRestaurants = (
       abortControllerRef.current = null;
     }
   };
+
+
 
 
   return {

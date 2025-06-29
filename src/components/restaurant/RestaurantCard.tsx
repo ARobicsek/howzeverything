@@ -1,14 +1,11 @@
-// src/components/restaurant/RestaurantCard.tsx
-import React from 'react';
-import { COLORS, FONTS } from '../../constants';
-import { Restaurant } from '../../types/restaurant'; // MODIFIED: Import Restaurant interface from central type file
-
-
-// REMOVED: Local Restaurant interface definition
+// src/components/restaurant/RestaurantCard.tsx - MODIFIED
+import React, { useState } from 'react';
+import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
+import { Restaurant } from '../../types/restaurant';
 
 
 interface RestaurantCardProps {
-  restaurant: Restaurant;
+  restaurant: Restaurant & { dishCount?: number; raterCount?: number; date_favorited?: string | null };
   onDelete: (restaurantId: string) => void;
   onNavigateToMenu: (restaurantId: string) => void;
 }
@@ -19,7 +16,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   onDelete,
   onNavigateToMenu
 }) => {
-  const handleDelete = () => {
+  const [isDeleteHovered, setIsDeleteHovered] = useState(false);
+  const [isWebsiteHovered, setIsWebsiteHovered] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this restaurant and all its dishes?')) {
       onDelete(restaurant.id);
     }
@@ -34,99 +37,145 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
 
+  const smallIconButton: React.CSSProperties = {
+    ...STYLES.deleteButton,
+    width: '24px',
+    height: '24px',
+    border: `1.5px solid ${COLORS.black}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+
+
+  const deleteButtonStyle = {
+    ...smallIconButton,
+    backgroundColor: isDeleteHovered ? COLORS.primaryHover : COLORS.primary,
+    // Add margin only if the website button will also be rendered
+    marginBottom: restaurant.website_url ? SPACING[2] : 0,
+  };
+
+
+  const websiteButtonStyle = {
+    ...smallIconButton,
+    backgroundColor: isWebsiteHovered ? COLORS.primaryHover : COLORS.primary
+  };
+
+
+  const hasDishes = (restaurant.dishCount ?? 0) > 0;
+  const hasRaters = (restaurant.raterCount ?? 0) > 0;
+
+
   return (
-    <div className="bg-white/5 backdrop-blur-sm p-5 rounded-lg hover:bg-white/10 transition-colors relative">
-      <div className="flex justify-between items-start gap-x-6">
+    <div
+      onClick={() => onNavigateToMenu(restaurant.id)}
+      style={{
+        ...STYLES.card,
+        cursor: 'pointer',
+        position: 'relative',
+        transition: 'all 0.3s ease',
+        borderColor: isHovering ? COLORS.primary : COLORS.gray200,
+        boxShadow: isHovering ? STYLES.shadowMedium : STYLES.shadowSmall,
+      }}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <div className="flex justify-between items-start gap-x-4">
         <div className="flex-1 min-w-0">
-          <button
-            onClick={() => onNavigateToMenu(restaurant.id)}
-            className="text-left w-full"
+          <h2
+            className="hover:underline"
             style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              transition: 'opacity 0.2s ease'
+              ...FONTS.elegant,
+              fontWeight: '500',
+              color: COLORS.text,
+              fontSize: '1.125rem',
+              lineHeight: '1.3',
+              margin: 0,
+              marginBottom: '8px',
+              wordWrap: 'break-word',
+              hyphens: 'auto'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
-            <h2
-              className="hover:underline mb-2"
-              style={{
-                ...FONTS.elegant,
-                fontWeight: '500',
-                color: COLORS.text,
-                fontSize: '1.125rem',
-                lineHeight: '1.3',
-                margin: 0,
-                marginBottom: '8px',
-                wordWrap: 'break-word',
-                hyphens: 'auto'
-              }}
-            >
-              {restaurant.name}
-            </h2>
-          </button>
+            {restaurant.name}
+          </h2>
          
           {restaurant.address && (
             <p
-              className="text-sm mb-2"
+              className="text-sm"
               style={{
                 ...FONTS.elegant,
                 color: COLORS.text,
                 opacity: 0.7,
                 fontSize: '0.8rem',
-                lineHeight: '1.3'
+                lineHeight: '1.3',
+                marginBottom: '8px',
               }}
             >
               📍 {restaurant.address}
             </p>
           )}
          
-          <p
-            className="text-xs"
-            style={{
-              ...FONTS.elegant,
-              color: COLORS.text,
-              opacity: 0.5,
-              fontSize: '0.7rem',
-              lineHeight: '1.3'
-            }}
-          >
-            {new Date(restaurant.dateAdded!).toLocaleDateString()} {/* Added null check for dateAdded */}
-          </p>
+          {(hasDishes || hasRaters) && (
+             <div className="mt-2 flex items-center" style={{
+                fontFamily: FONTS.elegant.fontFamily,
+                fontSize: '0.8rem',
+                color: COLORS.gray600,
+                fontWeight: 500,
+                gap: SPACING[2], // Space between the two stat groups
+              }}>
+               {hasDishes && (
+                <span className="flex items-center" style={{ gap: '2px' /* Tighter spacing */ }}>
+                  {/* CookingPot icon from Lucide */}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#afafa7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 12h20"/>
+                    <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/>
+                    <path d="m4 8 16-4"/>
+                    <path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>
+                  </svg>
+                  <span>{restaurant.dishCount}</span>
+                </span>
+               )}
+               {hasRaters && (
+                <span className="flex items-center" style={{ gap: '2px' /* Tighter spacing */ }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#afafa7">
+                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+                  </svg>
+                  <span>{restaurant.raterCount}</span>
+                </span>
+               )}
+             </div>
+          )}
         </div>
 
 
-        <div className="flex flex-col justify-between flex-shrink-0 h-full" style={{ marginLeft: '20px', minHeight: '80px' }}>
+        <div className="flex flex-col flex-shrink-0">
           <button
             onClick={handleDelete}
-            className="p-2 rounded-full hover:bg-red-500/20 transition-colors focus:outline-none"
+            style={deleteButtonStyle}
+            onMouseEnter={() => setIsDeleteHovered(true)}
+            onMouseLeave={() => setIsDeleteHovered(false)}
             aria-label={`Delete ${restaurant.name}`}
-            style={{ color: COLORS.text }}
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            {/* Larger trash icon to match button size better */}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
             </svg>
           </button>
          
-          <div className="flex-1"></div>
-         
           {restaurant.website_url && (
             <button
               onClick={handleViewWebsite}
-              className="p-2 rounded-full hover:bg-blue-500/20 transition-colors focus:outline-none"
+              style={websiteButtonStyle}
+              onMouseEnter={() => setIsWebsiteHovered(true)}
+              onMouseLeave={() => setIsWebsiteHovered(false)}
               aria-label={`View ${restaurant.name} website`}
-              style={{ color: COLORS.primary }}
-              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primaryHover} // Changed COLORS.addButtonHover
-              onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary}
               title="View Menu Online"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16.36,14C16.44,13.34 16.5,12.68 16.5,12C16.5,11.32 16.44,10.66 16.36,10H19.74C19.9,10.64 20,11.31 20,12C20,12.69 19.9,13.36 19.74,14M14.59,19.56C15.19,18.45 15.65,17.25 15.97,16H18.92C17.96,17.65 16.43,18.93 14.59,19.56M14.34,14H9.66C9.56,13.34 9.5,12.68 9.5,12C9.5,11.32 9.56,10.65 9.66,10H14.34C14.43,10.65 14.5,11.32 14.5,12C14.5,12.68 14.43,13.34 14.34,14M12,19.96C11.17,18.76 10.5,17.43 10.09,16H13.91C13.5,17.43 12.83,18.76 12,19.96M8,8H5.08C6.03,6.34 7.57,5.06 9.4,4.44C8.8,5.55 8.35,6.75 8.03,8M7.64,10C7.56,10.66 7.5,11.32 7.5,12C7.5,12.68 7.56,13.34 7.64,14H4.26C4.1,13.36 4,12.69 4,12C4,11.31 4.1,10.64 4.26,10M12,4.03C12.83,5.23 13.5,6.57 13.91,8H10.09C10.5,6.57 11.17,5.23 12,4.03Z"/>
+              {/* Better website icon - external link icon that's clearer */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h6v6"/>
+                <path d="M10 14 21 3"/>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
               </svg>
             </button>
           )}
