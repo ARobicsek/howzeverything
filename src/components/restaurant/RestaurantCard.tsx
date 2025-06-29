@@ -19,7 +19,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   // =================================================================
   // === PLAY WITH THIS NUMBER ===
   // Change this value up or down to resize the buttons and icons.
-  const actionButtonSize = 30;
+  const actionButtonSize = 34;
   // =================================================================
 
 
