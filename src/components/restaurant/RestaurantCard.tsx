@@ -3,10 +3,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { Restaurant } from '../../types/restaurant';
 
+
 interface RestaurantCardProps {
-  restaurant: Restaurant & { 
-    dishCount?: number; 
-    raterCount?: number; 
+  restaurant: Restaurant & {
+    dishCount?: number;
+    raterCount?: number;
     date_favorited?: string | null;
     created_by?: string | null;
     manually_added?: boolean;
@@ -17,6 +18,7 @@ interface RestaurantCardProps {
   onEdit: (restaurantId: string) => void;
   currentUserId: string | null;
 }
+
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
   restaurant,
@@ -29,29 +31,33 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null); // Ref for the entire card component
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      // If menu is open and the click is outside the card entirely, close the menu.
+      if (isMenuOpen && cardRef.current && !cardRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     };
-    
+   
     if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+   
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
 
   const handleAction = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     action();
     setIsMenuOpen(false);
   };
-  
+ 
   const handleDelete = (e: React.MouseEvent) => {
     handleAction(e, () => {
       if (window.confirm('Are you sure you want to delete this restaurant and all its dishes?')) {
@@ -59,6 +65,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       }
     });
   };
+
 
   const handleViewWebsite = (e: React.MouseEvent) => {
     handleAction(e, () => {
@@ -68,23 +75,36 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     });
   };
 
+
   const handleShare = (e: React.MouseEvent) => {
     handleAction(e, () => onShare(restaurant));
   };
-  
+ 
   const handleEdit = (e: React.MouseEvent) => {
     handleAction(e, () => onEdit(restaurant.id));
   };
+
 
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMenuOpen(prev => !prev);
   };
-  
+ 
+  const handleCardClick = () => {
+    // If the menu is open, the purpose of this click is to close it.
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+      return; // Explicitly stop here to prevent navigation.
+    }
+    // Otherwise, if the menu is closed, navigate.
+    onNavigateToMenu(restaurant.id);
+  };
+ 
   const hasDishes = (restaurant.dishCount ?? 0) > 0;
   const hasRaters = (restaurant.raterCount ?? 0) > 0;
   const hasWebsite = !!restaurant.website_url;
   const canEdit = !!(restaurant.manually_added && restaurant.created_by && restaurant.created_by === currentUserId);
+
 
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex',
@@ -101,9 +121,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     transition: 'background-color 0.2s ease',
   };
 
+
   return (
     <div
-      onClick={() => onNavigateToMenu(restaurant.id)}
+      ref={cardRef} // Attach ref to the card's root element
+      onClick={handleCardClick}
       style={{
         ...STYLES.card,
         cursor: 'pointer',
@@ -178,6 +200,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           )}
         </div>
 
+
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <button
             onClick={toggleMenu}
@@ -188,6 +211,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
             </svg>
           </button>
+
 
           {isMenuOpen && (
             <div
@@ -210,6 +234,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 Share
               </button>
 
+
               {hasWebsite && (
                 <button onClick={handleViewWebsite} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -217,12 +242,14 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 </button>
               )}
 
+
               {canEdit && (
                 <button onClick={handleEdit} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                   Edit
                 </button>
               )}
+
 
               <button onClick={handleDelete} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
@@ -235,5 +262,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     </div>
   );
 };
+
 
 export default RestaurantCard;
