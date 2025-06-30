@@ -12,6 +12,10 @@ import { useRestaurant } from './hooks/useRestaurant';
 
 
 
+
+
+
+
 // NEW: Modal for warning about duplicate dishes
 interface DuplicateDishWarningModalProps {
   isOpen: boolean;
@@ -25,6 +29,10 @@ interface DuplicateDishWarningModalProps {
 
 
 
+
+
+
+
 const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   isOpen,
   onClose,
@@ -34,6 +42,10 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   onSelectDuplicate,
 }) => {
   if (!isOpen) return null;
+
+
+
+
 
 
 
@@ -56,6 +68,10 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
         }}>
           Are you sure you want to add "<strong>{newDishName}</strong>"? We found these similar dishes:
         </p>
+
+
+
+
 
 
 
@@ -92,6 +108,10 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
 
 
 
+
+
+
+
         <div style={{ display: 'flex', gap: SPACING[3] }}>
           <button
             onClick={onClose}
@@ -118,6 +138,14 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
 
 
 
+
+
+
+
+
+
+
+
 // Updated interface to match what App.tsx sends
 interface MenuScreenProps {
   restaurantId: string;
@@ -130,6 +158,10 @@ interface MenuScreenProps {
 
 
 
+
+
+
+
 // NEW: Consolidated component replacing DishSearchSection and AddDishPrompt
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
@@ -138,6 +170,11 @@ const ConsolidatedSearchAndAdd: React.FC<{
   onShowAddForm: () => void;
 }> = ({ searchTerm, onSearchChange, onReset, onShowAddForm }) => {
   const hasTyped = searchTerm.length > 0;
+  const [isFocused, setIsFocused] = useState(false);
+
+
+
+
 
 
 
@@ -145,17 +182,17 @@ const ConsolidatedSearchAndAdd: React.FC<{
   return (
     <div style={{ marginBottom: SPACING[4] }}>
       <div style={{
-        backgroundColor: COLORS.white,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
         borderRadius: STYLES.borderRadiusLarge,
         padding: SPACING[4],
-        boxShadow: STYLES.shadowMedium,
-        border: `1px solid ${COLORS.gray200}`
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[3] }}>
           <h2 style={{
             ...FONTS.heading,
             fontSize: TYPOGRAPHY.lg.fontSize,
-            color: COLORS.gray900,
+            color: COLORS.text,
             margin: 0
           }}>
             Find Your Dish
@@ -186,17 +223,33 @@ const ConsolidatedSearchAndAdd: React.FC<{
 
 
 
+
+
+
+
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}
           placeholder="Start typing to find a dish..."
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           style={{
             ...STYLES.input,
             fontSize: TYPOGRAPHY.base.fontSize,
+            // Conditionally apply the new focus style from constants.ts
+            ...(isFocused && { 
+                ...STYLES.inputFocusBlack, 
+                // Adjust padding to account for the thicker border, preventing layout shift
+                padding: '9px 15px', 
+            })
           }}
           autoFocus
         />
+
+
+
+
 
 
 
@@ -231,6 +284,10 @@ const ConsolidatedSearchAndAdd: React.FC<{
 
 
 
+
+
+
+
 // ORIGINAL Add Dish Form with enhanced design        
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -244,12 +301,20 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
   const handleSubmit = async () => {
     if (dishName.trim() && !isSubmitting) {
       setIsSubmitting(true);
       await onSubmit(dishName, rating);
     }
   };
+
+
+
+
 
 
 
@@ -274,6 +339,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
       <div style={{ marginBottom: SPACING[5] }}>
         <label style={{
           ...FONTS.body,
@@ -294,6 +363,10 @@ const EnhancedAddDishForm: React.FC<{
           disabled={isSubmitting}
         />
       </div>
+
+
+
+
 
 
 
@@ -354,6 +427,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
       <div style={{ display: 'flex', gap: SPACING[3] }}>
         <button
           onClick={handleSubmit}
@@ -397,6 +474,10 @@ const EnhancedAddDishForm: React.FC<{
 
 
 
+
+
+
+
 const MenuScreen: React.FC<MenuScreenProps> = ({
   restaurantId,
   initialDishToExpand,
@@ -415,8 +496,16 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const [potentialDuplicates, setPotentialDuplicates] = useState<DishSearchResult[]>([]);
   const [dishInfoForConfirmation, setDishInfoForConfirmation] = useState<{ name: string; rating: number } | null>(null);
+
+
+
+
 
 
 
@@ -444,6 +533,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   useEffect(() => {
     const dishIdToScrollTo = justAddedDishId || initialDishToExpand;
     if (dishIdToScrollTo) {
@@ -459,9 +552,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }, 150);
 
 
+
+
       return () => clearTimeout(scrollTimer);
     }
   }, [justAddedDishId, initialDishToExpand]);
+
+
+
+
 
 
 
@@ -473,7 +572,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const hasDishes = dishes.length > 0;
+
+
+
+
 
 
 
@@ -488,6 +595,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
@@ -496,9 +607,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
+
+
+
 
 
 
@@ -513,6 +632,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       setSearchTerm('');
       setExpandedDishId(newDish.id);
       setJustAddedDishId(newDish.id);
@@ -522,8 +645,16 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleAttemptAddDish = async (name: string, rating: number) => {
     setShowAddForm(false);
+
+
+
+
 
 
 
@@ -544,6 +675,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
     const element = document.getElementById(`dish-card-${dishId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -552,8 +687,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleShareDish = (dish: DishWithDetails) => {
     if (!restaurant) return;
+
+
 
 
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
@@ -577,6 +716,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleAddComment = async (dishId: string, text: string) => {
     try {
       await addComment(dishId, text);
@@ -588,6 +731,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
+
+
 
 
 
@@ -607,6 +754,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
     try {
       await deleteComment(commentId);
@@ -618,6 +769,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
+
+
 
 
 
@@ -637,6 +792,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
     try {
       await deletePhoto(photoId);
@@ -648,6 +807,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
+
+
 
 
 
@@ -664,6 +827,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   const handleToggleDishExpanded = (dishId: string) => {
     if (allExpanded) {
       setAllExpanded(false);
@@ -676,9 +843,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
+
+
+
 
 
 
@@ -769,6 +944,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       <main style={{
         flex: 1,
         paddingBottom: STYLES.mainContentPadding,
@@ -795,6 +974,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>
             </div>
           )}
+
+
+
+
 
 
 
@@ -859,6 +1042,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
           {!showAddForm && hasDishes && (
             <ConsolidatedSearchAndAdd
               searchTerm={searchTerm}
@@ -867,6 +1054,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               onShowAddForm={handleShowAddForm}
             />
           )}
+
+
+
+
 
 
 
@@ -925,6 +1116,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   </div>
                 )
               )}
+
+
+
+
 
 
 
@@ -1014,6 +1209,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       {dishInfoForConfirmation && (
         <DuplicateDishWarningModal
           isOpen={!!dishInfoForConfirmation}
@@ -1035,6 +1234,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
 
 
+
+
+
+
       <BottomNavigation
         activeScreenValue={currentAppScreen}
         onNav={onNavigateToScreen}
@@ -1042,6 +1245,10 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     </div>
   );
 };
+
+
+
+
 
 
 

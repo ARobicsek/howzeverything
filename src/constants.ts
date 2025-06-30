@@ -2,6 +2,8 @@
 import React from 'react'; // Import React to get React.CSSProperties
 
 
+
+
 export const COLORS = {    
   // Primary Colors    
   primary: '#2563EB', // Main accent, buttons, links    
@@ -86,6 +88,8 @@ export const COLORS = {
 };
 
 
+
+
 export const FONTS = {    
   primary: {    
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',    
@@ -106,6 +110,8 @@ export const FONTS = {
     letterSpacing: '-0.01em',    
   }    
 };
+
+
 
 
 export const TYPOGRAPHY = {    
@@ -134,6 +140,8 @@ export const TYPOGRAPHY = {
 };
 
 
+
+
 export const SPACING = {    
   // Consistent spacing scale    
   1: '0.25rem', // 4px    
@@ -151,6 +159,8 @@ export const SPACING = {
   sectionGap: '1.5rem', // 24px    
   cardPadding: '1.25rem', // 20px    
 };
+
+
 
 
 // NEW: Image compression settings  
@@ -175,6 +185,8 @@ export const IMAGE_COMPRESSION = {
   // Performance  
   COMPRESSION_TIMEOUT: 15000, // 15 seconds max for compression  
 };
+
+
 
 
 export const STYLES = {    
@@ -291,8 +303,11 @@ export const STYLES = {
   } as React.CSSProperties, // Added casting    
      
   input: {    
-    backgroundColor: COLORS.white,    
-    border: '1px solid ' + COLORS.gray200, // Changed to 1px for consistency with screenshot  
+    backgroundColor: COLORS.white,
+    // MODIFIED: Use longhand properties to avoid conflicts with conditional overrides
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: COLORS.gray200,
     borderRadius: '8px',    
     padding: '10px 16px',    
     fontSize: TYPOGRAPHY.base.fontSize,    
@@ -302,12 +317,18 @@ export const STYLES = {
     outline: 'none',    
     transition: 'all 0.2s ease',    
     boxSizing: 'border-box',    
-  } as React.CSSProperties, // MODIFIED: Added explicit casting to React.CSSProperties    
+  } as React.CSSProperties,
      
   inputFocus: {    
     borderColor: COLORS.primary,    
     boxShadow: '0 0 0 3px ' + COLORS.primaryLight,    
   } as React.CSSProperties, // Added casting    
+
+  // NEW: Style for the black border on active/focused inputs
+  inputFocusBlack: {
+    borderColor: COLORS.black,
+    borderWidth: '2px',
+  } as React.CSSProperties,
      
   // Legacy styles for compatibility    
   mainContentPadding: '80px',    
@@ -383,6 +404,8 @@ export const STYLES = {
 };
 
 
+
+
 // NEW: Export BORDERS and SHADOWS, mapping to STYLES for consistency  
 export const BORDERS = {  
   radius: {  
@@ -394,11 +417,15 @@ export const BORDERS = {
 };
 
 
+
+
 export const SHADOWS = {  
   small: STYLES.shadowSmall,  
   medium: STYLES.shadowMedium,  
   large: STYLES.shadowLarge,  
 };
+
+
 
 
 // Legacy SIZES for compatibility    
@@ -412,6 +439,8 @@ export const SIZES = {
   '3xl': '3rem', // 48px    
   '4xl': '4rem', // 64px    
 };
+
+
 
 
 // Breakpoints for responsive design    

@@ -1,12 +1,16 @@
-﻿// src/RatingsScreen.tsx
+﻿// src/RatingsScreen.tsx - MODIFIED
 import React, { useCallback, useEffect, useState } from 'react';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
-import { COLORS, FONTS, SIZES, SPACING, STYLES } from './constants'; // Import SIZES and SPACING
+import { COLORS, FONTS, SPACING, STYLES } from './constants'; // Import SIZES and SPACING
 import type { DishRating, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
+
+
+
+
 
 
 
@@ -15,6 +19,10 @@ interface RatingsScreenProps {
   onNavigateToScreen: (screen: NavigableScreenType) => void;
   currentAppScreen: AppScreenType;
 }
+
+
+
+
 
 
 
@@ -30,6 +38,10 @@ interface UserRatingWithDish extends DishRating {
 
 
 
+
+
+
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -37,6 +49,10 @@ interface RestaurantGroup {
   };
   dishes: DishWithDetails[];
 }
+
+
+
+
 
 
 
@@ -52,6 +68,11 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   const [searchTerm, setSearchTerm] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
+  const [isFocused, setIsFocused] = useState(false); // State for input focus
+
+
+
+
 
 
 
@@ -68,6 +89,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
   useEffect(() => {
     const fetchUserRatings = async () => {
       try {
@@ -77,6 +102,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           setIsLoading(false);
           return;
         }
+
+
+
+
 
 
 
@@ -158,7 +187,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
         if (fetchError) throw fetchError;
+
+
+
+
 
 
 
@@ -167,6 +204,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         const ratingsWithDishes: UserRatingWithDish[] = (data || []).map((rating: any) => {
           const dish = rating.restaurant_dishes;
           if (!dish) return null;
+
+
+
+
 
 
 
@@ -182,6 +223,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             commenter_name: comment.users?.full_name || 'Anonymous User',
             commenter_email: comment.users?.email
           }));
+
+
+
+
 
 
 
@@ -210,6 +255,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
           const dishWithDetails: DishWithDetails = {
             ...dish,
             dish_comments: commentsWithUserInfo,
@@ -217,6 +266,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             dish_photos: photosWithUrls,
             dateAdded: dish.created_at
           };
+
+
+
+
 
 
 
@@ -234,7 +287,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
         setUserRatings(ratingsWithDishes);
+
+
+
+
 
 
 
@@ -261,6 +322,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
         // Sort restaurants alphabetically and dishes within each restaurant alphabetically
         const groupsArray = Object.values(groupedByRestaurant)
           .map(group => ({
@@ -268,6 +333,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             dishes: group.dishes.sort((a, b) => a.name.localeCompare(b.name))
           }))
           .sort((a, b) => a.restaurant.name.localeCompare(b.restaurant.name));
+
+
+
+
 
 
 
@@ -285,8 +354,16 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
     fetchUserRatings();
   }, []);
+
+
+
+
 
 
 
@@ -297,6 +374,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setFilteredGroups(restaurantGroups);
       return;
     }
+
+
+
+
 
 
 
@@ -330,8 +411,16 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
     setFilteredGroups(filtered);
   }, [restaurantGroups]);
+
+
+
+
 
 
 
@@ -341,11 +430,17 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   }, [searchTerm, performSearch]);
 
 
+
+
   const handleResetSearch = useCallback(() => {
     setSearchTerm('');
     setShowSearch(false); // Hide the search bar on reset
     setFilteredGroups(restaurantGroups); // Reset to all groups
   }, [restaurantGroups]);
+
+
+
+
 
 
 
@@ -363,7 +458,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (error) throw error;
+
+
+
+
 
 
 
@@ -388,6 +491,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     try {
       // Handle clearing rating (rating = 0)
@@ -395,6 +502,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         await handleDeleteDish(dishId);
         return;
       }
+
+
+
+
 
 
 
@@ -411,7 +522,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (error) throw error;
+
+
+
+
 
 
 
@@ -422,6 +541,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           ? { ...rating, rating: newRating }
           : rating
       ));
+
+
+
+
 
 
 
@@ -446,6 +569,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
               return {
                 ...dish,
                 dish_ratings: updatedRatings,
@@ -460,6 +587,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -467,6 +598,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setError(`Failed to update rating: ${err.message}`);
     }
   };
+
+
+
+
 
 
 
@@ -486,7 +621,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (error) throw error;
+
+
+
+
 
 
 
@@ -505,6 +648,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
      
@@ -519,9 +666,17 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
   const handleAddComment = async (dishId: string, commentText: string) => {
     if (!commentText.trim()) return;
     setIsSubmittingComment(true);
+
+
+
+
 
 
 
@@ -551,7 +706,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (error) throw error;
+
+
+
+
 
 
 
@@ -571,6 +734,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
         const updateGroups = (groups: RestaurantGroup[]) =>
           groups.map(group => ({
             ...group,
@@ -580,6 +747,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                 : dish
             )
           }));
+
+
+
+
 
 
 
@@ -598,9 +769,17 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     if (!newText.trim()) return;
     setIsSubmittingComment(true);
+
+
+
+
 
 
 
@@ -617,7 +796,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (error) throw error;
+
+
+
+
 
 
 
@@ -642,6 +829,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -655,8 +846,16 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     setIsSubmittingComment(true);
+
+
+
+
 
 
 
@@ -670,7 +869,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (error) throw error;
+
+
+
+
 
 
 
@@ -691,6 +898,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -700,6 +911,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setIsSubmittingComment(false);
     }
   };
+
+
+
+
 
 
 
@@ -715,6 +930,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('dish-photos')
@@ -723,7 +942,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (uploadError) throw uploadError;
+
+
+
+
 
 
 
@@ -736,6 +963,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       // Get image dimensions
       const img = new Image();
       await new Promise((resolve, reject) => {
@@ -743,6 +974,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         img.onerror = reject;
         img.src = URL.createObjectURL(file);
       });
+
+
+
+
 
 
 
@@ -777,7 +1012,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (dbError) throw dbError;
+
+
+
+
 
 
 
@@ -788,6 +1031,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
           url: publicUrl,
           photographer_name: (newPhoto.users as any)?.full_name || 'Anonymous'
         };
+
+
+
+
 
 
 
@@ -805,6 +1052,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
         setRestaurantGroups(updateGroups(restaurantGroups));
         setFilteredGroups(prev => updateGroups(prev));
       }
@@ -813,6 +1064,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setError(`Failed to add photo: ${err.message}`);
     }
   };
+
+
+
+
 
 
 
@@ -829,7 +1084,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (fetchError) throw fetchError;
+
+
+
+
 
 
 
@@ -842,7 +1105,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (storageError) throw storageError;
+
+
+
+
 
 
 
@@ -856,7 +1127,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       if (dbError) throw dbError;
+
+
+
+
 
 
 
@@ -878,6 +1157,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       setRestaurantGroups(updateGroups(restaurantGroups));
       setFilteredGroups(prev => updateGroups(prev));
     } catch (err: any) {
@@ -885,6 +1168,8 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setError(`Failed to delete photo: ${err.message}`);
     }
   };
+
+
 
 
   const handleShareDish = (dish: DishWithDetails, restaurantName: string) => {
@@ -908,13 +1193,25 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
   if (isLoading) return <LoadingScreen />;
+
+
+
+
 
 
 
 
   const totalRatedDishes = userRatings?.length || 0;
   const hasSearchTerm = searchTerm.trim().length > 0;
+
+
+
+
 
 
 
@@ -956,77 +1253,95 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
        
         {/* Search Bar - Updated to match RestaurantScreen format */}
         {showSearch && (
-          // This div now directly acts as the card wrapper
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mx-auto max-w-md" style={{ marginBottom: SIZES.lg }}>
-            <> {/* Fragment to wrap multiple top-level elements inside the card */}
-              <div className="flex items-center justify-between mb-2">        
-                <label style={{        
-                  ...FONTS.elegant,        
-                  fontSize: '1.1rem',        
-                  fontWeight: '600',        
-                  color: COLORS.text        
-                }}>        
-                  Search for a restaurant or a dish      
-                </label>        
-                {hasSearchTerm && (        
-                  <button        
-                    onClick={handleResetSearch}        
-                    style={{        
-                      ...FONTS.elegant,        
-                      backgroundColor: COLORS.primary,        
-                      color: 'white',        
-                      border: 'none',        
-                      borderRadius: STYLES.borderRadiusSmall,        
-                      padding: '4px 12px',        
-                      fontSize: '0.85rem',        
-                      fontWeight: '500',        
-                      cursor: 'pointer',        
-                      WebkitAppearance: 'none',        
-                    }}        
-                  >        
-                    Reset        
-                  </button>        
-                )}        
-              </div>
-              <input
-                type="text"
-                placeholder="e.g. Cafe Flora, Apple pie" // Updated placeholder
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full outline-none focus:ring-2 focus:ring-white/50"
+          <div
+            className="bg-white/10 backdrop-blur-sm rounded-xl p-4"
+            style={{
+              // Use the styling the user liked from the Restaurant screen
+              marginLeft: SPACING[4],
+              marginRight: SPACING[4],
+              marginBottom: SPACING[6],
+            }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <label
                 style={{
                   ...FONTS.elegant,
-                  padding: '12px 16px',
-                  borderRadius: STYLES.borderRadiusMedium,
-                  fontSize: '1rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
                   color: COLORS.text,
-                  boxSizing: 'border-box',
-                  WebkitAppearance: 'none',
-                  border: `2px solid ${COLORS.gray200}`, // Changed border to grey
-                  minWidth: 0 // Ensure it shrinks properly
                 }}
-                autoFocus
-              />
-              {hasSearchTerm && (        
-                <div style={{        
-                  ...FONTS.elegant,        
-                  fontSize: '14px',        
-                  color: COLORS.text,        
-                  opacity: 0.8,        
-                  marginTop: '8px',        
-                  marginBottom: 0        
-                }}>        
-                  {filteredGroups.length > 0        
-                    ? `Found ${filteredGroups.length} result${filteredGroups.length !== 1 ? 's' : ''}`        
-                    : 'No matching ratings found'        
-                  }        
-                </div>        
+              >
+                Search for a restaurant or a dish
+              </label>
+              {hasSearchTerm && (
+                <button
+                  onClick={handleResetSearch}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    color: COLORS.textSecondary,
+                    transition: 'color 0.2s ease, transform 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = COLORS.danger;
+                    e.currentTarget.style.transform = 'scale(1.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = COLORS.textSecondary;
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  aria-label="Clear search"
+                  title="Clear search"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+                  </svg>
+                </button>
               )}
-            </>
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. Cafe Flora, Apple pie"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              className="w-full outline-none"
+              style={{
+                ...STYLES.input,
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                ...(isFocused && {
+                  ...STYLES.inputFocusBlack,
+                  padding: '9px 15px',
+                }),
+              }}
+              autoFocus
+            />
+            {hasSearchTerm && (
+              <div
+                style={{
+                  ...FONTS.elegant,
+                  fontSize: '14px',
+                  color: COLORS.text,
+                  opacity: 0.8,
+                  marginTop: '8px',
+                  marginBottom: 0,
+                }}
+              >
+                {filteredGroups.length > 0
+                  ? `Found ${filteredGroups.length} result${filteredGroups.length !== 1 ? 's' : ''}`
+                  : 'No matching ratings found'}
+              </div>
+            )}
           </div>
         )}
       </header>
+
+
+
+
 
 
 
@@ -1049,6 +1364,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
               <p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p>
             </div>
           )}
+
+
+
+
 
 
 
@@ -1095,6 +1414,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
                     {/* Dishes with subtle grey separators */}
                     <div className="space-y-4 mb-6">
                       {group.dishes.map((dish, dishIndex) => (
@@ -1128,6 +1451,10 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                         </div>
                       ))}
                     </div>
+
+
+
+
 
 
 
@@ -1188,10 +1515,18 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 
+
+
+
+
       <BottomNavigation onNav={onNavigateToScreen} activeScreenValue={currentAppScreen} />
     </div>
   );
 };
+
+
+
+
 
 
 
