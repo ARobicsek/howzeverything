@@ -4,7 +4,6 @@ import { COLORS, FONTS } from './constants'
 import { useAuth } from './hooks/useAuth'
 import { useRestaurants } from './hooks/useRestaurants'
 
-
 // Screens      
 import AdminScreen from './AdminScreen'
 import LoadingScreen from './components/LoadingScreen'
@@ -14,29 +13,23 @@ import ProfileScreen from './ProfileScreen'
 import RatingsScreen from './RatingsScreen'
 import RestaurantScreen from './RestaurantScreen'
 
-
 // User components      
 import LoginForm from './components/user/LoginForm'
 import UserForm from './components/user/UserForm'
 
-
 // Import types from BottomNavigation      
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation'
 
-
 // ADDED: Import sharing utilities
-import { clearSharedUrlParams, handleSharedContent, parseSharedUrl, SharedContent } from './utils/urlShareHandler'
-
+import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler'
 
 // Create our own screen type that includes menu and admin      
 type AppScreen = NavigableScreenType | 'menu' | 'admin'
-
 
 interface MenuScreenState {      
   restaurantId: string      
   restaurantName: string      
 }
-
 
 const App: React.FC = () => {      
   const { user, profile, loading: authLoading, createProfile } = useAuth()      
@@ -45,35 +38,20 @@ const App: React.FC = () => {
   const [menuScreenState, setMenuScreenState] = useState<MenuScreenState | null>(null)      
   const [showLogin, setShowLogin] = useState(false)      
   const [showProfileEdit, setShowProfileEdit] = useState(false)
-  
-  // State for handling shared content across login
-  const [sharedContentToProcess, setSharedContentToProcess] = useState<SharedContent | null>(null);
   const [hasProcessedSharedContent, setHasProcessedSharedContent] = useState(false)
-
 
   // Check if user is admin
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email)
-
-  // Step 1: Capture shared content on initial app load, BEFORE any redirects.
-  useEffect(() => {
-    const capturedContent = parseSharedUrl();
-    if (capturedContent) {
-      console.log('Step 1: Captured shared content on app load:', capturedContent);
-      setSharedContentToProcess(capturedContent);
-    }
-  }, []); // Empty dependency array ensures this runs only once.
 
   const navigateToMenu = (restaurantId: string) => {
     setMenuScreenState({ restaurantId, restaurantName: '' })
     setCurrentScreen('menu')
   }
 
-
   const navigateBackFromMenu = () => {      
     setMenuScreenState(null)      
     setCurrentScreen('restaurants')      
   }
-
 
   const handleNavigateToScreen = (screen: NavigableScreenType) => {      
     setCurrentScreen(screen)      
@@ -82,7 +60,6 @@ const App: React.FC = () => {
     }      
   }
 
-
   const getCurrentAppScreen = (): AppScreenType => {      
     if (currentScreen === 'menu' || currentScreen === 'admin') {      
       return 'restaurants'      
@@ -90,56 +67,68 @@ const App: React.FC = () => {
     return currentScreen as AppScreenType      
   }
 
-  // Step 3: Handle successful login. Just close the form, don't navigate.
-  // The useEffect hooks will handle navigation based on app state.
   const handleLoginSuccess = () => {      
-    setShowLogin(false);
+    setShowLogin(false)      
+    // The useEffect hooks below will now handle navigation correctly.
   }
 
-  // Step 2: Process shared content AFTER user is available.
+  // This effect handles the logic FOR a shared link.
   useEffect(() => {
     const processSharedContent = async () => {
-      if (!user || !sharedContentToProcess || hasProcessedSharedContent) return
-     
-      console.log('Step 2: User is logged in, processing captured content:', sharedContentToProcess);
+      // It must have a user and not have been processed yet.
+      if (!user || hasProcessedSharedContent) return
       
-      // Mark as processing immediately to prevent re-runs for this session
-      setHasProcessedSharedContent(true);
-
-      const success = await handleSharedContent(
-        sharedContentToProcess,
-        addToFavorites,
-        (restaurantId: string) => {
-          setMenuScreenState({ restaurantId, restaurantName: '' });
-          setCurrentScreen('menu');
-        },
-        (screen: string) => setCurrentScreen(screen as AppScreen)
-      )
-       
-      if (success) {
-        // Clear the URL parameters only after successful processing
-        clearSharedUrlParams();
+      const sharedContent = parseSharedUrl()
+      if (sharedContent) {
+        console.log('Processing shared content for logged-in user:', sharedContent)
+        
+        const success = await handleSharedContent(
+          sharedContent,
+          addToFavorites,
+          (restaurantId: string) => {
+            setMenuScreenState({ restaurantId, restaurantName: '' })
+            setCurrentScreen('menu')
+          },
+          (screen: string) => setCurrentScreen(screen as AppScreen)
+        )
+        
+        if (success) {
+          clearSharedUrlParams()
+          setHasProcessedSharedContent(true)
+        }
       }
     }
 
     processSharedContent()
-  }, [user, sharedContentToProcess, hasProcessedSharedContent, addToFavorites]);
+  }, [user, addToFavorites, hasProcessedSharedContent])
 
+  // This effect handles navigation to home AFTER login, but ONLY if there's no share link.
+  useEffect(() => {      
+    if (user && !authLoading) {      
+      const sharedContent = parseSharedUrl();
+      
+      // If a share link exists, do nothing and let the other effect handle it.
+      if (sharedContent) {
+        return;
+      }
+      
+      // If NO share link, then proceed with normal navigation to home.
+      if (currentScreen === 'profile' || showLogin) {      
+        setCurrentScreen('home')      
+      }      
+    }      
+  }, [user, authLoading, currentScreen, showLogin]);
 
   // Reset shared content processing state when user logs out
   useEffect(() => {
     if (!user) {
-      setHasProcessedSharedContent(false);
-      setSharedContentToProcess(null);
+      setHasProcessedSharedContent(false)
     }
-  }, [user]);
+  }, [user])
 
-
-  // Create profile if needed - but only once per user and avoid race conditions      
+  // Create profile if needed
   useEffect(() => {      
-    if (!user || profile !== null || authLoading) {      
-      return      
-    }
+    if (!user || profile !== null || authLoading) { return }
     let isMounted = true      
     const timeoutId = setTimeout(async () => {      
       if (!isMounted || !user || profile !== null) { return }
@@ -157,79 +146,32 @@ const App: React.FC = () => {
     return () => { isMounted = false; clearTimeout(timeoutId) }      
   }, [user?.id, profile, authLoading, createProfile]);
 
-
-  // Step 4: Navigate to home ONLY if not processing a share link.
-  useEffect(() => {      
-    if (user && !authLoading) {      
-      // If there's content to process, the share handler is in control of navigation. Do nothing.
-      if (sharedContentToProcess && !hasProcessedSharedContent) {
-        console.log('Step 4: Share content pending, suppressing navigation to home.');
-        return;
-      }
-      // Otherwise, if we were on the login screen, navigate to home.
-      if (showLogin) {      
-        setCurrentScreen('home');
-      }      
-    }      
-  }, [user, authLoading, sharedContentToProcess, hasProcessedSharedContent, showLogin]);
-
-
-  // Show loading screen while auth is initializing      
   if (authLoading) {      
     return <LoadingScreen />      
   }
 
-
-  // Show login screen if no user      
   if (!user) {      
     return (      
-      <div style={{      
-        minHeight: '100vh',      
-        backgroundColor: COLORS.background,      
-        position: 'relative'      
-      }}>      
-        <div style={{      
-          display: 'flex',      
-          flexDirection: 'column',      
-          alignItems: 'center',      
-          justifyContent: 'center',      
-          padding: '20px',      
-          minHeight: '100vh'      
-        }}>      
+      <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>      
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', minHeight: '100vh' }}>      
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>      
             <img src="/logo.png" alt="Logo" style={{ maxWidth: '200px', height: 'auto', margin: '0 auto' }} />      
           </div>      
-          <div style={{      
-            backgroundColor: 'white',      
-            borderRadius: '12px',      
-            padding: '32px',      
-            maxWidth: '400px',      
-            width: '100%',      
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',      
-            textAlign: 'center',      
-            marginBottom: '24px'      
-          }}>      
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', textAlign: 'center', marginBottom: '24px' }}>      
             <h2 style={{ ...FONTS.elegant, fontSize: '20px', fontWeight: '600', color: COLORS.text, margin: '0 0 24px 0' }}>      
               Sign in and start dishing      
             </h2>      
-            <button      
-              onClick={() => setShowLogin(true)}      
-              style={{ ...FONTS.elegant, width: '100%', height: '50px', backgroundColor: COLORS.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}      
-            >      
+            <button onClick={() => setShowLogin(true)} style={{ ...FONTS.elegant, width: '100%', height: '50px', backgroundColor: COLORS.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}>      
               Get Started      
             </button>      
           </div>      
           {showLogin && (      
-            <LoginForm      
-              onSuccess={handleLoginSuccess}      
-              onCancel={() => setShowLogin(false)}      
-            />      
+            <LoginForm onSuccess={handleLoginSuccess} onCancel={() => setShowLogin(false)} />      
           )}      
         </div>      
       </div>      
     )      
   }
-
 
   const renderCurrentScreen = () => {      
     switch (currentScreen) {      
@@ -244,7 +186,6 @@ const App: React.FC = () => {
       default: return <HomeScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
     }      
   }
-
 
   return (      
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>      
@@ -265,6 +206,5 @@ const App: React.FC = () => {
     </div>      
   )      
 }
-
 
 export default App
