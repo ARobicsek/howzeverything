@@ -1,94 +1,105 @@
 // src/components/restaurant/RestaurantCard.tsx - MODIFIED
-import React, { useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
-import { useShare } from '../../hooks/useShare';
+import React, { useEffect, useRef, useState } from 'react';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { Restaurant } from '../../types/restaurant';
 
 interface RestaurantCardProps {
-  restaurant: Restaurant & { dishCount?: number; raterCount?: number; date_favorited?: string | null };
+  restaurant: Restaurant & { 
+    dishCount?: number; 
+    raterCount?: number; 
+    date_favorited?: string | null;
+    created_by?: string | null;
+    manually_added?: boolean;
+  };
   onDelete: (restaurantId: string) => void;
   onNavigateToMenu: (restaurantId: string) => void;
+  onShare: (restaurant: Restaurant) => void;
+  onEdit: (restaurantId: string) => void;
+  currentUserId: string | null;
 }
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
   restaurant,
   onDelete,
-  onNavigateToMenu
+  onNavigateToMenu,
+  onShare,
+  onEdit,
+  currentUserId,
 }) => {
-  // =================================================================
-  // === PLAY WITH THIS NUMBER ===
-  // Change this value up or down to resize the buttons and icons.
-  const actionButtonSize = 34;
-  // =================================================================
-
-  // The icon size is calculated automatically to fit inside the button.
-  // You can adjust the multiplier (e.g., 0.5 for smaller icons, 0.7 for larger).
-  const svgIconSize = Math.round(actionButtonSize * 0.6);
-
-  const [isDeleteHovered, setIsDeleteHovered] = useState(false);
-  const [isWebsiteHovered, setIsWebsiteHovered] = useState(false);
-  const [isShareHovered, setIsShareHovered] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const { shareItem } = useShare();
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this restaurant and all its dishes?')) {
-      onDelete(restaurant.id);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation();
+    action();
+    setIsMenuOpen(false);
+  };
+  
+  const handleDelete = (e: React.MouseEvent) => {
+    handleAction(e, () => {
+      if (window.confirm('Are you sure you want to delete this restaurant and all its dishes?')) {
+        onDelete(restaurant.id);
+      }
+    });
   };
 
   const handleViewWebsite = (e: React.MouseEvent) => {
+    handleAction(e, () => {
+      if (restaurant.website_url) {
+        window.open(restaurant.website_url, '_blank', 'noopener,noreferrer');
+      }
+    });
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    handleAction(e, () => onShare(restaurant));
+  };
+  
+  const handleEdit = (e: React.MouseEvent) => {
+    handleAction(e, () => onEdit(restaurant.id));
+  };
+
+  const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (restaurant.website_url) {
-      window.open(restaurant.website_url, '_blank', 'noopener,noreferrer');
-    }
+    setIsMenuOpen(prev => !prev);
   };
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await shareItem({
-        type: 'restaurant',
-        id: restaurant.id,
-        name: restaurant.name
-      });
-    } catch (error) {
-      console.error('Error sharing restaurant:', error);
-    }
-  };
-
-  const smallIconButton: React.CSSProperties = {
-    ...STYLES.deleteButton,
-    width: `${actionButtonSize}px`, // Uses the variable
-    height: `${actionButtonSize}px`, // Uses the variable
-    border: `1.5px solid ${COLORS.black}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  };
-
-  const deleteButtonStyle = {
-    ...smallIconButton,
-    backgroundColor: isDeleteHovered ? COLORS.primaryHover : COLORS.primary,
-    // Add margin only if there are other buttons below
-    marginBottom: (restaurant.website_url || true) ? SPACING[2] : 0, // Always has margin now because of share button
-  };
-
-  const websiteButtonStyle = {
-    ...smallIconButton,
-    backgroundColor: isWebsiteHovered ? COLORS.primaryHover : COLORS.primary,
-    marginBottom: SPACING[2] // Add margin for share button below
-  };
-
-  const shareButtonStyle = {
-    ...smallIconButton,
-    backgroundColor: isShareHovered ? COLORS.primaryHover : COLORS.primary
-  };
-
+  
   const hasDishes = (restaurant.dishCount ?? 0) > 0;
   const hasRaters = (restaurant.raterCount ?? 0) > 0;
+  const hasWebsite = !!restaurant.website_url;
+  const canEdit = !!(restaurant.manually_added && restaurant.created_by && restaurant.created_by === currentUserId);
+
+  const menuButtonStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: SPACING[2],
+    width: '100%',
+    padding: `${SPACING[2]} ${SPACING[3]}`,
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    ...FONTS.body,
+    fontSize: TYPOGRAPHY.sm.fontSize,
+    textAlign: 'left',
+    transition: 'background-color 0.2s ease',
+  };
 
   return (
     <div
@@ -122,7 +133,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           >
             {restaurant.name}
           </h2>
-           
+         
           {restaurant.address && (
             <p
               className="text-sm"
@@ -138,29 +149,25 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               📍 {restaurant.address}
             </p>
           )}
-           
+         
           {(hasDishes || hasRaters) && (
              <div className="mt-2 flex items-center" style={{
                 fontFamily: FONTS.elegant.fontFamily,
                 fontSize: '0.8rem',
                 color: COLORS.gray600,
                 fontWeight: 500,
-                gap: SPACING[4], // Space between the two stat groups
+                gap: SPACING[4],
               }}>
                {hasDishes && (
-                <span className="flex items-center" style={{ gap: '2px' /* Tighter spacing */ }}>
-                  {/* CookingPot icon from Lucide */}
+                <span className="flex items-center" style={{ gap: '2px' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#afafa7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 12h20"/>
-                    <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/>
-                    <path d="m4 8 16-4"/>
-                    <path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>
+                    <path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>
                   </svg>
                   <span>{restaurant.dishCount}</span>
                 </span>
                )}
                {hasRaters && (
-                <span className="flex items-center" style={{ gap: '2px' /* Tighter spacing */ }}>
+                <span className="flex items-center" style={{ gap: '2px' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="#afafa7">
                     <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
                   </svg>
@@ -171,54 +178,58 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           )}
         </div>
 
-        <div className="flex flex-col flex-shrink-0">
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           <button
-            onClick={handleDelete}
-            style={deleteButtonStyle}
-            onMouseEnter={() => setIsDeleteHovered(true)}
-            onMouseLeave={() => setIsDeleteHovered(false)}
-            aria-label={`Delete ${restaurant.name}`}
+            onClick={toggleMenu}
+            style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? COLORS.gray100 : 'transparent' }}
+            aria-label="More options"
           >
-            {/* This icon's size is controlled by the svgIconSize variable */}
-            <svg width={svgIconSize} height={svgIconSize} viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
             </svg>
           </button>
-           
-          {restaurant.website_url && (
-            <button
-              onClick={handleViewWebsite}
-              style={websiteButtonStyle}
-              onMouseEnter={() => setIsWebsiteHovered(true)}
-              onMouseLeave={() => setIsWebsiteHovered(false)}
-              aria-label={`View ${restaurant.name} website`}
-              title="View Menu Online"
-            >
-              {/* This icon's size is also controlled by the svgIconSize variable */}
-              <svg width={svgIconSize} height={svgIconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h6v6"/>
-                <path d="M10 14 21 3"/>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              </svg>
-            </button>
-          )}
 
-          {/* Share Button */}
-          <button
-            onClick={handleShare}
-            style={shareButtonStyle}
-            onMouseEnter={() => setIsShareHovered(true)}
-            onMouseLeave={() => setIsShareHovered(false)}
-            aria-label={`Share ${restaurant.name}`}
-            title="Share Restaurant"
-          >
-            {/* Share icon */}
-            <svg width={svgIconSize} height={svgIconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v13"/>
-              <path d="m16 6-4-4-4 4"/>
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-            </svg>
-          </button>
+          {isMenuOpen && (
+            <div
+              ref={menuRef}
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                right: 0,
+                backgroundColor: COLORS.white,
+                borderRadius: STYLES.borderRadiusMedium,
+                boxShadow: STYLES.shadowLarge,
+                border: `1px solid ${COLORS.gray200}`,
+                overflow: 'hidden',
+                zIndex: STYLES.zDropdown,
+                minWidth: '140px',
+              }}
+            >
+              <button onClick={handleShare} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
+                Share
+              </button>
+
+              {hasWebsite && (
+                <button onClick={handleViewWebsite} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Website
+                </button>
+              )}
+
+              {canEdit && (
+                <button onClick={handleEdit} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                  Edit
+                </button>
+              )}
+
+              <button onClick={handleDelete} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
