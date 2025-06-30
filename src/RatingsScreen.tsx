@@ -1,4 +1,4 @@
-﻿// src/screens/RatingsScreen.tsx
+﻿// src/RatingsScreen.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
@@ -887,6 +887,25 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+  const handleShareDish = (dish: DishWithDetails, restaurantName: string) => {
+    const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `${dish.name} at ${restaurantName}`,
+        text: `Check out ${dish.name} at ${restaurantName} on How's Everything!`,
+        url: shareUrl,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+          alert('Share link copied to clipboard!');
+      }).catch(err => {
+          console.error('Could not copy link to clipboard:', err);
+          alert(`To share, copy this link: ${shareUrl}`);
+      });
+    }
+  };
+
+
 
 
   if (isLoading) return <LoadingScreen />;
@@ -1091,6 +1110,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                             onDeleteComment={handleDeleteComment}
                             onAddPhoto={handleAddPhoto}
                             onDeletePhoto={handleDeletePhoto}
+                            onShare={(dishToShare) => handleShareDish(dishToShare, group.restaurant.name)}
                             isSubmittingComment={isSubmittingComment}
                             isExpanded={expandedDishId === dish.id}
                             onToggleExpand={() => setExpandedDishId(expandedDishId === dish.id ? null : dish.id)}
@@ -1177,6 +1197,3 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
 
 export default RatingsScreen;
-
-
-

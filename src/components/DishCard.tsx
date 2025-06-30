@@ -541,11 +541,12 @@ const DishCard: React.FC<DishCardProps> = ({
   const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (isMenuOpen && cardRef.current && !cardRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     };
@@ -653,6 +654,15 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+  const handleCardClick = () => {
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+      return;
+    }
+    onToggleExpand();
+  };
+
+
   if (!isExpanded) {
     return (
       <div
@@ -739,6 +749,7 @@ const DishCard: React.FC<DishCardProps> = ({
   return (
     <>
       <div
+        ref={cardRef}
         id={`dish-card-${dish.id}`}
         style={{
           ...STYLES.card,
@@ -746,6 +757,7 @@ const DishCard: React.FC<DishCardProps> = ({
           boxShadow: STYLES.shadowLarge,
           cursor: 'default',
         }}
+        onClick={handleCardClick}
       >
         <div style={{ marginBottom: SPACING[4] }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING[2] }}>
@@ -757,7 +769,7 @@ const DishCard: React.FC<DishCardProps> = ({
                   <button onClick={() => setIsEditingName(false)} style={{ ...STYLES.secondaryButton, padding: '8px 16px', minHeight: '36px' }}>Cancel</button>
                 </div>
               ) : (
-                <h3 onClick={onToggleExpand} style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: 0, cursor: 'pointer', wordBreak: 'break-word' }}>
+                <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: 0, wordBreak: 'break-word' }}>
                   {dish.name}
                 </h3>
               )}
