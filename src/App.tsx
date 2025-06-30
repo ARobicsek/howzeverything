@@ -1,8 +1,9 @@
-// src/App.tsx - Production Version (Debug removed) - MODIFIED for restaurant sharing support
+// src/App.tsx - Production Version (Debug removed) - MODIFIED for restaurant and dish sharing support
 import React, { useEffect, useState } from 'react'
 import { COLORS, FONTS } from './constants'
 import { useAuth } from './hooks/useAuth'
 import { useRestaurants } from './hooks/useRestaurants'
+
 
 // Screens      
 import AdminScreen from './AdminScreen'
@@ -13,23 +14,30 @@ import ProfileScreen from './ProfileScreen'
 import RatingsScreen from './RatingsScreen'
 import RestaurantScreen from './RestaurantScreen'
 
+
 // User components      
 import LoginForm from './components/user/LoginForm'
 import UserForm from './components/user/UserForm'
 
+
 // Import types from BottomNavigation      
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation'
+
 
 // ADDED: Import sharing utilities
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler'
 
+
 // Create our own screen type that includes menu and admin      
 type AppScreen = NavigableScreenType | 'menu' | 'admin'
 
+
 interface MenuScreenState {      
-  restaurantId: string      
-  restaurantName: string      
+  restaurantId: string;
+  restaurantName: string;
+  initialDishId?: string; // For dish sharing
 }
+
 
 const App: React.FC = () => {      
   const { user, profile, loading: authLoading, createProfile } = useAuth()      
@@ -40,18 +48,22 @@ const App: React.FC = () => {
   const [showProfileEdit, setShowProfileEdit] = useState(false)
   const [hasProcessedSharedContent, setHasProcessedSharedContent] = useState(false)
 
+
   // Check if user is admin
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email)
 
-  const navigateToMenu = (restaurantId: string) => {
-    setMenuScreenState({ restaurantId, restaurantName: '' })
+
+  const navigateToMenu = (restaurantId: string, initialDishId?: string) => {
+    setMenuScreenState({ restaurantId, restaurantName: '', initialDishId })
     setCurrentScreen('menu')
   }
+
 
   const navigateBackFromMenu = () => {      
     setMenuScreenState(null)      
     setCurrentScreen('restaurants')      
   }
+
 
   const handleNavigateToScreen = (screen: NavigableScreenType) => {      
     setCurrentScreen(screen)      
@@ -60,6 +72,7 @@ const App: React.FC = () => {
     }      
   }
 
+
   const getCurrentAppScreen = (): AppScreenType => {      
     if (currentScreen === 'menu' || currentScreen === 'admin') {      
       return 'restaurants'      
@@ -67,31 +80,37 @@ const App: React.FC = () => {
     return currentScreen as AppScreenType      
   }
 
-  const handleLoginSuccess = () => {      
-    setShowLogin(false)      
-    // The useEffect hooks below will now handle navigation correctly.
+
+  const handleLoginSuccess = () => {
+    setShowLogin(false);
+    const sharedContent = parseSharedUrl();
+    // If there's no shared content in the URL, navigate to the home screen.
+    // If there IS shared content, the other useEffect will handle the navigation.
+    if (!sharedContent) {
+      setCurrentScreen('home');
+    }
   }
+
 
   // This effect handles the logic FOR a shared link.
   useEffect(() => {
     const processSharedContent = async () => {
       // It must have a user and not have been processed yet.
       if (!user || hasProcessedSharedContent) return
-      
+     
       const sharedContent = parseSharedUrl()
       if (sharedContent) {
         console.log('Processing shared content for logged-in user:', sharedContent)
-        
+       
         const success = await handleSharedContent(
           sharedContent,
           addToFavorites,
-          (restaurantId: string) => {
-            setMenuScreenState({ restaurantId, restaurantName: '' })
-            setCurrentScreen('menu')
+          (restaurantId: string, dishId?: string) => {
+            navigateToMenu(restaurantId, dishId);
           },
           (screen: string) => setCurrentScreen(screen as AppScreen)
         )
-        
+       
         if (success) {
           clearSharedUrlParams()
           setHasProcessedSharedContent(true)
@@ -99,25 +118,14 @@ const App: React.FC = () => {
       }
     }
 
+
     processSharedContent()
   }, [user, addToFavorites, hasProcessedSharedContent])
 
-  // This effect handles navigation to home AFTER login, but ONLY if there's no share link.
-  useEffect(() => {      
-    if (user && !authLoading) {      
-      const sharedContent = parseSharedUrl();
-      
-      // If a share link exists, do nothing and let the other effect handle it.
-      if (sharedContent) {
-        return;
-      }
-      
-      // If NO share link, then proceed with normal navigation to home.
-      if (currentScreen === 'profile' || showLogin) {      
-        setCurrentScreen('home')      
-      }      
-    }      
-  }, [user, authLoading, currentScreen, showLogin]);
+
+  // [REMOVED] The problematic useEffect that was incorrectly redirecting from profile to home.
+  // The logic has been moved into handleLoginSuccess for clarity and correctness.
+
 
   // Reset shared content processing state when user logs out
   useEffect(() => {
@@ -125,6 +133,7 @@ const App: React.FC = () => {
       setHasProcessedSharedContent(false)
     }
   }, [user])
+
 
   // Create profile if needed
   useEffect(() => {      
@@ -146,9 +155,11 @@ const App: React.FC = () => {
     return () => { isMounted = false; clearTimeout(timeoutId) }      
   }, [user?.id, profile, authLoading, createProfile]);
 
+
   if (authLoading) {      
     return <LoadingScreen />      
   }
+
 
   if (!user) {      
     return (      
@@ -173,19 +184,27 @@ const App: React.FC = () => {
     )      
   }
 
+
   const renderCurrentScreen = () => {      
     switch (currentScreen) {      
       case 'home': return <HomeScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
       case 'restaurants': return <RestaurantScreen onNavigateToScreen={handleNavigateToScreen} onNavigateToMenu={navigateToMenu} currentAppScreen={getCurrentAppScreen()} />
       case 'menu':      
         if (!menuScreenState) { setCurrentScreen('restaurants'); return null }      
-        return <MenuScreen restaurantId={menuScreenState.restaurantId} onNavigateBack={navigateBackFromMenu} onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
+        return <MenuScreen
+          restaurantId={menuScreenState.restaurantId}
+          initialDishToExpand={menuScreenState.initialDishId}
+          onNavigateBack={navigateBackFromMenu}
+          onNavigateToScreen={handleNavigateToScreen}
+          currentAppScreen={getCurrentAppScreen()}
+        />
       case 'ratings': return <RatingsScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
       case 'profile': return <ProfileScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
       case 'admin': return <AdminScreen user={user} />      
       default: return <HomeScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
     }      
   }
+
 
   return (      
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>      
@@ -206,5 +225,6 @@ const App: React.FC = () => {
     </div>      
   )      
 }
+
 
 export default App

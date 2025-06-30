@@ -8,6 +8,7 @@ import PhotoCarousel from './PhotoCarousel';
 import PhotoModal from './PhotoModal';
 import PhotoUpload from './PhotoUpload';
 
+
 interface DishCardProps {
   dish: DishWithDetails | null;
   currentUserId: string | null;
@@ -19,10 +20,12 @@ interface DishCardProps {
   onDeleteComment: (dishId: string, commentId: string) => Promise<void>;
   onAddPhoto: (dishId: string, file: File, caption?: string) => Promise<void>;
   onDeletePhoto: (dishId: string, photoId: string) => Promise<void>;
+  onShare: (dish: DishWithDetails) => void;
   isSubmittingComment: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }
+
 
 const StarRating: React.FC<{
   rating: number;
@@ -42,6 +45,7 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.primary, empty: COLORS.ratingEmpty },
     community: { filled: COLORS.ratingGold, empty: COLORS.ratingEmpty }
   };
+
 
   return (
     <div className="flex items-center gap-3">
@@ -102,6 +106,7 @@ const StarRating: React.FC<{
   );
 };
 
+
 const RatingSummary: React.FC<{
   personalRating: number | null;
   communityAverage: number;
@@ -138,6 +143,7 @@ const RatingSummary: React.FC<{
   </div>
 );
 
+
 const RatingBreakdown: React.FC<{
   personalRating: number | null;
   communityAverage: number;
@@ -146,7 +152,6 @@ const RatingBreakdown: React.FC<{
 }> = ({
   personalRating,
   communityAverage,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
   totalRatings,
   onUpdatePersonalRating
 }) => (
@@ -213,136 +218,6 @@ const RatingBreakdown: React.FC<{
   </div>
 );
 
-const DishHeader: React.FC<{
-  name: string;
-  dateAdded: string;
-  createdBy: string;
-  currentUserId: string | null;
-  onDelete: () => void;
-  onToggleEditMode: () => void;
-  onToggleExpand: () => void;
-  isEditing?: boolean;
-  onEditName?: (newName: string) => void;
-  onSaveEdit?: () => void;
-  onCancelEdit?: () => void;
-}> = ({
-  name,
-  dateAdded,
-  createdBy,
-  currentUserId,
-  onDelete,
-  onToggleEditMode,
-  onToggleExpand,
-  isEditing = false,
-  onEditName,
-  onSaveEdit,
-  onCancelEdit
-}) => {
-  const [editedName, setEditedName] = useState(name);
-
-  useEffect(() => {
-    setEditedName(name);
-  }, [name]);
-
-  const canDelete = currentUserId && createdBy === currentUserId;
-
-  return (
-    <div style={{ marginBottom: SPACING[4] }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING[2] }}>
-        <div style={{ flex: 1, minWidth: 0, paddingRight: SPACING[4] }}>
-          {isEditing ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-              <input
-                type="text"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                style={{
-                  ...STYLES.input,
-                  flex: 1
-                }}
-                autoFocus
-              />
-              <button
-                onClick={(e) => { e.stopPropagation(); onEditName?.(editedName); onSaveEdit?.(); }}
-                style={{
-                  ...STYLES.primaryButton,
-                  padding: '8px 16px',
-                  minHeight: '36px',
-                  backgroundColor: COLORS.success
-                }}
-              >
-                Save
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-                style={{
-                  ...STYLES.secondaryButton,
-                  padding: '8px 16px',
-                  minHeight: '36px'
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <h3
-              onClick={() => onToggleExpand()}
-              style={{
-                ...FONTS.heading,
-                fontSize: TYPOGRAPHY.lg.fontSize,
-                color: COLORS.gray900,
-                margin: 0,
-                cursor: 'pointer',
-                wordBreak: 'break-word'
-              }}
-            >
-              {name}
-            </h3>
-          )}
-          <p style={{
-            ...FONTS.body,
-            fontSize: TYPOGRAPHY.xs.fontSize,
-            color: COLORS.textSecondary,
-            margin: 0,
-            marginTop: SPACING[1]
-          }}>
-            Added {new Date(dateAdded).toLocaleDateString()}
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-          {!isEditing && currentUserId && createdBy === currentUserId && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleEditMode(); }}
-              style={{
-                ...STYLES.iconButton,
-                backgroundColor: COLORS.gray900,
-                color: COLORS.white,
-                border: 'none'
-              }}
-              aria-label="Edit dish name"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-          )}
-          {canDelete && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              style={STYLES.deleteButton}
-              aria-label={`Delete ${name}`}
-              title={`Delete ${name}`}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const CommentsSection: React.FC<{
   comments: DishComment[];
@@ -370,6 +245,7 @@ const CommentsSection: React.FC<{
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
@@ -386,7 +262,9 @@ const CommentsSection: React.FC<{
     };
   }, [openActionMenuCommentId]);
 
+
   if (comments.length === 0) return null;
+
 
   return (
     <div style={{ marginTop: SPACING[6] }}>
@@ -423,6 +301,7 @@ const CommentsSection: React.FC<{
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
         </svg>
       </button>
+
 
       {showComments && (
         <div style={{ marginTop: SPACING[3], display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>
@@ -589,11 +468,13 @@ const CommentsSection: React.FC<{
   );
 };
 
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {
   if (!userId) return null;
   const userRating = dishRatings.find(rating => rating.user_id === userId);
   return userRating ? userRating.rating : null;
 };
+
 
 const PortalModal: React.FC<{
   isOpen: boolean;
@@ -605,6 +486,7 @@ const PortalModal: React.FC<{
   if (!isOpen || !modalRoot) {
     return null;
   }
+
 
   return ReactDOM.createPortal(
     <div
@@ -625,6 +507,7 @@ const PortalModal: React.FC<{
   );
 };
 
+
 const DishCard: React.FC<DishCardProps> = ({
   dish,
   currentUserId,
@@ -636,6 +519,7 @@ const DishCard: React.FC<DishCardProps> = ({
   onDeleteComment,
   onAddPhoto,
   onDeletePhoto,
+  onShare,
   isSubmittingComment,
   isExpanded,
   onToggleExpand
@@ -643,6 +527,7 @@ const DishCard: React.FC<DishCardProps> = ({
   if (!dish) {
     return null;
   }
+
 
   const [showComments, setShowComments] = useState(false);
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
@@ -654,8 +539,35 @@ const DishCard: React.FC<DishCardProps> = ({
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovering, setIsHovering] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMenuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
 
   const personalRating = getUserPersonalRating(dish.dish_ratings, currentUserId);
+  const canModify = currentUserId && dish.created_by === currentUserId;
+
+
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation();
+    action();
+    setIsMenuOpen(false);
+  };
+
 
   const handleDeleteDish = () => {
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {
@@ -663,16 +575,19 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
+
   const handleAddCommentInternal = async (text: string) => {
     await onAddComment(dish.id, text);
     setShowCommentModal(false);
     setShowComments(true);
   };
 
+
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {
     await onUpdateComment(commentId, dish.id, text);
     setEditingComment(null);
   };
+
 
   const handleDeleteCommentInternal = async (commentId: string) => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
@@ -680,9 +595,11 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
+
   const handleDirectPhotoUpload = () => {
     fileInputRef.current?.click();
   };
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -700,6 +617,7 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
+
   const handlePhotoUpload = async (file: File, caption?: string) => {
     setIsUploadingPhoto(true);
     try {
@@ -716,12 +634,14 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
+
   const handleDeletePhoto = async (photoId: string) => {
     await onDeletePhoto(dish.id, photoId);
     if (dish.dish_photos.length <= 1) {
       setSelectedPhotoModal(null);
     }
   };
+
 
   const handleEditName = async (newName: string) => {
     if (onUpdateDishName) {
@@ -731,6 +651,7 @@ const DishCard: React.FC<DishCardProps> = ({
       }
     }
   };
+
 
   if (!isExpanded) {
     return (
@@ -798,6 +719,23 @@ const DishCard: React.FC<DishCardProps> = ({
     );
   }
 
+
+  const menuButtonStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: SPACING[2],
+    width: '100%',
+    padding: `${SPACING[2]} ${SPACING[3]}`,
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    ...FONTS.body,
+    fontSize: TYPOGRAPHY.sm.fontSize,
+    textAlign: 'left',
+    transition: 'background-color 0.2s ease',
+  };
+
+
   return (
     <>
       <div
@@ -809,19 +747,63 @@ const DishCard: React.FC<DishCardProps> = ({
           cursor: 'default',
         }}
       >
-        <DishHeader
-          name={dish.name}
-          dateAdded={dish.dateAdded}
-          createdBy={dish.created_by}
-          currentUserId={currentUserId}
-          onDelete={handleDeleteDish}
-          onToggleEditMode={() => setIsEditingName(true)}
-          onToggleExpand={onToggleExpand}
-          isEditing={isEditingName}
-          onEditName={handleEditName}
-          onSaveEdit={() => setIsEditingName(false)}
-          onCancelEdit={() => setIsEditingName(false)}
-        />
+        <div style={{ marginBottom: SPACING[4] }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING[2] }}>
+            <div style={{ flex: 1, minWidth: 0, paddingRight: SPACING[4] }}>
+              {isEditingName ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+                  <input type="text" value={dish.name} onChange={(e) => handleEditName(e.target.value)} style={{ ...STYLES.input, flex: 1 }} autoFocus/>
+                  <button onClick={() => setIsEditingName(false)} style={{ ...STYLES.primaryButton, padding: '8px 16px', minHeight: '36px', backgroundColor: COLORS.success }}>Save</button>
+                  <button onClick={() => setIsEditingName(false)} style={{ ...STYLES.secondaryButton, padding: '8px 16px', minHeight: '36px' }}>Cancel</button>
+                </div>
+              ) : (
+                <h3 onClick={onToggleExpand} style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: 0, cursor: 'pointer', wordBreak: 'break-word' }}>
+                  {dish.name}
+                </h3>
+              )}
+              <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: COLORS.textSecondary, margin: 0, marginTop: SPACING[1] }}>
+                Added {new Date(dish.dateAdded).toLocaleDateString()}
+              </p>
+            </div>
+
+
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(prev => !prev); }} style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+              </button>
+              {isMenuOpen && (
+                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusMedium, boxShadow: STYLES.shadowLarge, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: STYLES.zDropdown, minWidth: '160px', }}>
+                  <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
+                    Share Dish
+                  </button>
+                  <button onClick={(e) => handleAction(e, handleDirectPhotoUpload)} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    Add Photo
+                  </button>
+                  <button onClick={(e) => handleAction(e, () => setShowCommentModal(true))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Add Comment
+                  </button>
+                  {canModify && (
+                    <>
+                      <hr style={{ border: 0, borderTop: `1px solid ${COLORS.gray200}`, margin: `${SPACING[1]} 0` }} />
+                      <button onClick={(e) => handleAction(e, () => setIsEditingName(true))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        Edit Name
+                      </button>
+                      <button onClick={(e) => handleAction(e, handleDeleteDish)} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
+                        Delete Dish
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
 
         <RatingBreakdown
           personalRating={personalRating}
@@ -830,6 +812,7 @@ const DishCard: React.FC<DishCardProps> = ({
           onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}
         />
 
+
         <input
           ref={fileInputRef}
           type="file"
@@ -837,6 +820,7 @@ const DishCard: React.FC<DishCardProps> = ({
           onChange={handleFileSelect}
           style={{ display: 'none' }}
         />
+
 
         {dish.dish_photos.length > 0 && (
           <div style={{ marginTop: SPACING[3] }}>
@@ -850,23 +834,6 @@ const DishCard: React.FC<DishCardProps> = ({
           </div>
         )}
 
-        <div style={{ marginTop: SPACING[4] }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleDirectPhotoUpload(); }}
-            style={STYLES.primaryButton}
-          >
-            Add Photo
-          </button>
-        </div>
-
-        <div style={{ marginTop: SPACING[4] }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowCommentModal(true); }}
-            style={STYLES.primaryButton}
-          >
-            Add Comment
-          </button>
-        </div>
 
         <CommentsSection
           comments={dish.dish_comments}
@@ -881,6 +848,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isSubmittingComment={isSubmittingComment}
         />
       </div>
+
 
       <PortalModal
         isOpen={showCommentModal}
@@ -900,6 +868,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isLoading={isSubmittingComment}
         />
       </PortalModal>
+
 
       <PortalModal
         isOpen={showPhotoUpload}
@@ -926,6 +895,7 @@ const DishCard: React.FC<DishCardProps> = ({
         />
       </PortalModal>
 
+
       {selectedPhotoModal && (
         <PhotoModal
           photos={dish.dish_photos}
@@ -940,5 +910,6 @@ const DishCard: React.FC<DishCardProps> = ({
     </>
   );
 };
+
 
 export default DishCard;

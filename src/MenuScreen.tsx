@@ -6,8 +6,10 @@ import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import { BORDERS, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
-import { useDishes, type DishSearchResult } from './hooks/useDishes';
+import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
+
+
 
 
 // NEW: Modal for warning about duplicate dishes
@@ -21,6 +23,8 @@ interface DuplicateDishWarningModalProps {
 }
 
 
+
+
 const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   isOpen,
   onClose,
@@ -30,6 +34,8 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   onSelectDuplicate,
 }) => {
   if (!isOpen) return null;
+
+
 
 
   return (
@@ -50,6 +56,8 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
         }}>
           Are you sure you want to add "<strong>{newDishName}</strong>"? We found these similar dishes:
         </p>
+
+
 
 
         <ul style={{
@@ -82,6 +90,8 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
         </ul>
 
 
+
+
         <div style={{ display: 'flex', gap: SPACING[3] }}>
           <button
             onClick={onClose}
@@ -104,13 +114,20 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
 
 
 
+
+
+
+
 // Updated interface to match what App.tsx sends
 interface MenuScreenProps {
   restaurantId: string;
+  initialDishToExpand?: string;
   onNavigateBack: () => void;
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;
   currentAppScreen: GlobalAppScreenType;
 }
+
+
 
 
 // NEW: Consolidated component replacing DishSearchSection and AddDishPrompt
@@ -121,6 +138,8 @@ const ConsolidatedSearchAndAdd: React.FC<{
   onShowAddForm: () => void;
 }> = ({ searchTerm, onSearchChange, onReset, onShowAddForm }) => {
   const hasTyped = searchTerm.length > 0;
+
+
 
 
   return (
@@ -165,6 +184,8 @@ const ConsolidatedSearchAndAdd: React.FC<{
         </div>
 
 
+
+
         <input
           type="text"
           value={searchTerm}
@@ -176,6 +197,8 @@ const ConsolidatedSearchAndAdd: React.FC<{
           }}
           autoFocus
         />
+
+
 
 
         {hasTyped && (
@@ -206,6 +229,8 @@ const ConsolidatedSearchAndAdd: React.FC<{
 };
 
 
+
+
 // ORIGINAL Add Dish Form with enhanced design        
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -217,12 +242,16 @@ const EnhancedAddDishForm: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
+
+
   const handleSubmit = async () => {
     if (dishName.trim() && !isSubmitting) {
       setIsSubmitting(true);
       await onSubmit(dishName, rating);
     }
   };
+
+
 
 
   return (
@@ -241,6 +270,8 @@ const EnhancedAddDishForm: React.FC<{
       }}>
         Add New Dish
       </h3>
+
+
 
 
       <div style={{ marginBottom: SPACING[5] }}>
@@ -263,6 +294,8 @@ const EnhancedAddDishForm: React.FC<{
           disabled={isSubmitting}
         />
       </div>
+
+
 
 
       <div style={{ marginBottom: SPACING[6] }}>
@@ -319,6 +352,8 @@ const EnhancedAddDishForm: React.FC<{
       </div>
 
 
+
+
       <div style={{ display: 'flex', gap: SPACING[3] }}>
         <button
           onClick={handleSubmit}
@@ -360,8 +395,11 @@ const EnhancedAddDishForm: React.FC<{
 };
 
 
+
+
 const MenuScreen: React.FC<MenuScreenProps> = ({
   restaurantId,
+  initialDishToExpand,
   onNavigateBack,
   onNavigateToScreen,
   currentAppScreen
@@ -370,13 +408,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }>({ criterion: 'community_rating', direction: 'desc' });
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
-  const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
+  const [expandedDishId, setExpandedDishId] = useState<string | null>(initialDishToExpand || null);
   const [allExpanded, setAllExpanded] = useState(false);
   const [justAddedDishId, setJustAddedDishId] = useState<string | null>(null);
 
 
+
+
   const [potentialDuplicates, setPotentialDuplicates] = useState<DishSearchResult[]>([]);
   const [dishInfoForConfirmation, setDishInfoForConfirmation] = useState<{ name: string; rating: number } | null>(null);
+
+
 
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);
@@ -400,20 +442,28 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   } = useDishes(restaurantId, sortBy);
 
 
+
+
   useEffect(() => {
-    if (justAddedDishId) {
+    const dishIdToScrollTo = justAddedDishId || initialDishToExpand;
+    if (dishIdToScrollTo) {
       const scrollTimer = setTimeout(() => {
-        const element = document.getElementById(`dish-card-${justAddedDishId}`);
+        const element = document.getElementById(`dish-card-${dishIdToScrollTo}`);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        setJustAddedDishId(null);
+        // Only clear justAddedDishId, as initialDishToExpand is a prop and shouldn't be mutated.
+        if (justAddedDishId) {
+          setJustAddedDishId(null);
+        }
       }, 150);
 
 
       return () => clearTimeout(scrollTimer);
     }
-  }, [justAddedDishId]);
+  }, [justAddedDishId, initialDishToExpand]);
+
+
 
 
   const searchResults = useMemo(() => {
@@ -421,7 +471,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   }, [dishes, searchTerm, searchDishes]);
 
 
+
+
   const hasDishes = dishes.length > 0;
+
+
 
 
   const handleSearchChange = (term: string) => {
@@ -432,15 +486,21 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
 
+
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
+
 
 
   const executeAddDish = async (name: string, rating: number) => {
@@ -451,6 +511,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setPotentialDuplicates([]);
 
 
+
+
       setSearchTerm('');
       setExpandedDishId(newDish.id);
       setJustAddedDishId(newDish.id);
@@ -458,8 +520,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleAttemptAddDish = async (name: string, rating: number) => {
     setShowAddForm(false);
+
+
 
 
     const duplicates = findSimilarDishesForDuplicate(name);
@@ -476,12 +542,39 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     setPotentialDuplicates([]);
 
 
+
+
     const element = document.getElementById(`dish-card-${dishId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setExpandedDishId(dishId);
     }
   };
+
+
+  const handleShareDish = (dish: DishWithDetails) => {
+    if (!restaurant) return;
+
+
+    const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `${dish.name} at ${restaurant.name}`,
+        text: `Check out ${dish.name} at ${restaurant.name} on How's Everything!`,
+        url: shareUrl,
+      }).catch(console.error);
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      navigator.clipboard.writeText(shareUrl).then(() => {
+          alert('Share link copied to clipboard!');
+      }).catch(err => {
+          console.error('Could not copy link to clipboard:', err);
+          alert(`To share, copy this link: ${shareUrl}`);
+      });
+    }
+  };
+
+
 
 
   const handleAddComment = async (dishId: string, text: string) => {
@@ -497,6 +590,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
     try {
       await updateComment(commentId, newText);
@@ -508,6 +603,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
 
 
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
@@ -523,6 +620,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
       await addPhoto(dishId, file, caption);
@@ -534,6 +633,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
+
+
 
 
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
@@ -549,6 +650,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   const handleToggleAllExpanded = () => {
     if (allExpanded) {
       setAllExpanded(false);
@@ -557,6 +660,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setAllExpanded(true);
     }
   };
+
+
 
 
   const handleToggleDishExpanded = (dishId: string) => {
@@ -569,9 +674,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
 
+
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
+
+
 
 
   return (
@@ -658,6 +767,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       </header>
 
 
+
+
       <main style={{
         flex: 1,
         paddingBottom: STYLES.mainContentPadding,
@@ -684,6 +795,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>
             </div>
           )}
+
+
 
 
           {showAdvancedSort && (
@@ -744,6 +857,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           )}
 
 
+
+
           {!showAddForm && hasDishes && (
             <ConsolidatedSearchAndAdd
               searchTerm={searchTerm}
@@ -752,6 +867,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               onShowAddForm={handleShowAddForm}
             />
           )}
+
+
 
 
           {!showAddForm ? (
@@ -781,6 +898,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                         onDeleteComment={handleDeleteComment}
                         onAddPhoto={handleAddPhoto}
                         onDeletePhoto={handleDeletePhoto}
+                        onShare={handleShareDish}
                         isSubmittingComment={false}
                         isExpanded={allExpanded || expandedDishId === dish.id}
                         onToggleExpand={() => handleToggleDishExpanded(dish.id)}
@@ -809,6 +927,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               )}
 
 
+
+
               {searchTerm.length === 0 && (
                 hasDishes ? (
                   <>
@@ -825,6 +945,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                         onDeleteComment={handleDeleteComment}
                         onAddPhoto={handleAddPhoto}
                         onDeletePhoto={handleDeletePhoto}
+                        onShare={handleShareDish}
                         isSubmittingComment={false}
                         isExpanded={allExpanded || expandedDishId === dish.id}
                         onToggleExpand={() => handleToggleDishExpanded(dish.id)}
@@ -891,6 +1012,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       </main>
 
 
+
+
       {dishInfoForConfirmation && (
         <DuplicateDishWarningModal
           isOpen={!!dishInfoForConfirmation}
@@ -910,6 +1033,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       )}
 
 
+
+
       <BottomNavigation
         activeScreenValue={currentAppScreen}
         onNav={onNavigateToScreen}
@@ -917,6 +1042,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     </div>
   );
 };
+
+
 
 
 export default MenuScreen;
