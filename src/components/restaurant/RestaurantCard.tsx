@@ -168,7 +168,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 marginBottom: '8px',
               }}
             >
-              📍 {restaurant.address}
+              {restaurant.address}
             </p>
           )}
          
