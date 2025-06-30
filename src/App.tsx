@@ -4,6 +4,7 @@ import { COLORS, FONTS } from './constants'
 import { useAuth } from './hooks/useAuth'
 import { useRestaurants } from './hooks/useRestaurants'
 
+
 // Screens      
 import AdminScreen from './AdminScreen'
 import LoadingScreen from './components/LoadingScreen'
@@ -13,23 +14,29 @@ import ProfileScreen from './ProfileScreen'
 import RatingsScreen from './RatingsScreen'
 import RestaurantScreen from './RestaurantScreen'
 
+
 // User components      
 import LoginForm from './components/user/LoginForm'
 import UserForm from './components/user/UserForm'
 
+
 // Import types from BottomNavigation      
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation'
+
 
 // ADDED: Import sharing utilities
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler'
 
+
 // Create our own screen type that includes menu and admin      
 type AppScreen = NavigableScreenType | 'menu' | 'admin'
+
 
 interface MenuScreenState {      
   restaurantId: string      
   restaurantName: string      
 }
+
 
 const App: React.FC = () => {      
   const { user, profile, loading: authLoading, createProfile } = useAuth()      
@@ -38,20 +45,41 @@ const App: React.FC = () => {
   const [menuScreenState, setMenuScreenState] = useState<MenuScreenState | null>(null)      
   const [showLogin, setShowLogin] = useState(false)      
   const [showProfileEdit, setShowProfileEdit] = useState(false)
+  
+  // State for handling shared content across login
+  const [sharedContentToProcess, setSharedContentToProcess] = useState<any | null>(null);
   const [hasProcessedSharedContent, setHasProcessedSharedContent] = useState(false)
+
 
   // Check if user is admin
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email)
+
+
+  // CAPTURE shared content on initial app load, BEFORE any redirects.
+  useEffect(() => {
+    // This effect runs only once on initial load to capture the URL params
+    // before they can be cleared by navigation or login redirects.
+    const capturedContent = parseSharedUrl();
+    if (capturedContent) {
+      console.log('Captured shared content on app load:', capturedContent);
+      setSharedContentToProcess(capturedContent);
+      // We can clear the URL now, as we have the content in state.
+      clearSharedUrlParams();
+    }
+  }, []); // Empty dependency array ensures this runs only once.
+
 
   const navigateToMenu = (restaurantId: string) => {
     setMenuScreenState({ restaurantId, restaurantName: '' })
     setCurrentScreen('menu')
   }
 
+
   const navigateBackFromMenu = () => {      
     setMenuScreenState(null)      
     setCurrentScreen('restaurants')      
   }
+
 
   const handleNavigateToScreen = (screen: NavigableScreenType) => {      
     setCurrentScreen(screen)      
@@ -60,6 +88,7 @@ const App: React.FC = () => {
     }      
   }
 
+
   const getCurrentAppScreen = (): AppScreenType => {      
     if (currentScreen === 'menu' || currentScreen === 'admin') {      
       return 'restaurants'      
@@ -67,41 +96,43 @@ const App: React.FC = () => {
     return currentScreen as AppScreenType      
   }
 
+
   // Handle successful login - redirect to home screen      
   const handleLoginSuccess = () => {      
     setShowLogin(false)      
     setCurrentScreen('home') // Always go to home after sign-in      
   }
 
-  // ADDED: Handle shared content when app loads or user changes
+
+  // PROCESS shared content when user logs in and content has been captured.
   useEffect(() => {
     const processSharedContent = async () => {
-      if (!user || hasProcessedSharedContent) return
-      
-      const sharedContent = parseSharedUrl()
-      if (sharedContent) {
-        console.log('Processing shared content:', sharedContent)
-        
-        const success = await handleSharedContent(
-          sharedContent,
-          addToFavorites,
-          (restaurantId: string) => {
-            setMenuScreenState({ restaurantId, restaurantName: '' })
-            setCurrentScreen('menu')
-          },
-          (screen: string) => setCurrentScreen(screen as AppScreen)
-        )
-        
-        if (success) {
-          // Clear the URL parameters after processing
-          clearSharedUrlParams()
-          setHasProcessedSharedContent(true)
-        }
+      // We must have a user, captured content, and not have processed it for this session.
+      if (!user || !sharedContentToProcess || hasProcessedSharedContent) return
+     
+      console.log('Processing captured shared content:', sharedContentToProcess)
+       
+      const success = await handleSharedContent(
+        sharedContentToProcess, // Use the content from state
+        addToFavorites,
+        (restaurantId: string) => {
+          setMenuScreenState({ restaurantId, restaurantName: '' })
+          setCurrentScreen('menu')
+        },
+        (screen: string) => setCurrentScreen(screen as AppScreen)
+      )
+       
+      if (success) {
+        // Mark as processed for this user session.
+        setHasProcessedSharedContent(true)
+        // No need to clear URL params, already done on capture.
       }
     }
 
+
     processSharedContent()
-  }, [user, addToFavorites, hasProcessedSharedContent])
+  }, [user, sharedContentToProcess, hasProcessedSharedContent, addToFavorites]);
+
 
   // ADDED: Reset shared content processing when user logs out
   useEffect(() => {
@@ -110,11 +141,13 @@ const App: React.FC = () => {
     }
   }, [user])
 
+
   // Create profile if needed - but only once per user and avoid race conditions      
   useEffect(() => {      
     if (!user || profile !== null || authLoading) {      
       return      
     }
+
 
     let isMounted = true      
     const timeoutId = setTimeout(async () => {      
@@ -122,6 +155,7 @@ const App: React.FC = () => {
       if (!isMounted || !user || profile !== null) {      
         return      
       }
+
 
       console.log('🚀 Creating initial profile for user:', user.email)      
            
@@ -141,26 +175,31 @@ const App: React.FC = () => {
       }      
     }, 1000) // Increased delay to 1 second to ensure auth is fully settled
 
+
     return () => {      
       isMounted = false      
       clearTimeout(timeoutId)      
     }      
   }, [user?.id, profile, authLoading, createProfile]) // Added createProfile to deps
 
+
   // Navigate to home when user signs in      
   useEffect(() => {      
     if (user && !authLoading) {      
       // If we're not already on a specific screen, go to home      
-      if (currentScreen === 'profile' || showLogin) {      
+      // And don't interrupt shared content navigation
+      if ((currentScreen === 'profile' || showLogin) && !sharedContentToProcess) {      
         setCurrentScreen('home')      
       }      
     }      
-  }, [user, authLoading])
+  }, [user, authLoading, sharedContentToProcess]);
+
 
   // Show loading screen while auth is initializing      
   if (authLoading) {      
     return <LoadingScreen />      
   }
+
 
   // Show login screen if no user      
   if (!user) {      
@@ -239,6 +278,7 @@ const App: React.FC = () => {
     )      
   }
 
+
   const renderCurrentScreen = () => {      
     switch (currentScreen) {      
       case 'home':      
@@ -298,6 +338,7 @@ const App: React.FC = () => {
         )      
     }      
   }
+
 
   return (      
     <div style={{      
@@ -364,5 +405,6 @@ const App: React.FC = () => {
     </div>      
   )      
 }
+
 
 export default App
