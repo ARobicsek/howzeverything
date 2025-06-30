@@ -25,7 +25,7 @@ import type { AppScreenType, NavigableScreenType } from './components/navigation
 
 
 // ADDED: Import sharing utilities
-import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler'
+import { clearSharedUrlParams, handleSharedContent, parseSharedUrl, SharedContent } from './utils/urlShareHandler'
 
 
 // Create our own screen type that includes menu and admin      
@@ -47,27 +47,21 @@ const App: React.FC = () => {
   const [showProfileEdit, setShowProfileEdit] = useState(false)
   
   // State for handling shared content across login
-  const [sharedContentToProcess, setSharedContentToProcess] = useState<any | null>(null);
+  const [sharedContentToProcess, setSharedContentToProcess] = useState<SharedContent | null>(null);
   const [hasProcessedSharedContent, setHasProcessedSharedContent] = useState(false)
 
 
   // Check if user is admin
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email)
 
-
-  // CAPTURE shared content on initial app load, BEFORE any redirects.
+  // Step 1: Capture shared content on initial app load, BEFORE any redirects.
   useEffect(() => {
-    // This effect runs only once on initial load to capture the URL params
-    // before they can be cleared by navigation or login redirects.
     const capturedContent = parseSharedUrl();
     if (capturedContent) {
-      console.log('Captured shared content on app load:', capturedContent);
+      console.log('Step 1: Captured shared content on app load:', capturedContent);
       setSharedContentToProcess(capturedContent);
-      // We can clear the URL now, as we have the content in state.
-      clearSharedUrlParams();
     }
   }, []); // Empty dependency array ensures this runs only once.
-
 
   const navigateToMenu = (restaurantId: string) => {
     setMenuScreenState({ restaurantId, restaurantName: '' })
@@ -96,50 +90,49 @@ const App: React.FC = () => {
     return currentScreen as AppScreenType      
   }
 
-
-  // Handle successful login - redirect to home screen      
+  // Step 3: Handle successful login. Just close the form, don't navigate.
+  // The useEffect hooks will handle navigation based on app state.
   const handleLoginSuccess = () => {      
-    setShowLogin(false)      
-    setCurrentScreen('home') // Always go to home after sign-in      
+    setShowLogin(false);
   }
 
-
-  // PROCESS shared content when user logs in and content has been captured.
+  // Step 2: Process shared content AFTER user is available.
   useEffect(() => {
     const processSharedContent = async () => {
-      // We must have a user, captured content, and not have processed it for this session.
       if (!user || !sharedContentToProcess || hasProcessedSharedContent) return
      
-      console.log('Processing captured shared content:', sharedContentToProcess)
-       
+      console.log('Step 2: User is logged in, processing captured content:', sharedContentToProcess);
+      
+      // Mark as processing immediately to prevent re-runs for this session
+      setHasProcessedSharedContent(true);
+
       const success = await handleSharedContent(
-        sharedContentToProcess, // Use the content from state
+        sharedContentToProcess,
         addToFavorites,
         (restaurantId: string) => {
-          setMenuScreenState({ restaurantId, restaurantName: '' })
-          setCurrentScreen('menu')
+          setMenuScreenState({ restaurantId, restaurantName: '' });
+          setCurrentScreen('menu');
         },
         (screen: string) => setCurrentScreen(screen as AppScreen)
       )
        
       if (success) {
-        // Mark as processed for this user session.
-        setHasProcessedSharedContent(true)
-        // No need to clear URL params, already done on capture.
+        // Clear the URL parameters only after successful processing
+        clearSharedUrlParams();
       }
     }
-
 
     processSharedContent()
   }, [user, sharedContentToProcess, hasProcessedSharedContent, addToFavorites]);
 
 
-  // ADDED: Reset shared content processing when user logs out
+  // Reset shared content processing state when user logs out
   useEffect(() => {
     if (!user) {
-      setHasProcessedSharedContent(false)
+      setHasProcessedSharedContent(false);
+      setSharedContentToProcess(null);
     }
-  }, [user])
+  }, [user]);
 
 
   // Create profile if needed - but only once per user and avoid race conditions      
@@ -147,18 +140,10 @@ const App: React.FC = () => {
     if (!user || profile !== null || authLoading) {      
       return      
     }
-
-
     let isMounted = true      
     const timeoutId = setTimeout(async () => {      
-      // Double-check conditions after delay      
-      if (!isMounted || !user || profile !== null) {      
-        return      
-      }
-
-
+      if (!isMounted || !user || profile !== null) { return }
       console.log('🚀 Creating initial profile for user:', user.email)      
-           
       try {      
         const success = await createProfile({      
           full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',      
@@ -166,33 +151,27 @@ const App: React.FC = () => {
           location: '',      
           avatar_url: user.user_metadata?.avatar_url || ''      
         })      
-             
-        if (!success) {      
-          console.error('Failed to create initial profile')      
-        }      
-      } catch (err) {      
-        console.error('Error creating initial profile:', err)      
-      }      
-    }, 1000) // Increased delay to 1 second to ensure auth is fully settled
+        if (!success) { console.error('Failed to create initial profile') }      
+      } catch (err) { console.error('Error creating initial profile:', err) }      
+    }, 1000)
+    return () => { isMounted = false; clearTimeout(timeoutId) }      
+  }, [user?.id, profile, authLoading, createProfile]);
 
 
-    return () => {      
-      isMounted = false      
-      clearTimeout(timeoutId)      
-    }      
-  }, [user?.id, profile, authLoading, createProfile]) // Added createProfile to deps
-
-
-  // Navigate to home when user signs in      
+  // Step 4: Navigate to home ONLY if not processing a share link.
   useEffect(() => {      
     if (user && !authLoading) {      
-      // If we're not already on a specific screen, go to home      
-      // And don't interrupt shared content navigation
-      if ((currentScreen === 'profile' || showLogin) && !sharedContentToProcess) {      
-        setCurrentScreen('home')      
+      // If there's content to process, the share handler is in control of navigation. Do nothing.
+      if (sharedContentToProcess && !hasProcessedSharedContent) {
+        console.log('Step 4: Share content pending, suppressing navigation to home.');
+        return;
+      }
+      // Otherwise, if we were on the login screen, navigate to home.
+      if (showLogin) {      
+        setCurrentScreen('home');
       }      
     }      
-  }, [user, authLoading, sharedContentToProcess]);
+  }, [user, authLoading, sharedContentToProcess, hasProcessedSharedContent, showLogin]);
 
 
   // Show loading screen while auth is initializing      
@@ -218,15 +197,7 @@ const App: React.FC = () => {
           minHeight: '100vh'      
         }}>      
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>      
-            <img      
-              src="/logo.png"      
-              alt="Logo"      
-              style={{      
-                maxWidth: '200px',      
-                height: 'auto',      
-                margin: '0 auto'      
-              }}      
-            />      
+            <img src="/logo.png" alt="Logo" style={{ maxWidth: '200px', height: 'auto', margin: '0 auto' }} />      
           </div>      
           <div style={{      
             backgroundColor: 'white',      
@@ -238,31 +209,12 @@ const App: React.FC = () => {
             textAlign: 'center',      
             marginBottom: '24px'      
           }}>      
-            <h2 style={{      
-              ...FONTS.elegant,      
-              fontSize: '20px',      
-              fontWeight: '600',      
-              color: COLORS.text,      
-              margin: '0 0 24px 0'      
-            }}>      
+            <h2 style={{ ...FONTS.elegant, fontSize: '20px', fontWeight: '600', color: COLORS.text, margin: '0 0 24px 0' }}>      
               Sign in and start dishing      
             </h2>      
             <button      
               onClick={() => setShowLogin(true)}      
-              style={{      
-                ...FONTS.elegant,      
-                width: '100%',      
-                height: '50px',      
-                backgroundColor: COLORS.primary,      
-                color: 'white',      
-                border: 'none',      
-                borderRadius: '8px',      
-                fontSize: '16px',      
-                fontWeight: '600',      
-                cursor: 'pointer',      
-                WebkitAppearance: 'none',      
-                WebkitTapHighlightColor: 'transparent'      
-              }}      
+              style={{ ...FONTS.elegant, width: '100%', height: '50px', backgroundColor: COLORS.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent' }}      
             >      
               Get Started      
             </button>      
@@ -281,126 +233,34 @@ const App: React.FC = () => {
 
   const renderCurrentScreen = () => {      
     switch (currentScreen) {      
-      case 'home':      
-        return (      
-          <HomeScreen      
-            onNavigateToScreen={handleNavigateToScreen}      
-            currentAppScreen={getCurrentAppScreen()}      
-          />      
-        )      
-      case 'restaurants':      
-        return (      
-          <RestaurantScreen      
-            onNavigateToScreen={handleNavigateToScreen}      
-            onNavigateToMenu={navigateToMenu}      
-            currentAppScreen={getCurrentAppScreen()}      
-          />      
-        )      
+      case 'home': return <HomeScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
+      case 'restaurants': return <RestaurantScreen onNavigateToScreen={handleNavigateToScreen} onNavigateToMenu={navigateToMenu} currentAppScreen={getCurrentAppScreen()} />
       case 'menu':      
-        if (!menuScreenState) {      
-          setCurrentScreen('restaurants')      
-          return null      
-        }      
-        return (      
-          <MenuScreen      
-            restaurantId={menuScreenState.restaurantId}      
-            onNavigateBack={navigateBackFromMenu}      
-            onNavigateToScreen={handleNavigateToScreen}      
-            currentAppScreen={getCurrentAppScreen()}
-          />      
-        )      
-      case 'ratings':      
-        return (      
-          <RatingsScreen      
-            onNavigateToScreen={handleNavigateToScreen}      
-            currentAppScreen={getCurrentAppScreen()}      
-          />      
-        )      
-      case 'profile':      
-        return (      
-          <ProfileScreen      
-            onNavigateToScreen={handleNavigateToScreen}      
-            currentAppScreen={getCurrentAppScreen()}      
-          />      
-        )
-      case 'admin':
-        return (
-          <AdminScreen
-            user={user}
-          />
-        )      
-      default:      
-        return (      
-          <HomeScreen      
-            onNavigateToScreen={handleNavigateToScreen}      
-            currentAppScreen={getCurrentAppScreen()}      
-          />      
-        )      
+        if (!menuScreenState) { setCurrentScreen('restaurants'); return null }      
+        return <MenuScreen restaurantId={menuScreenState.restaurantId} onNavigateBack={navigateBackFromMenu} onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
+      case 'ratings': return <RatingsScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
+      case 'profile': return <ProfileScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
+      case 'admin': return <AdminScreen user={user} />      
+      default: return <HomeScreen onNavigateToScreen={handleNavigateToScreen} currentAppScreen={getCurrentAppScreen()} />
     }      
   }
 
 
   return (      
-    <div style={{      
-      minHeight: '100vh',      
-      backgroundColor: COLORS.background,      
-      position: 'relative'      
-    }}>      
+    <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>      
       {renderCurrentScreen()}
-     
-      {/* Admin button for admin users */}
       {isAdmin && currentScreen !== 'admin' && (
-        <button
-          onClick={() => setCurrentScreen('admin')}
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            padding: '10px 20px',
-            backgroundColor: COLORS.primary,
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000
-          }}
-        >
+        <button onClick={() => setCurrentScreen('admin')} style={{ position: 'fixed', top: '20px', right: '20px', padding: '10px 20px', backgroundColor: COLORS.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', zIndex: 1000 }}>
           Admin Panel
         </button>
       )}
-     
-      {/* Back button for admin screen */}
       {currentScreen === 'admin' && (
-        <button
-          onClick={() => setCurrentScreen('home')}
-          style={{
-            position: 'fixed',
-            top: '20px',
-            left: '20px',
-            padding: '10px 20px',
-            backgroundColor: COLORS.background,
-            color: COLORS.textPrimary,
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000
-          }}
-        >
+        <button onClick={() => setCurrentScreen('home')} style={{ position: 'fixed', top: '20px', left: '20px', padding: '10px 20px', backgroundColor: COLORS.background, color: COLORS.textPrimary, border: `1px solid ${COLORS.border}`, borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', zIndex: 1000 }}>
           ← Back to App
         </button>
       )}
-           
       {showProfileEdit && user && (      
-        <UserForm      
-          onSuccess={() => setShowProfileEdit(false)}      
-          onCancel={() => setShowProfileEdit(false)}      
-        />      
+        <UserForm onSuccess={() => setShowProfileEdit(false)} onCancel={() => setShowProfileEdit(false)} />      
       )}      
     </div>      
   )      
