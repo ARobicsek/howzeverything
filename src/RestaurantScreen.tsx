@@ -12,11 +12,13 @@ import type { AdvancedSearchQuery } from './hooks/useRestaurants';
 import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
 
+
 interface RestaurantScreenProps {        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
 
 // NEW: Helper hook to get the previous value of a prop or state
 const usePrevious = (value: boolean): boolean | undefined => {
@@ -26,6 +28,7 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
 
 // Device and browser detection utilities
 const getDeviceInfo = () => {
@@ -62,6 +65,7 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
 
 // NEW: Enhanced Location Permission Banner Component with OS/Browser Detection    
 const LocationPermissionBanner: React.FC<{    
@@ -207,6 +211,7 @@ const LocationPermissionBanner: React.FC<{
   );    
 };
 
+
 // Enhanced Add Restaurant Form with pre-filled search term (like MenuScreen)        
 const EnhancedAddRestaurantForm: React.FC<{        
   initialRestaurantName?: string;        
@@ -273,6 +278,7 @@ const EnhancedAddRestaurantForm: React.FC<{
     </div>        
   );        
 };
+
 
 // NEW: Enhanced Search Animation Component      
 const SearchingIndicator: React.FC = () => {      
@@ -343,6 +349,7 @@ const SearchingIndicator: React.FC = () => {
   );      
 };
 
+
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)        
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
   const restaurant = restaurantName.toLowerCase().trim();        
@@ -382,6 +389,7 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   return Math.max(0, charSimilarity);        
 };
 
+
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
   onNavigateToScreen,        
   onNavigateToMenu,        
@@ -407,11 +415,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     const saved = localStorage.getItem('howzeverything-user-location');    
     if (saved) {    
       try {    
-        const { lat, lon, timestamp } = JSON.parse(saved);    
-        if (Date.now() - timestamp < 60 * 60 * 1000) {    
-          console.log('📍 Restored saved location:', lat, lon);    
-          return lat;    
-        }    
+        const { lat, lon } = JSON.parse(saved); // No longer checking timestamp
+        console.log('📍 Restored saved location:', lat, lon);    
+        return lat;    
       } catch (e) {    
         console.log('📍 Failed to parse saved location, will request fresh');    
       }    
@@ -422,11 +428,10 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     const saved = localStorage.getItem('howzeverything-user-location');    
     if (saved) {    
       try {    
-        const { lon, timestamp } = JSON.parse(saved);    
-        if (Date.now() - timestamp < 60 * 60 * 1000) {    
-          return lon;    
-        }    
-      } catch (e) {    
+        const { lon } = JSON.parse(saved); // No longer checking timestamp
+        return lon;    
+      } catch (e) {
+        // silent fail is fine, lat will also fail and handle logging
       }    
     }    
     return null;    
@@ -435,15 +440,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
   const [isRequestingLocationPermission, setIsRequestingLocationPermission] = useState(false);    
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(() => {  
     const saved = localStorage.getItem('howzeverything-user-location');  
-    if (saved) {  
-      try {  
-        const { timestamp } = JSON.parse(saved);  
-        return Date.now() - timestamp >= 60 * 60 * 1000;  
-      } catch (e) {  
-        return true;  
-      }  
-    }  
-    return true;  
+    // Show banner only if location has *never* been saved.
+    // The useEffect below will handle showing it if permissions are revoked.
+    return !saved;  
   });    
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
   // Helper function to save location to localStorage    
@@ -492,23 +491,37 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         setFetchingLocation(false);    
         return;    
       }
-      if (userLat !== null && userLon !== null) {  
+      // This logic no longer performs a background refresh and early return.
+      // Instead, it proceeds to check the actual permission status every time,
+      // which correctly handles cases where a user revokes permissions outside the app.
+      
+      const requestLocationActually = () => {    
+        setFetchingLocation(true);    
         navigator.geolocation.getCurrentPosition(    
           (position) => {    
-            const newLat = position.coords.latitude;  
-            const newLon = position.coords.longitude;  
-            setUserLat(newLat);    
-            setUserLon(newLon);    
-            saveLocationToStorage(newLat, newLon);
-            console.log('📍 Background location refresh:', newLat, newLon);    
+            const lat = position.coords.latitude;  
+            const lon = position.coords.longitude;  
+            setUserLat(lat);    
+            setUserLon(lon);    
+            saveLocationToStorage(lat, lon);
+            setShouldShowLocationBanner(false);    
+            setFetchingLocation(false);    
+            console.log('📍 User location obtained:', lat, lon);    
           },    
           (error) => {    
-            console.log('📍 Background location refresh failed:', error);  
+            console.error('Error getting user location:', error);    
+            setFetchingLocation(false);    
+            if (error.code === error.PERMISSION_DENIED) {    
+              setShouldShowLocationBanner(true);    
+              setIsLocationPermissionBlocked(true);  
+            } else {    
+              setShouldShowLocationBanner(true);    
+            }    
           },    
-          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }    
-        );  
-        return;  
-      }
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }    
+        );    
+      };
+
       if ('permissions' in navigator) {    
         try {    
           const permission = await navigator.permissions.query({ name: 'geolocation' });    
@@ -523,47 +536,25 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
             setShouldShowLocationBanner(true);    
             setIsLocationPermissionBlocked(false);    
           }    
-        } catch (error) {    
+        } catch (error) {
+          // Fallback for browsers that don't support permissions.query
+          // Only show banner if we don't have a cached location.
           if (userLat === null || userLon === null) {  
             setFetchingLocation(false);  
             setShouldShowLocationBanner(true);  
           }  
         }    
-      } else {    
+      } else {
+        // Fallback for browsers without navigator.permissions
         if (userLat === null || userLon === null) {  
           setFetchingLocation(false);  
           setShouldShowLocationBanner(true);  
         }  
       }    
     };
-    const requestLocationActually = () => {    
-      setFetchingLocation(true);    
-      navigator.geolocation.getCurrentPosition(    
-        (position) => {    
-          const lat = position.coords.latitude;  
-          const lon = position.coords.longitude;  
-          setUserLat(lat);    
-          setUserLon(lon);    
-          saveLocationToStorage(lat, lon);
-          setShouldShowLocationBanner(false);    
-          setFetchingLocation(false);    
-          console.log('📍 User location obtained:', lat, lon);    
-        },    
-        (error) => {    
-          console.error('Error getting user location:', error);    
-          setFetchingLocation(false);    
-          if (error.code === error.PERMISSION_DENIED) {    
-            setShouldShowLocationBanner(true);    
-            setIsLocationPermissionBlocked(true);  
-          } else {    
-            setShouldShowLocationBanner(true);    
-          }    
-        },    
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }    
-      );    
-    };
+
     checkLocationPermissionStatus();    
-  }, []);
+  }, [saveLocationToStorage, userLat, userLon]);
   const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);        
   useEffect(() => {        
     if (pendingNavigation && restaurants.length > previousRestaurantCount) {        
@@ -1205,5 +1196,6 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
 
 export default RestaurantScreen;
