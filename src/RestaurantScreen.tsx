@@ -485,76 +485,46 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
-  useEffect(() => {    
-    const checkLocationPermissionStatus = async () => {    
-      if (!navigator.geolocation) {    
-        setFetchingLocation(false);    
-        return;    
+  useEffect(() => {
+    // This effect now directly attempts to get the location, which is the most
+    // reliable way to check for permission across all browsers (especially Safari).
+    if (!navigator.geolocation) {
+      setFetchingLocation(false);
+      // If geolocation is not supported at all, we might want to show a persistent message,
+      // but for now, we just won't show the permission banner.
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // SUCCESS: Permission is granted.
+        console.log('📍 getCurrentPosition success. Permission is granted.');
+        const { latitude, longitude } = position.coords;
+        setUserLat(latitude);
+        setUserLon(longitude);
+        saveLocationToStorage(latitude, longitude);
+        setShouldShowLocationBanner(false); // Hide banner
+        setIsLocationPermissionBlocked(false);
+        setFetchingLocation(false);
+      },
+      (error) => {
+        // ERROR: Permission denied or another error occurred.
+        console.error('📍 getCurrentPosition error:', error.message);
+        setFetchingLocation(false);
+        setShouldShowLocationBanner(true); // Show banner because we failed.
+        if (error.code === error.PERMISSION_DENIED) {
+          setIsLocationPermissionBlocked(true); // Mark as blocked for specific messaging.
+        } else {
+          setIsLocationPermissionBlocked(false);
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0, // Force a fresh check, do not use a cached position.
       }
-      // This logic no longer performs a background refresh and early return.
-      // Instead, it proceeds to check the actual permission status every time,
-      // which correctly handles cases where a user revokes permissions outside the app.
-      
-      const requestLocationActually = () => {    
-        setFetchingLocation(true);    
-        navigator.geolocation.getCurrentPosition(    
-          (position) => {    
-            const lat = position.coords.latitude;  
-            const lon = position.coords.longitude;  
-            setUserLat(lat);    
-            setUserLon(lon);    
-            saveLocationToStorage(lat, lon);
-            setShouldShowLocationBanner(false);    
-            setFetchingLocation(false);    
-            console.log('📍 User location obtained:', lat, lon);    
-          },    
-          (error) => {    
-            console.error('Error getting user location:', error);    
-            setFetchingLocation(false);    
-            if (error.code === error.PERMISSION_DENIED) {    
-              setShouldShowLocationBanner(true);    
-              setIsLocationPermissionBlocked(true);  
-            } else {    
-              setShouldShowLocationBanner(true);    
-            }    
-          },    
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }    
-        );    
-      };
-
-      if ('permissions' in navigator) {    
-        try {    
-          const permission = await navigator.permissions.query({ name: 'geolocation' });    
-          if (permission.state === 'granted') {    
-            requestLocationActually();    
-          } else if (permission.state === 'denied') {    
-            setFetchingLocation(false);    
-            setShouldShowLocationBanner(true);    
-            setIsLocationPermissionBlocked(true);    
-          } else if (permission.state === 'prompt') {    
-            setFetchingLocation(false);    
-            setShouldShowLocationBanner(true);    
-            setIsLocationPermissionBlocked(false);    
-          }    
-        } catch (error) {
-          // Fallback for browsers that don't support permissions.query
-          // Only show banner if we don't have a cached location.
-          if (userLat === null || userLon === null) {  
-            setFetchingLocation(false);  
-            setShouldShowLocationBanner(true);  
-          }  
-        }    
-      } else {
-        // Fallback for browsers without navigator.permissions
-        if (userLat === null || userLon === null) {  
-          setFetchingLocation(false);  
-          setShouldShowLocationBanner(true);  
-        }  
-      }    
-    };
-
-    checkLocationPermissionStatus();    
-  }, [saveLocationToStorage, userLat, userLon]);
+    );
+  }, [saveLocationToStorage]); // Only re-run if the save function changes (it won't).
   const [previousRestaurantCount, setPreviousRestaurantCount] = useState(0);        
   useEffect(() => {        
     if (pendingNavigation && restaurants.length > previousRestaurantCount) {        
