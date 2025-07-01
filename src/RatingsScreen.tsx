@@ -275,7 +275,6 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
 
   const handleResetSearch = useCallback(() => {
     setSearchTerm('');
-    setShowSearch(false); // Hide the search bar on reset
     setFilteredGroups(restaurantGroups); // Reset to all groups
   }, [restaurantGroups]);
 
