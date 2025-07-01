@@ -9,13 +9,6 @@ import { BORDERS, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants
 import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
 import { useRestaurant } from './hooks/useRestaurant';
 
-
-
-
-
-
-
-
 // NEW: Modal for warning about duplicate dishes
 interface DuplicateDishWarningModalProps {
   isOpen: boolean;
@@ -26,13 +19,6 @@ interface DuplicateDishWarningModalProps {
   onSelectDuplicate: (dishId: string) => void;
 }
 
-
-
-
-
-
-
-
 const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   isOpen,
   onClose,
@@ -42,13 +28,6 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   onSelectDuplicate,
 }) => {
   if (!isOpen) return null;
-
-
-
-
-
-
-
 
   return (
     <div style={STYLES.modalOverlay}>
@@ -68,14 +47,6 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
         }}>
           Are you sure you want to add "<strong>{newDishName}</strong>"? We found these similar dishes:
         </p>
-
-
-
-
-
-
-
-
         <ul style={{
           listStyle: 'none',
           padding: 0,
@@ -104,14 +75,6 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
             </li>
           ))}
         </ul>
-
-
-
-
-
-
-
-
         <div style={{ display: 'flex', gap: SPACING[3] }}>
           <button
             onClick={onClose}
@@ -131,21 +94,6 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   );
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Updated interface to match what App.tsx sends
 interface MenuScreenProps {
   restaurantId: string;
@@ -155,14 +103,7 @@ interface MenuScreenProps {
   currentAppScreen: GlobalAppScreenType;
 }
 
-
-
-
-
-
-
-
-// NEW: Consolidated component replacing DishSearchSection and AddDishPrompt
+// MODIFIED: This component is now just the styled box, without the outer layout div.
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -172,121 +113,83 @@ const ConsolidatedSearchAndAdd: React.FC<{
   const hasTyped = searchTerm.length > 0;
   const [isFocused, setIsFocused] = useState(false);
 
-
-
-
-
-
-
-
   return (
-    <div style={{ marginBottom: SPACING[4] }}>
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-        borderRadius: STYLES.borderRadiusLarge,
-        padding: SPACING[4],
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[3] }}>
-          <h2 style={{
-            ...FONTS.heading,
-            fontSize: TYPOGRAPHY.lg.fontSize,
-            color: COLORS.text,
-            margin: 0
-          }}>
-            Find Your Dish
-          </h2>
-          {hasTyped && (
-            <button
-              onClick={onReset}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                color: COLORS.textSecondary,
-                transition: 'color 0.2s ease, transform 0.2s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}
-              aria-label="Clear search"
-              title="Clear search"
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
-              </svg>
-            </button>
-          )}
-        </div>
-
-
-
-
-
-
-
-
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}
-          placeholder="Start typing to find a dish..."
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          style={{
-            ...STYLES.input,
-            fontSize: TYPOGRAPHY.base.fontSize,
-            // Conditionally apply the new focus style from constants.ts
-            ...(isFocused && { 
-                ...STYLES.inputFocusBlack, 
-                // Adjust padding to account for the thicker border, preventing layout shift
-                padding: '9px 15px', 
-            })
-          }}
-          autoFocus
-        />
-
-
-
-
-
-
-
-
+    <div style={{
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(4px)',
+      WebkitBackdropFilter: 'blur(4px)',
+      borderRadius: STYLES.borderRadiusLarge,
+      padding: SPACING[4],
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[1] }}>
+        <h2 style={{
+          ...FONTS.heading,
+          fontSize: TYPOGRAPHY.lg.fontSize,
+          color: COLORS.text,
+          margin: 0
+        }}>
+          Find Your Dish
+        </h2>
         {hasTyped && (
-          <div style={{ marginTop: SPACING[2], textAlign: 'center', paddingTop: SPACING[2] }}>
-            <p style={{
-              ...FONTS.body,
-              fontSize: TYPOGRAPHY.sm.fontSize,
+          <button
+            onClick={onReset}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
               color: COLORS.textSecondary,
-              margin: `0 0 ${SPACING[2]} 0`
-            }}>
-              Don't see it below?
-            </p>
-            <button
-              onClick={onShowAddForm}
-              style={{
-                ...STYLES.primaryButton,
-                padding: `${SPACING[2]} ${SPACING[4]}`,
-                fontSize: TYPOGRAPHY.sm.fontSize
-              }}
-            >
-              Add New Dish
-            </button>
-          </div>
+              transition: 'color 0.2s ease, transform 0.2s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}
+            aria-label="Clear search"
+            title="Clear search"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+            </svg>
+          </button>
         )}
       </div>
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)}
+        placeholder="Start typing to find a dish..."
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        style={{
+          ...STYLES.input,
+          ...(isFocused && STYLES.inputFocusBlack),
+        }}
+        autoFocus
+      />
+      {hasTyped && (
+        <div style={{ marginTop: SPACING[4], textAlign: 'center' }}>
+          <p style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            color: COLORS.textSecondary,
+            margin: `0 0 ${SPACING[2]} 0`
+          }}>
+            Don't see it below?
+          </p>
+          <button
+            onClick={onShowAddForm}
+            style={{
+              ...STYLES.primaryButton,
+              padding: `${SPACING[2]} ${SPACING[4]}`,
+              fontSize: TYPOGRAPHY.sm.fontSize
+            }}
+          >
+            Add New Dish
+          </button>
+        </div>
+      )}
     </div>
   );
 };
-
-
-
-
-
-
-
 
 // ORIGINAL Add Dish Form with enhanced design        
 const EnhancedAddDishForm: React.FC<{
@@ -298,26 +201,12 @@ const EnhancedAddDishForm: React.FC<{
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-
-
-
-
-
-
   const handleSubmit = async () => {
     if (dishName.trim() && !isSubmitting) {
       setIsSubmitting(true);
       await onSubmit(dishName, rating);
     }
   };
-
-
-
-
-
-
-
 
   return (
     <div style={{
@@ -335,14 +224,6 @@ const EnhancedAddDishForm: React.FC<{
       }}>
         Add New Dish
       </h3>
-
-
-
-
-
-
-
-
       <div style={{ marginBottom: SPACING[5] }}>
         <label style={{
           ...FONTS.body,
@@ -359,18 +240,10 @@ const EnhancedAddDishForm: React.FC<{
           value={dishName}
           onChange={(e) => e.target.value.length <= 100 && setDishName(e.target.value)}
           placeholder="Enter the dish name as exactly as you can..."
-          style={STYLES.input}
+          style={{ ...STYLES.input, borderWidth: '1px' }} // Use standard input style
           disabled={isSubmitting}
         />
       </div>
-
-
-
-
-
-
-
-
       <div style={{ marginBottom: SPACING[6] }}>
         <label style={{
           ...FONTS.body,
@@ -423,14 +296,6 @@ const EnhancedAddDishForm: React.FC<{
           </span>
         </div>
       </div>
-
-
-
-
-
-
-
-
       <div style={{ display: 'flex', gap: SPACING[3] }}>
         <button
           onClick={handleSubmit}
@@ -471,13 +336,6 @@ const EnhancedAddDishForm: React.FC<{
   );
 };
 
-
-
-
-
-
-
-
 const MenuScreen: React.FC<MenuScreenProps> = ({
   restaurantId,
   initialDishToExpand,
@@ -492,23 +350,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [expandedDishId, setExpandedDishId] = useState<string | null>(initialDishToExpand || null);
   const [allExpanded, setAllExpanded] = useState(false);
   const [justAddedDishId, setJustAddedDishId] = useState<string | null>(null);
-
-
-
-
-
-
-
-
   const [potentialDuplicates, setPotentialDuplicates] = useState<DishSearchResult[]>([]);
   const [dishInfoForConfirmation, setDishInfoForConfirmation] = useState<{ name: string; rating: number } | null>(null);
-
-
-
-
-
-
-
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId);
   const {
@@ -530,13 +373,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     findSimilarDishesForDuplicate
   } = useDishes(restaurantId, sortBy);
 
-
-
-
-
-
-
-
   useEffect(() => {
     const dishIdToScrollTo = justAddedDishId || initialDishToExpand;
     if (dishIdToScrollTo) {
@@ -545,45 +381,19 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        // Only clear justAddedDishId, as initialDishToExpand is a prop and shouldn't be mutated.
         if (justAddedDishId) {
           setJustAddedDishId(null);
         }
       }, 150);
-
-
-
-
       return () => clearTimeout(scrollTimer);
     }
   }, [justAddedDishId, initialDishToExpand]);
-
-
-
-
-
-
-
 
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
 
-
-
-
-
-
-
-
   const hasDishes = dishes.length > 0;
-
-
-
-
-
-
-
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
@@ -592,35 +402,14 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-
-
-
-
-
-
-
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
-
-
-
-
-
-
-
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
-
-
-
-
-
-
-
 
   const executeAddDish = async (name: string, rating: number) => {
     const newDish = await addDish(name, rating);
@@ -628,37 +417,14 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setShowAddForm(false);
       setDishInfoForConfirmation(null);
       setPotentialDuplicates([]);
-
-
-
-
-
-
-
-
       setSearchTerm('');
       setExpandedDishId(newDish.id);
       setJustAddedDishId(newDish.id);
     }
   };
 
-
-
-
-
-
-
-
   const handleAttemptAddDish = async (name: string, rating: number) => {
     setShowAddForm(false);
-
-
-
-
-
-
-
-
     const duplicates = findSimilarDishesForDuplicate(name);
     if (duplicates.length > 0) {
       setPotentialDuplicates(duplicates);
@@ -671,14 +437,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const handleSelectDuplicate = (dishId: string) => {
     setDishInfoForConfirmation(null);
     setPotentialDuplicates([]);
-
-
-
-
-
-
-
-
     const element = document.getElementById(`dish-card-${dishId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -686,15 +444,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-
-
-
   const handleShareDish = (dish: DishWithDetails) => {
     if (!restaurant) return;
-
-
-
-
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
       navigator.share({
@@ -703,7 +454,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         url: shareUrl,
       }).catch(console.error);
     } else {
-      // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(shareUrl).then(() => {
           alert('Share link copied to clipboard!');
       }).catch(err => {
@@ -712,13 +462,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       });
     }
   };
-
-
-
-
-
-
-
 
   const handleAddComment = async (dishId: string, text: string) => {
     try {
@@ -732,13 +475,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-
-
-
-
-
-
-
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
     try {
       await updateComment(commentId, newText);
@@ -750,13 +486,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
-
-
-
-
-
-
-
 
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
     try {
@@ -770,13 +499,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-
-
-
-
-
-
-
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try {
       await addPhoto(dishId, file, caption);
@@ -788,13 +510,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       }
     }
   };
-
-
-
-
-
-
-
 
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
     try {
@@ -808,13 +523,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-
-
-
-
-
-
-
   const handleToggleAllExpanded = () => {
     if (allExpanded) {
       setAllExpanded(false);
@@ -823,13 +531,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       setAllExpanded(true);
     }
   };
-
-
-
-
-
-
-
 
   const handleToggleDishExpanded = (dishId: string) => {
     if (allExpanded) {
@@ -840,23 +541,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-
-
-
-
-
-
-
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen />;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={onNavigateBack} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={onNavigateBack} />;
-
-
-
-
-
-
-
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>
@@ -940,14 +627,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           </div>
         </div>
       </header>
-
-
-
-
-
-
-
-
       <main style={{
         flex: 1,
         paddingBottom: STYLES.mainContentPadding,
@@ -958,7 +637,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         <div style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: SPACING[4],
           paddingLeft: SPACING.containerPadding,
           paddingRight: SPACING.containerPadding,
           paddingTop: SPACING[4],
@@ -969,26 +647,20 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               border: `1px solid #FECACA`,
               borderRadius: STYLES.borderRadiusMedium,
               padding: SPACING[4],
-              textAlign: 'center'
+              textAlign: 'center',
+              marginBottom: SPACING[4],
             }}>
               <p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p>
             </div>
           )}
-
-
-
-
-
-
-
-
           {showAdvancedSort && (
             <div style={{
               backgroundColor: COLORS.white,
               borderRadius: STYLES.borderRadiusLarge,
               padding: SPACING[4],
               boxShadow: STYLES.shadowMedium,
-              border: `1px solid ${COLORS.gray200}`
+              border: `1px solid ${COLORS.gray200}`,
+              marginBottom: SPACING[4],
             }}>
               <div style={{ display: 'flex', gap: SPACING[2], flexWrap: 'wrap' }}>
                 {[
@@ -1038,32 +710,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
               </div>
             </div>
           )}
-
-
-
-
-
-
-
-
           {!showAddForm && hasDishes && (
-            <ConsolidatedSearchAndAdd
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-              onReset={handleResetSearch}
-              onShowAddForm={handleShowAddForm}
-            />
+            <div style={{ marginLeft: SPACING[1], marginRight: SPACING[1], marginBottom: SPACING[5] }}>
+              <ConsolidatedSearchAndAdd
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                onReset={handleResetSearch}
+                onShowAddForm={handleShowAddForm}
+              />
+            </div>
           )}
-
-
-
-
-
-
-
-
           {!showAddForm ? (
-            <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
               {searchTerm.length >= 2 && (
                 searchResults.length > 0 ? (
                   <>
@@ -1071,8 +729,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                       ...FONTS.body,
                       fontSize: TYPOGRAPHY.base.fontSize,
                       color: COLORS.textSecondary,
-                      margin: `-${SPACING[3]} 0 -${SPACING[2]} 0`,
-                      paddingLeft: SPACING[4]
+                      paddingLeft: SPACING[4],
+                      marginTop: `-${SPACING[2]}`,
+                      marginBottom: `-${SPACING[2]}`,
                     }}>
                       Looking for this?
                     </p>
@@ -1116,14 +775,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   </div>
                 )
               )}
-
-
-
-
-
-
-
-
               {searchTerm.length === 0 && (
                 hasDishes ? (
                   <>
@@ -1195,24 +846,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                   </div>
                 )
               )}
-            </>
+            </div>
           ) : (
-            <EnhancedAddDishForm
-              initialDishName={searchTerm}
-              onSubmit={handleAttemptAddDish}
-              onCancel={() => setShowAddForm(false)}
-            />
+            <div style={{ marginTop: SPACING[4] }}>
+              <EnhancedAddDishForm
+                initialDishName={searchTerm}
+                onSubmit={handleAttemptAddDish}
+                onCancel={() => setShowAddForm(false)}
+              />
+            </div>
           )}
         </div>
       </main>
-
-
-
-
-
-
-
-
       {dishInfoForConfirmation && (
         <DuplicateDishWarningModal
           isOpen={!!dishInfoForConfirmation}
@@ -1230,14 +875,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           onSelectDuplicate={handleSelectDuplicate}
         />
       )}
-
-
-
-
-
-
-
-
       <BottomNavigation
         activeScreenValue={currentAppScreen}
         onNav={onNavigateToScreen}
@@ -1245,12 +882,5 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     </div>
   );
 };
-
-
-
-
-
-
-
 
 export default MenuScreen;

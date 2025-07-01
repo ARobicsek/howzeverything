@@ -1,15 +1,11 @@
 // src/constants.ts    
 import React from 'react'; // Import React to get React.CSSProperties
 
-
-
-
 export const COLORS = {    
   // Primary Colors    
   primary: '#2563EB', // Main accent, buttons, links    
   primaryHover: '#1D4ED8', // Hover states    
   primaryLight: '#DBEAFE', // Light backgrounds, highlights    
-     
   // Neutral Grays    
   gray50: '#F9FAFB', // Page backgrounds    
   gray100: '#F3F4F6', // Card backgrounds    
@@ -20,7 +16,6 @@ export const COLORS = {
   gray600: '#586780', // Custom secondary text / stats    
   gray700: '#374151', // Primary text    
   gray900: '#111827', // Headers, emphasis    
-     
   // Blue variants (needed for new components)
   blue50: '#EFF6FF',
   blue100: '#DBEAFE',
@@ -28,49 +23,39 @@ export const COLORS = {
   blue600: '#2563EB',
   blue700: '#1D4ED8',
   blue800: '#1E40AF',
- 
   // Green variants (needed for success states)
   green100: '#DCFCE7',
   green700: '#15803D',
- 
   // Red variants (needed for error states)
   red50: '#FEF2F2',
   red200: '#FECACA',
   red700: '#B91C1C',
-     
   // Base Colors    
   white: '#FFFFFF', // Pure white for cards, modals    
   black: '#000000', // Text, borders    
-     
   // Shadow & Overlay    
   shadowLight: 'rgba(0, 0, 0, 0.05)', // Subtle shadows    
   shadowMedium: 'rgba(0, 0, 0, 0.1)', // Card shadows    
   overlay: 'rgba(0, 0, 0, 0.6)', // Modal overlays    
-     
   // Rating Colors (No Green)    
   ratingGold: '#F59E0B', // Star fills, rating highlights    
   ratingGoldLight: '#FEF3C7', // Rating backgrounds    
   ratingEmpty: '#E5E7EB', // Empty stars    
-     
   // Action Colors    
   danger: '#EF4444', // Delete actions    
   success: '#10B981', // Success states    
   warning: '#F59E0B', // Warning states    
-     
   // Navigation    
   navBar: '#FFFFFF', // Clean white navigation    
   navBarBorder: '#E5E7EB', // Navigation border    
-     
   // Text Colors (simplified)    
   text: '#374151', // Primary text (gray-700)    
   textSecondary: '#6B7280', // Secondary text (gray-500)    
   textWhite: '#FFFFFF', // White text    
-     
   // Background Colors    
   background: '#F9FAFB', // Main page background (gray-50)    
   cardBg: '#FFFFFF', // Card backgrounds    
   inputBg: '#FFFFFF', // Input backgrounds    
-     
   // Legacy mappings for compatibility    
   star: '#2563EB', // Personal rating (blue)    
   starEmpty: '#E5E7EB', // Empty stars    
@@ -79,16 +64,12 @@ export const COLORS = {
   secondary: '#6B7280', // Secondary color    
   iconPrimary: '#374151', // Icon color    
   iconBackground: '#FFFFFF', // Icon button backgrounds    
-   
   // NEW: Aliases for common color usages in AdminScreen  
   error: '#EF4444', // Maps to danger  
   surface: '#FFFFFF', // Maps to white/cardBg  
   border: '#E5E7EB', // Maps to gray200  
   textPrimary: '#374151', // Maps to text  
 };
-
-
-
 
 export const FONTS = {    
   primary: {    
@@ -111,9 +92,6 @@ export const FONTS = {
   }    
 };
 
-
-
-
 export const TYPOGRAPHY = {    
   // Font Sizes & Line Heights    
   xs: { fontSize: '0.75rem', lineHeight: '1rem' }, // 12px    
@@ -123,13 +101,11 @@ export const TYPOGRAPHY = {
   xl: { fontSize: '1.25rem', lineHeight: '1.75rem' }, // 20px    
   '2xl': { fontSize: '1.5rem', lineHeight: '2rem' }, // 24px    
   '3xl': { fontSize: '1.875rem', lineHeight: '2.25rem' }, // 30px    
-     
   // Font Weights    
   normal: '400',    
   medium: '500',    
   semibold: '600',    
   bold: '700',    
-   
   // NEW: Composite typography styles for common elements  
   h1: { ...FONTS.heading, fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties, // 30px - Maps to TYPOGRAPHY['3xl']  
   h2: { ...FONTS.heading, fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties, // 24px - Maps to TYPOGRAPHY['2xl']  
@@ -138,9 +114,6 @@ export const TYPOGRAPHY = {
   caption: { ...FONTS.body, fontSize: '0.875rem', lineHeight: '1.25rem' } as React.CSSProperties, // 14px - Maps to TYPOGRAPHY.sm  
   button: { ...FONTS.primary, fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties, // Maps to TYPOGRAPHY.base, semibold  
 };
-
-
-
 
 export const SPACING = {    
   // Consistent spacing scale    
@@ -153,65 +126,59 @@ export const SPACING = {
   8: '2rem', // 32px    
   10: '2.5rem', // 40px    
   12: '3rem', // 48px    
-     
   // Layout spacing    
   containerPadding: '1rem', // 16px    
   sectionGap: '1.5rem', // 24px    
   cardPadding: '1.25rem', // 20px    
 };
 
-
-
-
 // NEW: Image compression settings  
 export const IMAGE_COMPRESSION = {  
   // File size limits  
   MAX_FILE_SIZE_MB: 2.5, // Target max file size after compression  
   MAX_ORIGINAL_SIZE_MB: 50, // Reject files larger than this before compression  
-   
   // Image dimensions  
   MAX_WIDTH: 1920, // Maximum width in pixels  
   MAX_HEIGHT: 1920, // Maximum height in pixels  
-   
   // Quality settings  
   INITIAL_QUALITY: 0.9, // Start with 90% quality  
   MIN_QUALITY: 0.3, // Don't go below 30% quality  
   QUALITY_STEP: 0.1, // Reduce quality by 10% each iteration  
-   
   // Formats  
   OUTPUT_FORMAT: 'image/jpeg', // Always convert to JPEG for consistency  
   MIME_TYPE: 'image/jpeg',  
-   
   // Performance  
   COMPRESSION_TIMEOUT: 15000, // 15 seconds max for compression  
 };
 
-
-
+// --- Values defined before STYLES to prevent reference errors ---
+const _borderRadiusSmall = '6px';
+const _borderRadiusMedium = '8px';
+const _borderRadiusLarge = '12px';
+const _borderRadiusFull = '9999px';
+const _shadowSmall = '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)';
+const _shadowMedium = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+const _shadowLarge = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
 
 export const STYLES = {    
   // Border Radius    
-  borderRadiusSmall: '6px',    
-  borderRadiusMedium: '8px',    
-  borderRadiusLarge: '12px',    
-  borderRadiusFull: '9999px',    
-     
+  borderRadiusSmall: _borderRadiusSmall,    
+  borderRadiusMedium: _borderRadiusMedium,    
+  borderRadiusLarge: _borderRadiusLarge,    
+  borderRadiusFull: _borderRadiusFull,    
   // Shadows    
-  shadowSmall: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',    
-  shadowMedium: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',    
-  shadowLarge: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',    
-     
+  shadowSmall: _shadowSmall,    
+  shadowMedium: _shadowMedium,    
+  shadowLarge: _shadowLarge,    
   // Z-index values    
   zDefault: 1,    
   zDropdown: 100,    
   zHeader: 10,    
   zModal: 2147483647, // Maximum z-index for guaranteed visibility    
-     
   // Animation    
   animationFast: '150ms',    
   animationNormal: '200ms',    
   animationSlow: '300ms',    
-     
   // Component Styles    
   primaryButton: {    
     backgroundColor: COLORS.primary,    
@@ -232,7 +199,6 @@ export const STYLES = {
     justifyContent: 'center',    
     gap: '8px',    
   } as React.CSSProperties, // Added casting    
-     
   secondaryButton: {    
     backgroundColor: COLORS.white,    
     color: COLORS.primary,    
@@ -250,7 +216,6 @@ export const STYLES = {
     alignItems: 'center',    
     justifyContent: 'center',    
   } as React.CSSProperties, // Added casting    
-     
   deleteButton: {    
     width: '40px',    
     height: '40px',    
@@ -264,7 +229,6 @@ export const STYLES = {
     justifyContent: 'center',    
     transition: 'all 0.2s ease',    
   } as React.CSSProperties, // Added casting    
-     
   card: {    
     backgroundColor: COLORS.white,    
     borderRadius: '12px',    
@@ -272,12 +236,10 @@ export const STYLES = {
     padding: SPACING.cardPadding,    
     transition: 'all 0.3s ease',    
   } as React.CSSProperties, // Added casting    
-     
   cardHover: {    
     borderColor: COLORS.primary,    
     boxShadow: '0 2px 8px ' + COLORS.shadowLight,    
   } as React.CSSProperties, // Added casting    
-     
   modal: {    
     background: COLORS.white,    
     borderRadius: '12px',    
@@ -287,7 +249,6 @@ export const STYLES = {
     maxHeight: '90vh',    
     overflow: 'auto',    
   } as React.CSSProperties, // Added casting    
-     
   modalOverlay: {    
     position: 'fixed' as const,    
     top: 0,    
@@ -301,35 +262,34 @@ export const STYLES = {
     justifyContent: 'center',    
     padding: SPACING[4],    
   } as React.CSSProperties, // Added casting    
-     
   input: {    
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     // MODIFIED: Use longhand properties to avoid conflicts with conditional overrides
-    borderWidth: '1px',
+    borderWidth: '2px',
     borderStyle: 'solid',
     borderColor: COLORS.gray200,
-    borderRadius: '8px',    
-    padding: '10px 16px',    
+    borderRadius: _borderRadiusMedium,    
+    padding: '12px 16px',    
     fontSize: TYPOGRAPHY.base.fontSize,    
     fontFamily: FONTS.primary.fontFamily,    
-    color: COLORS.gray700,    
+    color: COLORS.text,    
     width: '100%',    
     outline: 'none',    
     transition: 'all 0.2s ease',    
-    boxSizing: 'border-box',    
+    boxSizing: 'border-box',
+    WebkitAppearance: 'none',
   } as React.CSSProperties,
-     
   inputFocus: {    
     borderColor: COLORS.primary,    
     boxShadow: '0 0 0 3px ' + COLORS.primaryLight,    
   } as React.CSSProperties, // Added casting    
-
   // NEW: Style for the black border on active/focused inputs
   inputFocusBlack: {
     borderColor: COLORS.black,
-    borderWidth: '2px',
+    // Note: Padding is adjusted to '11px 15px' in components when this is active
+    // to compensate for the thicker border and prevent layout shift.
+    // However, the component logic has been simplified to just override borderColor.
   } as React.CSSProperties,
-     
   // Legacy styles for compatibility    
   mainContentPadding: '80px',    
   headerHeight: '60px',    
@@ -403,9 +363,6 @@ export const STYLES = {
   } as React.CSSProperties, // Added casting    
 };
 
-
-
-
 // NEW: Export BORDERS and SHADOWS, mapping to STYLES for consistency  
 export const BORDERS = {  
   radius: {  
@@ -416,17 +373,11 @@ export const BORDERS = {
   },  
 };
 
-
-
-
 export const SHADOWS = {  
   small: STYLES.shadowSmall,  
   medium: STYLES.shadowMedium,  
   large: STYLES.shadowLarge,  
 };
-
-
-
 
 // Legacy SIZES for compatibility    
 export const SIZES = {    
@@ -439,9 +390,6 @@ export const SIZES = {
   '3xl': '3rem', // 48px    
   '4xl': '4rem', // 64px    
 };
-
-
-
 
 // Breakpoints for responsive design    
 export const BREAKPOINTS = {    
