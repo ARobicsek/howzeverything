@@ -8,10 +8,12 @@ import { COLORS, FONTS, SPACING, STYLES } from './constants'; // Import SIZES an
 import type { DishRating, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 
+
 interface RatingsScreenProps {
   onNavigateToScreen: (screen: NavigableScreenType) => void;
   currentAppScreen: AppScreenType;
 }
+
 
 interface UserRatingWithDish extends DishRating {
   dish: DishWithDetails;
@@ -21,6 +23,7 @@ interface UserRatingWithDish extends DishRating {
   };
 }
 
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -28,6 +31,7 @@ interface RestaurantGroup {
   };
   dishes: DishWithDetails[];
 }
+
 
 const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {
   const [userRatings, setUserRatings] = useState<UserRatingWithDish[]>([]);
@@ -41,6 +45,17 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false); // State for input focus
+  const [expandedRestaurantIds, setExpandedRestaurantIds] = useState<string[]>([]);
+
+
+  const toggleRestaurantExpansion = (restaurantId: string) => {
+    setExpandedRestaurantIds(prev =>
+      prev.includes(restaurantId)
+        ? prev.filter(id => id !== restaurantId)
+        : [...prev, restaurantId]
+    );
+  };
+
 
   // Get current user
   useEffect(() => {
@@ -50,6 +65,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     };
     getCurrentUser();
   }, []);
+
 
   useEffect(() => {
     const fetchUserRatings = async () => {
@@ -220,6 +236,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     fetchUserRatings();
   }, []);
 
+
   // Search functionality
   const performSearch = useCallback((term: string) => {
     if (!term.trim()) {
@@ -250,15 +267,18 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     setFilteredGroups(filtered);
   }, [restaurantGroups]);
 
+
   useEffect(() => {
     performSearch(searchTerm);
   }, [searchTerm, performSearch]);
+
 
   const handleResetSearch = useCallback(() => {
     setSearchTerm('');
     setShowSearch(false); // Hide the search bar on reset
     setFilteredGroups(restaurantGroups); // Reset to all groups
   }, [restaurantGroups]);
+
 
   // Dish management functions for DishCard integration
   const handleDeleteDish = async (dishId: string) => {
@@ -284,6 +304,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setError(`Failed to remove rating: ${err.message}`);
     }
   };
+
 
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     try {
@@ -340,6 +361,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleUpdateDishName = async (dishId: string, newName: string): Promise<boolean> => {
     if (!newName.trim()) return false;
     try {
@@ -370,6 +392,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       return false;
     }
   };
+
 
   const handleAddComment = async (dishId: string, commentText: string) => {
     if (!commentText.trim()) return;
@@ -427,6 +450,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     if (!newText.trim()) return;
     setIsSubmittingComment(true);
@@ -465,6 +489,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     setIsSubmittingComment(true);
     try {
@@ -494,6 +519,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setIsSubmittingComment(false);
     }
   };
+
 
   // Photo management functions
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
@@ -569,6 +595,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
     try {
       // Get the photo details first
@@ -610,6 +637,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   const handleShareDish = (dish: DishWithDetails, restaurantName: string) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
@@ -628,10 +656,13 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     }
   };
 
+
   if (isLoading) return <LoadingScreen />;
+
 
   const totalRatedDishes = userRatings?.length || 0;
   const hasSearchTerm = searchTerm.trim().length > 0;
+
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: COLORS.background }}>
@@ -774,62 +805,91 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                 </p>
               </div>
               <div className="space-y-6">
-                {filteredGroups.map((group, groupIndex) => (
-                  <div key={group.restaurant.id}>
-                    <div className="mb-4">
-                      <h2 style={{
-                        ...FONTS.elegant,
-                        fontSize: '1.6rem',
-                        fontWeight: '600',
-                        color: COLORS.text,
-                        margin: '0 0 4px 0'
-                      }}>
-                        {group.restaurant.name}
-                      </h2>
-                      <p style={{
-                        ...FONTS.elegant,
-                        fontSize: '0.8rem',
-                        color: COLORS.text,
-                        opacity: 0.6,
-                        margin: 0
-                      }}>
-                        {group.dishes?.length || 0} dish{(group.dishes?.length || 0) !== 1 ? 'es' : ''} rated
-                      </p>
-                    </div>
-                    {/* MODIFIED: Replaced space-y-4 with flexbox and gap */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], marginBottom: '24px' }}>
-                      {group.dishes.map((dish) => (
-                        <div key={dish.id}>
-                          <DishCard
-                            dish={dish}
-                            currentUserId={currentUserId}
-                            onDelete={handleDeleteDish}
-                            onUpdateRating={handleUpdateRating}
-                            onUpdateDishName={handleUpdateDishName}
-                            onAddComment={handleAddComment}
-                            onUpdateComment={handleUpdateComment}
-                            onDeleteComment={handleDeleteComment}
-                            onAddPhoto={handleAddPhoto}
-                            onDeletePhoto={handleDeletePhoto}
-                            onShare={(dishToShare) => handleShareDish(dishToShare, group.restaurant.name)}
-                            isSubmittingComment={isSubmittingComment}
-                            isExpanded={expandedDishId === dish.id}
-                            onToggleExpand={() => setExpandedDishId(expandedDishId === dish.id ? null : dish.id)}
-                          />
+                {filteredGroups.map((group, groupIndex) => {
+                  const isExpanded = hasSearchTerm || expandedRestaurantIds.includes(group.restaurant.id);
+                  return (
+                    <div key={group.restaurant.id}>
+                      <div
+                        onClick={() => !hasSearchTerm && toggleRestaurantExpansion(group.restaurant.id)}
+                        className="mb-4"
+                        style={{
+                          cursor: hasSearchTerm ? 'default' : 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <div>
+                          <h2 style={{
+                            ...FONTS.elegant,
+                            fontSize: '1.6rem',
+                            fontWeight: '600',
+                            color: COLORS.text,
+                            margin: '0 0 4px 0'
+                          }}>
+                            {group.restaurant.name}
+                          </h2>
+                          <p style={{
+                            ...FONTS.elegant,
+                            fontSize: '0.8rem',
+                            color: COLORS.text,
+                            opacity: 0.6,
+                            margin: 0
+                          }}>
+                            {group.dishes?.length || 0} dish{(group.dishes?.length || 0) !== 1 ? 'es' : ''} rated
+                          </p>
                         </div>
-                      ))}
+                        {!hasSearchTerm && (
+                           <svg
+                              width="28" height="28" viewBox="0 0 24 24" fill="currentColor"
+                              style={{
+                                color: COLORS.text, opacity: 0.7,
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s ease-out',
+                              }}
+                            >
+                              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                            </svg>
+                        )}
+                      </div>
+                      
+                      {isExpanded && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], marginBottom: '24px' }}>
+                          {group.dishes.map((dish) => (
+                            <div key={dish.id}>
+                              <DishCard
+                                dish={dish}
+                                currentUserId={currentUserId}
+                                onDelete={handleDeleteDish}
+                                onUpdateRating={handleUpdateRating}
+                                onUpdateDishName={handleUpdateDishName}
+                                onAddComment={handleAddComment}
+                                onUpdateComment={handleUpdateComment}
+                                onDeleteComment={handleDeleteComment}
+                                onAddPhoto={handleAddPhoto}
+                                onDeletePhoto={handleDeletePhoto}
+                                onShare={(dishToShare) => handleShareDish(dishToShare, group.restaurant.name)}
+                                isSubmittingComment={isSubmittingComment}
+                                isExpanded={expandedDishId === dish.id}
+                                onToggleExpand={() => setExpandedDishId(expandedDishId === dish.id ? null : dish.id)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Thicker white line separator between restaurants (except for last group) */}
+                      {groupIndex < filteredGroups.length - 1 && (
+                        <hr style={{
+                          border: 'none',
+                          height: '2px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.4)',
+                          margin: '0 0 24px 0'
+                        }} />
+                      )}
                     </div>
-                    {/* Thicker white line separator between restaurants (except for last group) */}
-                    {groupIndex < filteredGroups.length - 1 && (
-                      <hr style={{
-                        border: 'none',
-                        height: '2px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.4)',
-                        margin: '0 0 24px 0'
-                      }} />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (
@@ -875,5 +935,6 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     </div>
   );
 };
+
 
 export default RatingsScreen;
