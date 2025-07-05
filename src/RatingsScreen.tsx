@@ -5,14 +5,26 @@ import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType, NavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
 import { COLORS, FONTS, SPACING, STYLES } from './constants'; // Import SIZES and SPACING
-import type { DishRating, DishWithDetails } from './hooks/useDishes';
+import type { DishPhoto, DishRating, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
+
+
+
+
+
+
 
 
 interface RatingsScreenProps {
   onNavigateToScreen: (screen: NavigableScreenType) => void;
   currentAppScreen: AppScreenType;
 }
+
+
+
+
+
+
 
 
 interface UserRatingWithDish extends DishRating {
@@ -24,6 +36,12 @@ interface UserRatingWithDish extends DishRating {
 }
 
 
+
+
+
+
+
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -31,6 +49,12 @@ interface RestaurantGroup {
   };
   dishes: DishWithDetails[];
 }
+
+
+
+
+
+
 
 
 const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, currentAppScreen }) => {
@@ -48,6 +72,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   const [expandedRestaurantIds, setExpandedRestaurantIds] = useState<string[]>([]);
 
 
+
+
+
+
+
+
   const toggleRestaurantExpansion = (restaurantId: string) => {
     setExpandedRestaurantIds(prev =>
       prev.includes(restaurantId)
@@ -55,6 +85,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         : [...prev, restaurantId]
     );
   };
+
+
+
+
+
+
 
 
   // Get current user
@@ -65,6 +101,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     };
     getCurrentUser();
   }, []);
+
+
+
+
+
+
 
 
   useEffect(() => {
@@ -166,30 +208,36 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
             commenter_email: comment.users?.email
           }));
           // Process photos to include user information and generate URLs
-          const photosWithUrls = (dish.dish_photos || []).map((photo: any) => {
-            const { data } = supabase.storage
-              .from('dish-photos')
-              .getPublicUrl(photo.storage_path);
-            return {
-              id: photo.id,
-              dish_id: photo.dish_id,
-              user_id: photo.user_id,
-              url: data?.publicUrl,
-              storage_path: photo.storage_path,
-              caption: photo.caption,
-              width: photo.width,
-              height: photo.height,
-              created_at: photo.created_at,
-              updated_at: photo.updated_at,
-              photographer_name: photo.users?.full_name || 'Anonymous'
-            };
-          });
+          const photosWithUrls: DishPhoto[] = (dish.dish_photos || [])
+            .map((photo: any) => {
+              if (!photo.id || !photo.user_id || !photo.created_at) return null;
+              
+              const { data: urlData } = supabase.storage
+                .from('dish-photos')
+                .getPublicUrl(photo.storage_path);
+                
+              return {
+                id: photo.id,
+                dish_id: photo.dish_id ?? dish.id,
+                user_id: photo.user_id,
+                url: urlData?.publicUrl,
+                storage_path: photo.storage_path,
+                caption: photo.caption,
+                width: photo.width,
+                height: photo.height,
+                created_at: photo.created_at,
+                updated_at: photo.updated_at ?? photo.created_at,
+                photographer_name: photo.users?.full_name || 'Anonymous',
+              } as DishPhoto;
+            })
+            .filter((p: DishPhoto | null): p is DishPhoto => p !== null);
+
           const dishWithDetails: DishWithDetails = {
             ...dish,
             dish_comments: commentsWithUserInfo,
             dish_ratings: dish.dish_ratings || [],
             dish_photos: photosWithUrls,
-            dateAdded: dish.created_at
+            dateAdded: dish.created_at ?? new Date().toISOString(),
           };
           return {
             ...rating,
@@ -237,6 +285,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   }, []);
 
 
+
+
+
+
+
+
   // Search functionality
   const performSearch = useCallback((term: string) => {
     if (!term.trim()) {
@@ -268,9 +322,21 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   }, [restaurantGroups]);
 
 
+
+
+
+
+
+
   useEffect(() => {
     performSearch(searchTerm);
   }, [searchTerm, performSearch]);
+
+
+
+
+
+
 
 
   const handleResetSearch = useCallback(() => {
@@ -279,9 +345,16 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   }, [restaurantGroups]);
 
 
+
+
+
+
+
+
   // Dish management functions for DishCard integration
   const handleDeleteDish = async (dishId: string) => {
     // In ratings view, we don't actually delete the dish, just remove the user's rating
+    if (!currentUserId) return;
     try {
       const { error } = await supabase
         .from('dish_ratings')
@@ -305,7 +378,14 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   const handleUpdateRating = async (dishId: string, newRating: number) => {
+    if (!currentUserId) return;
     try {
       // Handle clearing rating (rating = 0)
       if (newRating === 0) {
@@ -361,6 +441,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   const handleUpdateDishName = async (dishId: string, newName: string): Promise<boolean> => {
     if (!newName.trim()) return false;
     try {
@@ -393,8 +479,14 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   const handleAddComment = async (dishId: string, commentText: string) => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || !currentUserId) return;
     setIsSubmittingComment(true);
     try {
       const { data: newComment, error } = await supabase
@@ -450,6 +542,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     if (!newText.trim()) return;
     setIsSubmittingComment(true);
@@ -489,6 +587,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     setIsSubmittingComment(true);
     try {
@@ -520,8 +624,15 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   // Photo management functions
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
+    if (!currentUserId) return;
     try {
       const timestamp = Date.now();
       const fileExt = file.name.split('.').pop();
@@ -571,10 +682,18 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
         .single();
       if (dbError) throw dbError;
       if (newPhoto) {
-        const photoWithUrl = {
-          ...newPhoto,
+        const photoWithUrl: DishPhoto = {
+          id: newPhoto.id,
+          dish_id: newPhoto.dish_id ?? dishId,
+          user_id: newPhoto.user_id ?? currentUserId,
+          storage_path: newPhoto.storage_path,
+          caption: newPhoto.caption,
+          width: newPhoto.width,
+          height: newPhoto.height,
+          created_at: newPhoto.created_at ?? new Date().toISOString(),
+          updated_at: newPhoto.updated_at ?? new Date().toISOString(),
+          photographer_name: (newPhoto.users as any)?.full_name || 'Anonymous',
           url: publicUrl,
-          photographer_name: (newPhoto.users as any)?.full_name || 'Anonymous'
         };
         const updateGroups = (groups: RestaurantGroup[]) =>
           groups.map(group => ({
@@ -593,6 +712,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
       setError(`Failed to add photo: ${err.message}`);
     }
   };
+
+
+
+
+
+
 
 
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
@@ -637,6 +762,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   const handleShareDish = (dish: DishWithDetails, restaurantName: string) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
@@ -656,11 +787,29 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
   };
 
 
+
+
+
+
+
+
   if (isLoading) return <LoadingScreen />;
+
+
+
+
+
+
 
 
   const totalRatedDishes = userRatings?.length || 0;
   const hasSearchTerm = searchTerm.trim().length > 0;
+
+
+
+
+
+
 
 
   return (
@@ -851,7 +1000,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                             </svg>
                         )}
                       </div>
-                      
+                     
                       {isExpanded && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], marginBottom: '24px' }}>
                           {group.dishes.map((dish) => (
@@ -876,7 +1025,7 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
                           ))}
                         </div>
                       )}
-                      
+                     
                       {/* Thicker white line separator between restaurants (except for last group) */}
                       {groupIndex < filteredGroups.length - 1 && (
                         <hr style={{
@@ -934,6 +1083,12 @@ const RatingsScreen: React.FC<RatingsScreenProps> = ({ onNavigateToScreen, curre
     </div>
   );
 };
+
+
+
+
+
+
 
 
 export default RatingsScreen;

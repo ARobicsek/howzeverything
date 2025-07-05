@@ -1,3 +1,4 @@
+// tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -5,6 +6,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "esModuleInterop": true, /* <--- ADD THIS LINE FOR BETTER MODULE COMPATIBILITY */
 
     /* Bundler mode */
     "moduleResolution": "bundler",

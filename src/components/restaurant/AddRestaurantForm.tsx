@@ -1,12 +1,14 @@
 // src/components/restaurant/AddRestaurantForm.tsx
-import React, { useState } from 'react';
-import { COLORS, FONTS, STYLES } from '../../constants';
+import React, { useCallback, useState } from 'react';
+import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
+import type { AddressFormData } from '../../types/address';
+import AddressInput from '../shared/AddressInput';
 
 
 interface AddRestaurantFormProps {
   show: boolean;
   onToggleShow: () => void;
-  onSubmit: (name: string) => Promise<void>;
+  onSubmit: (data: { name: string } & Partial<AddressFormData>) => Promise<void>;
 }
 
 
@@ -16,19 +18,48 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
   onSubmit
 }) => {
   const [restaurantName, setRestaurantName] = useState('');
+  const [addressData, setAddressData] = useState<AddressFormData>({
+    fullAddress: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    country: 'USA',
+  });
+
+
+  const handleAddressChange = useCallback((data: AddressFormData) => {
+    setAddressData(data);
+  }, []);
+
+
+  const clearForm = () => {
+    setRestaurantName('');
+    setAddressData({
+      fullAddress: '',
+      address: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: 'USA',
+    });
+  }
 
 
   const handleSubmit = async () => {
     if (restaurantName.trim()) {
-      await onSubmit(restaurantName);
-      setRestaurantName('');
+      await onSubmit({
+        name: restaurantName,
+        ...addressData
+      });
+      clearForm();
       // Assuming onToggleShow is called by the parent if form needs to hide after submit
     }
   };
 
 
   const handleCancel = () => {
-    setRestaurantName('');
+    clearForm();
     onToggleShow();
   };
 
@@ -40,16 +71,17 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
           <button
             onClick={onToggleShow}
             className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full"
-            style={STYLES.addButton} // Use consistent blue add button style
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover} // Changed COLORS.addButtonHover
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary} // Changed COLORS.addButtonBg
+            style={STYLES.addButton}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary}
           >
             + Add New Restaurant
           </button>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex justify-center">
+          <div>
+            <label style={{...FONTS.elegant, color: COLORS.text, marginBottom: SPACING[2], display: 'block'}}>Restaurant Name</label>
             <input
               type="text"
               value={restaurantName}
@@ -60,7 +92,7 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
                 background: 'white',
                 fontSize: '1rem',
                 ...FONTS.elegant,
-                color: COLORS.text // Changed COLORS.textDark
+                color: COLORS.text
               }}
               autoFocus
               onKeyPress={(e) => {
@@ -68,20 +100,23 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
               }}
             />
           </div>
+          <div>
+            <AddressInput initialData={addressData} onAddressChange={handleAddressChange} />
+          </div>
           <div className="flex justify-center gap-3">
             <button
               onClick={handleSubmit}
               disabled={!restaurantName.trim()}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
-                ...STYLES.addButton, // Standardize to blue button
-                backgroundColor: !restaurantName.trim() ? COLORS.gray300 : COLORS.primary // Changed COLORS.disabled and COLORS.addButtonBg
+                ...STYLES.addButton,
+                backgroundColor: !restaurantName.trim() ? COLORS.gray300 : COLORS.primary
               }}
               onMouseEnter={(e) => {
-                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover
+                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primaryHover;
               }}
               onMouseLeave={(e) => {
-                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg
+                if (restaurantName.trim()) e.currentTarget.style.backgroundColor = COLORS.primary;
               }}
             >
               Save Restaurant
@@ -89,9 +124,7 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
             <button
               onClick={handleCancel}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
-              style={STYLES.secondaryButton}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.gray700} // Changed COLORS.secondaryHover to COLORS.gray700
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.white} // Revert to white (STYLES.secondaryButton default)
+              style={{ ...STYLES.secondaryButton, backgroundColor: COLORS.white, color: COLORS.text }}
             >
               Cancel
             </button>

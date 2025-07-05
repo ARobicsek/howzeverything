@@ -1,23 +1,23 @@
 // src/types/restaurant.ts
-
 // Centralized interface for the Restaurant model
 export interface Restaurant {
     id: string;
     name: string;
-    address: string;
+    address: string | null; // Parsed street address e.g. "123 Main St"
+    full_address: string | null; // The original, unparsed address from user input
     city: string | null;
     state: string | null;
     zip_code: string | null;
     country: string | null;
-    manually_added: boolean;
+    manually_added: boolean | null;
     created_at: string;
     latitude: number | null; // Allow null as per database schema
     longitude: number | null; // Allow null as per database schema
-    
+   
     // Fields from the favorite link (optional as they come from user_favorite_restaurants join)
     dateAdded?: string; // When user favorited the restaurant
     date_favorited?: string; // Explicit favorite date
-    
+   
     // Optional fields for imported restaurants (from Geoapify)
     geoapify_place_id?: string;
     phone?: string;
