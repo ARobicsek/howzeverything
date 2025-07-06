@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
+    "addressit": "^1.8.2",
     "fuse.js": "^7.1.0",
     "parse-address": "^1.1.2",
     "react": "^19.1.0",

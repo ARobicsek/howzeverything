@@ -4,6 +4,7 @@ import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import type { AddressFormData } from '../../types/address';
 import { parseAddress } from '../../utils/addressParser';
 
+
 // --- Step 1: Define InputField OUTSIDE the main component ---
 // This ensures it has a stable identity across renders and won't cause focus loss.
 const InputField = ({
@@ -38,10 +39,13 @@ const InputField = ({
 );
 
 
+
+
 interface AddressInputProps {
   initialData: Partial<AddressFormData>;
   onAddressChange: (data: AddressFormData) => void;
 }
+
 
 const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChange }) => {
   const [formData, setFormData] = useState<AddressFormData>({
@@ -55,51 +59,56 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
  
   const [isParsing, setIsParsing] = useState(false);
   const [parseMessage, setParseMessage] = useState<{ text: string, type: 'error' | 'success' } | null>(null);
-  
+ 
   const [showParsedFields, setShowParsedFields] = useState(
     !!(initialData.address || initialData.city || initialData.state)
   );
-  
+ 
   // Memoize the parent callback so it's stable.
   const stableOnAddressChange = useCallback(onAddressChange, []);
+
 
   const syncWithParent = () => {
     stableOnAddressChange(formData);
   };
 
+
   const handleParseAndSync = () => {
     if (formData.fullAddress.trim() === '') {
       setParseMessage(null);
       setShowParsedFields(false);
-      const emptyData = { ...formData, address: '', city: '', state: '', zip_code: '' };
+      const emptyData = { ...formData, address: '', city: '', state: '', zip_code: '', country: 'USA' };
       setFormData(emptyData);
       stableOnAddressChange(emptyData); // Sync the now-empty state with the parent
       return;
     }
 
+
     setIsParsing(true);
     setParseMessage(null);
     const result = parseAddress(formData.fullAddress);
-    
+   
     const finalData = { ...formData, ...(result.data || {}) };
-    
+   
     if (result.success) {
       setParseMessage(null);
     } else {
       setParseMessage({ text: result.error || 'Could not parse address.', type: 'error' });
     }
-    
+   
     setFormData(finalData);
     setShowParsedFields(true);
     stableOnAddressChange(finalData); // Sync the final, parsed data with the parent.
     setIsParsing(false);
   };
 
+
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setParseMessage(null);
   };
+
 
   const handleFullAddressChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = e.target;
@@ -109,6 +118,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
         setParseMessage(null);
     }
   };
+
 
   return (
     <div>
@@ -136,39 +146,47 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
             We've parsed the address below. You can edit any field if needed.
           </p>
           <div style={{ marginBottom: SPACING[3] }}>
-            <InputField 
-              label="Street Address" 
-              name="address" 
-              value={formData.address} 
+            <InputField
+              label="Street Address"
+              name="address"
+              value={formData.address}
               placeholder="e.g., 123 Main St"
               onChange={handleFieldChange}
               onBlur={syncWithParent}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3] }}>
-            <InputField 
-              label="City" 
-              name="city" 
-              value={formData.city} 
+            <InputField
+              label="City"
+              name="city"
+              value={formData.city}
               placeholder="e.g., Seattle"
               onChange={handleFieldChange}
               onBlur={syncWithParent}
             />
-            <InputField 
-              label="State" 
-              name="state" 
-              value={formData.state} 
+            <InputField
+              label="State"
+              name="state"
+              value={formData.state}
               placeholder="e.g., WA"
               onChange={handleFieldChange}
               onBlur={syncWithParent}
             />
           </div>
-          <div style={{marginTop: SPACING[3]}}>
-            <InputField 
-              label="ZIP Code" 
-              name="zip_code" 
-              value={formData.zip_code} 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3], marginTop: SPACING[3] }}>
+            <InputField
+              label="ZIP Code"
+              name="zip_code"
+              value={formData.zip_code}
               placeholder="e.g., 98101"
+              onChange={handleFieldChange}
+              onBlur={syncWithParent}
+            />
+            <InputField
+              label="Country"
+              name="country"
+              value={formData.country}
+              placeholder="e.g., USA"
               onChange={handleFieldChange}
               onBlur={syncWithParent}
             />
@@ -178,5 +196,6 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
     </div>
   );
 };
+
 
 export default AddressInput;

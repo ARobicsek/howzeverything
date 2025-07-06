@@ -1,13 +1,12 @@
 // src/hooks/useAuth.tsx
-import { useState, useEffect, useCallback, useRef } from 'react'
-import type { User, Session, PostgrestSingleResponse } from '@supabase/supabase-js'
+import type { PostgrestSingleResponse, Session, User } from '@supabase/supabase-js'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   supabase,
-  type DatabaseUser,
   signOut as supabaseSignOut,
-  withTimeout
+  withTimeout,
+  type DatabaseUser
 } from '../supabaseClient'
-
 
 interface AuthState {
   user: User | null
@@ -16,7 +15,6 @@ interface AuthState {
   loading: boolean
   error: string | null
 }
-
 
 interface AuthActions {
   signIn: (email: string, password: string) => Promise<boolean>
@@ -28,9 +26,7 @@ interface AuthActions {
   refreshProfile: () => Promise<void>
 }
 
-
 export type UseAuthReturn = AuthState & AuthActions
-
 
 export const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<User | null>(null)
@@ -39,7 +35,6 @@ export const useAuth = (): UseAuthReturn => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const loadingRef = useRef<string | null>(null)
-
 
   // Load user profile from database with timeout
   const loadUserProfile = useCallback(async (userId: string): Promise<boolean> => {
@@ -56,14 +51,13 @@ export const useAuth = (): UseAuthReturn => {
       console.log('🔐 loadUserProfile: Creating query...')
      
       const result: PostgrestSingleResponse<DatabaseUser> = await withTimeout(
-        Promise.resolve(
+        Promise.resolve( // This wrapper is required to convert the builder to a true Promise
           supabase
             .from('users')
-            .select('*') // Changed to explicit '*' to aid TypeScript inference
+            .select('*')
             .eq('id', userId)
             .single()
-        ),
-        5000
+        )
       )
      
       console.log('🔐 loadUserProfile: Query completed', {
@@ -106,13 +100,11 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [])
 
-
   // Initialize auth
   useEffect(() => {
     let isMounted = true
    
     console.log('🔐 useAuth: Initializing...')
-
 
     const initializeAuth = async () => {
       try {
@@ -127,7 +119,6 @@ export const useAuth = (): UseAuthReturn => {
           setLoading(false)
           return
         }
-
 
         console.log('🔐 Initial session:', session?.user?.email || 'No user')
        
@@ -156,9 +147,7 @@ export const useAuth = (): UseAuthReturn => {
       }
     }
 
-
     initializeAuth()
-
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return
@@ -186,32 +175,27 @@ export const useAuth = (): UseAuthReturn => {
       }
     })
 
-
     return () => {
       isMounted = false
       subscription.unsubscribe()
     }
   }, [loadUserProfile])
 
-
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true)
       setError(null)
-
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password
       })
 
-
       if (signInError) {
         setError(signInError.message)
         setLoading(false)
         return false
       }
-
 
       setLoading(false)
       return !!data.user
@@ -222,12 +206,10 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [])
 
-
   const signUp = useCallback(async (email: string, password: string, fullName?: string): Promise<boolean> => {
     try {
       setLoading(true)
       setError(null)
-
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -239,28 +221,24 @@ export const useAuth = (): UseAuthReturn => {
         }
       })
 
-
       if (signUpError) {
         setError(signUpError.message)
         setLoading(false)
         return false
       }
 
-
       if (data.user && !data.user.email_confirmed_at) {
         setError('Please check your email and click the confirmation link to complete registration.')
       }
 
-
       setLoading(false)
       return !!data.user
-    } catch (err: any) {
+    } catch (err: any)      {
       setError(err instanceof Error ? err.message : 'Failed to sign up')
       setLoading(false)
       return false
     }
   }, [])
-
 
   const signOut = useCallback(async (): Promise<void> => {
     try {
@@ -272,14 +250,12 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [])
 
-
   const createProfile = useCallback(async (profileData: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user) {
         setError('No authenticated user found')
         return false
       }
-
 
       setError(null)
      
@@ -305,7 +281,6 @@ export const useAuth = (): UseAuthReturn => {
         .select()
         .single()
 
-
       if (createError) {
         if (createError.code === '23505' || createError.code === '406') {
           console.log('🔐 createProfile: Profile already exists or 406 error - reloading')
@@ -318,7 +293,6 @@ export const useAuth = (): UseAuthReturn => {
         return false
       }
 
-
       console.log('🔐 createProfile: Profile created successfully')
       setProfile(data)
       return true
@@ -329,7 +303,6 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [user, loadUserProfile])
 
-
   const updateProfile = useCallback(async (updates: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user || !profile) {
@@ -337,9 +310,7 @@ export const useAuth = (): UseAuthReturn => {
         return false
       }
 
-
       setError(null)
-
 
       const { data, error: updateError }: PostgrestSingleResponse<DatabaseUser> = await supabase
         .from('users')
@@ -351,12 +322,10 @@ export const useAuth = (): UseAuthReturn => {
         .select()
         .single()
 
-
       if (updateError) {
         setError(`Failed to update profile: ${updateError.message}`)
         return false
       }
-
 
       setProfile(data)
       return true
@@ -366,18 +335,15 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [user, profile])
 
-
   const refreshProfile = useCallback(async (): Promise<void> => {
     if (user) {
       await loadUserProfile(user.id)
     }
   }, [user, loadUserProfile])
 
-
   const clearError = useCallback(() => {
     setError(null)
   }, [])
-
 
   return {
     user,

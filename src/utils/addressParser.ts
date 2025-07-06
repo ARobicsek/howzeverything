@@ -1,83 +1,160 @@
 // src/utils/addressParser.ts
-import { parseLocation } from 'parse-address';
-
-
-// We'll treat the output as 'any' for flexibility, as CJS/ESM interop can be tricky with types.
-const parseAddressLibrary = (text: string): any => parseLocation(text);
-
-
+import addressit from 'addressit';
+import { parseLocation as parseUSAddress } from 'parse-address';
 import type { AddressFormData, AddressParseResult, AddressValidationResult } from '../types/address';
+import { COUNTRY_IDENTIFIERS, COUNTRY_PATTERNS, detectCountry, validateUSParseResults } from './countryDetection';
 
+// Helper function for international parsing
+function parseWithInternationalParser(
+  cleanedInput: string,
+  detectedCountry: string,
+  originalInput: string
+): AddressParseResult {
+  try {
+    let addressToParse = cleanedInput;
+    const countryKey = detectedCountry as keyof typeof COUNTRY_IDENTIFIERS;
+    const pattern = COUNTRY_IDENTIFIERS[countryKey];
+
+    // --- NEW LOGIC: Surgically remove ONLY the country name ---
+    if (pattern) {
+      const globalPattern = new RegExp(pattern.source, 'gi');
+      addressToParse = cleanedInput.replace(globalPattern, '');
+     
+      // Clean up leftover commas and whitespace that might result from the replace
+      addressToParse = addressToParse.replace(/, ,/g, ',').replace(/\s,/, ',').replace(/,+/g, ',').trim().replace(/,$/, '').trim();
+      console.log(`Simplified address for parsing: "${addressToParse}"`);
+    }
+
+    const internationalResult = addressit(addressToParse);
+    console.log('Raw international parser result:', internationalResult);
+   
+    if (!internationalResult || !internationalResult.street) {
+      throw new Error('International parser could not identify a street.');
+    }
+   
+    const street = [internationalResult.number, internationalResult.street]
+      .filter(Boolean)
+      .join(' ');
+
+    // --- START: "Parse & Enhance" logic ---
+    let city = internationalResult.city || '';
+    let state = internationalResult.state || '';
+    let postalCode = internationalResult.postalcode || '';
+
+    // Enhance: Extract from regions array if primary fields are missing
+    if ((!city || !postalCode) && internationalResult.regions && internationalResult.regions.length > 0) {
+      console.log('Enhancing international parse from regions:', internationalResult.regions);
+      const remainingText = internationalResult.regions.join(' ');
+      
+      const countryPatternKey = detectedCountry as keyof typeof COUNTRY_PATTERNS;
+      const patterns = COUNTRY_PATTERNS[countryPatternKey];
+      
+      // Try to extract postal code using regex
+      if (patterns && patterns.postalCode && !postalCode) {
+        const postalMatch = remainingText.match(patterns.postalCode);
+        if (postalMatch) {
+          postalCode = postalMatch[0].trim();
+        }
+      }
+      
+      // Extract city from what's left after removing the postal code
+      if (!city && remainingText) {
+        let cityText = remainingText;
+        if (postalCode) {
+          cityText = cityText.replace(postalCode, '').trim();
+        }
+        // Clean up any remaining commas or extra whitespace
+        city = cityText.replace(/^,|,$/g, '').trim();
+      }
+    }
+    // --- END: "Parse & Enhance" logic ---
+
+    const resultData: Partial<AddressFormData> = {
+      fullAddress: originalInput,
+      address: street,
+      city: city,
+      state: state,
+      zip_code: postalCode,
+      // Manually set the country from our reliable detection logic
+      country: detectedCountry || internationalResult.country || '',
+    };
+   
+    const isSuccess = !!(street && city);
+
+    return {
+      success: isSuccess,
+      data: resultData,
+      error: isSuccess ? undefined : 'Partially parsed. Please complete the address fields.'
+    };
+
+  } catch (e: any) {
+    console.error('International address parsing failed:', e);
+    return {
+      success: false,
+      data: { fullAddress: originalInput, country: detectedCountry },
+      error: 'Could not parse address automatically. Please fill in the fields manually.'
+    };
+  }
+}
 
 export const parseAddress = (input: string): AddressParseResult => {
   if (!input || !input.trim()) {
     return { success: false, data: { fullAddress: input }, error: 'Address cannot be empty.' };
   }
 
-
-  // Pre-process the input string: replace newlines with spaces and collapse multiple spaces.
   const cleanedInput = input.trim().replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
-
-
-  try {
-    const parsed = parseAddressLibrary(cleanedInput);
-    if (!parsed) {
-      throw new Error('Parser returned null or undefined');
-    }
-
-
-    // Reconstruct the full street address from its component parts.
-    // 'parse-address' provides number, prefix, street, type, and suffix.
-    const street = [parsed.number, parsed.prefix, parsed.street, parsed.type, parsed.suffix]
-      .filter(Boolean)
-      .join(' ');
-
-
-    // Check for a minimally viable address.
-    if (!street) {
-      return { success: false, data: { fullAddress: input }, error: 'Could not parse a valid street address.' };
-    }
-   
-    const resultData: Partial<AddressFormData> = {
-      fullAddress: input, // Store the original raw input
-      address: street,
-      city: parsed.city || '',
-      state: parsed.state || '',
-      zip_code: parsed.zip || '',
-      country: 'USA', // 'parse-address' is US-centric
-    };
-
-
-    // The parse is successful if we get a street and at least one other major component.
-    const isSuccess = !!(street && (parsed.city || parsed.state || parsed.zip));
-
-
-    return {
-        success: isSuccess,
-        data: resultData,
-        error: isSuccess ? undefined : 'Partially parsed. Please complete the address fields.'
-    };
-
-
-  } catch (e: any) {
-    console.error('Address parsing library failed:', e);
-    return { success: false, data: { fullAddress: input }, error: 'The address parsing library encountered an internal error.' };
+ 
+  // STEP 1: Detect country
+  const detectedCountry = detectCountry(cleanedInput);
+ 
+  // STEP 2: Route to appropriate parser
+  if (detectedCountry !== 'USA') {
+    console.log(`Detected ${detectedCountry} address, using international parser directly`);
+    return parseWithInternationalParser(cleanedInput, detectedCountry, input);
   }
+ 
+  // STEP 3: For USA (or uncertain), try US parser first
+  try {
+    const usResult = parseUSAddress(cleanedInput);
+   
+    if (usResult && usResult.street && usResult.city && usResult.state) {
+      // STEP 4: Validate US parser results
+      if (validateUSParseResults(usResult, cleanedInput)) {
+        console.log('Using US-optimized parser - validation passed');
+        const street = [usResult.number, usResult.prefix, usResult.street, usResult.type, usResult.suffix]
+          .filter(Boolean)
+          .join(' ');
+       
+        return {
+          success: true,
+          data: {
+            fullAddress: input,
+            address: street,
+            city: usResult.city || '',
+            state: usResult.state || '',
+            zip_code: usResult.zip || '',
+            country: 'USA',
+          },
+        };
+      } else {
+        console.log('US parser validation failed, falling back to international parser');
+      }
+    }
+  } catch (e) {
+    console.warn('US-optimized parser failed:', e);
+  }
+ 
+  // STEP 5: Fall back to international parser
+  return parseWithInternationalParser(cleanedInput, detectedCountry, input);
 };
-
 
 export const validateParsedAddress = (formData: Partial<AddressFormData>): AddressValidationResult => {
   const errors: AddressValidationResult['errors'] = {};
   if (!formData.address?.trim()) errors.address = 'Street address is required.';
   if (!formData.city?.trim()) errors.city = 'City is required.';
-  if (!formData.state?.trim()) errors.state = 'State is required.';
-  // Note: 'parse-address' uses 'zip', which we map to 'zip_code'.
-  if (formData.zip_code && !/^\d{5}(-\d{4})?$/.test(formData.zip_code)) {
-    errors.zip_code = 'Invalid ZIP code format.';
-  }
+  // state and zip are not universally required
   return { isValid: Object.keys(errors).length === 0, errors };
 };
-
 
 export const formatAddressForDisplay = (formData: Partial<AddressFormData>): string => {
   const { address, city, state, zip_code } = formData;
