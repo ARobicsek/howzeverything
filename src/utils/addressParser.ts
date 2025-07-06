@@ -42,29 +42,36 @@ function parseWithInternationalParser(
     let postalCode = internationalResult.postalcode || '';
 
     // Enhance: Extract from regions array if primary fields are missing
-    if ((!city || !postalCode) && internationalResult.regions && internationalResult.regions.length > 0) {
+    if ((!city || !postalCode || !state) && internationalResult.regions && internationalResult.regions.length > 0) {
       console.log('Enhancing international parse from regions:', internationalResult.regions);
-      const remainingText = internationalResult.regions.join(' ');
+      let remainingText = internationalResult.regions.join(' ');
       
       const countryPatternKey = detectedCountry as keyof typeof COUNTRY_PATTERNS;
       const patterns = COUNTRY_PATTERNS[countryPatternKey];
       
-      // Try to extract postal code using regex
-      if (patterns && patterns.postalCode && !postalCode) {
+      // 1. Extract postal code first, as it's often the most unique pattern
+      if (patterns?.postalCode && !postalCode) {
         const postalMatch = remainingText.match(patterns.postalCode);
-        if (postalMatch) {
+        if (postalMatch?.[0]) {
           postalCode = postalMatch[0].trim();
+          remainingText = remainingText.replace(postalMatch[0], '').trim();
+        }
+      }
+
+      // 2. Extract state/province (if applicable for the country)
+      const statePattern = (patterns as any).state;
+      if (statePattern && !state) {
+        const stateMatch = remainingText.match(statePattern);
+        if (stateMatch?.[0]) {
+            state = stateMatch[0].trim().toUpperCase();
+            remainingText = remainingText.replace(stateMatch[0], '').trim();
         }
       }
       
-      // Extract city from what's left after removing the postal code
+      // 3. The remainder is the city
       if (!city && remainingText) {
-        let cityText = remainingText;
-        if (postalCode) {
-          cityText = cityText.replace(postalCode, '').trim();
-        }
-        // Clean up any remaining commas or extra whitespace
-        city = cityText.replace(/^,|,$/g, '').trim();
+        // Clean up any remaining commas or extra whitespace from the ends
+        city = remainingText.replace(/^,|,$/g, '').trim();
       }
     }
     // --- END: "Parse & Enhance" logic ---
@@ -119,7 +126,7 @@ export const parseAddress = (input: string): AddressParseResult => {
    
     if (usResult && usResult.street && usResult.city && usResult.state) {
       // STEP 4: Validate US parser results
-      if (validateUSParseResults(usResult, cleanedInput)) {
+      if (validateUSParseResults(usResult)) {
         console.log('Using US-optimized parser - validation passed');
         const street = [usResult.number, usResult.prefix, usResult.street, usResult.type, usResult.suffix]
           .filter(Boolean)

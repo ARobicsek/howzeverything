@@ -7,56 +7,60 @@ export const COUNTRY_PATTERNS = { // Added export here
     // Common UK address terms
     terms: /\b(london|manchester|birmingham|glasgow|liverpool|leeds|sheffield|edinburgh|bristol|cardiff|leicester|coventry|nottingham|newcastle|belfast|portsmouth|southampton|wolverhampton|plymouth|reading|united kingdom|uk|england|scotland|wales|northern ireland|britain|gb)\b/i
   },
-  
+ 
   CANADA: {
     // Canadian postal codes: K1A 0B1
     postalCode: /\b[A-Z][0-9][A-Z]\s*[0-9][A-Z][0-9]\b/i,
+    // NEW: Canadian province and territory abbreviations
+    state: /\b(ON|QC|NS|NB|MB|BC|PE|SK|AB|NL|NT|YT|NU)\b/i,
     // Provinces and major cities
     terms: /\b(toronto|montreal|vancouver|calgary|ottawa|edmonton|winnipeg|quebec|hamilton|kitchener|london|victoria|halifax|oshawa|windsor|saskatoon|regina|sherbrooke|barrie|ontario|british columbia|alberta|manitoba|saskatchewan|nova scotia|newfoundland|new brunswick|prince edward island|canada|ca|qc|on|bc|ab|mb|sk|ns|nb|pe|nl)\b/i
   },
-  
+ 
   ISRAEL: {
     // Israeli postal codes: 7 digits
     postalCode: /\b[0-9]{7}\b/,
     // Cities and country identifiers
     terms: /\b(tel aviv|jerusalem|haifa|netanya|ashdod|rishon lezion|petah tikva|beer sheva|holon|bnei brak|ramat gan|rehovot|bat yam|herzliya|kfar saba|hadera|modiin|nazareth|ramla|raanana|israel|il|yafo|jaffa)\b/i
   },
-  
+ 
   AUSTRALIA: {
     // Australian postcodes: 4 digits
     postalCode: /\b[0-9]{4}\b/,
+    // NEW: Australian state and territory abbreviations
+    state: /\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/i,
     // States and cities
     terms: /\b(sydney|melbourne|brisbane|perth|adelaide|gold coast|newcastle|canberra|wollongong|geelong|hobart|townsville|cairns|toowoomba|darwin|ballarat|bendigo|launceston|australia|au|nsw|vic|qld|wa|sa|tas|act|nt|new south wales|victoria|queensland|western australia|south australia|tasmania)\b/i
   },
-  
+ 
   GERMANY: {
     // German postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
     terms: /\b(berlin|hamburg|munich|münchen|cologne|köln|frankfurt|stuttgart|düsseldorf|dortmund|essen|leipzig|bremen|dresden|hanover|hannover|nuremberg|nürnberg|duisburg|bochum|wuppertal|bielefeld|bonn|münster|karlsruhe|mannheim|augsburg|wiesbaden|germany|deutschland|de)\b/i
   },
-  
+ 
   FRANCE: {
     // French postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
     terms: /\b(paris|marseille|lyon|toulouse|nice|nantes|strasbourg|montpellier|bordeaux|lille|rennes|reims|le havre|saint-étienne|toulon|grenoble|dijon|angers|nîmes|villeurbanne|clermont-ferrand|le mans|aix-en-provence|brest|limoges|tours|amiens|france|fr)\b/i
   },
-  
+ 
   ITALY: {
     // Italian postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
     terms: /\b(rome|roma|milan|milano|naples|napoli|turin|torino|palermo|genoa|genova|bologna|florence|firenze|bari|catania|venice|venezia|verona|messina|padua|padova|trieste|brescia|parma|modena|reggio calabria|reggio emilia|perugia|livorno|ravenna|italy|italia|it)\b/i
   },
-  
+ 
   MEXICO: {
     // Mexican postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
     terms: /\b(mexico city|ciudad de méxico|cdmx|guadalajara|monterrey|puebla|tijuana|león|juárez|ciudad juarez|zapopan|mérida|merida|san luis potosí|san luis potosi|aguascalientes|hermosillo|saltillo|mexicali|culiacán|culiacan|querétaro|queretaro|morelia|chihuahua|durango|toluca|mexico|méxico|mx)\b/i
   },
-  
+ 
   INDIA: {
     // Indian postcodes: 6 digits (XXXXXX or XXX XXX)
     postalCode: /\b[0-9]{6}\b|\b[0-9]{3}\s[0-9]{3}\b/i,
@@ -99,16 +103,16 @@ export function detectCountry(address: string): string {
   // Clean the address for analysis
   const cleanAddress = address.trim();
   const upperAddress = cleanAddress.toUpperCase();
-  
+ 
   // Initialize scores
   const scores: Record<string, number> = {
     USA: 0, UK: 0, CANADA: 0, ISRAEL: 0, AUSTRALIA: 0, GERMANY: 0, FRANCE: 0, ITALY: 0, MEXICO: 0, INDIA: 0
   };
-  
+ 
   // Check for unique postal code patterns (strong indicators)
   if (COUNTRY_PATTERNS.UK.postalCode.test(cleanAddress)) { scores.UK += 10; }
   if (COUNTRY_PATTERNS.CANADA.postalCode.test(cleanAddress)) { scores.CANADA += 10; }
-  
+ 
   const sixDigitMatch = cleanAddress.match(COUNTRY_PATTERNS.INDIA.postalCode);
   if (sixDigitMatch) {
     if (COUNTRY_PATTERNS.INDIA.terms.test(cleanAddress)) {
@@ -117,7 +121,7 @@ export function detectCountry(address: string): string {
       scores.INDIA += 5;
     }
   }
-  
+ 
   const sevenDigitMatch = cleanAddress.match(COUNTRY_PATTERNS.ISRAEL.postalCode);
   if (sevenDigitMatch) {
     const surroundingText = cleanAddress.substring(
@@ -128,19 +132,19 @@ export function detectCountry(address: string): string {
       scores.ISRAEL += 8;
     }
   }
-  
+ 
   const fourDigitMatch = cleanAddress.match(COUNTRY_PATTERNS.AUSTRALIA.postalCode);
   if (fourDigitMatch && COUNTRY_PATTERNS.AUSTRALIA.terms.test(cleanAddress)) {
     scores.AUSTRALIA += 5;
   }
-  
+ 
   // Check for country/city terms
   Object.entries(COUNTRY_PATTERNS).forEach(([country, patterns]) => {
     if (patterns.terms.test(cleanAddress)) {
       scores[country as keyof typeof scores] += 5;
     }
   });
-  
+ 
   // Check for US patterns
   const stateAbbrMatch = upperAddress.match(US_PATTERNS.stateAbbr);
   if (stateAbbrMatch && upperAddress.indexOf(stateAbbrMatch[0]) > 10) {
@@ -149,7 +153,7 @@ export function detectCountry(address: string): string {
   if (US_PATTERNS.terms.test(cleanAddress)) {
     scores.USA += 5;
   }
-  
+ 
   // Special handling for 5-digit postal codes
   const fiveDigitMatch = cleanAddress.match(/\b[0-9]{5}\b/);
   if (fiveDigitMatch && !sevenDigitMatch) {
@@ -159,30 +163,30 @@ export function detectCountry(address: string): string {
       scores.USA += 3;
     }
   }
-  
+ 
   // Find the highest scoring country
   let maxScore = 0;
   let detectedCountry = 'USA'; // Default
-  
+ 
   Object.entries(scores).forEach(([country, score]) => {
     if (score > maxScore) {
       maxScore = score;
       detectedCountry = country;
     }
   });
-  
+ 
   console.log('Country detection scores:', scores);
   console.log('Detected country:', detectedCountry);
-  
+ 
   return detectedCountry;
 }
 
-export function validateUSParseResults(usResult: any, originalAddress: string): boolean {
+export function validateUSParseResults(usResult: any): boolean {
   if (usResult.state && !VALID_US_STATES.includes(usResult.state.toUpperCase())) {
     console.log('Invalid US state detected:', usResult.state);
     return false;
   }
-  
+ 
   const parsedComponents = [usResult.street, usResult.city, usResult.state, usResult.zip].filter(Boolean).join(' ');
   for (const [country, patterns] of Object.entries(COUNTRY_PATTERNS)) {
     if (country !== 'USA' && patterns.terms.test(parsedComponents)) {
@@ -190,11 +194,11 @@ export function validateUSParseResults(usResult: any, originalAddress: string): 
       return false;
     }
   }
-  
+ 
   if (usResult.state && /^[A-Z][0-9][A-Z0-9]?$/.test(usResult.state)) {
     console.log('State looks like UK postcode format:', usResult.state);
     return false;
   }
-  
+ 
   return true;
 }
