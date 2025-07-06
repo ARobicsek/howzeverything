@@ -1,11 +1,12 @@
 // src/utils/countryDetection.ts
 
+
 export const COUNTRY_PATTERNS = { // Added export here
   UK: {
     // UK postcodes: SW1A 1AA, W1U 5JX, etc.
     postalCode: /\b[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}\b/i,
     // Common UK address terms
-    terms: /\b(london|manchester|birmingham|glasgow|liverpool|leeds|sheffield|edinburgh|bristol|cardiff|leicester|coventry|nottingham|newcastle|belfast|portsmouth|southampton|wolverhampton|plymouth|reading|united kingdom|uk|england|scotland|wales|northern ireland|britain|gb)\b/i
+    terms: /\b(london|manchester|birmingham|glasgow|liverpool|leeds|sheffield|edinburgh|bristol|cardiff|leicester|coventry|nottingham|newcastle|belfast|portsmouth|southampton|wolverhampton|plymouth|reading|united kingdom|england|scotland|wales|northern ireland|britain)\b/i
   },
  
   CANADA: {
@@ -14,7 +15,7 @@ export const COUNTRY_PATTERNS = { // Added export here
     // NEW: Canadian province and territory abbreviations
     state: /\b(ON|QC|NS|NB|MB|BC|PE|SK|AB|NL|NT|YT|NU)\b/i,
     // Provinces and major cities
-    terms: /\b(toronto|montreal|vancouver|calgary|ottawa|edmonton|winnipeg|quebec|hamilton|kitchener|london|victoria|halifax|oshawa|windsor|saskatoon|regina|sherbrooke|barrie|ontario|british columbia|alberta|manitoba|saskatchewan|nova scotia|newfoundland|new brunswick|prince edward island|canada|ca|qc|on|bc|ab|mb|sk|ns|nb|pe|nl)\b/i
+    terms: /\b(toronto|montreal|vancouver|calgary|ottawa|edmonton|winnipeg|quebec|hamilton|kitchener|london|victoria|halifax|oshawa|windsor|saskatoon|regina|sherbrooke|barrie|ontario|british columbia|alberta|manitoba|saskatchewan|nova scotia|newfoundland|new brunswick|prince edward island|canada)\b/i
   },
  
   ISRAEL: {
@@ -30,44 +31,47 @@ export const COUNTRY_PATTERNS = { // Added export here
     // NEW: Australian state and territory abbreviations
     state: /\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/i,
     // States and cities
-    terms: /\b(sydney|melbourne|brisbane|perth|adelaide|gold coast|newcastle|canberra|wollongong|geelong|hobart|townsville|cairns|toowoomba|darwin|ballarat|bendigo|launceston|australia|au|nsw|vic|qld|wa|sa|tas|act|nt|new south wales|victoria|queensland|western australia|south australia|tasmania)\b/i
+    terms: /\b(sydney|melbourne|brisbane|perth|adelaide|gold coast|newcastle|canberra|wollongong|geelong|hobart|townsville|cairns|toowoomba|darwin|ballarat|bendigo|launceston|australia|new south wales|victoria|queensland|western australia|south australia|tasmania)\b/i
   },
  
   GERMANY: {
     // German postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
-    terms: /\b(berlin|hamburg|munich|münchen|cologne|köln|frankfurt|stuttgart|düsseldorf|dortmund|essen|leipzig|bremen|dresden|hanover|hannover|nuremberg|nürnberg|duisburg|bochum|wuppertal|bielefeld|bonn|münster|karlsruhe|mannheim|augsburg|wiesbaden|germany|deutschland|de)\b/i
+    terms: /\b(berlin|hamburg|munich|münchen|cologne|köln|frankfurt|stuttgart|düsseldorf|dortmund|essen|leipzig|bremen|dresden|hanover|hannover|nuremberg|nürnberg|duisburg|bochum|wuppertal|bielefeld|bonn|münster|karlsruhe|mannheim|augsburg|wiesbaden|ilmenau|germany|deutschland)\b/i
   },
  
   FRANCE: {
     // French postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
-    terms: /\b(paris|marseille|lyon|toulouse|nice|nantes|strasbourg|montpellier|bordeaux|lille|rennes|reims|le havre|saint-étienne|toulon|grenoble|dijon|angers|nîmes|villeurbanne|clermont-ferrand|le mans|aix-en-provence|brest|limoges|tours|amiens|france|fr)\b/i
+    terms: /\b(paris|marseille|lyon|toulouse|nice|nantes|strasbourg|montpellier|bordeaux|lille|rennes|reims|le havre|saint-étienne|toulon|grenoble|dijon|angers|nîmes|villeurbanne|clermont-ferrand|le mans|aix-en-provence|brest|limoges|tours|amiens|bréal-sous-montfort|saint-maur-des-fossés|france)\b/i
   },
  
   ITALY: {
     // Italian postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
     // Cities and country
-    terms: /\b(rome|roma|milan|milano|naples|napoli|turin|torino|palermo|genoa|genova|bologna|florence|firenze|bari|catania|venice|venezia|verona|messina|padua|padova|trieste|brescia|parma|modena|reggio calabria|reggio emilia|perugia|livorno|ravenna|italy|italia|it)\b/i
+    terms: /\b(rome|roma|milan|milano|naples|napoli|turin|torino|palermo|genoa|genova|bologna|florence|firenze|bari|catania|venice|venezia|verona|messina|padua|padova|trieste|brescia|parma|modena|reggio calabria|reggio emilia|perugia|livorno|ravenna|italy|italia)\b/i
   },
  
   MEXICO: {
     // Mexican postcodes: 5 digits (conflicts with US - will need context)
     postalCode: /\b[0-9]{5}\b/,
+    // NEW: Mexican state abbreviations
+    state: /\b(B\.C\.S|S\.L\.P|Q\. Roo|B\.C|N\.L|Ags|Camp|CDMX|Chih|Chis|Coah|Col|Dgo|Gto|Gro|Hgo|Jal|Méx|Mich|Mor|Nay|Oax|Pue|Qro|Sin|Son|Tab|Tamps|Tlax|Ver|Yuc|Zac)\b\.?/i,
     // Cities and country
-    terms: /\b(mexico city|ciudad de méxico|cdmx|guadalajara|monterrey|puebla|tijuana|león|juárez|ciudad juarez|zapopan|mérida|merida|san luis potosí|san luis potosi|aguascalientes|hermosillo|saltillo|mexicali|culiacán|culiacan|querétaro|queretaro|morelia|chihuahua|durango|toluca|mexico|méxico|mx)\b/i
+    terms: /\b(mexico city|ciudad de méxico|cdmx|guadalajara|monterrey|puebla|tijuana|león|juárez|ciudad juarez|zapopan|mérida|merida|san luis potosí|san luis potosi|aguascalientes|hermosillo|saltillo|mexicali|culiacán|culiacan|querétaro|queretaro|morelia|chihuahua|durango|toluca|mazatlán|camargo|oaxaca|mexico|méxico)\b/i
   },
  
   INDIA: {
     // Indian postcodes: 6 digits (XXXXXX or XXX XXX)
     postalCode: /\b[0-9]{6}\b|\b[0-9]{3}\s[0-9]{3}\b/i,
     // Cities, states, and country identifiers
-    terms: /\b(mumbai|bombay|delhi|new delhi|bangalore|bengaluru|hyderabad|chennai|madras|kolkata|calcutta|pune|ahmedabad|surat|jaipur|lucknow|kanpur|nagpur|indore|bhopal|visakhapatnam|vizag|patna|vadodara|ghaziabad|ludhiana|agra|nashik|faridabad|meerut|rajkot|kalyan|vasai|varanasi|benares|srinagar|aurangabad|dhanbad|amritsar|navi mumbai|allahabad|prayagraj|ranchi|howrah|coimbatore|jabalpur|gwalior|vijayawada|jodhpur|raipur|kota|guwahati|chandigarh|solapur|hubli|dharwad|bareilly|moradabad|gurgaon|gurugram|aligarh|jalandhar|tiruchirappalli|trichy|bhubaneswar|salem|warangal|guntur|bikaner|noida|jamshedpur|bhilai|cuttack|firozabad|kochi|cochin|maharashtra|delhi|karnataka|tamil nadu|west bengal|gujarat|rajasthan|uttar pradesh|madhya pradesh|andhra pradesh|bihar|telangana|haryana|assam|odisha|kerala|jharkhand|punjab|india|in|bharat)\b/i
+    terms: /\b(mumbai|bombay|delhi|new delhi|bangalore|bengaluru|hyderabad|chennai|madras|kolkata|calcutta|pune|ahmedabad|surat|jaipur|lucknow|kanpur|nagpur|indore|bhopal|visakhapatnam|vizag|patna|vadodara|ghaziabad|ludhiana|agra|nashik|faridabad|meerut|rajkot|kalyan|vasai|varanasi|benares|srinagar|aurangabad|dhanbad|amritsar|navi mumbai|allahabad|prayagraj|ranchi|howrah|coimbatore|jabalpur|gwalior|vijayawada|jodhpur|raipur|kota|guwahati|chandigarh|solapur|hubli|dharwad|bareilly|moradabad|gurgaon|gurugram|aligarh|jalandhar|tiruchirappalli|trichy|bhubaneswar|salem|warangal|guntur|bikaner|noida|jamshedpur|bhilai|cuttack|firozabad|kochi|cochin|maharashtra|delhi|karnataka|tamil nadu|west bengal|gujarat|rajasthan|uttar pradesh|madhya pradesh|andhra pradesh|bihar|telangana|haryana|assam|odisha|kerala|jharkhand|punjab|india|bharat)\b/i
   }
 };
+
 
 // --- NEW: A specific list of only country names for cleaning strings ---
 export const COUNTRY_IDENTIFIERS = {
@@ -82,6 +86,7 @@ export const COUNTRY_IDENTIFIERS = {
     INDIA: /\b(india|in|bharat)\b/i,
 };
 
+
 const US_PATTERNS = {
   // US state abbreviations (comprehensive list)
   stateAbbr: /\b(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b/,
@@ -91,6 +96,7 @@ const US_PATTERNS = {
   terms: /\b(united states|usa|america|washington|new york|los angeles|chicago|houston|philadelphia|phoenix|san antonio|san diego|dallas|san jose|austin|jacksonville|san francisco|columbus|charlotte|fort worth|detroit|el paso|memphis|seattle|denver|boston|nashville|baltimore|oklahoma city|louisville|portland|las vegas|milwaukee|albuquerque|tucson|fresno|sacramento|kansas city|long beach|mesa|atlanta|colorado springs|virginia beach|raleigh|omaha|miami|oakland|minneapolis|tulsa|wichita|new orleans)\b/i
 };
 
+
 // Valid US state abbreviations for validation
 const VALID_US_STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA',
@@ -98,6 +104,23 @@ const VALID_US_STATES = [
   'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA',
   'WV', 'WI', 'WY'
 ];
+
+// NEW: Map for standardizing full state names to abbreviations
+export const US_STATE_NAME_TO_ABBR: { [key: string]: string } = {
+  'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+  'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'district of columbia': 'DC',
+  'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL',
+  'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA',
+  'maine': 'ME', 'maryland': 'MD', 'massachusetts': 'MA', 'michigan': 'MI',
+  'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO', 'montana': 'MT',
+  'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+  'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND',
+  'ohio': 'OH', 'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA',
+  'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD',
+  'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT', 'virginia': 'VA',
+  'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
+};
+
 
 export function detectCountry(address: string): string {
   // Clean the address for analysis
@@ -141,7 +164,8 @@ export function detectCountry(address: string): string {
   // Check for country/city terms
   Object.entries(COUNTRY_PATTERNS).forEach(([country, patterns]) => {
     if (patterns.terms.test(cleanAddress)) {
-      scores[country as keyof typeof scores] += 5;
+      // MODIFIED: Increased score to 10 to outweigh ambiguous US state abbreviations
+      scores[country as keyof typeof scores] += 10;
     }
   });
  
@@ -181,14 +205,21 @@ export function detectCountry(address: string): string {
   return detectedCountry;
 }
 
+
 export function validateUSParseResults(usResult: any): boolean {
-  if (usResult.state && !VALID_US_STATES.includes(usResult.state.toUpperCase())) {
+  if (usResult.state && !VALID_US_STATES.includes(usResult.state.toUpperCase()) && !US_STATE_NAME_TO_ABBR[usResult.state.toLowerCase()]) {
     console.log('Invalid US state detected:', usResult.state);
     return false;
   }
  
-  const parsedComponents = [usResult.street, usResult.city, usResult.state, usResult.zip].filter(Boolean).join(' ');
+  // MODIFIED: Exclude the state from this check to prevent collisions like WA (Washington vs. Western Australia)
+  const parsedComponents = [usResult.street, usResult.city, usResult.zip].filter(Boolean).join(' ');
   for (const [country, patterns] of Object.entries(COUNTRY_PATTERNS)) {
+    // We are more lenient with Australia due to the 'WA' collision.
+    // A US address is much more likely than an Australian one for our users.
+    if (country === 'AUSTRALIA' && usResult.state === 'WA') {
+      continue;
+    }
     if (country !== 'USA' && patterns.terms.test(parsedComponents)) {
       console.log('International terms found in parsed result:', country);
       return false;

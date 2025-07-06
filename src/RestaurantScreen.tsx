@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import type { AppScreenType as GlobalAppScreenType, NavigableScreenType as GlobalNavigableScreenType } from './components/navigation/BottomNavigation';
 import BottomNavigation from './components/navigation/BottomNavigation';
+import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import AdvancedRestaurantSearchForm from './components/restaurant/AdvancedRestaurantSearchForm';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
 import RestaurantCard from './components/restaurant/RestaurantCard';
@@ -13,11 +14,15 @@ import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
 
 
+
+
 interface RestaurantScreenProps {        
   onNavigateToScreen: (screen: GlobalNavigableScreenType) => void;        
   onNavigateToMenu: (restaurantId: string) => void;        
   currentAppScreen: GlobalAppScreenType;        
 }
+
+
 
 
 // NEW: Helper hook to get the previous value of a prop or state
@@ -28,6 +33,8 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
+
 
 
 // Device and browser detection utilities
@@ -65,6 +72,8 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
+
 
 
 // NEW: Enhanced Location Permission Banner Component with OS/Browser Detection    
@@ -212,72 +221,6 @@ const LocationPermissionBanner: React.FC<{
 };
 
 
-// Enhanced Add Restaurant Form with pre-filled search term (like MenuScreen)        
-const EnhancedAddRestaurantForm: React.FC<{        
-  initialRestaurantName?: string;        
-  onSubmit: (name: string) => Promise<void>;        
-  onCancel: () => void;        
-}> = ({ initialRestaurantName = '', onSubmit, onCancel }) => {        
-  const [restaurantName, setRestaurantName] = useState(initialRestaurantName);
-  const handleSubmit = async () => {        
-    if (restaurantName.trim()) {        
-      await onSubmit(restaurantName);        
-      setRestaurantName('');        
-    }        
-  };
-  return (        
-    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-4 w-full max-w-full overflow-hidden">        
-      <div>        
-        <input        
-          type="text"        
-          value={restaurantName}        
-          onChange={(e) => setRestaurantName(e.target.value)}        
-          placeholder="Enter the restaurant name..."        
-          className="w-full max-w-full px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50"        
-          style={{        
-            ...FONTS.elegant,        
-            fontSize: '1rem',        
-            backgroundColor: 'white',        
-            color: COLORS.text,
-            boxSizing: 'border-box',        
-            minWidth: 0        
-          }}        
-          autoFocus        
-          onKeyPress={(e) => {        
-            if (e.key === 'Enter' && restaurantName.trim()) handleSubmit();        
-          }}        
-        />        
-      </div>
-      <div className="flex gap-3 w-full max-w-full">        
-        <button        
-          onClick={handleSubmit}        
-          disabled={!restaurantName.trim()}        
-          className="flex-1 py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"        
-          style={{        
-            ...STYLES.addButton,        
-            backgroundColor: !restaurantName.trim() ? COLORS.gray300 : COLORS.primary,
-            fontSize: '0.9rem'        
-          }}        
-          onMouseEnter={(e) => {        
-            if (restaurantName.trim()) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover;        
-          }}        
-          onMouseLeave={(e) => {        
-            if (restaurantName.trim()) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary;        
-          }}        
-        >        
-          Add Restaurant        
-        </button>        
-        <button        
-          onClick={onCancel}        
-          className="flex-1 py-3 px-4 rounded-xl transition-colors"        
-          style={STYLES.secondaryButton}        
-        >        
-          Cancel        
-        </button>        
-      </div>        
-    </div>        
-  );        
-};
 
 
 // NEW: Enhanced Search Animation Component      
@@ -350,6 +293,8 @@ const SearchingIndicator: React.FC = () => {
 };
 
 
+
+
 // Fuzzy search algorithm for restaurant names (same as MenuScreen)        
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
   const restaurant = restaurantName.toLowerCase().trim();        
@@ -388,6 +333,8 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   const charSimilarity = (matches / longer.length) * 30;        
   return Math.max(0, charSimilarity);        
 };
+
+
 
 
 const RestaurantScreen: React.FC<RestaurantScreenProps> = ({        
@@ -495,6 +442,7 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       return;
     }
 
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         // SUCCESS: Permission is granted.
@@ -593,14 +541,16 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     }));        
   }, [userLat, userLon, requestLocationPermission]);
   // Handlers        
-  const handleAddRestaurant = useCallback(async (name: string) => {        
-    const success = await addRestaurant(name);        
-    if (success) {        
+  const handleAddRestaurant = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => {        
+    const result = await addRestaurant(restaurantData);        
+    if (result && typeof result === 'object') {
       setShowAddForm(false);        
       setSearchTerm('');        
       setPendingNavigation(true);        
       setHasInteractedWithEmptyState(false);        
-    }        
+    } else {
+      alert("Failed to add restaurant. A restaurant with this name and address might already exist.");
+    }
   }, [addRestaurant]);
   const handleDeleteRestaurant = useCallback(async (restaurantId: string) => {        
     await deleteRestaurant(restaurantId);        
@@ -715,8 +665,19 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
       alert("Sorry, there was an error opening the edit form for this restaurant.");
     }
   };
-  const handleSaveRestaurantUpdate = async (restaurantId: string, updatedData: Partial<Pick<Restaurant, 'name' | 'address'>>) => {
-    const success = await updateRestaurant(restaurantId, updatedData);
+  const handleSaveRestaurantUpdate = async (restaurantId: string, updatedData: any) => {
+    // Create a payload that matches the database schema
+    const dbUpdatePayload = { ...updatedData };
+
+
+    // Map frontend's camelCase `fullAddress` to DB's snake_case `full_address`
+    if (dbUpdatePayload.fullAddress !== undefined) {
+      dbUpdatePayload.full_address = dbUpdatePayload.fullAddress;
+      delete dbUpdatePayload.fullAddress;
+    }
+
+
+    const success = await updateRestaurant(restaurantId, dbUpdatePayload);
     if (success) {
       setEditingRestaurant(null); // Close modal on success
     } else {
@@ -1143,9 +1104,9 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
                 </h2>        
                 <div className="w-10" />        
               </div>
-              <EnhancedAddRestaurantForm        
+              <AddRestaurantForm        
                 initialRestaurantName={searchTerm}        
-                onSubmit={handleAddRestaurant}        
+                onSave={handleAddRestaurant}        
                 onCancel={() => setShowAddForm(false)}        
               />        
             </div>        
@@ -1166,6 +1127,8 @@ const RestaurantScreen: React.FC<RestaurantScreenProps> = ({
     </div>        
   );        
 };
+
+
 
 
 export default RestaurantScreen;
