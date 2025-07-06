@@ -4,10 +4,6 @@ import type { AddressFormData, AddressParseResult, AddressValidationResult } fro
 import { COUNTRY_IDENTIFIERS, COUNTRY_PATTERNS, US_STATE_NAME_TO_ABBR, detectCountry, validateUSParseResults } from './countryDetection';
 
 
-// Helper to escape special regex characters for use in a new RegExp()
-const escapeRegex = (s: string) => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-
-
 // This new parser works by splitting the address into parts and parsing from the end inwards.
 // This is more robust than string subtraction for complex international addresses.
 function parseWithManualSubtraction(
@@ -105,6 +101,8 @@ function parseWithManualSubtraction(
     };
   }
 }
+
+
 
 
 

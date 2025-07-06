@@ -9,6 +9,8 @@ import { Restaurant } from '../types/restaurant'; // MODIFIED: Import Restaurant
 import { parseAddress } from '../utils/addressParser';
 
 
+
+
 interface GeoapifyPlace {
   place_id: string;
   properties: {
@@ -29,6 +31,8 @@ interface GeoapifyPlace {
     };
   };
 }
+
+
 
 
 interface GeoapifyPlaceDetails {
@@ -61,12 +65,16 @@ interface GeoapifyPlaceDetails {
 }
 
 
+
+
 // NEW: Type for advanced search parameters
 export interface AdvancedSearchQuery {
   name: string;
   street: string;
   city: string;
 }
+
+
 
 
 // PHASE 1 ENHANCEMENT: Text normalization utilities
@@ -90,11 +98,15 @@ function normalizeText(text: string): string {
 }
 
 
+
+
 interface QueryAnalysis {
   type: 'business' | 'address' | 'business_location_proposal';
   businessName?: string;
   location?: string;
 }
+
+
 
 
 function analyzeQuery(query: string): QueryAnalysis {
@@ -109,6 +121,8 @@ function analyzeQuery(query: string): QueryAnalysis {
     }
 
 
+
+
     const commaParts = normalizedQuery.split(',');
     if (commaParts.length > 1) {
         const business = commaParts.slice(0, -1).join(',').trim();
@@ -117,6 +131,8 @@ function analyzeQuery(query: string): QueryAnalysis {
             return { type: 'business_location_proposal', businessName: business, location: location };
         }
     }
+
+
 
 
     const words = normalizedQuery.split(' ');
@@ -132,8 +148,12 @@ function analyzeQuery(query: string): QueryAnalysis {
     }
 
 
+
+
     return { type: 'business', businessName: normalizedQuery };
 }
+
+
 
 
 // PHASE 1 ENHANCEMENT: Enhanced similarity calculation
@@ -163,6 +183,8 @@ function calculateEnhancedSimilarity(str1: string, str2: string): number {
 }
 
 
+
+
 // Helper function for Haversine distance calculation (in miles)
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371e3;
@@ -175,6 +197,8 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   const d = R * c;
   return d / 1000 * 0.621371;
 };
+
+
 
 
 // Reusable sorting function for restaurants with distance support
@@ -206,6 +230,67 @@ const sortRestaurantsArray = (
 };
 
 
+
+
+// NEW: Helper to geocode an address using Geoapify
+const geocodeAddress = async (addressData: Partial<Restaurant>): Promise<{ latitude: number; longitude: number } | null> => {
+  const addressString = [
+    addressData.address,
+    addressData.city,
+    addressData.state,
+    addressData.zip_code,
+    addressData.country,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+
+  if (!addressString) {
+    console.warn('Geocoding skipped: address string is empty.');
+    return null;
+  }
+
+
+  console.log(`Geocoding address: "${addressString}"`);
+
+
+  try {
+    const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
+    if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+      console.error('Geocoding failed: Geoapify API key is missing.');
+      return null;
+    }
+
+
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
+      addressString
+    )}&limit=1&apiKey=${apiKey}`;
+
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error('Geocoding API request failed:', await response.text());
+      return null;
+    }
+
+
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const { lat, lon } = data.features[0].properties;
+      return { latitude: lat, longitude: lon };
+    } else {
+      console.warn('Geocoding found no results for the address.');
+      return null;
+    }
+  } catch (error) {
+    console.error('An unexpected error occurred during geocoding:', error);
+    return null;
+  }
+};
+
+
+
+
 export const useRestaurants = (
   sortBy: { criterion: 'name' | 'date' | 'distance'; direction: 'asc' | 'desc' },
   userLat?: number | null,
@@ -221,6 +306,8 @@ export const useRestaurants = (
   const [restaurantErrors, setRestaurantErrors] = useState<Map<string, string>>(new Map());
 
 
+
+
   useEffect(() => {
     const fetchRestaurants = async () => {
       setIsLoading(true);
@@ -230,8 +317,12 @@ export const useRestaurants = (
         if (!user) { setError('User not authenticated'); setRestaurants([]); return; }
 
 
+
+
         const { data: restaurantDetails, error: rpcError } = await supabase
           .rpc('get_user_favorite_restaurants_with_stats', { p_user_id: user.id });
+
+
 
 
         if (rpcError) {
@@ -239,6 +330,8 @@ export const useRestaurants = (
           setError('Failed to load your restaurant list. Please try again.');
           return;
         }
+
+
 
 
         if (restaurantDetails) {
@@ -258,6 +351,8 @@ export const useRestaurants = (
   }, [sortBy.criterion, sortBy.direction, userLat, userLon]);
 
 
+
+
   const isDuplicateRestaurant = async (newName: string, newAddress?: string, geoapifyPlaceId?: string): Promise<Restaurant | null> => {
     try {
       if (geoapifyPlaceId) {
@@ -267,6 +362,8 @@ export const useRestaurants = (
           .select('*')
           .eq('geoapify_place_id', geoapifyPlaceId)
           .maybeSingle();
+
+
 
 
         if (error) {
@@ -292,10 +389,14 @@ export const useRestaurants = (
   };
 
 
+
+
   const isAlreadyFavorited = useCallback(async (restaurantId: string): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
+
+
 
 
       // FIX: Use .select().limit(1) instead of .single() to check for existence without errors.
@@ -305,6 +406,8 @@ export const useRestaurants = (
         .eq('user_id', user.id)
         .eq('restaurant_id', restaurantId)
         .limit(1);
+
+
 
 
       if (error) {
@@ -320,7 +423,11 @@ export const useRestaurants = (
   }, []);
 
 
+
+
   const abortControllerRef = useRef<AbortController | null>(null);
+
+
 
 
   const searchRestaurants = async (
@@ -332,6 +439,8 @@ export const useRestaurants = (
     const query = isAdvanced ? (searchParams as AdvancedSearchQuery).name : (searchParams as string);
 
 
+
+
     if (!query.trim()) { setSearchResults([]); return; }
     if (abortControllerRef.current) { abortControllerRef.current.abort(); }
     const abortController = new AbortController();
@@ -339,6 +448,8 @@ export const useRestaurants = (
     setIsSearching(true);
     setSearchError(null);
     setSearchResults([]);
+
+
 
 
     try {
@@ -351,6 +462,8 @@ export const useRestaurants = (
       let apiResults: any[] = [];
 
 
+
+
       if (isAdvanced) {
         const { name, street, city } = searchParams as AdvancedSearchQuery;
         searchTextForSimilarity = [name, street, city].filter(Boolean).join(', ');
@@ -358,6 +471,8 @@ export const useRestaurants = (
        
         const params = new URLSearchParams({ apiKey: apiKey, type: 'amenity' });
         let clientSideFilter: ((feature: GeoapifyPlace) => boolean) | null = null;
+
+
 
 
         if (city) {
@@ -380,6 +495,8 @@ export const useRestaurants = (
           params.set('limit', '20');
 
 
+
+
         } else if (street) {
           const searchTextForApi = [name, street].filter(Boolean).join(', ');
           console.log(`💡 Advanced search with street, no city. Biasing to user location to prevent API error.`);
@@ -390,9 +507,13 @@ export const useRestaurants = (
           }
 
 
+
+
           const normalizedStreet = normalizeText(street);
           clientSideFilter = (feature) =>
             !!(feature.properties.formatted && normalizeText(feature.properties.formatted).includes(normalizedStreet));
+
+
 
 
         } else {
@@ -421,6 +542,8 @@ export const useRestaurants = (
         }
 
 
+
+
       } else {
         // --- BASIC SEARCH LOGIC ---
         const basicQuery = searchParams as string;
@@ -441,6 +564,8 @@ export const useRestaurants = (
                    
                     const geocodeData = await geocodeResponse.json();
                     if (!geocodeData.features || geocodeData.features.length === 0) return [];
+
+
 
 
                     const { lat, lon } = geocodeData.features[0].properties;
@@ -470,6 +595,8 @@ export const useRestaurants = (
             ]);
 
 
+
+
             console.log(`   > Smart search found ${smartResults.length}, Text search found ${textResults.length}`);
             const combined = [...smartResults, ...textResults];
             // De-duplicate the merged results
@@ -477,6 +604,8 @@ export const useRestaurants = (
                 index === self.findIndex(r => r.properties.place_id === result.properties.place_id)
             );
             console.log(`   > Found ${apiResults.length} unique results after merge.`);
+
+
 
 
         } else {
@@ -496,6 +625,8 @@ export const useRestaurants = (
             }
         }
       }
+
+
 
 
       // --- COMMON PROCESSING FOR ALL SEARCH TYPES ---
@@ -544,6 +675,8 @@ export const useRestaurants = (
       const uniqueResults = allResults.filter((result, index, array) => array.findIndex(r => r.place_id === result.place_id) === index );
 
 
+
+
       const rankedResults = uniqueResults
         .sort((a, b) => {
           if (Math.abs(b.score - a.score) < 10) {
@@ -554,9 +687,13 @@ export const useRestaurants = (
         .slice(0, 15);
 
 
+
+
       const finalResults = rankedResults.map(({ score, distance, ...result }) => result);
       console.log(`🎯 Final results: ${finalResults.length} restaurants`);
       setSearchResults(finalResults);
+
+
 
 
     } catch (err: any) {
@@ -568,6 +705,8 @@ export const useRestaurants = (
       abortControllerRef.current = null;
     }
   };
+
+
 
 
   const getRestaurantDetails = async (placeId: string): Promise<GeoapifyPlaceDetails | null> => {
@@ -592,6 +731,8 @@ export const useRestaurants = (
   };
 
 
+
+
   const addRestaurant = async (restaurantDataOrName: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> | string): Promise<Restaurant | boolean | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -611,6 +752,22 @@ export const useRestaurants = (
             geoapify_place_id: undefined,
           }
         : restaurantDataOrName;
+
+
+      // MODIFIED: If we have address data but no coordinates, try to geocode it.
+      if (restaurantData.address && (restaurantData.latitude === null || restaurantData.longitude === null)) {
+        console.log('📍 Geocoding manually added address...');
+        const coords = await geocodeAddress(restaurantData);
+        if (coords) {
+          console.log('📍 Geocoding successful:', coords);
+          restaurantData.latitude = coords.latitude;
+          restaurantData.longitude = coords.longitude;
+        } else {
+          console.warn('📍 Geocoding failed for address, coordinates will be null.');
+        }
+      }
+
+
       const duplicate = await isDuplicateRestaurant( restaurantData.name, restaurantData.address || undefined, restaurantData.geoapify_place_id || undefined );
       if (duplicate) {
         const alreadyFavorited = await isAlreadyFavorited(duplicate.id);
@@ -630,6 +787,8 @@ export const useRestaurants = (
   };
 
 
+
+
   const addToFavorites = async (restaurant: Restaurant): Promise<void> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -642,6 +801,8 @@ export const useRestaurants = (
   };
 
 
+
+
   const addRestaurantAndFavorite = async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>): Promise<Restaurant> => {
     const result = await addRestaurant(restaurantData);
     if (typeof result === 'boolean' || !result) { throw new Error('Failed to add restaurant to catalog'); }
@@ -652,10 +813,51 @@ export const useRestaurants = (
   };
 
 
+
+
   const updateRestaurant = async (restaurantId: string, updates: Partial<Restaurant>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { throw new Error('User not authenticated'); }
+
+
+      // MODIFIED: If an address field is being changed, we must re-geocode.
+      const isAddressChanging = 'address' in updates || 'city' in updates || 'state' in updates || 'zip_code' in updates || 'country' in updates;
+
+
+      if (isAddressChanging) {
+        console.log('📍 Address changed, attempting to re-geocode...');
+        
+        // To get a complete address for geocoding, we need the existing restaurant data.
+        const { data: currentRestaurant, error: fetchError } = await supabase
+            .from('restaurants')
+            .select('address, city, state, zip_code, country')
+            .eq('id', restaurantId)
+            .single();
+
+
+        if (fetchError) {
+            console.error('Failed to fetch current restaurant for geocoding, geocoding may be inaccurate or fail.', fetchError);
+        }
+        
+        // Merge current data with incoming updates to form a complete address object for the geocoder.
+        const addressForGeocoding = { ...(currentRestaurant || {}), ...updates };
+        const coords = await geocodeAddress(addressForGeocoding);
+
+
+        if (coords) {
+            console.log('📍 Re-geocoding successful:', coords);
+            updates.latitude = coords.latitude;
+            updates.longitude = coords.longitude;
+        } else {
+            console.warn('📍 Re-geocoding failed. Coordinates will be cleared to avoid staleness.');
+            // Clear coordinates to prevent having a new address with old, incorrect lat/lon.
+            updates.latitude = null;
+            updates.longitude = null;
+        }
+      }
+
+
 
 
       const { data, error } = await supabase
@@ -668,7 +870,11 @@ export const useRestaurants = (
         .single();
 
 
+
+
       if (error) throw error;
+
+
 
 
       setRestaurants(prev => {
@@ -701,6 +907,8 @@ export const useRestaurants = (
   };
 
 
+
+
   const removeFromFavorites = async (restaurantId: string): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { throw new Error('User must be authenticated'); }
@@ -709,14 +917,20 @@ export const useRestaurants = (
   };
 
 
+
+
   const deleteRestaurant = async (restaurantId: string): Promise<void> => {
     return removeFromFavorites(restaurantId);
   };
 
 
+
+
   const importRestaurant = async (geoapifyPlace: GeoapifyPlace): Promise<string | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { throw new Error('User must be authenticated'); }
+
+
 
 
     // FIX: Handle restaurants that are already in our DB directly.
@@ -725,10 +939,14 @@ export const useRestaurants = (
       const { data: restaurant, error } = await supabase.from('restaurants').select('*').eq('id', restaurantId).single();
 
 
+
+
       if (error || !restaurant) {
         console.error(`Failed to find DB restaurant with ID ${restaurantId}`, error);
         throw new Error('Could not find the selected restaurant in the database.');
       }
+
+
 
 
       await addToFavorites(restaurant as Restaurant);
@@ -736,15 +954,21 @@ export const useRestaurants = (
     }
 
 
+
+
     // --- MODIFIED: Clean the address before parsing to remove the restaurant name. ---
     const placeName = geoapifyPlace.properties.name;
     let addressToParse = geoapifyPlace.properties.formatted;
+
+
 
 
     // If the formatted address starts with the place name, strip it for cleaner parsing.
     if (addressToParse.toLowerCase().startsWith(placeName.toLowerCase())) {
         addressToParse = addressToParse.substring(placeName.length).replace(/^,?\s*/, '');
     }
+
+
 
 
     const parsed = parseAddress(addressToParse);
@@ -768,10 +992,14 @@ export const useRestaurants = (
   };
 
 
+
+
   const clearSearchResults = () => {
     setSearchResults([]);
     setSearchError(null);
   };
+
+
 
 
   const resetSearch = () => {
@@ -781,6 +1009,8 @@ export const useRestaurants = (
       abortControllerRef.current = null;
     }
   };
+
+
 
 
   return {
