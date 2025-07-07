@@ -1,4 +1,4 @@
-﻿// src/RatingsScreen.tsx - MODIFIED in its entirety for React Router
+﻿// src/RatingsScreen.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
@@ -351,18 +351,25 @@ const RatingsScreen: React.FC = () => {
     <div className="min-h-screen flex flex-col font-sans" style={{ background: COLORS.background, paddingBottom: SPACING[8] }}>
       <main style={{ flex: 1, maxWidth: '768px', width: '100%', margin: '0 auto' }}>
         <div className="max-w-md mx-auto space-y-6" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>My Ratings</h1>
-                <button
-                    onClick={() => setShowSearch(!showSearch)}
-                    className={`w-12 h-12 rounded-full hover:opacity-80 active:opacity-70 transition-all focus:outline-none flex items-center justify-center`}
-                    style={{ ...STYLES.iconButton, backgroundColor: showSearch ? COLORS.accent : COLORS.iconBackground, color: showSearch ? COLORS.textWhite : COLORS.iconPrimary, boxShadow: showSearch ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'}}
-                    aria-label="Toggle search"
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                </button>
-            </div>
-
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>My Ratings</h1>
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`w-12 h-12 rounded-full hover:opacity-80 active:opacity-70 transition-all focus:outline-none flex items-center justify-center`}
+              style={{
+                ...STYLES.iconButton,
+                backgroundColor: showSearch ? COLORS.accent : COLORS.iconBackground,
+                color: showSearch ? COLORS.textWhite : COLORS.iconPrimary,
+                boxShadow: showSearch ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                marginLeft: 'auto',
+                marginRight: SPACING[2],
+              }}
+              aria-label="Toggle search"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </button>
+            <img src="/my_ratings.png" alt="A stack of rated dishes" style={{ height: '95px' }} />
+          </div>
 
           {showSearch && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -376,7 +383,6 @@ const RatingsScreen: React.FC = () => {
               {hasSearchTerm && ( <div style={{ ...FONTS.elegant, fontSize: '14px', color: COLORS.text, opacity: 0.8, marginTop: '8px', marginBottom: 0 }}> {filteredGroups.length > 0 ? `Found ${filteredGroups.length} result${filteredGroups.length !== 1 ? 's' : ''}` : 'No matching ratings found'} </div> )}
             </div>
           )}
-
 
           {error && ( <div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p></div> )}
           {totalRatedDishes > 0 ? (

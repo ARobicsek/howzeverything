@@ -71,7 +71,7 @@ const DiscoveryScreen: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxDistance, setMaxDistance] = useState(25); // in miles
-  const [isDistanceFilterEnabled, setIsDistanceFilterEnabled] = useState(true);
+  const [isDistanceFilterEnabled, setIsDistanceFilterEnabled] = useState(false);
 
   // Data and loading states
   const [allDishes, setAllDishes] = useState<DishSearchResultWithRestaurant[]>([]);
@@ -291,7 +291,7 @@ const DiscoveryScreen: React.FC = () => {
         <div style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
             <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>Discover Dishes</h1>
-            <img src="/treasure_map.png" alt="A treasure map icon" style={{ height: '80px' }} />
+            <img src="/stolen_dish.png" alt="A treasure map icon" style={{ height: '100px' }} />
           </div>
           {showLocationBanner && <LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocation} isPermissionBlocked={isLocationPermissionBlocked} />}
 

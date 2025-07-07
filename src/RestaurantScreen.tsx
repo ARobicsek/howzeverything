@@ -405,7 +405,7 @@ const RestaurantScreen: React.FC = () => {
         <div className="max-w-md mx-auto space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
             <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>My Restaurants</h1>
-            <img src="/victorian_restaurant.png" alt="A Victorian-style restaurant illustration" style={{ height: '80px' }} />
+            <img src="/victorian_restaurant2.png" alt="A Victorian-style restaurant illustration" style={{ height: '95px' }} />
           </div>
           {error && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p></div>)}
           {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isLocationPermissionBlocked} />)}
