@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
-
 interface ProfileCardProps {
   onEditProfile?: () => void;
   showEditButton?: boolean;
 }
-
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   onEditProfile,
@@ -16,7 +14,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const { user, profile, signOut, loading, error } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
-
 
   const handleSignOut = async () => {
     try {
@@ -28,7 +25,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       setIsSigningOut(false);
     }
   };
-
 
   if (!user || !profile) {
     return (
@@ -49,7 +45,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
-
   // Get user initials for avatar fallback
   const getInitials = (name?: string | null): string => {
     if (!name) return user.email?.charAt(0).toUpperCase() ?? '?';
@@ -60,7 +55,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
     return names[0].charAt(0).toUpperCase();
   };
-
 
   const formatDate = (dateString: string): string => {
     try {
@@ -74,9 +68,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   };
 
-
   const initials = getInitials(profile.full_name);
-
 
   return (
     <div style={{
@@ -103,7 +95,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </p>
         </div>
       )}
-
 
       {/* Profile Header */}
       <div style={{
@@ -137,7 +128,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </span>
           )}
         </div>
-
 
         {/* Name and Email */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -177,7 +167,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       </div>
 
-
       {/* Profile Details */}
       <div style={{
         marginBottom: SPACING[6],
@@ -210,7 +199,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
-
         {profile.location && (
           <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
@@ -235,7 +223,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
-
         <div>
           <h4 style={{
             ...FONTS.body,
@@ -254,11 +241,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             color: COLORS.text,
             margin: 0
           }}>
-            {formatDate(profile.created_at)}
+            {formatDate(profile.created_at ?? '')}
           </p>
         </div>
       </div>
-
 
       {/* Action Buttons */}
       <div style={{
@@ -292,7 +278,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </button>
         )}
 
-
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
@@ -319,6 +304,5 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 };
-
 
 export default ProfileCard;

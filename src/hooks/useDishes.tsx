@@ -770,6 +770,45 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };    
 };
 
+/**
+ * NEW: Standalone function to update a dish rating from anywhere in the app.
+ * Does not manage state, only performs the DB operation.
+ */
+export const updateRatingForDish = async (
+  dishId: string,
+  userId: string,
+  rating: number
+): Promise<boolean> => {
+  try {
+    if (!userId) {
+      throw new Error("User must be authenticated to rate a dish.");
+    }
+
+    if (rating === 0) {
+      // User is removing their rating
+      const { error } = await supabase
+        .from('dish_ratings')
+        .delete()
+        .match({ dish_id: dishId, user_id: userId });
+      if (error) throw error;
+    } else {
+      // User is adding or updating their rating
+      const { error } = await supabase
+        .from('dish_ratings')
+        .upsert(
+          { dish_id: dishId, user_id: userId, rating: rating },
+          { onConflict: 'dish_id,user_id' }
+        );
+      if (error) throw error;
+    }
+    return true;
+  } catch (err) {
+    console.error("Error in updateRatingForDish:", err);
+    return false;
+  }
+};
+
+
 // NEW: Standalone function to search all dishes across all restaurants.
 export const searchAllDishes = async (
   searchTerm?: string,
@@ -806,7 +845,7 @@ export const searchAllDishes = async (
     console.error("Error searching all dishes:", error);
     throw error;
   }
-  
+ 
   // Type assertion and data processing
   const dishesWithDetails = (data as any[])?.map(d => {
     const ratings = (d.dish_ratings as DishRating[]) || [];
@@ -819,7 +858,7 @@ export const searchAllDishes = async (
       id: comment.id, dish_id: comment.dish_id || d.id, comment_text: comment.comment_text, created_at: comment.created_at, updated_at: comment.updated_at, user_id: comment.user_id,
       commenter_name: comment.users?.full_name || 'Anonymous User', commenter_email: comment.users?.email
     })) || [];
-    
+   
     const photosWithInfo: DishPhoto[] = (d.dish_photos as any[] || [])
       .map((photo: any) => {
         const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(photo.storage_path);

@@ -1,4 +1,4 @@
-// src/RestaurantScreen.tsx - MODIFIED and in its entirety for React Router
+// src/RestaurantScreen.tsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
@@ -12,7 +12,6 @@ import type { AdvancedSearchQuery } from './hooks/useRestaurants';
 import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
 
-
 // Helper hook to get the previous value of a prop or state
 const usePrevious = (value: boolean): boolean | undefined => {
     const ref = React.useRef<boolean | undefined>(undefined);
@@ -21,7 +20,6 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
-
 
 // Device and browser detection utilities
 const getDeviceInfo = () => {
@@ -58,7 +56,6 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
-
 
 // Enhanced Location Permission Banner Component with OS/Browser Detection    
 const LocationPermissionBanner: React.FC<{    
@@ -107,7 +104,6 @@ const LocationPermissionBanner: React.FC<{
   );    
 };
 
-
 // Enhanced Search Animation Component      
 const SearchingIndicator: React.FC = () => {      
   const [dotCount, setDotCount] = useState(1);      
@@ -132,7 +128,6 @@ const SearchingIndicator: React.FC = () => {
     </div>      
   );      
 };
-
 
 // Fuzzy search algorithm for restaurant names        
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
@@ -163,7 +158,6 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   return Math.max(0, charSimilarity);        
 };
 
-
 const RestaurantScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -188,7 +182,6 @@ const RestaurantScreen: React.FC = () => {
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(true);
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
-
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {
     try {
       const locationData = { lat, lon, timestamp: Date.now() };
@@ -197,7 +190,6 @@ const RestaurantScreen: React.FC = () => {
       console.warn('Failed to save location to localStorage:', e);
     }
   }, []);
-
 
   const {
     restaurants, isLoading, error, addRestaurant, deleteRestaurant,
@@ -212,7 +204,6 @@ const RestaurantScreen: React.FC = () => {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
-
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -244,7 +235,6 @@ const RestaurantScreen: React.FC = () => {
       setPendingRestaurantId(null);
     }
   }, [restaurants, pendingRestaurantId, navigate]);
-
 
   const filteredAndSortedRestaurants = useMemo(() => {
     if (!searchTerm.trim()) return restaurants;
@@ -289,7 +279,6 @@ const RestaurantScreen: React.FC = () => {
     navigate(`/restaurants/${restaurantId}`);
   };
 
-
   const handleAddRestaurant = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => {
     const result = await addRestaurant(restaurantData);
     if (result && typeof result === 'object' && 'id' in result) {
@@ -315,7 +304,7 @@ const RestaurantScreen: React.FC = () => {
       handleNavigateToMenu(result);
     }
     setAddingRestaurantId(null);
-  }, [importRestaurant, clearSearchResults]);
+  }, [importRestaurant, clearSearchResults, handleNavigateToMenu]);
  
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
@@ -414,7 +403,10 @@ const RestaurantScreen: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
       <main style={{ flex: 1, maxWidth: '768px', width: '100%', margin: '0 auto' }}>
         <div className="max-w-md mx-auto space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
-          <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, marginBottom: SPACING[4] }}>My Restaurants</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
+            <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>My Restaurants</h1>
+            <img src="/victorian_restaurant.png" alt="A Victorian-style restaurant illustration" style={{ height: '80px' }} />
+          </div>
           {error && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p></div>)}
           {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isLocationPermissionBlocked} />)}
           {fetchingLocation && (<div className="bg-white/10 p-3 rounded-lg text-center"><p style={{ color: COLORS.text, ...FONTS.elegant }}>Getting your current location for better search results...</p></div>)}
@@ -483,6 +475,5 @@ const RestaurantScreen: React.FC = () => {
     </div>
   );
 };
-
 
 export default RestaurantScreen;

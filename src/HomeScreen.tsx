@@ -61,6 +61,7 @@ const HomeScreen: React.FC = () => {
           marginBottom: SPACING[10],
         }}>
           Trying to figure out what to order? HowzEverything lets you embrace your inner food critic, rating dishes and seeing what everyone else thought. 
+          <br />
           Never order a bad dish twice!
         </p>
 

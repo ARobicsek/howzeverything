@@ -1,4 +1,4 @@
-// src/MenuScreen.tsx - MODIFIED in its entirety for React Router
+// src/MenuScreen.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import DishCard from './components/DishCard';
@@ -178,7 +178,7 @@ const MenuScreen: React.FC = () => {
     addDish, deleteDish, updateDishRating, updateDishName, searchDishes,
     addComment, updateComment, deleteComment, addPhoto, deletePhoto, findSimilarDishesForDuplicate
   } = useDishes(restaurantId || '', sortBy);
-  
+ 
   // Set initial expanded dish from URL query parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -279,27 +279,27 @@ const MenuScreen: React.FC = () => {
   };
 
   const handleAddComment = async (dishId: string, text: string) => {
-    try { await addComment(dishId, text); } 
+    try { await addComment(dishId, text); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to add comment: ${err.message}` : 'Failed to add comment: An unknown error occurred.'); }
   };
 
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
-    try { await updateComment(commentId, newText); } 
+    try { await updateComment(commentId, newText); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to update comment: ${err.message}` : 'Failed to update comment: An unknown error occurred.'); }
   };
 
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
-    try { await deleteComment(commentId); } 
+    try { await deleteComment(commentId); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to delete comment: ${err.message}` : 'Failed to delete comment: An unknown error occurred.'); }
   };
 
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
-    try { await addPhoto(dishId, file, caption); } 
+    try { await addPhoto(dishId, file, caption); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to add photo: ${err.message}` : 'Failed to add photo: An unknown error occurred.'); }
   };
 
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
-    try { await deletePhoto(photoId); } 
+    try { await deletePhoto(photoId); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to delete photo: ${err.message}` : 'Failed to delete photo: An unknown error occurred.'); }
   };
 
@@ -324,6 +324,8 @@ const MenuScreen: React.FC = () => {
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen message="Loading menu..."/>;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={() => navigate('/restaurants')} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={() => navigate('/restaurants')} />;
+ 
+  const displayAddress = [restaurant.address, (restaurant as any).city].filter(Boolean).join(', ');
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
@@ -332,9 +334,16 @@ const MenuScreen: React.FC = () => {
           <button onClick={() => navigate('/restaurants')} style={STYLES.iconButton} aria-label="Go back to restaurants">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
           </button>
-          <h1 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, flex: 1, textAlign: 'center', margin: `0 ${SPACING[4]}`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={restaurant.name}>
-            {restaurant.name}
-          </h1>
+          <div style={{ flex: 1, textAlign: 'center', margin: `0 ${SPACING[2]}`, overflow: 'hidden' }}>
+            <h1 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={restaurant.name}>
+              {restaurant.name}
+            </h1>
+            {displayAddress && (
+              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7, fontSize: '0.8rem', lineHeight: '1.3', margin: '2px 0 0 0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                {displayAddress}
+              </p>
+            )}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
             <button onClick={handleToggleAllExpanded} style={{ ...STYLES.iconButton, backgroundColor: allExpanded ? COLORS.primary : COLORS.white, color: allExpanded ? COLORS.white : COLORS.gray700, border: allExpanded ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label={allExpanded ? "Collapse all dishes" : "Expand all dishes"}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">{allExpanded ? (<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z" />) : (<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />)}</svg>
