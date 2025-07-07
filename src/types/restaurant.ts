@@ -9,7 +9,7 @@ export interface Restaurant {
     state: string | null;
     zip_code: string | null;
     country: string | null;
-    manually_added: boolean | null;
+    manually_added: boolean;
     created_at: string;
     latitude: number | null; // Allow null as per database schema
     longitude: number | null; // Allow null as per database schema
