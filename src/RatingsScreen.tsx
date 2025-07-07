@@ -7,6 +7,7 @@ import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import type { DishPhoto, DishRating, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 
+
 interface UserRatingWithDish extends DishRating {
   dish: DishWithDetails;
   restaurant: {
@@ -15,6 +16,7 @@ interface UserRatingWithDish extends DishRating {
   };
 }
 
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -22,6 +24,7 @@ interface RestaurantGroup {
   };
   dishes: DishWithDetails[];
 }
+
 
 const RatingsScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -38,6 +41,7 @@ const RatingsScreen: React.FC = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [expandedRestaurantIds, setExpandedRestaurantIds] = useState<string[]>([]);
 
+
   const toggleRestaurantExpansion = (restaurantId: string) => {
     setExpandedRestaurantIds(prev =>
       prev.includes(restaurantId)
@@ -45,6 +49,7 @@ const RatingsScreen: React.FC = () => {
         : [...prev, restaurantId]
     );
   };
+
 
   // Get current user
   useEffect(() => {
@@ -54,6 +59,7 @@ const RatingsScreen: React.FC = () => {
     };
     getCurrentUser();
   }, []);
+
 
   useEffect(() => {
     const fetchUserRatings = async () => {
@@ -79,17 +85,18 @@ const RatingsScreen: React.FC = () => {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
+
         if (fetchError) throw fetchError;
-        
+       
         const ratingsWithDishes: UserRatingWithDish[] = (data || []).map((rating: any) => {
           const dish = rating.restaurant_dishes;
           if (!dish) return null;
-          
+         
           const commentsWithUserInfo = (dish.dish_comments || []).map((comment: any) => ({
             id: comment.id, dish_id: comment.dish_id || dish.id, comment_text: comment.comment_text, created_at: comment.created_at, updated_at: comment.updated_at, user_id: comment.user_id,
             commenter_name: comment.users?.full_name || 'Anonymous User', commenter_email: comment.users?.email
           }));
-          
+         
           const photosWithUrls: DishPhoto[] = (dish.dish_photos || []).map((photo: any) => {
               if (!photo.id || !photo.user_id || !photo.created_at) return null;
               const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(photo.storage_path);
@@ -99,24 +106,26 @@ const RatingsScreen: React.FC = () => {
               } as DishPhoto;
             }).filter((p: DishPhoto | null): p is DishPhoto => p !== null);
 
+
           const dishWithDetails: DishWithDetails = { ...dish, dish_comments: commentsWithUserInfo, dish_ratings: dish.dish_ratings || [], dish_photos: photosWithUrls, dateAdded: dish.created_at ?? new Date().toISOString() };
-          
+         
           return { ...rating, dish: dishWithDetails, restaurant: { id: dish.restaurants?.id || '', name: dish.restaurants?.name || 'Unknown Restaurant' } };
         }).filter(Boolean) as UserRatingWithDish[];
 
+
         setUserRatings(ratingsWithDishes);
-        
+       
         const groupedByRestaurant = ratingsWithDishes.reduce((groups: { [key: string]: RestaurantGroup }, rating) => {
           const restaurantId = rating.restaurant.id;
           if (!groups[restaurantId]) { groups[restaurantId] = { restaurant: rating.restaurant, dishes: [] }; }
           if (!groups[restaurantId].dishes.find(d => d.id === rating.dish.id)) { groups[restaurantId].dishes.push(rating.dish); }
           return groups;
         }, {});
-        
+       
         const groupsArray = Object.values(groupedByRestaurant)
           .map(group => ({ ...group, dishes: group.dishes.sort((a, b) => a.name.localeCompare(b.name)) }))
           .sort((a, b) => a.restaurant.name.localeCompare(b.restaurant.name));
-        
+       
         setRestaurantGroups(groupsArray);
         setFilteredGroups(groupsArray);
       } catch (err: any) {
@@ -128,6 +137,7 @@ const RatingsScreen: React.FC = () => {
     };
     fetchUserRatings();
   }, []);
+
 
   const performSearch = useCallback((term: string) => {
     if (!term.trim()) {
@@ -146,14 +156,17 @@ const RatingsScreen: React.FC = () => {
     setFilteredGroups(filtered);
   }, [restaurantGroups]);
 
+
   useEffect(() => {
     performSearch(searchTerm);
   }, [searchTerm, performSearch]);
+
 
   const handleResetSearch = useCallback(() => {
     setSearchTerm('');
     setFilteredGroups(restaurantGroups);
   }, [restaurantGroups]);
+
 
   const handleDeleteDish = async (dishId: string) => {
     if (!currentUserId) return;
@@ -169,6 +182,7 @@ const RatingsScreen: React.FC = () => {
       setError(`Failed to remove rating: ${err.message}`);
     }
   };
+
 
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     if (!currentUserId) return;
@@ -197,6 +211,7 @@ const RatingsScreen: React.FC = () => {
     }
   };
 
+
   const handleUpdateDishName = async (dishId: string, newName: string): Promise<boolean> => {
     if (!newName.trim()) return false;
     try {
@@ -212,6 +227,7 @@ const RatingsScreen: React.FC = () => {
       return false;
     }
   };
+
 
   const handleAddComment = async (dishId: string, commentText: string) => {
     if (!commentText.trim() || !currentUserId) return;
@@ -233,6 +249,7 @@ const RatingsScreen: React.FC = () => {
     }
   };
 
+
   const handleUpdateComment = async (commentId: string, dishId: string, newText: string) => {
     if (!newText.trim()) return;
     setIsSubmittingComment(true);
@@ -250,6 +267,7 @@ const RatingsScreen: React.FC = () => {
     }
   };
 
+
   const handleDeleteComment = async (dishId: string, commentId: string) => {
     setIsSubmittingComment(true);
     try {
@@ -265,6 +283,7 @@ const RatingsScreen: React.FC = () => {
       setIsSubmittingComment(false);
     }
   };
+
 
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     if (!currentUserId) return;
@@ -292,6 +311,7 @@ const RatingsScreen: React.FC = () => {
     }
   };
 
+
   const handleDeletePhoto = async (dishId: string, photoId: string) => {
     try {
       const { data: photo, error: fetchError } = await supabase.from('dish_photos').select('storage_path').eq('id', photoId).single();
@@ -309,6 +329,7 @@ const RatingsScreen: React.FC = () => {
     }
   };
 
+
   const handleShareDish = (dish: DishWithDetails, restaurantName: string) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
@@ -318,10 +339,13 @@ const RatingsScreen: React.FC = () => {
     }
   };
 
+
   if (isLoading) return <LoadingScreen />;
+
 
   const totalRatedDishes = userRatings?.length || 0;
   const hasSearchTerm = searchTerm.trim().length > 0;
+
 
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: COLORS.background, paddingBottom: SPACING[8] }}>
@@ -332,12 +356,13 @@ const RatingsScreen: React.FC = () => {
                 <button
                     onClick={() => setShowSearch(!showSearch)}
                     className={`w-12 h-12 rounded-full hover:opacity-80 active:opacity-70 transition-all focus:outline-none flex items-center justify-center`}
-                    style={{ ...STYLES.iconButton, backgroundColor: showSearch ? COLORS.primary : COLORS.iconBackground, color: showSearch ? COLORS.textWhite : COLORS.iconPrimary, boxShadow: showSearch ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'}}
+                    style={{ ...STYLES.iconButton, backgroundColor: showSearch ? COLORS.accent : COLORS.iconBackground, color: showSearch ? COLORS.textWhite : COLORS.iconPrimary, boxShadow: showSearch ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'}}
                     aria-label="Toggle search"
                 >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 </button>
             </div>
+
 
           {showSearch && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -352,6 +377,7 @@ const RatingsScreen: React.FC = () => {
             </div>
           )}
 
+
           {error && ( <div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p></div> )}
           {totalRatedDishes > 0 ? (
             <>
@@ -363,7 +389,7 @@ const RatingsScreen: React.FC = () => {
                     <div key={group.restaurant.id}>
                       <div onClick={() => !hasSearchTerm && toggleRestaurantExpansion(group.restaurant.id)} className="mb-4" style={{ cursor: hasSearchTerm ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <h2 style={{ ...FONTS.elegant, fontSize: '1.6rem', fontWeight: '600', color: COLORS.text, margin: '0 0 4px 0' }}>{group.restaurant.name}</h2>
+                          <h2 style={{ ...FONTS.elegant, fontSize: '1.125rem', fontWeight: '600', color: COLORS.text, margin: 0 }}>{group.restaurant.name}</h2>
                           <p style={{ ...FONTS.elegant, fontSize: '0.8rem', color: COLORS.text, opacity: 0.6, margin: 0 }}>{group.dishes?.length || 0} dish{(group.dishes?.length || 0) !== 1 ? 'es' : ''} rated</p>
                         </div>
                         {!hasSearchTerm && ( <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style={{ color: COLORS.text, opacity: 0.7, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease-out' }}><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg> )}
@@ -396,5 +422,6 @@ const RatingsScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default RatingsScreen;

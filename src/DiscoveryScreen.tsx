@@ -10,6 +10,7 @@ import { searchAllDishes } from './hooks/useDishes';
 import { enhancedDishSearch } from './utils/dishSearch';
 import { formatDistanceMiles, getDistanceFromLatLonInMiles } from './utils/geolocation';
 
+
 // Re-using the location permission banner from RestaurantScreen
 const LocationPermissionBanner: React.FC<{    
   onRequestPermission: () => void;    
@@ -35,6 +36,7 @@ const LocationPermissionBanner: React.FC<{
   );    
 };
 
+
 const ToggleSwitch: React.FC<{ checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled?: boolean }> = ({ checked, onChange, disabled }) => (
     <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px', opacity: disabled ? 0.5 : 1 }}>
         <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} style={{ opacity: 0, width: 0, height: 0 }} />
@@ -51,6 +53,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (e: React.ChangeEvent
     </label>
 );
 
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -60,9 +63,11 @@ interface RestaurantGroup {
   dishes: DishSearchResultWithRestaurant[];
 }
 
+
 const DiscoveryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,11 +75,13 @@ const DiscoveryScreen: React.FC = () => {
   const [maxDistance, setMaxDistance] = useState(25); // in miles
   const [isDistanceFilterEnabled, setIsDistanceFilterEnabled] = useState(true);
 
+
   // Data and loading states
   const [allDishes, setAllDishes] = useState<DishSearchResultWithRestaurant[]>([]);
   const [filteredAndGrouped, setFilteredAndGrouped] = useState<RestaurantGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   // Location states
   const [userLat, setUserLat] = useState<number | null>(null);
@@ -82,10 +89,11 @@ const DiscoveryScreen: React.FC = () => {
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
   const [showLocationBanner, setShowLocationBanner] = useState(true);
-  
+ 
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
 
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
@@ -93,6 +101,7 @@ const DiscoveryScreen: React.FC = () => {
     setMaxDistance(25);
     setIsDistanceFilterEnabled(true);
   }, []);
+
 
   const fetchAllDishes = useCallback(async () => {
     setIsLoading(true);
@@ -107,11 +116,11 @@ const DiscoveryScreen: React.FC = () => {
       setIsLoading(false);
     }
   }, []);
-  
+ 
   useEffect(() => {
     fetchAllDishes();
   }, [fetchAllDishes]);
-  
+ 
   const requestLocationPermission = useCallback(async () => {
     if (!navigator.geolocation || isRequestingLocation) return;
     setIsRequestingLocation(true);
@@ -134,6 +143,7 @@ const DiscoveryScreen: React.FC = () => {
     );
   }, [isRequestingLocation]);
 
+
   useEffect(() => {
     // Only request location if we don't have it.
     if (!userLat && !userLon) {
@@ -141,16 +151,18 @@ const DiscoveryScreen: React.FC = () => {
     }
   }, [requestLocationPermission, userLat, userLon]);
 
+
   const processAndFilterDishes = useCallback(() => {
     let results: DishSearchResultWithRestaurant[] = [];
-  
+ 
     if (searchTerm.trim().length > 1) {
         results = enhancedDishSearch(allDishes, searchTerm) as DishSearchResultWithRestaurant[];
     } else {
         results = allDishes;
     }
-    
+   
     results = results.filter(d => d.average_rating >= minRating);
+
 
     if (isDistanceFilterEnabled && userLat && userLon) {
       results = results.filter(dish => {
@@ -161,6 +173,7 @@ const DiscoveryScreen: React.FC = () => {
         return false;
       });
     }
+
 
     const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {
       const restaurantId = dish.restaurant.id;
@@ -178,15 +191,17 @@ const DiscoveryScreen: React.FC = () => {
       return acc;
     }, {});
 
+
     const sortedGroups = Object.values(grouped).sort((a, b) => {
         if (isDistanceFilterEnabled && userLat && userLon) {
             return (a.restaurant.distance ?? Infinity) - (b.restaurant.distance ?? Infinity);
         }
         return a.restaurant.name.localeCompare(b.restaurant.name);
     });
-    
+   
     setFilteredAndGrouped(sortedGroups);
   }, [allDishes, searchTerm, minRating, maxDistance, userLat, userLon, isDistanceFilterEnabled]);
+
 
   useEffect(() => {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -196,7 +211,7 @@ const DiscoveryScreen: React.FC = () => {
     setSearchDebounceTimer(timer);
     return () => clearTimeout(timer);
   }, [processAndFilterDishes]);
-  
+ 
   const handleShareDish = (dish: DishSearchResultWithRestaurant) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
@@ -206,9 +221,12 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
 
+
   if (isLoading && allDishes.length === 0) return <LoadingScreen message="Discovering amazing dishes..." />;
 
+
   const hasSearchTerm = searchTerm.trim().length > 0;
+
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
@@ -216,44 +234,43 @@ const DiscoveryScreen: React.FC = () => {
         <div style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
           <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, marginBottom: SPACING[4] }}>Discover Dishes</h1>
           {showLocationBanner && <LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocation} isPermissionBlocked={isLocationPermissionBlocked} />}
-          
-          <div style={{ backgroundColor: COLORS.white, padding: SPACING[4], borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowMedium, marginBottom: SPACING[6] }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: SPACING[4] }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[2] }}>
-                    <label htmlFor="discover-search" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary }}>Dish Name</label>
-                    {hasSearchTerm && (<button onClick={handleResetFilters} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary, transition: 'color 0.2s ease, transform 0.2s ease' }} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
-                </div>
-                <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g., 'Ramen', 'Tacos', 'Apple Pie'" style={STYLES.input} />
+         
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: SPACING[3], marginBottom: SPACING[6] }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[2] }}>
+                  <label htmlFor="discover-search" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary }}>Dish Name</label>
+                  {hasSearchTerm && (<button onClick={handleResetFilters} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary, transition: 'color 0.2s ease, transform 0.2s ease' }} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
               </div>
-              
-              <div>
-                <label htmlFor="discover-rating" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>Minimum Rating: <span style={{color: COLORS.accent, fontWeight: 'bold'}}>{minRating.toFixed(1)} ★</span></label>
-                <input id="discover-rating" type="range" min="0" max="5" step="0.5" value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={{ width: '100%', accentColor: COLORS.accent }} />
-              </div>
-
-              {userLat && userLon && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[2] }}>
-                        <label htmlFor="discover-distance" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary }}>
-                            Distance: <span style={{color: COLORS.accent, fontWeight: 'bold'}}>{isDistanceFilterEnabled ? `within ${maxDistance} mi` : 'Any'}</span>
-                        </label>
-                        <ToggleSwitch checked={isDistanceFilterEnabled} onChange={(e) => setIsDistanceFilterEnabled(e.target.checked)} />
-                    </div>
-                  <input id="discover-distance" type="range" min="1" max="50" step="1" value={maxDistance} onChange={e => setMaxDistance(parseInt(e.target.value, 10))} style={{ width: '100%', accentColor: COLORS.accent }} disabled={!isDistanceFilterEnabled} />
-                </div>
-              )}
+              <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g., 'Ramen', 'Tacos', 'Apple Pie'" style={STYLES.input} />
             </div>
+           
+            <div>
+              <label htmlFor="discover-rating" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>Minimum Rating: <span style={{color: COLORS.accent, fontWeight: 'bold'}}>{minRating.toFixed(1)} ★</span></label>
+              <input id="discover-rating" type="range" min="0" max="5" step="0.5" value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={{ width: '100%', accentColor: COLORS.accent }} />
+            </div>
+
+
+            {userLat && userLon && (
+              <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[2] }}>
+                      <label htmlFor="discover-distance" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary }}>
+                          Distance: <span style={{color: COLORS.accent, fontWeight: 'bold'}}>{isDistanceFilterEnabled ? `within ${maxDistance} mi` : 'Any'}</span>
+                      </label>
+                      <ToggleSwitch checked={isDistanceFilterEnabled} onChange={(e) => setIsDistanceFilterEnabled(e.target.checked)} />
+                  </div>
+                <input id="discover-distance" type="range" min="1" max="50" step="1" value={maxDistance} onChange={e => setMaxDistance(parseInt(e.target.value, 10))} style={{ width: '100%', accentColor: COLORS.accent }} disabled={!isDistanceFilterEnabled} />
+              </div>
+            )}
           </div>
-          
+         
           {error && <p style={{ color: COLORS.danger }}>{error}</p>}
-          
-          <div className="space-y-6">
+         
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[8] }}>
             {filteredAndGrouped.length > 0 ? (
               filteredAndGrouped.map((group) => (
                 <div key={group.restaurant.id}>
                   <div className="mb-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${COLORS.gray200}`, paddingBottom: SPACING[2] }}>
-                    <h2 style={{ ...FONTS.elegant, fontSize: '1.6rem', fontWeight: '600', color: COLORS.text, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
+                    <h2 style={{ ...FONTS.elegant, fontSize: '1.125rem', fontWeight: '600', color: COLORS.text, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
                     {group.restaurant.distance !== undefined && isDistanceFilterEnabled && (
                       <span style={{...FONTS.body, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, flexShrink: 0, marginLeft: SPACING[3]}}>
                         {formatDistanceMiles(group.restaurant.distance)}
@@ -286,5 +303,6 @@ const DiscoveryScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default DiscoveryScreen;

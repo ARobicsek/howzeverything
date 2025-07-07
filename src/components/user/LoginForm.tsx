@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
+
 interface LoginFormProps {  
   onSuccess?: () => void;  
   onCancel?: () => void;  
 }
+
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {  
   const { signIn, signUp, loading, error, clearError } = useAuth();  
@@ -17,34 +19,40 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
   const [username, setUsername] = useState('');  
   const [validationError, setValidationError] = useState('');  
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  
+ 
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+
   const validateForm = (): boolean => {  
     setValidationError('');  
     clearError();
+
 
     if (!email.trim()) {  
       setValidationError('Email is required');  
       return false;  
     }
 
+
     if (!email.includes('@')) {  
       setValidationError('Please enter a valid email address');  
       return false;  
     }
+
 
     if (!password) {  
       setValidationError('Password is required');  
       return false;  
     }
 
+
     if (password.length < 4) {  
       setValidationError('Password must be at least 4 characters');  
       return false;  
     }
+
 
     if (mode === 'signup') {  
       if (!username.trim()) {  
@@ -52,10 +60,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
         return false;  
       }
 
+
       if (username.trim().length < 2) {  
         setValidationError('Username must be at least 2 characters');  
         return false;  
       }
+
 
       if (password !== confirmPassword) {  
         setValidationError('Passwords do not match');  
@@ -63,15 +73,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
       }  
     }
 
+
     return true;  
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {  
     e.preventDefault();  
      
     if (!validateForm()) return;
 
+
     let success = false;
+
 
     if (mode === 'signin') {  
       success = await signIn(email, password);  
@@ -79,10 +93,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
       success = await signUp(email, password, username.trim());  
     }
 
+
     if (success && onSuccess) {  
       onSuccess();  
     }  
   };
+
 
   const toggleMode = () => {  
     setMode(mode === 'signin' ? 'signup' : 'signin');  
@@ -96,7 +112,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     setShowConfirmPassword(false);
   };
 
+
   const displayError = validationError || error;
+
 
   const getInputStyle = (fieldName: string) => ({  
     ...STYLES.input,  
@@ -104,12 +122,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     opacity: loading ? 0.5 : 1  
   });
 
+
   // Style for password input container
   const passwordInputContainerStyle: React.CSSProperties = {
     position: 'relative',
     display: 'flex',
     alignItems: 'center'
   };
+
 
   // Style for password toggle button
   const passwordToggleButtonStyle: React.CSSProperties = {
@@ -129,16 +149,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     zIndex: 1
   };
 
+
   // Eye icon SVG component
   const EyeIcon = ({ isVisible }: { isVisible: boolean }) => (
-    <svg 
-      width="20" 
-      height="20" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       {isVisible ? (
@@ -156,6 +177,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
       )}
     </svg>
   );
+
 
   return (  
     <div style={STYLES.modalOverlay}>  
@@ -187,6 +209,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           </p>  
         </div>
 
+
         {/* Error Display */}  
         {displayError && (  
           <div style={{  
@@ -206,6 +229,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             </p>  
           </div>  
         )}
+
 
         {/* Form */}  
         <form onSubmit={handleSubmit}>  
@@ -243,6 +267,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             </div>  
           )}
 
+
           <div style={{ marginBottom: SPACING[5] }}>  
             <label style={{  
               ...FONTS.body,  
@@ -266,6 +291,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               autoComplete="email"  
             />  
           </div>
+
 
           <div style={{ marginBottom: mode === 'signup' ? SPACING[5] : SPACING[6] }}>  
             <label style={{  
@@ -312,6 +338,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               </button>
             </div>
           </div>
+
 
           {mode === 'signup' && (  
             <div style={{ marginBottom: SPACING[6] }}>  
@@ -361,6 +388,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             </div>  
           )}
 
+
           {/* Submit Button */}  
           <button  
             type="submit"  
@@ -372,17 +400,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               marginBottom: SPACING[4],  
               opacity: loading ? 0.5 : 1,  
               cursor: loading ? 'not-allowed' : 'pointer',  
-              backgroundColor: loading ? COLORS.gray300 : COLORS.primary,  
+              backgroundColor: loading ? COLORS.gray300 : COLORS.accent,  
               borderColor: loading ? COLORS.gray300 : COLORS.black  
             }}  
             onMouseEnter={(e) => {  
               if (!loading) {  
-                e.currentTarget.style.backgroundColor = COLORS.primaryHover;  
+                e.currentTarget.style.backgroundColor = COLORS.accent;  
               }  
             }}  
             onMouseLeave={(e) => {  
               if (!loading) {  
-                e.currentTarget.style.backgroundColor = COLORS.primary;  
+                e.currentTarget.style.backgroundColor = COLORS.accent;  
               }  
             }}  
           >  
@@ -403,6 +431,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             )}  
           </button>
 
+
           {/* Mode Toggle */}  
           <div style={{ textAlign: 'center', marginBottom: SPACING[4] }}>  
             <button  
@@ -413,7 +442,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 ...FONTS.body,  
                 background: 'none',  
                 border: 'none',  
-                color: COLORS.primary,  
+                color: COLORS.accent,  
                 fontSize: TYPOGRAPHY.sm.fontSize,  
                 cursor: loading ? 'not-allowed' : 'pointer',  
                 textDecoration: 'none',  
@@ -424,7 +453,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               }}  
               onMouseEnter={(e) => {  
                 if (!loading) {  
-                  e.currentTarget.style.backgroundColor = COLORS.gray50;  
+                  e.currentTarget.style.backgroundColor = `${COLORS.accent}2A`;
                 }  
               }}  
               onMouseLeave={(e) => {  
@@ -437,6 +466,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             </button>  
           </div>
 
+
           {/* Cancel Button */}  
           {onCancel && (  
             <button  
@@ -446,9 +476,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               style={{  
                 ...STYLES.secondaryButton,  
                 width: '100%',  
+                color: COLORS.black,
+                borderColor: COLORS.black,
                 opacity: loading ? 0.5 : 1,  
                 cursor: loading ? 'not-allowed' : 'pointer'  
               }}  
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = COLORS.gray100;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >  
               Cancel  
             </button>  
@@ -458,5 +500,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
     </div>  
   );  
 };
+
 
 export default LoginForm;

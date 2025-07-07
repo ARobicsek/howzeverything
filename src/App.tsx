@@ -2,9 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
+
 import { COLORS, FONTS } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
+
 
 // Screens
 import AboutScreen from './AboutScreen'; // Will be added in the next phase
@@ -17,16 +19,20 @@ import ProfileScreen from './ProfileScreen';
 import RatingsScreen from './RatingsScreen';
 import RestaurantScreen from './RestaurantScreen';
 
+
 // User components
 import LoginForm from './components/user/LoginForm';
 import UserForm from './components/user/UserForm';
+
 
 // New Navigation
 import NavigationModal from './components/navigation/NavigationModal';
 import TopNavigation from './components/navigation/TopNavigation';
 
+
 // ADDED: Import sharing utilities
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler';
+
 
 // This component will handle the shared content logic within the router context
 const SharedContentHandler: React.FC = () => {
@@ -35,13 +41,16 @@ const SharedContentHandler: React.FC = () => {
     const navigate = useNavigate();
     const [hasProcessed, setHasProcessed] = useState(false);
 
+
     useEffect(() => {
         const process = async () => {
             if (!user || hasProcessed) return;
 
+
             const sharedContent = parseSharedUrl();
             if (sharedContent) {
                 console.log('Processing shared content for logged-in user:', sharedContent);
+
 
                 const success = await handleSharedContent(
                     sharedContent,
@@ -56,6 +65,7 @@ const SharedContentHandler: React.FC = () => {
                     (screen: string) => navigate(`/${screen}`)
                 );
 
+
                 if (success) {
                     clearSharedUrlParams();
                     setHasProcessed(true);
@@ -63,19 +73,23 @@ const SharedContentHandler: React.FC = () => {
             }
         };
 
+
         process();
     }, [user, addToFavorites, navigate, hasProcessed]);
    
     return null;
 };
 
+
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
     const { user, loading } = useAuth();
     const location = useLocation();
 
+
     if (loading) {
         return <LoadingScreen />;
     }
+
 
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
@@ -84,12 +98,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
     return children;
 };
 
+
 const AppRoutes: React.FC = () => {
     const { user, profile, loading: authLoading, createProfile } = useAuth();
     const [showProfileEdit, setShowProfileEdit] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
 
     useEffect(() => {
         if (!user || profile !== null || authLoading) return;
@@ -111,7 +127,9 @@ const AppRoutes: React.FC = () => {
         return () => { isMounted = false; clearTimeout(timeoutId) };
     }, [user, profile, authLoading, createProfile]);
 
+
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
 
     const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
    
@@ -120,6 +138,7 @@ const AppRoutes: React.FC = () => {
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
             <SharedContentHandler />
+
 
             <main>
                 <Routes>
@@ -145,6 +164,7 @@ const AppRoutes: React.FC = () => {
                 </button>
             )}
 
+
             {showProfileEdit && user && (
                 <UserForm onSuccess={() => setShowProfileEdit(false)} onCancel={() => setShowProfileEdit(false)} />
             )}
@@ -152,19 +172,16 @@ const AppRoutes: React.FC = () => {
     );
 }
 
+
 const AuthFlow: React.FC = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const from = location.state?.from?.pathname || "/home";
 
     const handleLoginSuccess = () => {
-        const sharedContent = parseSharedUrl();
-        if (!sharedContent) {
-            navigate(from, { replace: true });
-        } else {
-             navigate('/home', { replace: true });
-        }
+        // Per requirement, always redirect to the homepage after a successful login.
+        // The SharedContentHandler will take care of any URL-based redirection from there.
+        navigate('/home', { replace: true });
     };
+
 
     return (
       <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>
@@ -183,8 +200,10 @@ const AuthFlow: React.FC = () => {
     );
 };
 
+
 const App: React.FC = () => {
   const { loading: authLoading } = useAuth();
+
 
   if (authLoading) {
     return <LoadingScreen />;
@@ -203,5 +222,6 @@ const App: React.FC = () => {
     </BrowserRouter>
   );
 };
+
 
 export default App;

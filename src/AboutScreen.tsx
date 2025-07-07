@@ -26,7 +26,7 @@ const AboutScreen: React.FC = () => {
             Our Mission
           </h2>
           <p>
-            Our mission is to end "menu anxiety" and help people make better dining decisions by focusing on what matters most: the food itself. While restaurant reviews are helpful, the quality of individual dishes can vary wildly. We empower a community of food lovers to rate and discover specific dishes, creating a global, dish-level guide to the world's best food.
+            Hate wasting money on lousy food? Us too! Our mission is to end "menu anxiety" and help people make better dining decisions by focusing on what matters most: the food itself. While restaurant reviews are helpful, the quality of individual dishes can vary wildly. We empower a community of food lovers to rate and discover specific dishes, creating a global, dish-level guide to the world's best food.
           </p>
 
           <h2 style={{ ...TYPOGRAPHY.h2, marginTop: SPACING[8], marginBottom: SPACING[3] }}>

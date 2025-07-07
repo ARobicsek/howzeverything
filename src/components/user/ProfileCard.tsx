@@ -3,17 +3,20 @@ import React, { useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
+
 interface ProfileCardProps {
   onEditProfile?: () => void;
   showEditButton?: boolean;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ 
-  onEditProfile, 
-  showEditButton = true 
+
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  onEditProfile,
+  showEditButton = true
 }) => {
   const { user, profile, signOut, loading, error } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
 
   const handleSignOut = async () => {
     try {
@@ -25,6 +28,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       setIsSigningOut(false);
     }
   };
+
 
   if (!user || !profile) {
     return (
@@ -45,16 +49,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
+
   // Get user initials for avatar fallback
   const getInitials = (name?: string | null): string => {
     if (!name) return user.email?.charAt(0).toUpperCase() ?? '?';
-    
+   
     const names = name.trim().split(' ');
     if (names.length >= 2) {
       return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
     }
     return names[0].charAt(0).toUpperCase();
   };
+
 
   const formatDate = (dateString: string): string => {
     try {
@@ -68,7 +74,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   };
 
+
   const initials = getInitials(profile.full_name);
+
 
   return (
     <div style={{
@@ -96,6 +104,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       )}
 
+
       {/* Profile Header */}
       <div style={{
         display: 'flex',
@@ -107,7 +116,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          backgroundColor: profile.avatar_url ? 'transparent' : COLORS.primary,
+          backgroundColor: profile.avatar_url ? 'transparent' : COLORS.accent,
           backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -128,6 +137,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </span>
           )}
         </div>
+
 
         {/* Name and Email */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -154,8 +164,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               ...FONTS.body,
               fontSize: TYPOGRAPHY.xs.fontSize,
               fontWeight: TYPOGRAPHY.semibold,
-              color: COLORS.primary,
-              backgroundColor: COLORS.primaryLight,
+              color: COLORS.accent,
+              backgroundColor: `${COLORS.accent}2A`,
               padding: `${SPACING[1]} ${SPACING[3]}`,
               borderRadius: STYLES.borderRadiusSmall,
               display: 'inline-block',
@@ -167,8 +177,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       </div>
 
+
       {/* Profile Details */}
-      <div style={{ 
+      <div style={{
         marginBottom: SPACING[6],
         paddingTop: SPACING[5],
         borderTop: `1px solid ${COLORS.gray100}`
@@ -199,6 +210,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
+
         {profile.location && (
           <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
@@ -223,6 +235,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
+
         <div>
           <h4 style={{
             ...FONTS.body,
@@ -246,6 +259,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       </div>
 
+
       {/* Action Buttons */}
       <div style={{
         display: 'flex',
@@ -259,17 +273,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             style={{
               ...STYLES.primaryButton,
               width: '100%',
+              backgroundColor: COLORS.accent,
               opacity: loading ? 0.5 : 1,
               cursor: loading ? 'not-allowed' : 'pointer'
             }}
             onMouseEnter={(e) => {
               if (!loading) {
-                e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+                e.currentTarget.style.backgroundColor = COLORS.accent;
               }
             }}
             onMouseLeave={(e) => {
               if (!loading) {
-                e.currentTarget.style.backgroundColor = COLORS.primary;
+                e.currentTarget.style.backgroundColor = COLORS.accent;
               }
             }}
           >
@@ -277,20 +292,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </button>
         )}
 
+
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
           style={{
             ...STYLES.secondaryButton,
             width: '100%',
-            color: COLORS.danger,
-            borderColor: COLORS.danger,
+            color: COLORS.black,
+            borderColor: COLORS.black,
             opacity: (loading || isSigningOut) ? 0.5 : 1,
             cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer'
           }}
           onMouseEnter={(e) => {
             if (!loading && !isSigningOut) {
-              e.currentTarget.style.backgroundColor = '#FEF2F2';
+              e.currentTarget.style.backgroundColor = COLORS.gray100;
             }
           }}
           onMouseLeave={(e) => {
@@ -303,5 +319,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 };
+
 
 export default ProfileCard;
