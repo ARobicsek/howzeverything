@@ -1,8 +1,9 @@
 // src/components/shared/AddressInput.tsx
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import type { AddressFormData } from '../../types/address';
 import { parseAddress } from '../../utils/addressParser';
+import { incrementGeoapifyCount, logGeoapifyCount } from '../../utils/apiCounter';
 
 
 // --- Step 1: Define InputField OUTSIDE the main component ---
@@ -39,8 +40,6 @@ const InputField = ({
 );
 
 
-
-
 interface AddressInputProps {
   initialData: Partial<AddressFormData>;
   onAddressChange: (data: AddressFormData) => void;
@@ -59,54 +58,137 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
  
   const [isParsing, setIsParsing] = useState(false);
   const [parseMessage, setParseMessage] = useState<{ text: string, type: 'error' | 'success' } | null>(null);
- 
   const [showParsedFields, setShowParsedFields] = useState(
     !!(initialData.address || initialData.city || initialData.state)
   );
- 
-  // Memoize the parent callback so it's stable.
+
+
+  // --- Autocomplete State ---
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const suggestionsCache = useRef(new Map<string, any[]>());
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+
   const stableOnAddressChange = useCallback(onAddressChange, []);
 
 
-  const syncWithParent = () => {
-    stableOnAddressChange(formData);
+  const syncWithParent = (dataToSync: AddressFormData) => {
+    stableOnAddressChange(dataToSync);
   };
 
 
-  const handleParseAndSync = () => {
-    if (formData.fullAddress.trim() === '') {
+  const parseAndSync = (address: string) => {
+    if (address.trim() === '') {
       setParseMessage(null);
       setShowParsedFields(false);
-      const emptyData = { ...formData, address: '', city: '', state: '', zip_code: '', country: 'USA' };
+      const emptyData = { ...formData, fullAddress: '', address: '', city: '', state: '', zip_code: '', country: 'USA' };
       setFormData(emptyData);
-      stableOnAddressChange(emptyData); // Sync the now-empty state with the parent
+      syncWithParent(emptyData);
       return;
     }
 
 
     setIsParsing(true);
     setParseMessage(null);
-    const result = parseAddress(formData.fullAddress);
-   
-    const finalData = { ...formData, ...(result.data || {}) };
-   
+    const result = parseAddress(address);
+    const finalData = { ...formData, fullAddress: address, ...(result.data || {}) };
+    
     if (result.success) {
       setParseMessage(null);
     } else {
       setParseMessage({ text: result.error || 'Could not parse address.', type: 'error' });
     }
-   
+    
     setFormData(finalData);
     setShowParsedFields(true);
-    stableOnAddressChange(finalData); // Sync the final, parsed data with the parent.
+    syncWithParent(finalData);
     setIsParsing(false);
   };
 
 
+  const handleSuggestionClick = (suggestion: any) => {
+    const newFullAddress = suggestion.properties.formatted;
+    setSuggestions([]);
+    parseAndSync(newFullAddress);
+  };
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setSuggestions([]);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+
+  useEffect(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+
+    const trimmedQuery = formData.fullAddress.trim();
+    if (trimmedQuery.length < 3) {
+      setSuggestions([]);
+      setIsFetchingSuggestions(false);
+      return;
+    }
+
+
+    if (suggestionsCache.current.has(trimmedQuery)) {
+      setSuggestions(suggestionsCache.current.get(trimmedQuery)!);
+      return;
+    }
+
+
+    setIsFetchingSuggestions(true);
+    debounceTimer.current = setTimeout(async () => {
+      const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
+      if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+        setIsFetchingSuggestions(false);
+        return;
+      }
+
+
+      try {
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(trimmedQuery)}&apiKey=${apiKey}`;
+        incrementGeoapifyCount();
+        logGeoapifyCount();
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.features) {
+          setSuggestions(data.features);
+          suggestionsCache.current.set(trimmedQuery, data.features);
+        }
+      } catch (error) {
+        console.error("Error fetching address suggestions:", error);
+      } finally {
+        setIsFetchingSuggestions(false);
+      }
+    }, 600); // 600ms debounce delay
+
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [formData.fullAddress]);
+
+
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const updatedFormData = { ...formData, [name]: value };
+    setFormData(updatedFormData);
     setParseMessage(null);
+    syncWithParent(updatedFormData);
   };
 
 
@@ -116,24 +198,58 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
     if (value.trim() === '') {
         setShowParsedFields(false);
         setParseMessage(null);
+        setSuggestions([]);
     }
   };
 
 
   return (
-    <div>
-      <div style={{ marginBottom: SPACING[2] }}>
+    <div ref={containerRef}>
+      <div style={{ marginBottom: SPACING[2], position: 'relative' }}>
         <label style={{...FONTS.body, display: 'block', fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, marginBottom: SPACING[2]}}>
           Full Address
         </label>
         <textarea
           value={formData.fullAddress}
           onChange={handleFullAddressChange}
-          onBlur={handleParseAndSync} // Parse AND sync on blur
+          onBlur={() => parseAndSync(formData.fullAddress)}
           placeholder="e.g., 160 Commonwealth Ave, Boston, MA 02116"
           style={{ ...STYLES.input, minHeight: '80px', resize: 'vertical' }}
           rows={3}
         />
+        {/* Suggestions List */}
+        {(isFetchingSuggestions || suggestions.length > 0) && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, right: 0,
+            background: COLORS.white,
+            border: `1px solid ${COLORS.gray200}`,
+            borderRadius: STYLES.borderRadiusMedium,
+            boxShadow: STYLES.shadowMedium,
+            zIndex: STYLES.zDropdown,
+            marginTop: SPACING[1],
+            maxHeight: '200px',
+            overflowY: 'auto'
+          }}>
+            {isFetchingSuggestions && suggestions.length === 0 && (
+              <div style={{ padding: SPACING[2], color: COLORS.textSecondary, ...FONTS.body }}>Searching...</div>
+            )}
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion)}
+                style={{
+                  padding: `${SPACING[2]} ${SPACING[3]}`,
+                  cursor: 'pointer',
+                  ...FONTS.body
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.gray100}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.white}
+              >
+                {suggestion.properties.formatted}
+              </div>
+            ))}
+          </div>
+        )}
         <div style={{minHeight: '20px', paddingTop: SPACING[1]}}>
           {isParsing && <p style={{...TYPOGRAPHY.caption, color: COLORS.primary}}>Parsing...</p>}
           {parseMessage && <p style={{...TYPOGRAPHY.caption, color: parseMessage.type === 'error' ? COLORS.danger : COLORS.success}}>{parseMessage.text}</p>}
@@ -152,7 +268,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
               value={formData.address}
               placeholder="e.g., 123 Main St"
               onChange={handleFieldChange}
-              onBlur={syncWithParent}
+              onBlur={() => syncWithParent(formData)}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3] }}>
@@ -162,7 +278,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
               value={formData.city}
               placeholder="e.g., Seattle"
               onChange={handleFieldChange}
-              onBlur={syncWithParent}
+              onBlur={() => syncWithParent(formData)}
             />
             <InputField
               label="State"
@@ -170,7 +286,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
               value={formData.state}
               placeholder="e.g., WA"
               onChange={handleFieldChange}
-              onBlur={syncWithParent}
+              onBlur={() => syncWithParent(formData)}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3], marginTop: SPACING[3] }}>
@@ -180,7 +296,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
               value={formData.zip_code}
               placeholder="e.g., 98101"
               onChange={handleFieldChange}
-              onBlur={syncWithParent}
+              onBlur={() => syncWithParent(formData)}
             />
             <InputField
               label="Country"
@@ -188,7 +304,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
               value={formData.country}
               placeholder="e.g., USA"
               onChange={handleFieldChange}
-              onBlur={syncWithParent}
+              onBlur={() => syncWithParent(formData)}
             />
           </div>
         </div>

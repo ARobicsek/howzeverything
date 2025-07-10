@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Restaurant } from '../types/restaurant';
 import { parseAddress } from '../utils/addressParser';
+import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { calculateEnhancedSimilarity, normalizeText } from '../utils/textUtils';
 interface RestaurantWithStats extends Restaurant {
   dishCount?: number;
@@ -172,6 +173,8 @@ const geocodeAddress = async (addressData: Partial<Restaurant>): Promise<{ latit
     const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
       addressString
     )}&limit=1&apiKey=${apiKey}`;
+    incrementGeoapifyCount();
+    logGeoapifyCount();
     const response = await fetch(url);
     if (!response.ok) {
       return null;
@@ -205,6 +208,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [restaurantErrors, setRestaurantErrors] = useState<Map<string, string>>(new Map());
+  const [searchCache, setSearchCache] = useState<Map<string, GeoapifyPlace[]>>(new Map());
   useEffect(() => {
     const fetchRestaurants = async () => {
       setIsLoading(true);
@@ -323,6 +327,14 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     const isAdvanced = typeof searchParams !== 'string';
     const query = isAdvanced ? (searchParams as AdvancedSearchQuery).name : (searchParams as string);
     if (!query.trim()) { setSearchResults([]); return; }
+    const latKey = userLat?.toFixed(4) || 'null';
+    const lonKey = userLon?.toFixed(4) || 'null';
+    const cacheKey = `search_${JSON.stringify(searchParams)}_${latKey}_${lonKey}`;
+    if (searchCache.has(cacheKey)) {
+        setSearchResults(searchCache.get(cacheKey)!);
+        setIsSearching(false);
+        return;
+    }
     if (abortControllerRef.current) { abortControllerRef.current.abort(); }
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
@@ -341,6 +353,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         let clientSideFilter: ((feature: any) => boolean) | null = null;
         if (city) {
           const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&limit=1&apiKey=${apiKey}`;
+          incrementGeoapifyCount();
+          logGeoapifyCount();
           const geocodeResponse = await fetch(geocodeUrl, { signal: abortController.signal });
           if (geocodeResponse.ok) {
               const geocodeData = await geocodeResponse.json();
@@ -364,6 +378,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
           if (userLat && userLon) params.append('bias', `proximity:${userLon},${userLat}`);
         }
         const fuzzySearchUrl = `https://api.geoapify.com/v1/geocode/search?${params.toString()}`;
+        incrementGeoapifyCount();
+        logGeoapifyCount();
         const fuzzyResponse = await fetch(fuzzySearchUrl, { signal: abortController.signal });
         if (fuzzyResponse.ok) {
             const fuzzyData = await fuzzyResponse.json();
@@ -378,17 +394,23 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
             const [smartResults, textResults] = await Promise.all([
                 (async () => {
                     const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(queryAnalysis.location!)}&limit=1&apiKey=${apiKey}`;
+                    incrementGeoapifyCount();
+                    logGeoapifyCount();
                     const geocodeResponse = await fetch(geocodeUrl, { signal: abortController.signal });
                     if (!geocodeResponse.ok) return [];
                     const geocodeData = await geocodeResponse.json();
                     if (!geocodeData.features || geocodeData.features.length === 0) return [];
                     const { lat, lon } = geocodeData.features[0].properties;
                     const smartSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(queryAnalysis.businessName!)}&type=amenity&limit=20&filter=circle:${lon},${lat},50000&bias=proximity:${lon},${lat}&apiKey=${apiKey}`;
+                    incrementGeoapifyCount();
+                    logGeoapifyCount();
                     const response = await fetch(smartSearchUrl, { signal: abortController.signal });
                     return response.ok ? (await response.json()).features || [] : [];
                 })(),
                 (async () => {
                     const textSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(basicQuery)}&type=amenity&limit=20&apiKey=${apiKey}`;
+                    incrementGeoapifyCount();
+                    logGeoapifyCount();
                     const response = await fetch(textSearchUrl, { signal: abortController.signal });
                     return response.ok ? (await response.json()).features || [] : [];
                 })()
@@ -400,6 +422,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         } else {
             const bias = (userLat && userLon) ? `&bias=proximity:${userLon},${userLon}` : '';
             const simpleSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(basicQuery)}&type=amenity&limit=20${bias}&apiKey=${apiKey}`;
+            incrementGeoapifyCount();
+            logGeoapifyCount();
             const fuzzyResponse = await fetch(simpleSearchUrl, { signal: abortController.signal });
              if (fuzzyResponse.ok) {
                 const fuzzyData = await fuzzyResponse.json();
@@ -407,19 +431,15 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
             } else { throw new Error(`Geoapify API responded with status ${fuzzyResponse.status}`); }
         }
       }
-     
       const apiPlaces: GeoapifyPlace[] = rawApiFeatures
         .filter(f => f && f.properties && f.properties.place_id)
         .map(f => {
           const props = f.properties;
           let cleanAddress = props.address_line1;
           let cleanCity = props.city;
-
-
           if (cleanAddress && calculateEnhancedSimilarity(cleanAddress, props.name) > 90) {
             cleanAddress = null;
           }
-         
           if (!cleanAddress) {
               const addressToParseFrom = props.address_line2 || props.formatted;
               if (addressToParseFrom) {
@@ -432,7 +452,6 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
                   }
               }
           }
-         
           return {
               place_id: props.place_id,
               properties: {
@@ -442,10 +461,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
               }
           };
         });
-
-
       const { data: allDbRestaurants } = await supabase.from('restaurants').select('*');
-     
       const dbMatches = (allDbRestaurants || [])
         .map(r => ({
             restaurant: r,
@@ -471,8 +487,6 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
                 }
             };
         });
-
-
       const uniqueApiPlaces: GeoapifyPlace[] = [];
       for (const apiPlace of apiPlaces) {
           const isDuplicateOfDb = dbMatches.some(dbMatch =>
@@ -480,21 +494,15 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
               calculateEnhancedSimilarity(dbMatch.properties.address_line1 || dbMatch.properties.formatted, apiPlace.properties.address_line1 || apiPlace.properties.formatted) > 70
           );
           if (isDuplicateOfDb) continue;
-
-
           const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace =>
               calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) > 95 &&
               calculateEnhancedSimilarity(uniquePlace.properties.address_line1 || uniquePlace.properties.formatted, apiPlace.properties.address_line1 || apiPlace.properties.formatted) > 80
           );
-
-
           if (existingMatchIndex !== -1) {
               const existingPlace = uniqueApiPlaces[existingMatchIndex];
               const isNewPlaceBetter =
                   (apiPlace.properties.address_line1 && !existingPlace.properties.address_line1) ||
                   (apiPlace.properties.formatted.length > existingPlace.properties.formatted.length);
-
-
               if (isNewPlaceBetter) {
                   uniqueApiPlaces[existingMatchIndex] = apiPlace;
               }
@@ -502,11 +510,9 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
               uniqueApiPlaces.push(apiPlace);
           }
       }
-     
       const combinedResults = [...dbMatches, ...uniqueApiPlaces];
       setSearchResults(combinedResults);
-
-
+      setSearchCache(prev => new Map(prev).set(cacheKey, combinedResults));
     } catch (err: any) {
       if (err.name === 'AbortError') { return; }
       console.error('Error searching restaurants:', err);
@@ -515,13 +521,15 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       setIsSearching(false);
       abortControllerRef.current = null;
     }
-  }, [userLat, userLon]);
+  }, [userLat, userLon, searchCache]);
   const getRestaurantDetails = useCallback(async (placeId: string): Promise<GeoapifyPlaceDetails | null> => {
     setIsLoadingDetails(true);
     setRestaurantErrors(new Map());
     try {
       const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
       if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') { throw new Error('Geoapify API key is not configured'); }
+      incrementGeoapifyCount();
+      logGeoapifyCount();
       const response = await fetch(`https://api.geoapify.com/v2/place-details?id=${placeId}&apiKey=${apiKey}`);
       if (!response.ok) { throw new Error(`HTTP ${response.status}: ${response.statusText}`); }
       const data = await response.json();
@@ -607,7 +615,6 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
             .select('address, city, state, zip_code, country')
             .eq('id', restaurantId)
             .single();
-       
         const addressForGeocoding = { ...(currentRestaurant || {}), ...updates };
         const coords = await geocodeAddress(addressForGeocoding);
         updates.latitude = coords?.latitude ?? null;
@@ -753,6 +760,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, []);
   const resetSearch = useCallback(() => {
     clearSearchResults();
+    setSearchCache(new Map());
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;

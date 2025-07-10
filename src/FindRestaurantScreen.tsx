@@ -15,7 +15,9 @@ import { GeoapifyPlace, useRestaurants } from './hooks/useRestaurants';
 import { useRestaurantVisits } from './hooks/useRestaurantVisits';
 import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/restaurant';
 
-const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+
+const SEARCH_BAR_WIDTH = '380px'; // Adjustable: controls the max width of the search bar
+
 
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ const FindRestaurantScreen: React.FC = () => {
   const [similarRestaurants, setSimilarRestaurants] = useState<RestaurantType[]>([]);
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'> | null>(null);
 
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -62,6 +65,7 @@ const FindRestaurantScreen: React.FC = () => {
         setHasLocationPermission(false);
       }
     );
+
 
     const loadInitialData = async () => {
       if (user) {
@@ -75,6 +79,7 @@ const FindRestaurantScreen: React.FC = () => {
     loadInitialData();
   }, [user, getRecentVisits, getPinnedRestaurants]);
 
+
   const handleSectionClick = useCallback(async (section: string) => {
     if (expandedSection === section) {
       setExpandedSection(null);
@@ -86,10 +91,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
+
   const handleRestaurantNavigation = (restaurantId: string) => {
     trackVisit(restaurantId);
     navigate(`/restaurants/${restaurantId}`);
   };
+
 
   const handleRestaurantClick = async (place: GeoapifyPlace) => {
     setSearchModalOpen(false);
@@ -101,10 +108,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleModalClose = () => {
     setSearchModalOpen(false);
     resetSearch();
   };
+
 
   const handleManualAddClick = (searchTerm: string) => {
     setSearchModalOpen(false);
@@ -112,6 +121,7 @@ const FindRestaurantScreen: React.FC = () => {
     setManualAddInitialName(searchTerm);
     resetSearch();
   };
+
 
   const createNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     try {
@@ -129,6 +139,7 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -139,10 +150,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
+
 
   const handleUseExistingRestaurant = async (restaurant: RestaurantType) => {
     await addToFavorites(restaurant);
@@ -151,11 +164,13 @@ const FindRestaurantScreen: React.FC = () => {
     handleRestaurantNavigation(restaurant.id);
   };
 
+
   useEffect(() => {
     if (expandedSection === 'nearby' && userLocation) {
       fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
     }
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
+
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.background }}>
@@ -290,33 +305,43 @@ const FindRestaurantScreen: React.FC = () => {
                 <div className="space-y-0">
                   {nearbyLoading ? <LoadingScreen message="Finding restaurants..."/> :
                   nearbyRestaurants.map(restaurant => {
-                    const geoapifyPlace: GeoapifyPlace = {
-                      place_id: restaurant.geoapify_place_id!,
-                      properties: {
-                        name: restaurant.name,
-                        formatted: restaurant.full_address!,
-                        address_line1: restaurant.address || undefined,
-                        city: restaurant.city || undefined,
-                        state: restaurant.state || undefined,
-                        postcode: restaurant.zip_code || undefined,
-                        country: restaurant.country || undefined,
-                        country_code: restaurant.country?.toLowerCase() || undefined,
-                        lat: restaurant.latitude!,
-                        lon: restaurant.longitude!,
-                        categories: restaurant.category ? [restaurant.category] : [],
-                        website: restaurant.website_url || undefined,
-                        phone: restaurant.phone || undefined,
-                        datasource: { sourcename: 'geoapify', attribution: 'Geoapify' }
+                    const isDbEntry = restaurant.id.includes('-'); // UUIDs have hyphens, Geoapify place_ids do not.
+                    const handleClick = () => {
+                      if (isDbEntry) {
+                        handleRestaurantNavigation(restaurant.id);
+                      } else {
+                        const geoapifyPlace: GeoapifyPlace = {
+                          place_id: restaurant.geoapify_place_id!,
+                          properties: {
+                            name: restaurant.name,
+                            formatted: restaurant.full_address!,
+                            address_line1: restaurant.address || undefined,
+                            city: restaurant.city || undefined,
+                            state: restaurant.state || undefined,
+                            postcode: restaurant.zip_code || undefined,
+                            country: restaurant.country || undefined,
+                            country_code: restaurant.country?.toLowerCase() || undefined,
+                            lat: restaurant.latitude!,
+                            lon: restaurant.longitude!,
+                            categories: restaurant.category ? [restaurant.category] : [],
+                            website: restaurant.website_url || undefined,
+                            phone: restaurant.phone || undefined,
+                            datasource: { sourcename: 'geoapify', attribution: 'Geoapify' }
+                          }
+                        };
+                        handleRestaurantClick(geoapifyPlace);
                       }
                     };
+
+
                     return (
                       <RestaurantCard
-                        key={restaurant.geoapify_place_id}
+                        key={restaurant.id}
                         restaurant={restaurant as RestaurantWithPinStatus}
-                        isPinned={false}
-                        onTogglePin={undefined} // Can't pin from nearby API result
-                        onClick={() => handleRestaurantClick(geoapifyPlace)}
-                        onNavigateToMenu={() => handleRestaurantClick(geoapifyPlace)}
+                        isPinned={isDbEntry ? pinnedRestaurantIds.has(restaurant.id) : false}
+                        onTogglePin={togglePin}
+                        onClick={handleClick}
+                        onNavigateToMenu={handleClick}
                         currentUserId={user?.id || null}
                       />
                     );

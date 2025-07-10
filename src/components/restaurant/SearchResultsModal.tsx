@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import type { AdvancedSearchQuery, GeoapifyPlace } from '../../hooks/useRestaurants';
 import RestaurantCard from './RestaurantCard';
 
+
 interface SearchResultsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +20,7 @@ interface SearchResultsModalProps {
   clearSearchResults: () => void;
   resetSearch: () => void;
 }
+
 
 const AdvancedSearchInputs: React.FC<{
     query: AdvancedSearchQuery;
@@ -50,6 +52,7 @@ const AdvancedSearchInputs: React.FC<{
     </div>
 );
 
+
 const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
   isOpen,
   onClose,
@@ -71,17 +74,19 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
   const [advancedQuery, setAdvancedQuery] = useState<AdvancedSearchQuery>({ name: '', street: '', city: '' });
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+
   const performSearch = useMemo(() => (query: string | AdvancedSearchQuery) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-        const hasQuery = typeof query === 'string' ? query.trim().length > 1 : query.name.trim().length > 1;
+        const hasQuery = typeof query === 'string' ? query.trim().length > 2 : query.name.trim().length > 2;
         if (hasQuery) {
             searchRestaurants(query, userLocation?.latitude ?? null, userLocation?.longitude ?? null);
         } else {
             clearSearchResults();
         }
-    }, 500);
+    }, 800); // Increased debounce to 800ms
   }, [searchRestaurants, userLocation, clearSearchResults]);
+
 
   useEffect(() => {
     if (isAdvancedSearch) {
@@ -90,6 +95,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
         performSearch(searchTerm);
     }
   }, [searchTerm, advancedQuery, isAdvancedSearch, performSearch]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -102,7 +108,9 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     }
   }, [isOpen, resetSearch]);
 
+
   if (!isOpen) return null;
+
 
   const handleReset = () => {
     setSearchTerm('');
@@ -110,7 +118,9 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     resetSearch();
   };
 
+
   const hasSearchTerm = isAdvancedSearch ? advancedQuery.name.trim().length > 0 : searchTerm.trim().length > 0;
+
 
   return (
     <div style={STYLES.modalOverlay} onClick={onClose}>
@@ -144,7 +154,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="e.g. Chez Frontenac Seattle"
+                  placeholder="e.g. Chez Frontenac Seattle (3+ chars)"
                   style={{ ...STYLES.input, width: '100%', backgroundColor: COLORS.white }}
                   autoFocus
               />
@@ -164,6 +174,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                
                 const props = place.properties;
 
+
                 const restaurantForCard: any = {
                   id: place.place_id,
                   name: props.name,
@@ -180,6 +191,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                   geoapify_place_id: place.place_id,
                   is_pinned: isPinned,
                 };
+
 
                 return (
                   <RestaurantCard
@@ -221,5 +233,6 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     </div>
   );
 };
+
 
 export default SearchResultsModal;
