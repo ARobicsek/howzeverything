@@ -6,7 +6,9 @@ import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
 import { BORDERS, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
+import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
 import { useRestaurant } from './hooks/useRestaurant';
+import { useRestaurantVisits } from './hooks/useRestaurantVisits';
 
 // Modal for warning about duplicate dishes
 interface DuplicateDishWarningModalProps {
@@ -27,7 +29,6 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   onSelectDuplicate,
 }) => {
   if (!isOpen) return null;
-
   return (
     <div style={STYLES.modalOverlay}>
       <div style={{ ...STYLES.modal, maxWidth: '500px', border: `1px solid ${COLORS.border}` }}>
@@ -63,7 +64,6 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   );
 };
 
-// This component is now just the styled box, without the outer layout div.
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -72,7 +72,6 @@ const ConsolidatedSearchAndAdd: React.FC<{
 }> = ({ searchTerm, onSearchChange, onReset, onShowAddForm }) => {
   const hasTyped = searchTerm.length > 0;
   const [isFocused, setIsFocused] = useState(false);
-
   return (
     <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: STYLES.borderRadiusLarge, padding: SPACING[4] }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[1] }}>
@@ -100,7 +99,6 @@ const ConsolidatedSearchAndAdd: React.FC<{
   );
 };
 
-// Add Dish Form with enhanced design        
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
   onSubmit: (name: string, rating: number) => Promise<void>;
@@ -109,14 +107,12 @@ const EnhancedAddDishForm: React.FC<{
   const [dishName, setDishName] = useState(initialDishName);
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async () => {
     if (dishName.trim() && !isSubmitting) {
       setIsSubmitting(true);
       await onSubmit(dishName, rating);
     }
   };
-
   return (
     <div style={{ backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, padding: SPACING[6], boxShadow: STYLES.shadowLarge, border: `1px solid ${COLORS.gray200}` }}>
       <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, marginBottom: SPACING[5] }}>
@@ -178,6 +174,16 @@ const MenuScreen: React.FC = () => {
     addDish, deleteDish, updateDishRating, updateDishName, searchDishes,
     addComment, updateComment, deleteComment, addPhoto, deletePhoto, findSimilarDishesForDuplicate
   } = useDishes(restaurantId || '', sortBy);
+  
+  const { trackVisit } = useRestaurantVisits();
+  const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
+
+  // Track visit when the screen for a specific restaurant is loaded
+  useEffect(() => {
+    if (restaurant?.id) {
+      trackVisit(restaurant.id);
+    }
+  }, [restaurant?.id, trackVisit]);
  
   // Set initial expanded dish from URL query parameter
   useEffect(() => {
@@ -209,6 +215,7 @@ const MenuScreen: React.FC = () => {
   }, [dishes, searchTerm, searchDishes]);
 
   const hasDishes = dishes.length > 0;
+  const isPinned = restaurantId ? pinnedRestaurantIds.has(restaurantId) : false;
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
@@ -331,9 +338,9 @@ const MenuScreen: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
       <header style={{ backgroundColor: COLORS.white, borderBottom: `1px solid ${COLORS.gray200}`, position: 'sticky', top: '60px', /* Account for fixed TopNav */ zIndex: 10, boxShadow: STYLES.shadowSmall }}>
         <div style={{ maxWidth: '768px', margin: '0 auto', padding: `${SPACING[3]} ${SPACING[4]}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => navigate('/restaurants')} style={STYLES.iconButton} aria-label="Go back to restaurants">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
-          </button>
+            <button onClick={() => navigate(-1)} style={STYLES.iconButton} aria-label="Go back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+            </button>
           <div style={{ flex: 1, textAlign: 'center', margin: `0 ${SPACING[2]}`, overflow: 'hidden' }}>
             <h1 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={restaurant.name}>
               {restaurant.name}
@@ -345,6 +352,15 @@ const MenuScreen: React.FC = () => {
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+            <button
+              onClick={() => restaurantId && togglePin(restaurantId)}
+              style={{...STYLES.iconButton, border: 'none' }}
+              aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isPinned ? COLORS.accent : "none"} stroke={isPinned ? COLORS.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
+              </svg>
+            </button>
             <button onClick={handleToggleAllExpanded} style={{ ...STYLES.iconButton, backgroundColor: allExpanded ? COLORS.primary : COLORS.white, color: allExpanded ? COLORS.white : COLORS.gray700, border: allExpanded ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label={allExpanded ? "Collapse all dishes" : "Expand all dishes"}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">{allExpanded ? (<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z" />) : (<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />)}</svg>
             </button>

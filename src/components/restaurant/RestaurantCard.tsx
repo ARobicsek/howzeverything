@@ -1,22 +1,25 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
-import { Restaurant } from '../../types/restaurant';
+import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 interface RestaurantCardProps {
-  restaurant: Restaurant & {
+  restaurant: RestaurantWithPinStatus & {
     dishCount?: number;
     raterCount?: number;
     date_favorited?: string | null;
     created_by?: string | null;
     manually_added?: boolean;
-    distance?: number | string; // Optional distance prop
+    distance?: number | string;
   };
-  onDelete: (restaurantId: string) => void;
+  onDelete?: (restaurantId: string) => void;
   onNavigateToMenu: (restaurantId: string) => void;
-  onShare: (restaurant: Restaurant) => void;
-  onEdit: (restaurantId: string) => void;
+  onShare?: (restaurant: RestaurantWithPinStatus) => void;
+  onEdit?: (restaurantId: string) => void;
   currentUserId: string | null;
+  isPinned?: boolean;
+  onTogglePin?: (id: string) => void;
+  onClick?: () => void;
 }
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
@@ -26,11 +29,17 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   onShare,
   onEdit,
   currentUserId,
+  isPinned,
+  onTogglePin,
+  onClick
 }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null); // Ref for the entire card component
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const isDatabaseRestaurant = restaurant.id.startsWith('db_');
+  const canShowMenu = onDelete || onShare || onEdit;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,11 +47,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         setIsMenuOpen(false);
       }
     };
-   
     if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-   
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -55,9 +62,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
  
   const handleDelete = (e: React.MouseEvent) => {
+    if (!onDelete) return;
     handleAction(e, () => {
+      const dbId = restaurant.id.substring(3);
       if (window.confirm('Are you sure you want to delete this restaurant and all its dishes?')) {
-        onDelete(restaurant.id);
+        onDelete(dbId);
       }
     });
   };
@@ -71,11 +80,12 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
   const handleShare = (e: React.MouseEvent) => {
-    handleAction(e, () => onShare(restaurant));
+    if (onShare) handleAction(e, () => onShare(restaurant));
   };
  
   const handleEdit = (e: React.MouseEvent) => {
-    handleAction(e, () => onEdit(restaurant.id));
+    const dbId = restaurant.id.substring(3);
+    if (onEdit) handleAction(e, () => onEdit(dbId));
   };
 
   const toggleMenu = (e: React.MouseEvent) => {
@@ -83,16 +93,31 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     setIsMenuOpen(prev => !prev);
   };
  
-  const handleCardClick = () => {
-    if (isMenuOpen) {
-      setIsMenuOpen(false);
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) {
       return;
     }
-    onNavigateToMenu(restaurant.id);
+
+    if (onClick) {
+        onClick();
+    } else if (isDatabaseRestaurant) {
+        const dbId = restaurant.id.substring(3);
+        onNavigateToMenu(dbId);
+    }
+  };
+
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onTogglePin && isDatabaseRestaurant) {
+      const dbId = restaurant.id.substring(3);
+      onTogglePin(dbId);
+    }
   };
  
   const hasDishes = (restaurant.dishCount ?? 0) > 0;
-  const hasRaters = (restaurant.raterCount ?? 0) > 0;
+  const uniqueRaters = restaurant.total_unique_raters ?? restaurant.raterCount ?? 0;
+  const hasRaters = uniqueRaters > 0;
   const hasWebsite = !!restaurant.website_url;
   const canEdit = !!(restaurant.manually_added && restaurant.created_by && restaurant.created_by === currentUserId);
 
@@ -111,9 +136,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     transition: 'background-color 0.2s ease',
   };
 
-  const displayAddress = [restaurant.address, restaurant.city]
-    .filter(Boolean)
-    .join(', ');
+  // Simplified display logic. Trusts the props from the parent component.
+  const displayAddress = [restaurant.address, restaurant.city].filter(Boolean).join(', ');
 
   return (
     <div
@@ -130,26 +154,25 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <h2
-          className="hover:underline"
-          style={{
-            ...FONTS.elegant,
-            fontWeight: '500',
-            color: COLORS.text,
-            fontSize: '1.125rem',
-            lineHeight: '1.3',
-            margin: 0,
-            wordWrap: 'break-word',
-            hyphens: 'auto',
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          {restaurant.name}
-        </h2>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], flexShrink: 0, paddingLeft: SPACING[2] }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: SPACING[2] }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+            <h2
+                className="hover:underline"
+                style={{
+                    ...FONTS.elegant,
+                    fontWeight: '500',
+                    color: COLORS.text,
+                    fontSize: '1.125rem',
+                    lineHeight: '1.3',
+                    margin: 0,
+                    wordWrap: 'break-word',
+                    hyphens: 'auto',
+                }}
+            >
+                {restaurant.name}
+            </h2>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], flexShrink: 0 }}>
           {restaurant.distance && (
             <span style={{
               ...FONTS.body,
@@ -160,59 +183,65 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               {restaurant.distance}
             </span>
           )}
-
-          <div style={{ position: 'relative' }}>
+          {onTogglePin && (
             <button
-              onClick={toggleMenu}
-              style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? COLORS.gray100 : 'transparent' }}
-              aria-label="More options"
+              onClick={handlePinClick}
+              style={{
+                ...STYLES.iconButton,
+                width: '40px',
+                height: '40px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: isDatabaseRestaurant ? 'pointer' : 'default',
+                opacity: isDatabaseRestaurant ? 1 : 0.4,
+              }}
+              disabled={!isDatabaseRestaurant}
+              title={isDatabaseRestaurant ? (isPinned ? "Unpin restaurant" : "Pin restaurant") : "Add this restaurant to pin it"}
+              aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isPinned ? COLORS.accent : "none"} stroke={isPinned ? COLORS.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
-            {isMenuOpen && (
-              <div
-                ref={menuRef}
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 4px)',
-                  right: 0,
-                  backgroundColor: COLORS.white,
-                  borderRadius: STYLES.borderRadiusMedium,
-                  boxShadow: STYLES.shadowLarge,
-                  border: `1px solid ${COLORS.gray200}`,
-                  overflow: 'hidden',
-                  zIndex: STYLES.zDropdown,
-                  minWidth: '140px',
-                }}
+          )}
+          {canShowMenu && isDatabaseRestaurant && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={toggleMenu}
+                style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? COLORS.gray100 : 'transparent' }}
+                aria-label="More options"
               >
-                <button onClick={handleShare} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
-                  Share
-                </button>
-                {hasWebsite && (
-                  <button onClick={handleViewWebsite} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    Website
-                  </button>
-                )}
-                {canEdit && (
-                  <button onClick={handleEdit} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                    Edit
-                  </button>
-                )}
-                <button onClick={handleDelete} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+              </button>
+              {isMenuOpen && (
+                <div
+                  ref={menuRef}
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 4px)',
+                    right: 0,
+                    backgroundColor: COLORS.white,
+                    borderRadius: STYLES.borderRadiusMedium,
+                    boxShadow: STYLES.shadowLarge,
+                    border: `1px solid ${COLORS.gray200}`,
+                    overflow: 'hidden',
+                    zIndex: STYLES.zDropdown,
+                    minWidth: '140px',
+                  }}
+                >
+                  {onShare && (<button onClick={handleShare} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>Share</button>)}
+                  {hasWebsite && (<button onClick={handleViewWebsite} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>Website</button>)}
+                  {canEdit && onEdit && (<button onClick={handleEdit} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>Edit</button>)}
+                  {onDelete && (<button onClick={handleDelete} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>Delete</button>)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
-
+      
       {displayAddress && (
         <p
           className="text-sm"
@@ -222,45 +251,34 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             opacity: 0.7,
             fontSize: '0.8rem',
             lineHeight: '1.3',
-            margin: `${SPACING[1]} 0 ${SPACING[3]} 0`, // 4px top, 12px bottom
+            margin: `${SPACING[1]} 0 ${SPACING[3]} 0`,
           }}
         >
           {displayAddress}
         </p>
       )}
 
-      <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACING[4],
-          marginTop: !displayAddress ? SPACING[3] : 0 // Add margin only if no address, to keep stats spaced from name
-      }}>
-        {(hasDishes || hasRaters) && (
-          <div className="flex items-center" style={{
-              fontFamily: FONTS.elegant.fontFamily,
-              fontSize: '0.8rem',
-              color: COLORS.gray600,
-              fontWeight: 500,
-              gap: SPACING[4],
-            }}>
-            {hasDishes && (
-              <span className="flex items-center" style={{ gap: '4px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>
-                </svg>
-                <span>{restaurant.dishCount}</span>
-              </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[4], marginTop: !displayAddress ? SPACING[3] : 0 }}>
+            {(hasDishes || hasRaters) && isDatabaseRestaurant && (
+                <div className="flex items-center" style={{ gap: SPACING[4] }}>
+                    {/* ... (dish/rater icons) */}
+                </div>
             )}
-            {hasRaters && (
-              <span className="flex items-center" style={{ gap: '4px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill={COLORS.accent}>
-                  <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-                </svg>
-                <span>{restaurant.raterCount}</span>
-              </span>
-            )}
-          </div>
-        )}
+        </div>
+        
+        <div style={{
+            ...FONTS.body,
+            fontSize: '0.65rem',
+            fontWeight: '600',
+            padding: '2px 4px',
+            borderRadius: '4px',
+            color: isDatabaseRestaurant ? COLORS.primary : COLORS.gray500,
+            backgroundColor: isDatabaseRestaurant ? 'rgba(99, 102, 241, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+            border: `1px solid ${isDatabaseRestaurant ? 'rgba(99, 102, 241, 0.3)' : 'rgba(107, 114, 128, 0.2)'}`,
+        }}>
+            {isDatabaseRestaurant ? 'DB' : 'API'}
+        </div>
       </div>
     </div>
   );

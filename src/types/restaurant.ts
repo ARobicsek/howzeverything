@@ -13,11 +13,9 @@ export interface Restaurant {
     created_at: string;
     latitude: number | null; // Allow null as per database schema
     longitude: number | null; // Allow null as per database schema
-   
     // Fields from the favorite link (optional as they come from user_favorite_restaurants join)
     dateAdded?: string; // When user favorited the restaurant
     date_favorited?: string; // Explicit favorite date
-   
     // Optional fields for imported restaurants (from Geoapify)
     geoapify_place_id?: string;
     phone?: string;
@@ -27,4 +25,16 @@ export interface Restaurant {
     category?: string;
     opening_hours?: any; // Consider a more specific type if known
     created_by?: string; // Who originally created this global restaurant
+}
+
+export interface UserRestaurantVisit {
+  id: string;
+  user_id: string;
+  restaurant_id: string;
+  visited_at: string;
+}
+
+export interface RestaurantWithPinStatus extends Restaurant {
+  is_pinned?: boolean;
+  total_unique_raters?: number;
 }

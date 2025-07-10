@@ -12,7 +12,7 @@ import type { AdvancedSearchQuery } from './hooks/useRestaurants';
 import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
 
-// Helper hook to get the previous value of a prop or state
+
 const usePrevious = (value: boolean): boolean | undefined => {
     const ref = React.useRef<boolean | undefined>(undefined);
     React.useEffect(() => {
@@ -21,7 +21,7 @@ const usePrevious = (value: boolean): boolean | undefined => {
     return ref.current;
 };
 
-// Device and browser detection utilities
+
 const getDeviceInfo = () => {
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) ||
@@ -57,7 +57,7 @@ const getDeviceInfo = () => {
   };
 };
 
-// Enhanced Location Permission Banner Component with OS/Browser Detection    
+
 const LocationPermissionBanner: React.FC<{    
   onRequestPermission: () => void;    
   isRequestingLocationPermission: boolean;    
@@ -104,7 +104,7 @@ const LocationPermissionBanner: React.FC<{
   );    
 };
 
-// Enhanced Search Animation Component      
+
 const SearchingIndicator: React.FC = () => {      
   const [dotCount, setDotCount] = useState(1);      
   const [pulsePhase, setPulsePhase] = useState(0);
@@ -116,7 +116,7 @@ const SearchingIndicator: React.FC = () => {
   const dots = '•'.repeat(dotCount).padEnd(3, ' ');      
   const pulseOpacity = 0.3 + (Math.sin(pulsePhase * Math.PI / 2) * 0.4);
   return (      
-    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: `1px solid rgba(255, 255, 255, 0.2)`, animation: 'pulse 2s ease-in-out infinite' }}>      
+    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: `1px solid rgba(255, 255, 0.2)`, animation: 'pulse 2s ease-in-out infinite' }}>      
       <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: COLORS.primary, opacity: pulseOpacity, transform: `scale(${0.8 + pulseOpacity * 0.4})`, transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>      
         <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style={{ opacity: 0.9, transform: `rotate(${pulsePhase * 90}deg)`, transition: 'transform 0.2s ease' }}>      
           <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>      
@@ -129,7 +129,7 @@ const SearchingIndicator: React.FC = () => {
   );      
 };
 
-// Fuzzy search algorithm for restaurant names        
+
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
   const restaurant = restaurantName.toLowerCase().trim();        
   const search = searchTerm.toLowerCase().trim();        
@@ -158,6 +158,7 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
   return Math.max(0, charSimilarity);        
 };
 
+
 const RestaurantScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -182,6 +183,7 @@ const RestaurantScreen: React.FC = () => {
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(true);
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
+
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {
     try {
       const locationData = { lat, lon, timestamp: Date.now() };
@@ -191,11 +193,12 @@ const RestaurantScreen: React.FC = () => {
     }
   }, []);
 
+
   const {
     restaurants, isLoading, error, addRestaurant, deleteRestaurant,
     searchResults, isSearching, searchError, restaurantErrors,
     searchRestaurants, importRestaurant, clearSearchResults, resetSearch, updateRestaurant,
-  } = useRestaurants(sortBy, userLat, userLon);
+  } = useRestaurants({ sortBy, userLat, userLon });
  
   const wasSearching = usePrevious(isSearching);
  
@@ -204,6 +207,7 @@ const RestaurantScreen: React.FC = () => {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -235,6 +239,7 @@ const RestaurantScreen: React.FC = () => {
       setPendingRestaurantId(null);
     }
   }, [restaurants, pendingRestaurantId, navigate]);
+
 
   const filteredAndSortedRestaurants = useMemo(() => {
     if (!searchTerm.trim()) return restaurants;
@@ -278,6 +283,7 @@ const RestaurantScreen: React.FC = () => {
   const handleNavigateToMenu = (restaurantId: string) => {
     navigate(`/restaurants/${restaurantId}`);
   };
+
 
   const handleAddRestaurant = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => {
     const result = await addRestaurant(restaurantData);
@@ -475,5 +481,6 @@ const RestaurantScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default RestaurantScreen;

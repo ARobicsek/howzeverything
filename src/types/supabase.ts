@@ -7,9 +7,6 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-
-
-
 export interface Database {
   public: {
     Tables: {
@@ -310,6 +307,71 @@ export interface Database {
           },
           {
             foreignKeyName: "user_favorite_restaurants_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_pinned_restaurants: {
+        Row: {
+          user_id: string
+          restaurant_id: string
+          pinned_at: string | null
+        }
+        Insert: {
+          user_id: string
+          restaurant_id: string
+          pinned_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          restaurant_id?: string
+          pinned_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pinned_restaurants_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_pinned_restaurants_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_restaurant_visits: {
+        Row: {
+          id: string
+          user_id: string
+          restaurant_id: string
+          visited_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          restaurant_id: string
+          visited_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          restaurant_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_restaurant_visits_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_restaurant_visits_user_id_fkey"
             columns: ["user_id"]
             referencedRelation: "users"
             referencedColumns: ["id"]
