@@ -1,22 +1,22 @@
 // src/components/restaurant/AddRestaurantForm.tsx
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
 import type { AddressFormData } from '../../types/address';
 import type { Restaurant } from '../../types/restaurant';
 import AddressInput from '../shared/AddressInput';
 
 interface AddRestaurantFormProps {
-  initialRestaurantName?: string;
+  initialName?: string;
   onSave: (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
 }
 
 const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
-  initialRestaurantName = '',
+  initialName = '',
   onSave,
   onCancel,
 }) => {
-  const [name, setName] = useState(initialRestaurantName);
+  const [name, setName] = useState(initialName);
   const [addressData, setAddressData] = useState<AddressFormData>({
     fullAddress: '',
     address: '',
@@ -25,6 +25,10 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
     zip_code: '',
     country: 'USA',
   });
+
+  useEffect(() => {
+    setName(initialName);
+  }, [initialName]);
 
   const handleAddressChange = useCallback((data: AddressFormData) => {
     setAddressData(data);
@@ -72,7 +76,7 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
       </div>
 
       <AddressInput initialData={{}} onAddressChange={handleAddressChange} />
-      
+     
       <div className="flex gap-3 pt-4">
         <button
           type="submit"

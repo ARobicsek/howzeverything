@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Restaurant } from '../types/restaurant';
 import { parseAddress } from '../utils/addressParser';
+import { calculateEnhancedSimilarity, normalizeText } from '../utils/textUtils';
 interface RestaurantWithStats extends Restaurant {
   dishCount?: number;
   raterCount?: number;
@@ -68,24 +69,6 @@ export interface AdvancedSearchQuery {
   street: string;
   city: string;
 }
-function normalizeText(text: string): string {
-  if (!text) return '';
-  return text
-    .toLowerCase()
-    .replace(/['']/g, '')
-    .replace(/&/g, 'and')
-    .replace(/\b(st|street)\b/g, 'street')
-    .replace(/\b(ave|avenue)\b/g, 'avenue')
-    .replace(/\b(rd|road)\b/g, 'road')
-    .replace(/\b(blvd|boulevard)\b/g, 'boulevard')
-    .replace(/\b(dr|drive)\b/g, 'drive')
-    .replace(/\b(ln|lane)\b/g, 'lane')
-    .replace(/\b(ct|court)\b/g, 'court')
-    .replace(/\b(pl|place)\b/g, 'place')
-    .replace(/\b(pkwy|parkway)\b/g, 'parkway')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 interface QueryAnalysis {
   type: 'business' | 'address' | 'business_location_proposal';
   businessName?: string;
@@ -120,25 +103,6 @@ function analyzeQuery(query: string): QueryAnalysis {
         return { type: 'business_location_proposal', businessName: business, location: location };
     }
     return { type: 'business', businessName: normalizedQuery };
-}
-function calculateEnhancedSimilarity(str1: string, str2: string): number {
-  const s1 = normalizeText(str1);
-  const s2 = normalizeText(str2);
-  if (s1 === s2) return 100;
-  if (s1.includes(s2) || s2.includes(s1)) return 95;
-  const words1 = s1.split(/\s+/);
-  const words2 = s2.split(/\s+/);
-  let wordMatches = 0;
-  words2.forEach(word2 => {
-    if (words1.some(word1 => word1 === word2)) {
-      wordMatches++;
-    }
-  });
-  if (wordMatches > 0) {
-    const exactScore = (wordMatches / words2.length) * 80;
-    return Math.min(95, 40 + exactScore);
-  }
-  return 0;
 }
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371e3;
@@ -308,6 +272,30 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       return duplicate ? (duplicate as Restaurant) : null;
     } catch (err) { console.error('Error checking for duplicates:', err); return null; }
   }, []);
+  const findSimilarRestaurants = useCallback(async (newName: string, newAddress?: string): Promise<Restaurant[]> => {
+    try {
+      const { data: allRestaurants } = await supabase.from('restaurants').select('*');
+      if (!allRestaurants) return [];
+      const normalizedNewName = normalizeText(newName);
+      const normalizedNewAddress = newAddress ? normalizeText(newAddress) : undefined;
+      const similar = allRestaurants.filter(existing => {
+        const existingName = normalizeText(existing.name);
+        const existingAddress = existing.address ? normalizeText(existing.address) : undefined;
+        const nameScore = calculateEnhancedSimilarity(existingName, normalizedNewName);
+        if (nameScore < 80) return false;
+        if (existingAddress && normalizedNewAddress) {
+          if (calculateEnhancedSimilarity(existingAddress, normalizedNewAddress) > 70) {
+            return true;
+          }
+        }
+        return nameScore > 90;
+      });
+      return similar as Restaurant[];
+    } catch (err) {
+      console.error('Error finding similar restaurants:', err);
+      return [];
+    }
+  }, []);
   const isAlreadyFavorited = useCallback(async (restaurantId: string): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -427,10 +415,11 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
           let cleanAddress = props.address_line1;
           let cleanCity = props.city;
 
+
           if (cleanAddress && calculateEnhancedSimilarity(cleanAddress, props.name) > 90) {
             cleanAddress = null;
           }
-          
+         
           if (!cleanAddress) {
               const addressToParseFrom = props.address_line2 || props.formatted;
               if (addressToParseFrom) {
@@ -443,7 +432,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
                   }
               }
           }
-          
+         
           return {
               place_id: props.place_id,
               properties: {
@@ -453,6 +442,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
               }
           };
         });
+
 
       const { data: allDbRestaurants } = await supabase.from('restaurants').select('*');
      
@@ -482,6 +472,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
             };
         });
 
+
       const uniqueApiPlaces: GeoapifyPlace[] = [];
       for (const apiPlace of apiPlaces) {
           const isDuplicateOfDb = dbMatches.some(dbMatch =>
@@ -490,16 +481,19 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
           );
           if (isDuplicateOfDb) continue;
 
+
           const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace =>
               calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) > 95 &&
               calculateEnhancedSimilarity(uniquePlace.properties.address_line1 || uniquePlace.properties.formatted, apiPlace.properties.address_line1 || apiPlace.properties.formatted) > 80
           );
 
+
           if (existingMatchIndex !== -1) {
               const existingPlace = uniqueApiPlaces[existingMatchIndex];
-              const isNewPlaceBetter = 
+              const isNewPlaceBetter =
                   (apiPlace.properties.address_line1 && !existingPlace.properties.address_line1) ||
                   (apiPlace.properties.formatted.length > existingPlace.properties.formatted.length);
+
 
               if (isNewPlaceBetter) {
                   uniqueApiPlaces[existingMatchIndex] = apiPlace;
@@ -511,6 +505,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
      
       const combinedResults = [...dbMatches, ...uniqueApiPlaces];
       setSearchResults(combinedResults);
+
 
     } catch (err: any) {
       if (err.name === 'AbortError') { return; }
@@ -767,6 +762,6 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     restaurants, isLoading, error, searchResults, isSearching, searchError, isLoadingDetails, restaurantErrors,
     searchRestaurants, getRestaurantDetails, addRestaurant, addToFavorites, addRestaurantAndFavorite, removeFromFavorites,
     isDuplicateRestaurant, isAlreadyFavorited, deleteRestaurant, importRestaurant, clearSearchResults, resetSearch,
-    updateRestaurant, getOrCreateRestaurant,
+    updateRestaurant, getOrCreateRestaurant, findSimilarRestaurants,
   };
 };

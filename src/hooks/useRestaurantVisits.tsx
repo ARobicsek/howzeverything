@@ -1,11 +1,12 @@
 // src/hooks/useRestaurantVisits.tsx
+import { useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from './useAuth';
 
 export const useRestaurantVisits = () => {
   const { user } = useAuth();
 
-  const trackVisit = async (restaurantId: string) => {
+  const trackVisit = useCallback(async (restaurantId: string) => {
     if (!user) return;
     try {
       await supabase
@@ -17,9 +18,9 @@ export const useRestaurantVisits = () => {
     } catch (error) {
       console.error('Error tracking restaurant visit:', error);
     }
-  };
+  }, [user]);
 
-  const getRecentVisits = async () => {
+  const getRecentVisits = useCallback(async () => {
     if (!user) return [];
     const twentyFourHoursAgo = new Date();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
@@ -44,7 +45,7 @@ export const useRestaurantVisits = () => {
       }
     });
     return Array.from(uniqueRestaurants.values());
-  };
+  }, [user]);
 
   return { trackVisit, getRecentVisits };
 };

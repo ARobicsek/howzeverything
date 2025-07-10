@@ -28,7 +28,7 @@ export const usePinnedRestaurants = () => {
     }
   }, [user, fetchPinnedRestaurants]);
 
-  const togglePin = async (restaurantId: string) => {
+  const togglePin = useCallback(async (restaurantId: string) => {
     if (!user) return false;
     const isPinned = pinnedRestaurantIds.has(restaurantId);
     // Optimistic update
@@ -60,9 +60,9 @@ export const usePinnedRestaurants = () => {
       setPinnedRestaurantIds(pinnedRestaurantIds);
       return false;
     }
-  };
+  }, [user, pinnedRestaurantIds]);
 
-  const getPinnedRestaurants = async (): Promise<Restaurant[]> => {
+  const getPinnedRestaurants = useCallback(async (): Promise<Restaurant[]> => {
     if (!user) return [];
     const { data, error } = await supabase
       .from('user_pinned_restaurants')
@@ -77,7 +77,7 @@ export const usePinnedRestaurants = () => {
       return [];
     }
     return data?.map(item => item.restaurants as Restaurant).filter(Boolean) || [];
-  };
+  }, [user]);
 
   return { pinnedRestaurantIds, togglePin, getPinnedRestaurants, refreshPinned: fetchPinnedRestaurants };
 };

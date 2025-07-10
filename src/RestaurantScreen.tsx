@@ -472,7 +472,7 @@ const RestaurantScreen: React.FC = () => {
                 <h2 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500' }}>Add New Restaurant</h2>
                 <div className="w-10" />
               </div>
-              <AddRestaurantForm initialRestaurantName={searchTerm} onSave={handleAddRestaurant} onCancel={() => setShowAddForm(false)} />
+              <AddRestaurantForm initialName={searchTerm} onSave={handleAddRestaurant} onCancel={() => setShowAddForm(false)} />
             </div>
           )}
         </div>

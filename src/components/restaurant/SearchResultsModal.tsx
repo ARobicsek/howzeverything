@@ -11,7 +11,7 @@ interface SearchResultsModalProps {
   results: GeoapifyPlace[];
   onRestaurantClick: (place: GeoapifyPlace) => void;
   isSearching: boolean;
-  onManualAddClick: () => void;
+  onManualAddClick: (searchTerm: string) => void;
   pinnedRestaurantIds: Set<string>;
   onTogglePin: (id: string) => void;
   searchRestaurants: (searchParams: string | AdvancedSearchQuery, userLat: number | null, userLon: number | null) => void;
@@ -161,14 +161,14 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                 const isDbEntry = place.place_id.startsWith('db_');
                 const dbId = isDbEntry ? place.place_id.substring(3) : null;
                 const isPinned = dbId ? pinnedRestaurantIds.has(dbId) : false;
-                
+               
                 const props = place.properties;
 
                 const restaurantForCard: any = {
                   id: place.place_id,
                   name: props.name,
-                  address: props.address_line1 || null, // Trust the cleaned data from the hook
-                  city: props.city || null, // Trust the cleaned data from the hook
+                  address: props.address_line1 || null,
+                  city: props.city || null,
                   full_address: props.formatted,
                   state: props.state || null,
                   zip_code: props.postcode || null,
@@ -208,7 +208,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
               Don't see it?
             </p>
             <button
-                onClick={onManualAddClick}
+                onClick={() => onManualAddClick(isAdvancedSearch ? advancedQuery.name : searchTerm)}
                 style={STYLES.addButton}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}
