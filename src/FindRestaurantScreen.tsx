@@ -15,7 +15,7 @@ import { GeoapifyPlace, useRestaurants } from './hooks/useRestaurants';
 import { useRestaurantVisits } from './hooks/useRestaurantVisits';
 import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/restaurant';
 
-const SEARCH_BAR_WIDTH = '300px'; // Adjustable: controls the max width of the search bar
+const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
 
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
