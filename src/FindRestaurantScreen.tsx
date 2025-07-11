@@ -11,9 +11,10 @@ import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useNearbyRestaurants } from './hooks/useNearbyRestaurants';
 import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
-import { GeoapifyPlace, useRestaurants } from './hooks/useRestaurants';
+import { useRestaurants } from './hooks/useRestaurants';
 import { useRestaurantVisits } from './hooks/useRestaurantVisits';
 import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/restaurant';
+import type { GeoapifyPlace } from './types/restaurantSearch';
 
 
 const SEARCH_BAR_WIDTH = '380px'; // Adjustable: controls the max width of the search bar

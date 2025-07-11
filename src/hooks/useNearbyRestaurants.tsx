@@ -47,7 +47,7 @@ export const useNearbyRestaurants = () => {
 
 
     const cacheKey = `nearby_cache_${options.latitude.toFixed(4)}_${options.longitude.toFixed(4)}_${options.radiusInMiles}`;
-    
+   
     try {
       const cachedItem = localStorage.getItem(cacheKey);
       if (cachedItem) {
@@ -123,7 +123,7 @@ export const useNearbyRestaurants = () => {
             // Use a more robust address string for comparison
             const dbAddress = dbRestaurant.full_address || [dbRestaurant.address, dbRestaurant.city].filter(Boolean).join(', ');
             const apiAddress = props.address_line1 || props.formatted;
-            
+           
             if (dbAddress && apiAddress) {
                 // If we have addresses, compare them.
                 return calculateEnhancedSimilarity(dbAddress, apiAddress) > 65;
@@ -162,6 +162,12 @@ export const useNearbyRestaurants = () => {
           phone: props.phone || props.contact?.phone || null,
           manually_added: false,
           created_at: new Date().toISOString(),
+          // --- FIX: Add missing properties to satisfy the Restaurant type ---
+          rating: null,
+          price_tier: null,
+          category: props.categories.join(','),
+          opening_hours: null,
+          created_by: null,
         });
       }
 

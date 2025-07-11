@@ -2,9 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
-import type { AdvancedSearchQuery, GeoapifyPlace } from '../../hooks/useRestaurants';
+import type { GeoapifyPlace } from '../../types/restaurantSearch';
 import RestaurantCard from './RestaurantCard';
-
 
 interface SearchResultsModalProps {
   isOpen: boolean;
@@ -15,43 +14,11 @@ interface SearchResultsModalProps {
   onManualAddClick: (searchTerm: string) => void;
   pinnedRestaurantIds: Set<string>;
   onTogglePin: (id: string) => void;
-  searchRestaurants: (searchParams: string | AdvancedSearchQuery, userLat: number | null, userLon: number | null) => void;
+  searchRestaurants: (searchParams: string, userLat: number | null, userLon: number | null) => void;
   userLocation: { latitude: number, longitude: number } | null;
   clearSearchResults: () => void;
   resetSearch: () => void;
 }
-
-
-const AdvancedSearchInputs: React.FC<{
-    query: AdvancedSearchQuery;
-    onQueryChange: (query: AdvancedSearchQuery) => void;
-}> = ({ query, onQueryChange }) => (
-    <div className="space-y-3 pt-2">
-        <input
-            type="text"
-            value={query.name}
-            onChange={(e) => onQueryChange({ ...query, name: e.target.value })}
-            placeholder="Restaurant Name"
-            style={{ ...STYLES.input, backgroundColor: COLORS.white }}
-            autoFocus
-        />
-        <input
-            type="text"
-            value={query.street}
-            onChange={(e) => onQueryChange({ ...query, street: e.target.value })}
-            placeholder="Street Address (optional)"
-            style={{ ...STYLES.input, backgroundColor: COLORS.white, fontSize: '0.9rem' }}
-        />
-        <input
-            type="text"
-            value={query.city}
-            onChange={(e) => onQueryChange({ ...query, city: e.target.value })}
-            placeholder="City (optional)"
-            style={{ ...STYLES.input, backgroundColor: COLORS.white, fontSize: '0.9rem' }}
-        />
-    </div>
-);
-
 
 const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
   isOpen,
@@ -69,58 +36,41 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
 }) => {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [advancedQuery, setAdvancedQuery] = useState<AdvancedSearchQuery>({ name: '', street: '', city: '' });
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-
-  const performSearch = useMemo(() => (query: string | AdvancedSearchQuery) => {
+  const performSearch = useMemo(() => (query: string) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-        const hasQuery = typeof query === 'string' ? query.trim().length > 2 : query.name.trim().length > 2;
-        if (hasQuery) {
+        if (query.trim().length > 2) {
             searchRestaurants(query, userLocation?.latitude ?? null, userLocation?.longitude ?? null);
         } else {
             clearSearchResults();
         }
-    }, 800); // Increased debounce to 800ms
+    }, 800);
   }, [searchRestaurants, userLocation, clearSearchResults]);
 
-
   useEffect(() => {
-    if (isAdvancedSearch) {
-        performSearch(advancedQuery);
-    } else {
-        performSearch(searchTerm);
-    }
-  }, [searchTerm, advancedQuery, isAdvancedSearch, performSearch]);
-
+    performSearch(searchTerm);
+  }, [searchTerm, performSearch]);
 
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setSearchTerm('');
-      setAdvancedQuery({ name: '', street: '', city: '' });
-      setIsAdvancedSearch(false);
       resetSearch();
     }
   }, [isOpen, resetSearch]);
 
-
   if (!isOpen) return null;
-
 
   const handleReset = () => {
     setSearchTerm('');
-    setAdvancedQuery({ name: '', street: '', city: '' });
     resetSearch();
   };
 
-
-  const hasSearchTerm = isAdvancedSearch ? advancedQuery.name.trim().length > 0 : searchTerm.trim().length > 0;
-
+  const hasSearchTerm = searchTerm.trim().length > 0;
 
   return (
     <div style={STYLES.modalOverlay} onClick={onClose}>
@@ -139,26 +89,21 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
           <div className="flex items-center justify-between mb-2">
               <label style={{ ...FONTS.elegant, fontSize: '1.1rem', fontWeight: '600', color: COLORS.text }}>Search online</label>
               <div className="flex items-center gap-4">
-                  <button onClick={() => setIsAdvancedSearch(s => !s)} style={{ ...FONTS.elegant, background: 'none', border: 'none', color: COLORS.accent, fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem' }}>{isAdvancedSearch ? 'Basic' : 'Advanced'}</button>
                   {hasSearchTerm && (<button onClick={handleReset} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary }}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
                   <button onClick={onClose} style={{...STYLES.iconButton, border: 'none', width: '32px', height: '32px' }}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                   </button>
               </div>
           </div>
-          {isAdvancedSearch ? (
-              <AdvancedSearchInputs query={advancedQuery} onQueryChange={setAdvancedQuery} />
-          ) : (
-              <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="e.g. Chez Frontenac Seattle (3+ chars)"
-                  style={{ ...STYLES.input, width: '100%', backgroundColor: COLORS.white }}
-                  autoFocus
-              />
-          )}
+          <input
+              ref={inputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="e.g. Chez Frontenac, Seattle (3+ chars)"
+              style={{ ...STYLES.input, width: '100%', backgroundColor: COLORS.white }}
+              autoFocus
+          />
         </div>
        
         <div style={{ flex: 1, overflowY: 'auto', padding: SPACING[4], backgroundColor: COLORS.background }}>
@@ -173,7 +118,6 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                 const isPinned = dbId ? pinnedRestaurantIds.has(dbId) : false;
                
                 const props = place.properties;
-
 
                 const restaurantForCard: any = {
                   id: place.place_id,
@@ -191,7 +135,6 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                   geoapify_place_id: place.place_id,
                   is_pinned: isPinned,
                 };
-
 
                 return (
                   <RestaurantCard
@@ -220,7 +163,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
               Don't see it?
             </p>
             <button
-                onClick={() => onManualAddClick(isAdvancedSearch ? advancedQuery.name : searchTerm)}
+                onClick={() => onManualAddClick(searchTerm)}
                 style={STYLES.addButton}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}
@@ -233,6 +176,5 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     </div>
   );
 };
-
 
 export default SearchResultsModal;

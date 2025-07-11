@@ -3,13 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
+
 interface RestaurantCardProps {
   restaurant: RestaurantWithPinStatus & {
     dishCount?: number;
     raterCount?: number;
     date_favorited?: string | null;
     created_by?: string | null;
-    manually_added?: boolean;
+    manually_added?: boolean | null;
     distance?: number | string;
   };
   onDelete?: (restaurantId: string) => void;
@@ -21,6 +22,7 @@ interface RestaurantCardProps {
   onTogglePin?: (id: string) => void;
   onClick?: () => void;
 }
+
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
   restaurant,
@@ -37,6 +39,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+
   const getDbId = (): string | null => {
     if (restaurant.id.startsWith('db_')) {
       return restaurant.id.substring(3);
@@ -47,11 +50,12 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     }
     return null;
   };
-  
+ 
   const dbId = getDbId();
   const isFromApi = !dbId;
   const canShowMenu = (onDelete || onShare || onEdit) && dbId;
   const canEdit = !!(dbId && restaurant.manually_added && restaurant.created_by && restaurant.created_by === currentUserId);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -66,6 +70,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
 
   const handleAction = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
@@ -82,6 +87,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     });
   };
 
+
   const handleViewWebsite = (e: React.MouseEvent) => {
     handleAction(e, () => {
       if (restaurant.website_url) {
@@ -90,6 +96,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     });
   };
 
+
   const handleShare = (e: React.MouseEvent) => {
     if (onShare) handleAction(e, () => onShare(restaurant));
   };
@@ -97,6 +104,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const handleEdit = (e: React.MouseEvent) => {
     if (onEdit && dbId) handleAction(e, () => onEdit(dbId));
   };
+
 
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -115,6 +123,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     }
   };
 
+
   const handlePinClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onTogglePin && dbId) {
@@ -125,11 +134,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const hasWebsite = !!restaurant.website_url;
   const displayAddress = [restaurant.address, restaurant.city].filter(Boolean).join(', ');
 
+
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
     border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
     textAlign: 'left', transition: 'background-color 0.2s ease',
   };
+
 
   return (
     <div
@@ -220,5 +231,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     </div>
   );
 };
+
 
 export default RestaurantCard;

@@ -3,12 +3,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
-import AdvancedRestaurantSearchForm from './components/restaurant/AdvancedRestaurantSearchForm';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
-import type { AdvancedSearchQuery } from './hooks/useRestaurants';
 import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
 
@@ -58,14 +56,14 @@ const getDeviceInfo = () => {
 };
 
 
-const LocationPermissionBanner: React.FC<{    
-  onRequestPermission: () => void;    
-  isRequestingLocationPermission: boolean;    
-  isPermissionBlocked: boolean;    
+const LocationPermissionBanner: React.FC<{
+  onRequestPermission: () => void;
+  isRequestingLocationPermission: boolean;
+  isPermissionBlocked: boolean;
 }> = ({ onRequestPermission, isRequestingLocationPermission, isPermissionBlocked }) => {
   const deviceInfo = getDeviceInfo();
-  const handleClick = () => {    
-    if (isPermissionBlocked) {    
+  const handleClick = () => {
+    if (isPermissionBlocked) {
       const { isIOS, isAndroid, browser } = deviceInfo;
       let instructions = '';
       if (isIOS) {
@@ -76,86 +74,86 @@ const LocationPermissionBanner: React.FC<{
         instructions = `Location access is blocked in your device settings.\n\nTo enable location services:\n\n1. Open your device Settings\n2. Look for Privacy, Location, or App Permissions\n3. Find ${browser} in the app list\n4. Enable location permission\n5. Return to this page and refresh\n\nNote: Steps may vary by device and operating system.`;
       }
       alert(instructions);
-    } else {    
-      onRequestPermission();    
-    }    
+    } else {
+      onRequestPermission();
+    }
   };
-  return (    
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4" style={{ marginBottom: SPACING[4] }}>    
-      <div className="flex items-start gap-3">    
-        <div className="flex-shrink-0 mt-0.5">    
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>    
-        </div>    
-        <div className="flex-1">    
-          <p style={{ ...FONTS.primary, fontSize: '15px', lineHeight: '1.5', color: COLORS.gray700, margin: 0 }}>    
-            Your experience will be better with location services{' '}    
-            <button onClick={handleClick} disabled={isRequestingLocationPermission && !isPermissionBlocked} className="inline-flex items-center gap-1 transition-all duration-200 focus:outline-none" style={{ color: COLORS.primary, fontWeight: '600', textDecoration: 'none', background: 'none', border: 'none', padding: '0', cursor: (isRequestingLocationPermission && !isPermissionBlocked) ? 'default' : 'pointer', borderBottom: `1px solid ${COLORS.primary}`, opacity: (isRequestingLocationPermission && !isPermissionBlocked) ? 0.6 : 1 }} onMouseEnter={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primaryHover; e.currentTarget.style.color = COLORS.primaryHover; } }} onMouseLeave={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}>    
-              {isRequestingLocationPermission && !isPermissionBlocked ? ( <><span>requesting...</span><div className="animate-spin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div></> ) : ( <><span>{isPermissionBlocked ? 'blocked - tap for help' : 'turned on'}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></> )}    
-            </button>    
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4" style={{ marginBottom: SPACING[4] }}>
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        </div>
+        <div className="flex-1">
+          <p style={{ ...FONTS.primary, fontSize: '15px', lineHeight: '1.5', color: COLORS.gray700, margin: 0 }}>
+            Your experience will be better with location services{' '}
+            <button onClick={handleClick} disabled={isRequestingLocationPermission && !isPermissionBlocked} className="inline-flex items-center gap-1 transition-all duration-200 focus:outline-none" style={{ color: COLORS.primary, fontWeight: '600', textDecoration: 'none', background: 'none', border: 'none', padding: '0', cursor: (isRequestingLocationPermission && !isPermissionBlocked) ? 'default' : 'pointer', borderBottom: `1px solid ${COLORS.primary}`, opacity: (isRequestingLocationPermission && !isPermissionBlocked) ? 0.6 : 1 }} onMouseEnter={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primaryHover; e.currentTarget.style.color = COLORS.primaryHover; } }} onMouseLeave={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}>
+              {isRequestingLocationPermission && !isPermissionBlocked ? ( <><span>requesting...</span><div className="animate-spin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div></> ) : ( <><span>{isPermissionBlocked ? 'blocked - tap for help' : 'turned on'}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></> )}
+            </button>
           </p>
           {process.env.NODE_ENV === 'development' && (
             <div style={{ fontSize: '11px', color: COLORS.gray500, marginTop: '4px', fontFamily: 'monospace' }}>
               Detected: {deviceInfo.os} - {deviceInfo.browser}
             </div>
           )}
-        </div>    
-      </div>    
-    </div>    
-  );    
+        </div>
+      </div>
+    </div>
+  );
 };
 
 
-const SearchingIndicator: React.FC = () => {      
-  const [dotCount, setDotCount] = useState(1);      
+const SearchingIndicator: React.FC = () => {
+  const [dotCount, setDotCount] = useState(1);
   const [pulsePhase, setPulsePhase] = useState(0);
-  useEffect(() => {      
+  useEffect(() => {
     const dotInterval = setInterval(() => { setDotCount(prev => prev >= 3 ? 1 : prev + 1); }, 600);
     const pulseInterval = setInterval(() => { setPulsePhase(prev => (prev + 1) % 4); }, 200);
-    return () => { clearInterval(dotInterval); clearInterval(pulseInterval); };      
+    return () => { clearInterval(dotInterval); clearInterval(pulseInterval); };
   }, []);
-  const dots = '•'.repeat(dotCount).padEnd(3, ' ');      
+  const dots = '•'.repeat(dotCount).padEnd(3, ' ');
   const pulseOpacity = 0.3 + (Math.sin(pulsePhase * Math.PI / 2) * 0.4);
-  return (      
-    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: `1px solid rgba(255, 255, 0.2)`, animation: 'pulse 2s ease-in-out infinite' }}>      
-      <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: COLORS.primary, opacity: pulseOpacity, transform: `scale(${0.8 + pulseOpacity * 0.4})`, transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>      
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style={{ opacity: 0.9, transform: `rotate(${pulsePhase * 90}deg)`, transition: 'transform 0.2s ease' }}>      
-          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>      
-        </svg>      
-      </div>      
-      <span style={{ ...FONTS.elegant, fontSize: '14px', color: COLORS.text, fontWeight: '500', letterSpacing: '0.5px' }}>      
-        Searching the web{dots}      
-      </span>      
-    </div>      
-  );      
+  return (
+    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: `1px solid rgba(255, 255, 0.2)`, animation: 'pulse 2s ease-in-out infinite' }}>
+      <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: COLORS.primary, opacity: pulseOpacity, transform: `scale(${0.8 + pulseOpacity * 0.4})`, transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style={{ opacity: 0.9, transform: `rotate(${pulsePhase * 90}deg)`, transition: 'transform 0.2s ease' }}>
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </div>
+      <span style={{ ...FONTS.elegant, fontSize: '14px', color: COLORS.text, fontWeight: '500', letterSpacing: '0.5px' }}>
+        Searching the web{dots}
+      </span>
+    </div>
+  );
 };
 
 
-const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {        
-  const restaurant = restaurantName.toLowerCase().trim();        
-  const search = searchTerm.toLowerCase().trim();        
+const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {
+  const restaurant = restaurantName.toLowerCase().trim();
+  const search = searchTerm.toLowerCase().trim();
   if (!search) return 100;
-  if (restaurant === search) return 100;        
-  if (restaurant.includes(search) || search.includes(restaurant)) return 95;        
-  const restaurantWords = restaurant.split(/\s+/);        
-  const searchWords = search.split(/\s+/);        
-  let wordMatches = 0;        
-  let partialMatches = 0;        
-  searchWords.forEach(searchWord => {        
-    if (restaurantWords.some(restaurantWord => restaurantWord === searchWord)) { wordMatches++; }        
-    else if (restaurantWords.some(restaurantWord => restaurantWord.includes(searchWord) || searchWord.includes(restaurantWord) || restaurantWord.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e') === searchWord )) { partialMatches++; }        
-  });        
-  if (wordMatches > 0 || partialMatches > 0) {        
-    const exactScore = (wordMatches / searchWords.length) * 80;        
-    const partialScore = (partialMatches / searchWords.length) * 60;        
-    return Math.min(95, 40 + exactScore + partialScore);        
-  }        
-  const longer = restaurant.length > search.length ? restaurant : search;        
-  const shorter = restaurant.length > search.length ? search : restaurant;        
-  if (longer.length === 0) return 100;        
-  let matches = 0;        
-  for (let i = 0; i < shorter.length; i++) { if (longer.includes(shorter[i])) matches++; }        
-  const charSimilarity = (matches / longer.length) * 30;        
-  return Math.max(0, charSimilarity);        
+  if (restaurant === search) return 100;
+  if (restaurant.includes(search) || search.includes(restaurant)) return 95;
+  const restaurantWords = restaurant.split(/\s+/);
+  const searchWords = search.split(/\s+/);
+  let wordMatches = 0;
+  let partialMatches = 0;
+  searchWords.forEach(searchWord => {
+    if (restaurantWords.some(restaurantWord => restaurantWord === searchWord)) { wordMatches++; }
+    else if (restaurantWords.some(restaurantWord => restaurantWord.includes(searchWord) || searchWord.includes(restaurantWord) || restaurantWord.replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e') === searchWord )) { partialMatches++; }
+  });
+  if (wordMatches > 0 || partialMatches > 0) {
+    const exactScore = (wordMatches / searchWords.length) * 80;
+    const partialScore = (partialMatches / searchWords.length) * 60;
+    return Math.min(95, 40 + exactScore + partialScore);
+  }
+  const longer = restaurant.length > search.length ? restaurant : search;
+  const shorter = restaurant.length > search.length ? search : restaurant;
+  if (longer.length === 0) return 100;
+  let matches = 0;
+  for (let i = 0; i < shorter.length; i++) { if (longer.includes(shorter[i])) matches++; }
+  const charSimilarity = (matches / longer.length) * 30;
+  return Math.max(0, charSimilarity);
 };
 
 
@@ -172,8 +170,6 @@ const RestaurantScreen: React.FC = () => {
   const [pendingRestaurantId, setPendingRestaurantId] = useState<string | null>(null);
   const [hasInteractedWithEmptyState, setHasInteractedWithEmptyState] = useState(false);
   const [lastSearchedTerm, setLastSearchedTerm] = useState('');
-  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
-  const [advancedQuery, setAdvancedQuery] = useState<AdvancedSearchQuery>({ name: '', street: '', city: '' });
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [userLat, setUserLat] = useState<number | null>(null);
@@ -325,41 +321,13 @@ const RestaurantScreen: React.FC = () => {
     setSearchDebounceTimer(timer);
   }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
  
-  const handleAdvancedSearchChange = useCallback((newQuery: AdvancedSearchQuery) => {
-    setAdvancedQuery(newQuery);
-    setSearchTerm(newQuery.name);
-    if (showAddForm) setShowAddForm(false);
-    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-    if (!newQuery.name.trim()) { clearSearchResults(); return; }
-    const timer = setTimeout(() => {
-      if (newQuery.name.trim().length >= 2) {
-        searchRestaurants(newQuery, userLat, userLon);
-      }
-    }, 800);
-    setSearchDebounceTimer(timer);
-  }, [searchRestaurants, clearSearchResults, searchDebounceTimer, showAddForm, userLat, userLon]);
- 
   const handleResetSearch = useCallback(() => {
     resetSearch();
     setSearchTerm('');
-    setAdvancedQuery({ name: '', street: '', city: '' });
     setShowAddForm(false);
     setHasInteractedWithEmptyState(false);
     if (searchDebounceTimer) { clearTimeout(searchDebounceTimer); setSearchDebounceTimer(null); }
   }, [resetSearch, searchDebounceTimer]);
- 
-  const handleToggleAdvancedSearch = () => {
-    const nextState = !isAdvancedSearch;
-    setIsAdvancedSearch(nextState);
-    if (nextState) {
-      const currentAdvanced = { name: searchTerm, street: '', city: '' };
-      setAdvancedQuery(currentAdvanced);
-      if (searchTerm.trim().length >= 2) { searchRestaurants(currentAdvanced, userLat, userLon); }
-    } else {
-      setSearchTerm(advancedQuery.name);
-      if (advancedQuery.name.trim().length >= 2) { searchRestaurants(advancedQuery.name, userLat, userLon); }
-    }
-  };
  
   const handleAddFirstRestaurantFlow = useCallback(() => {
     setHasInteractedWithEmptyState(true);
@@ -443,11 +411,10 @@ const RestaurantScreen: React.FC = () => {
                   <div className="flex items-center justify-between mb-2">
                     <label style={{ ...FONTS.elegant, fontSize: '1.1rem', fontWeight: '600', color: COLORS.text }}>{hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}</label>
                     <div className="flex items-center gap-4">
-                      <button onClick={handleToggleAdvancedSearch} style={{ ...FONTS.elegant, background: 'none', border: 'none', color: COLORS.accent, fontWeight: 500, cursor: 'pointer', fontSize: '0.875rem', padding: '4px 8px', borderRadius: STYLES.borderRadiusSmall, transition: 'background-color 0.2s ease', }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#642e3220'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'} title={isAdvancedSearch ? "Switch to a simpler search" : "Use separate fields for name and address"}>{isAdvancedSearch ? 'Basic' : 'Advanced'}</button>
                       {hasSearchTerm && (<button onClick={handleResetSearch} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary, transition: 'color 0.2s ease, transform 0.2s ease', }} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
                     </div>
                   </div>
-                  {isAdvancedSearch ? (<AdvancedRestaurantSearchForm onSearchChange={handleAdvancedSearchChange} initialQuery={advancedQuery} />) : (<input id="restaurant-search-input" type="text" value={searchTerm} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Restaurant name +/- city" className="w-full max-w-full outline-none" style={{ ...STYLES.input, ...(isFocused && STYLES.inputFocusBlack), }} onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} autoFocus={!hasSearchTerm} />)}
+                  <input id="restaurant-search-input" type="text" value={searchTerm} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Restaurant name +/- city" className="w-full max-w-full outline-none" style={{ ...STYLES.input, ...(isFocused && STYLES.inputFocusBlack), }} onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} autoFocus={!hasSearchTerm} />
                   {hasSearchTerm && (<div style={{ ...FONTS.elegant, fontSize: '14px', color: COLORS.text, opacity: 0.8, marginTop: '8px', marginBottom: 0 }}>{hasRestaurants && (<div>{filteredAndSortedRestaurants.length > 0 ? `Found ${filteredAndSortedRestaurants.length} in your restaurants` : 'No matching restaurants found in your personal list'}</div>)}{isSearching && <SearchingIndicator />}{!isSearching && searchResults.length > 0 && (<div style={{ marginTop: '4px' }}>✨ Found {searchResults.length === 1 ? 'one result' : `${searchResults.length} results`}</div>)}</div>)}
                 </>
               </div>
