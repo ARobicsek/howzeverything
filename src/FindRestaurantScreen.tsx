@@ -20,7 +20,15 @@ import { calculateDistance, formatDistanceMiles } from './utils/restaurantGeoloc
 
 
 
+
+
+
+
 const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+
+
+
+
 
 
 
@@ -63,6 +71,10 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -73,6 +85,10 @@ const FindRestaurantScreen: React.FC = () => {
         setHasLocationPermission(false);
       }
     );
+
+
+
+
 
 
 
@@ -92,6 +108,10 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantType[]) => {
     if (!userLocation) return restaurants;
     return restaurants.map(r => {
@@ -104,9 +124,15 @@ const FindRestaurantScreen: React.FC = () => {
   }, [userLocation]);
 
 
+
+
   const recentsWithDistance = useMemo(() => addDistanceToRestaurants(recentRestaurants), [recentRestaurants, addDistanceToRestaurants]);
   const pinnedWithDistance = useMemo(() => addDistanceToRestaurants(pinnedRestaurants), [pinnedRestaurants, addDistanceToRestaurants]);
   const nearbyWithDistance = useMemo(() => addDistanceToRestaurants(nearbyRestaurants), [nearbyRestaurants, addDistanceToRestaurants]);
+
+
+
+
 
 
 
@@ -125,10 +151,18 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   const handleRestaurantNavigation = (restaurantId: string) => {
     trackVisit(restaurantId);
     navigate(`/restaurants/${restaurantId}`);
   };
+
+
+
+
 
 
 
@@ -146,10 +180,18 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   const handleModalClose = () => {
     setSearchModalOpen(false);
     resetSearch();
   };
+
+
+
+
 
 
 
@@ -160,6 +202,10 @@ const FindRestaurantScreen: React.FC = () => {
     setManualAddInitialName(searchTerm);
     resetSearch();
   };
+
+
+
+
 
 
 
@@ -183,6 +229,10 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -196,10 +246,18 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
+
+
+
+
 
 
 
@@ -214,11 +272,19 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   useEffect(() => {
     if (expandedSection === 'nearby' && userLocation) {
       fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
     }
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
+
+
+
+
 
 
 
@@ -387,6 +453,10 @@ const FindRestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
                     return (
                       <RestaurantCard
                         key={restaurant.id}
@@ -453,3 +523,6 @@ const FindRestaurantScreen: React.FC = () => {
   );
 };
 export default FindRestaurantScreen;
+
+
+

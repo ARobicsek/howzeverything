@@ -1,7 +1,7 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, FONTS, SPACING } from './constants';
+import { COLORS, FONTS } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
 // Screens
@@ -98,24 +98,20 @@ const AppRoutes: React.FC = () => {
     }, [user, profile, authLoading, createProfile]);
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
-    // This page needs a special full-bleed layout.
+    // Identify screens that manage their own top padding (e.g., with a sticky header)
     const isFindRestaurantPage = location.pathname === '/find-restaurant';
     const pathParts = location.pathname.split('/').filter(Boolean);
     const isMenuPage = pathParts.length === 2 && pathParts[0] === 'restaurants';
-    const hasFullBleedLayout = isFindRestaurantPage || isMenuPage;
+    const hasCustomTopPadding = isFindRestaurantPage || isMenuPage;
     return (
-        // This is the main app container. Its top padding is conditional.
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative', paddingTop: hasFullBleedLayout ? 0 : '60px' }}>
+        // The main app container's top padding is conditional to avoid double-padding
+        // on screens with their own sticky headers.
+        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative', paddingTop: hasCustomTopPadding ? 0 : '60px' }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
             <SharedContentHandler />
-            {/* The main content area. It's centered for normal pages but full-width for the find page. */}
-            <div style={{
-                maxWidth: hasFullBleedLayout ? 'none' : '1280px',
-                margin: '0 auto',
-                paddingLeft: hasFullBleedLayout ? 0 : SPACING.containerPadding,
-                paddingRight: hasFullBleedLayout ? 0 : SPACING.containerPadding,
-            }}>
+            {/* The main content area is now full-width. Individual screens are responsible for their own max-width and padding. */}
+            <div>
                 <Routes>
                     <Route path="/home" element={<HomeScreen />} />
                     <Route path="/find-restaurant" element={<FindRestaurantScreen />} />

@@ -13,6 +13,10 @@ import type { Restaurant } from './types/restaurant';
 
 
 
+
+
+
+
 const usePrevious = (value: boolean): boolean | undefined => {
     const ref = React.useRef<boolean | undefined>(undefined);
     React.useEffect(() => {
@@ -20,6 +24,10 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
+
+
+
 
 
 
@@ -58,6 +66,10 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
+
+
+
 
 
 
@@ -111,6 +123,10 @@ const LocationPermissionBanner: React.FC<{
 
 
 
+
+
+
+
 const SearchingIndicator: React.FC = () => {
   const [dotCount, setDotCount] = useState(1);
   const [pulsePhase, setPulsePhase] = useState(0);
@@ -134,6 +150,10 @@ const SearchingIndicator: React.FC = () => {
     </div>
   );
 };
+
+
+
+
 
 
 
@@ -169,6 +189,10 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 
 
 
+
+
+
+
 const RestaurantScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -194,6 +218,10 @@ const RestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {
     try {
       const locationData = { lat, lon, timestamp: Date.now() };
@@ -202,6 +230,10 @@ const RestaurantScreen: React.FC = () => {
       console.warn('Failed to save location to localStorage:', e);
     }
   }, []);
+
+
+
+
 
 
 
@@ -219,6 +251,10 @@ const RestaurantScreen: React.FC = () => {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
+
+
+
+
 
 
 
@@ -253,6 +289,10 @@ const RestaurantScreen: React.FC = () => {
       setPendingRestaurantId(null);
     }
   }, [restaurants, pendingRestaurantId, navigate]);
+
+
+
+
 
 
 
@@ -299,6 +339,10 @@ const RestaurantScreen: React.FC = () => {
   const handleNavigateToMenu = (restaurantId: string) => {
     navigate(`/restaurants/${restaurantId}`);
   };
+
+
+
+
 
 
 
@@ -474,4 +518,11 @@ const RestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
 export default RestaurantScreen;
+
+
+
