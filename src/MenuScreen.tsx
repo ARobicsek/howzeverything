@@ -10,6 +10,7 @@ import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
 import { useRestaurant } from './hooks/useRestaurant';
 import { useRestaurantVisits } from './hooks/useRestaurantVisits';
 
+
 // Modal for warning about duplicate dishes
 interface DuplicateDishWarningModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface DuplicateDishWarningModalProps {
   newDishName: string;
   onSelectDuplicate: (dishId: string) => void;
 }
+
 
 const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   isOpen,
@@ -64,6 +66,7 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   );
 };
 
+
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -98,6 +101,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
     </div>
   );
 };
+
 
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -153,10 +157,12 @@ const EnhancedAddDishForm: React.FC<{
   );
 };
 
+
 const MenuScreen: React.FC = () => {
   const { restaurantId } = useParams<{ restaurantId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }>({ criterion: 'community_rating', direction: 'desc' });
@@ -168,15 +174,17 @@ const MenuScreen: React.FC = () => {
   const [potentialDuplicates, setPotentialDuplicates] = useState<DishSearchResult[]>([]);
   const [dishInfoForConfirmation, setDishInfoForConfirmation] = useState<{ name: string; rating: number } | null>(null);
 
+
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId || '');
   const {
     dishes, isLoading: isLoadingDishes, error: dishesError, currentUserId, setError,
     addDish, deleteDish, updateDishRating, updateDishName, searchDishes,
     addComment, updateComment, deleteComment, addPhoto, deletePhoto, findSimilarDishesForDuplicate
   } = useDishes(restaurantId || '', sortBy);
-  
+ 
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
+
 
   // Track visit when the screen for a specific restaurant is loaded
   useEffect(() => {
@@ -194,6 +202,7 @@ const MenuScreen: React.FC = () => {
     }
   }, [location.search]);
 
+
   useEffect(() => {
     const dishIdToScrollTo = justAddedDishId || expandedDishId;
     if (dishIdToScrollTo) {
@@ -210,12 +219,15 @@ const MenuScreen: React.FC = () => {
     }
   }, [justAddedDishId, expandedDishId]);
 
+
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
 
+
   const hasDishes = dishes.length > 0;
   const isPinned = restaurantId ? pinnedRestaurantIds.has(restaurantId) : false;
+
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
@@ -224,14 +236,17 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
 
   const executeAddDish = async (name: string, rating: number) => {
     const newDish = await addDish(name, rating);
@@ -244,6 +259,7 @@ const MenuScreen: React.FC = () => {
       setJustAddedDishId(newDish.id);
     }
   };
+
 
   const handleAttemptAddDish = async (name: string, rating: number) => {
     setShowAddForm(false);
@@ -266,6 +282,7 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleShareDish = (dish: DishWithDetails) => {
     if (!restaurant) return;
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
@@ -285,30 +302,36 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleAddComment = async (dishId: string, text: string) => {
     try { await addComment(dishId, text); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to add comment: ${err.message}` : 'Failed to add comment: An unknown error occurred.'); }
   };
+
 
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
     try { await updateComment(commentId, newText); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to update comment: ${err.message}` : 'Failed to update comment: An unknown error occurred.'); }
   };
 
+
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
     try { await deleteComment(commentId); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to delete comment: ${err.message}` : 'Failed to delete comment: An unknown error occurred.'); }
   };
+
 
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
     try { await addPhoto(dishId, file, caption); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to add photo: ${err.message}` : 'Failed to add photo: An unknown error occurred.'); }
   };
 
+
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
     try { await deletePhoto(photoId); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to delete photo: ${err.message}` : 'Failed to delete photo: An unknown error occurred.'); }
   };
+
 
   const handleToggleAllExpanded = () => {
     if (allExpanded) {
@@ -319,6 +342,7 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleToggleDishExpanded = (dishId: string) => {
     if (allExpanded) {
       setAllExpanded(false);
@@ -328,11 +352,13 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen message="Loading menu..."/>;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={() => navigate('/restaurants')} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={() => navigate('/restaurants')} />;
  
   const displayAddress = [restaurant.address, (restaurant as any).city].filter(Boolean).join(', ');
+
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
@@ -423,4 +449,8 @@ const MenuScreen: React.FC = () => {
   );
 };
 
+
 export default MenuScreen;
+
+
+

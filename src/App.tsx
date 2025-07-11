@@ -1,7 +1,7 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, FONTS } from './constants';
+import { COLORS, FONTS, SPACING } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
 // Screens
@@ -58,6 +58,7 @@ const SharedContentHandler: React.FC = () => {
         };
         process();
     }, [user, addToFavorites, navigate, hasProcessed]);
+   
     return null;
 };
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -69,6 +70,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
+   
     return children;
 };
 const AppRoutes: React.FC = () => {
@@ -98,20 +100,23 @@ const AppRoutes: React.FC = () => {
     }, [user, profile, authLoading, createProfile]);
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
-    // Identify screens that manage their own top padding (e.g., with a sticky header)
+   
+    // This page needs a special full-bleed layout.
     const isFindRestaurantPage = location.pathname === '/find-restaurant';
-    const pathParts = location.pathname.split('/').filter(Boolean);
-    const isMenuPage = pathParts.length === 2 && pathParts[0] === 'restaurants';
-    const hasCustomTopPadding = isFindRestaurantPage || isMenuPage;
+   
     return (
-        // The main app container's top padding is conditional to avoid double-padding
-        // on screens with their own sticky headers.
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative', paddingTop: hasCustomTopPadding ? 0 : '60px' }}>
+        // This is the main app container. Its top padding is conditional.
+        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: isFindRestaurantPage ? 0 : '60px' }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
             <SharedContentHandler />
-            {/* The main content area is now full-width. Individual screens are responsible for their own max-width and padding. */}
-            <div>
+            {/* The main content area. It's centered for normal pages but full-width for the find page. */}
+            <div style={{
+                maxWidth: isFindRestaurantPage ? 'none' : '1280px',
+                margin: '0 auto',
+                paddingLeft: isFindRestaurantPage ? 0 : SPACING.containerPadding,
+                paddingRight: isFindRestaurantPage ? 0 : SPACING.containerPadding,
+            }}>
                 <Routes>
                     <Route path="/home" element={<HomeScreen />} />
                     <Route path="/find-restaurant" element={<FindRestaurantScreen />} />
@@ -121,10 +126,13 @@ const AppRoutes: React.FC = () => {
                     <Route path="/profile" element={<ProfileScreen onEditProfile={() => setShowProfileEdit(true)} />} />
                     <Route path="/discover" element={<DiscoveryScreen />} />
                     <Route path="/about" element={<AboutScreen />} />
+                   
                     {isAdmin && <Route path="/admin" element={<AdminScreen user={user} />} />}
+                   
                     <Route path="*" element={<Navigate to="/home" replace />} />
                 </Routes>
             </div>
+           
             {isAdmin && (
                 <button
                     onClick={() => navigate(location.pathname === '/admin' ? '/home' : '/admin')}
@@ -164,6 +172,7 @@ const App: React.FC = () => {
   if (authLoading) {
     return <LoadingScreen />;
   }
+ 
   return (
     <BrowserRouter>
       <Routes>
