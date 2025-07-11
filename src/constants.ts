@@ -2,6 +2,10 @@
 import React from 'react'; // Import React to get React.CSSProperties
 
 
+// --- NEW: Layout Controller for Restaurant Cards ---
+export const RESTAURANT_CARD_MAX_WIDTH = '350px';
+
+
 export const COLORS = {
   // Primary Colors
   primary: '#2563EB', // Main accent, buttons, links

@@ -6,6 +6,8 @@ import { parseAddress } from '../../utils/addressParser';
 import { incrementGeoapifyCount, logGeoapifyCount } from '../../utils/apiCounter';
 
 
+
+
 // --- Step 1: Define InputField OUTSIDE the main component ---
 // This ensures it has a stable identity across renders and won't cause focus loss.
 const InputField = ({
@@ -40,13 +42,18 @@ const InputField = ({
 );
 
 
+
+
 interface AddressInputProps {
   initialData: Partial<AddressFormData>;
   onAddressChange: (data: AddressFormData) => void;
+  onNameExtracted?: (name: string) => void;
 }
 
 
-const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChange }) => {
+
+
+const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChange, onNameExtracted }) => {
   const [formData, setFormData] = useState<AddressFormData>({
     fullAddress: initialData.fullAddress || '',
     address: initialData.address || '',
@@ -63,20 +70,29 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
   );
 
 
+
+
   // --- Autocomplete State ---
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const suggestionsCache = useRef(new Map<string, any[]>());
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const skipSuggestionsEffect = useRef(false);
+
+
 
 
   const stableOnAddressChange = useCallback(onAddressChange, []);
 
 
+
+
   const syncWithParent = (dataToSync: AddressFormData) => {
     stableOnAddressChange(dataToSync);
   };
+
+
 
 
   const parseAndSync = (address: string) => {
@@ -90,17 +106,20 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
     }
 
 
+
+
     setIsParsing(true);
     setParseMessage(null);
     const result = parseAddress(address);
     const finalData = { ...formData, fullAddress: address, ...(result.data || {}) };
-    
+   
     if (result.success) {
       setParseMessage(null);
     } else {
-      setParseMessage({ text: result.error || 'Could not parse address.', type: 'error' });
+      const baseError = result.error || 'Could not parse address.';
+      setParseMessage({ text: `${baseError} Please fill in the information if you can.`, type: 'error' });
     }
-    
+   
     setFormData(finalData);
     setShowParsedFields(true);
     syncWithParent(finalData);
@@ -108,11 +127,66 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
   };
 
 
+
+
   const handleSuggestionClick = (suggestion: any) => {
-    const newFullAddress = suggestion.properties.formatted;
+    skipSuggestionsEffect.current = true;
     setSuggestions([]);
-    parseAndSync(newFullAddress);
+    setIsFetchingSuggestions(false);
+
+    const props = suggestion.properties;
+    let extractedName: string | null = null;
+
+    // 1. Handle Name Extraction (more reliable check)
+    // A POI will have a 'name'. A simple address will not.
+    if (props.name && onNameExtracted) {
+        // Check if the name is just the city or state, which can happen.
+        const isNameJustLocation = (props.city && props.name.toLowerCase() === props.city.toLowerCase()) || 
+                                   (props.state && props.name.toLowerCase() === props.state.toLowerCase());
+        if (!isNameJustLocation) {
+            extractedName = props.name;
+            // --- FIX: Pass props.name directly to satisfy TypeScript ---
+            onNameExtracted(props.name);
+        }
+    }
+
+    // 2. Determine Street Address (more robustly)
+    let streetAddress = "";
+    // Priority 1: Use structured street/housenumber if available.
+    const structuredStreet = [props.housenumber, props.street].filter(Boolean).join(' ');
+    if (structuredStreet) {
+        streetAddress = structuredStreet;
+    } 
+    // Priority 2: Handle POI case where name is in line1 and address is in line2.
+    else if (extractedName && props.address_line1 === extractedName && props.address_line2) {
+        streetAddress = props.address_line2;
+    } 
+    // Priority 3: Use address_line1 as a fallback, but only if it's not the restaurant name.
+    else if (props.address_line1 && props.address_line1 !== extractedName) {
+        streetAddress = props.address_line1;
+    } 
+    // Priority 4: If all else fails, and line2 exists, use it.
+    else if (props.address_line2) {
+        streetAddress = props.address_line2;
+    }
+
+    // 3. Populate Form Data
+    const formDataUpdate: AddressFormData = {
+        fullAddress: props.formatted, // Use the canonical `formatted` string from the API
+        address: streetAddress.trim(),
+        city: props.city || '',
+        state: props.state || props.state_code || '',
+        zip_code: props.postcode || '',
+        country: props.country_code?.toUpperCase() || props.country || 'USA',
+    };
+
+    setFormData(formDataUpdate);
+    syncWithParent(formDataUpdate);
+    setShowParsedFields(true);
+    setParseMessage({ text: "Address populated from selection.", type: 'success' });
   };
+
+
 
 
   useEffect(() => {
@@ -128,10 +202,19 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
   }, []);
 
 
+
+
   useEffect(() => {
+    if (skipSuggestionsEffect.current) {
+        skipSuggestionsEffect.current = false;
+        return;
+    }
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
+
+
 
 
     const trimmedQuery = formData.fullAddress.trim();
@@ -142,10 +225,14 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
     }
 
 
+
+
     if (suggestionsCache.current.has(trimmedQuery)) {
       setSuggestions(suggestionsCache.current.get(trimmedQuery)!);
       return;
     }
+
+
 
 
     setIsFetchingSuggestions(true);
@@ -155,6 +242,8 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
         setIsFetchingSuggestions(false);
         return;
       }
+
+
 
 
       try {
@@ -175,12 +264,16 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
     }, 600); // 600ms debounce delay
 
 
+
+
     return () => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
     };
   }, [formData.fullAddress]);
+
+
 
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,6 +285,8 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
   };
 
 
+
+
   const handleFullAddressChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = e.target;
     setFormData(prev => ({...prev, fullAddress: value}));
@@ -201,6 +296,8 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
         setSuggestions([]);
     }
   };
+
+
 
 
   return (
@@ -226,7 +323,6 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
             borderRadius: STYLES.borderRadiusMedium,
             boxShadow: STYLES.shadowMedium,
             zIndex: STYLES.zDropdown,
-            marginTop: SPACING[1],
             maxHeight: '200px',
             overflowY: 'auto'
           }}>
@@ -312,6 +408,8 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
     </div>
   );
 };
+
+
 
 
 export default AddressInput;

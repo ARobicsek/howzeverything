@@ -5,10 +5,12 @@ import LoadingScreen from './components/LoadingScreen';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
 import RestaurantCard from './components/restaurant/RestaurantCard';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
+
+
 
 
 const usePrevious = (value: boolean): boolean | undefined => {
@@ -18,6 +20,8 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
+
 
 
 const getDeviceInfo = () => {
@@ -54,6 +58,8 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
+
 
 
 const LocationPermissionBanner: React.FC<{
@@ -103,6 +109,8 @@ const LocationPermissionBanner: React.FC<{
 };
 
 
+
+
 const SearchingIndicator: React.FC = () => {
   const [dotCount, setDotCount] = useState(1);
   const [pulsePhase, setPulsePhase] = useState(0);
@@ -126,6 +134,8 @@ const SearchingIndicator: React.FC = () => {
     </div>
   );
 };
+
+
 
 
 const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: string): number => {
@@ -157,6 +167,8 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 };
 
 
+
+
 const RestaurantScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -180,6 +192,8 @@ const RestaurantScreen: React.FC = () => {
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
 
 
+
+
   const saveLocationToStorage = useCallback((lat: number, lon: number) => {
     try {
       const locationData = { lat, lon, timestamp: Date.now() };
@@ -188,6 +202,8 @@ const RestaurantScreen: React.FC = () => {
       console.warn('Failed to save location to localStorage:', e);
     }
   }, []);
+
+
 
 
   const {
@@ -203,6 +219,8 @@ const RestaurantScreen: React.FC = () => {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
+
+
 
 
   useEffect(() => {
@@ -235,6 +253,8 @@ const RestaurantScreen: React.FC = () => {
       setPendingRestaurantId(null);
     }
   }, [restaurants, pendingRestaurantId, navigate]);
+
+
 
 
   const filteredAndSortedRestaurants = useMemo(() => {
@@ -279,6 +299,8 @@ const RestaurantScreen: React.FC = () => {
   const handleNavigateToMenu = (restaurantId: string) => {
     navigate(`/restaurants/${restaurantId}`);
   };
+
+
 
 
   const handleAddRestaurant = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => {
@@ -375,8 +397,8 @@ const RestaurantScreen: React.FC = () => {
  
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
-      <main style={{ flex: 1, maxWidth: '768px', width: '100%', margin: '0 auto' }}>
-        <div className="max-w-md mx-auto space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
+      <main style={{ flex: 1, maxWidth: RESTAURANT_CARD_MAX_WIDTH, width: '100%', margin: '0 auto' }}>
+        <div className="space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
             <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>My Restaurants</h1>
             <img src="/victorian_restaurant2.png" alt="A Victorian-style restaurant illustration" style={{ height: '95px' }} />
@@ -448,6 +470,8 @@ const RestaurantScreen: React.FC = () => {
     </div>
   );
 };
+
+
 
 
 export default RestaurantScreen;

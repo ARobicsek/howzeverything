@@ -6,11 +6,15 @@ import type { Restaurant } from '../../types/restaurant';
 import AddressInput from '../shared/AddressInput';
 
 
+
+
 interface AddRestaurantFormProps {
   initialName?: string;
   onSave: (data: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
 }
+
+
 
 
 const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
@@ -30,12 +34,16 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
   const [error, setError] = useState('');
 
 
+
+
   const handleSave = () => {
     if (!name.trim()) {
       setError('Restaurant name is required.');
       return;
     }
     setError('');
+
+
 
 
     const newRestaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> = {
@@ -64,6 +72,8 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
   };
 
 
+
+
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 space-y-4">
       {error && <p style={{ color: COLORS.danger, textAlign: 'center' }}>{error}</p>}
@@ -82,7 +92,15 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
       </div>
 
 
-      <AddressInput initialData={{}} onAddressChange={setAddressData} />
+
+
+      <AddressInput
+        initialData={{}}
+        onAddressChange={setAddressData}
+        onNameExtracted={setName}
+      />
+
+
 
 
       <div style={{ display: 'flex', gap: SPACING[3], marginTop: SPACING[4] }}>
@@ -102,6 +120,8 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
     </div>
   );
 };
+
+
 
 
 export default AddRestaurantForm;
