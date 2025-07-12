@@ -1,14 +1,17 @@
 // src/MenuScreen.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
-import { BORDERS, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
+import { BORDERS, COLORS, FONTS, LAYOUT_CONFIG, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { useAuth } from './hooks/useAuth';
 import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
 import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
 import { useRestaurant } from './hooks/useRestaurant';
 import { useRestaurantVisits } from './hooks/useRestaurantVisits';
+import { supabase } from './supabaseClient';
 
 
 // Modal for warning about duplicate dishes
@@ -20,6 +23,8 @@ interface DuplicateDishWarningModalProps {
   newDishName: string;
   onSelectDuplicate: (dishId: string) => void;
 }
+
+
 
 
 const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
@@ -67,6 +72,8 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
 };
 
 
+
+
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -101,6 +108,8 @@ const ConsolidatedSearchAndAdd: React.FC<{
     </div>
   );
 };
+
+
 
 
 const EnhancedAddDishForm: React.FC<{
@@ -158,10 +167,14 @@ const EnhancedAddDishForm: React.FC<{
 };
 
 
+
+
 const MenuScreen: React.FC = () => {
   const { restaurantId } = useParams<{ restaurantId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, profile } = useAuth();
+  const menuRef = useRef<HTMLDivElement>(null);
 
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -169,19 +182,19 @@ const MenuScreen: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAdvancedSort, setShowAdvancedSort] = useState(false);
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
-  const [allExpanded, setAllExpanded] = useState(false);
   const [justAddedDishId, setJustAddedDishId] = useState<string | null>(null);
   const [potentialDuplicates, setPotentialDuplicates] = useState<DishSearchResult[]>([]);
   const [dishInfoForConfirmation, setDishInfoForConfirmation] = useState<{ name: string; rating: number } | null>(null);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
 
 
-  const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError } = useRestaurant(restaurantId || '');
+  const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError, refreshRestaurant } = useRestaurant(restaurantId || '');
   const {
     dishes, isLoading: isLoadingDishes, error: dishesError, currentUserId, setError,
     addDish, deleteDish, updateDishRating, updateDishName, searchDishes,
     addComment, updateComment, deleteComment, addPhoto, deletePhoto, findSimilarDishesForDuplicate
   } = useDishes(restaurantId || '', sortBy);
- 
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
 
@@ -192,7 +205,6 @@ const MenuScreen: React.FC = () => {
       trackVisit(restaurant.id);
     }
   }, [restaurant?.id, trackVisit]);
- 
   // Set initial expanded dish from URL query parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -201,6 +213,8 @@ const MenuScreen: React.FC = () => {
       setExpandedDishId(dishToExpand);
     }
   }, [location.search]);
+
+
 
 
   useEffect(() => {
@@ -220,9 +234,49 @@ const MenuScreen: React.FC = () => {
   }, [justAddedDishId, expandedDishId]);
 
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsActionMenuOpen(false);
+      }
+    };
+    if (isActionMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isActionMenuOpen]);
+
+
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
+
+
+
+
+  const hasOtherUserContributions = useMemo(() => {
+    if (!dishes || !user) return true;
+    for (const dish of dishes) {
+        if (dish.created_by && dish.created_by !== user.id) return true;
+        for (const comment of dish.comments || []) {
+            if (comment.user_id !== user.id) return true;
+        }
+        for (const rating of dish.ratings || []) {
+            if (rating.user_id !== user.id) return true;
+        }
+        for (const photo of dish.photos || []) {
+            if (photo.user_id !== user.id) return true;
+        }
+    }
+    return false;
+  }, [dishes, user]);
+
+
+  const isOwner = restaurant?.created_by === user?.id;
+  const isAdmin = profile?.is_admin === true;
+  const canEditOrDelete = isAdmin || (isOwner && !hasOtherUserContributions);
 
 
   const hasDishes = dishes.length > 0;
@@ -237,15 +291,21 @@ const MenuScreen: React.FC = () => {
   };
 
 
+
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
 
+
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
+
 
 
   const executeAddDish = async (name: string, rating: number) => {
@@ -261,6 +321,8 @@ const MenuScreen: React.FC = () => {
   };
 
 
+
+
   const handleAttemptAddDish = async (name: string, rating: number) => {
     setShowAddForm(false);
     const duplicates = findSimilarDishesForDuplicate(name);
@@ -271,7 +333,6 @@ const MenuScreen: React.FC = () => {
       await executeAddDish(name, rating);
     }
   };
- 
   const handleSelectDuplicate = (dishId: string) => {
     setDishInfoForConfirmation(null);
     setPotentialDuplicates([]);
@@ -283,9 +344,11 @@ const MenuScreen: React.FC = () => {
   };
 
 
+
+
   const handleShareDish = (dish: DishWithDetails) => {
     if (!restaurant) return;
-    const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
+    const shareUrl = `${window.location.origin}/restaurants/${dish.restaurant_id}?dish=${dish.id}`;
     if (navigator.share) {
       navigator.share({
         title: `${dish.name} at ${restaurant.name}`,
@@ -303,10 +366,14 @@ const MenuScreen: React.FC = () => {
   };
 
 
+
+
   const handleAddComment = async (dishId: string, text: string) => {
     try { await addComment(dishId, text); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to add comment: ${err.message}` : 'Failed to add comment: An unknown error occurred.'); }
   };
+
+
 
 
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
@@ -315,10 +382,14 @@ const MenuScreen: React.FC = () => {
   };
 
 
+
+
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
     try { await deleteComment(commentId); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to delete comment: ${err.message}` : 'Failed to delete comment: An unknown error occurred.'); }
   };
+
+
 
 
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
@@ -327,43 +398,91 @@ const MenuScreen: React.FC = () => {
   };
 
 
+
+
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
     try { await deletePhoto(photoId); }
     catch (err: unknown) { setError(err instanceof Error ? `Failed to delete photo: ${err.message}` : 'Failed to delete photo: An unknown error occurred.'); }
   };
 
 
-  const handleToggleAllExpanded = () => {
-    if (allExpanded) {
-      setAllExpanded(false);
-      setExpandedDishId(null);
+  const toggleActionMenu = () => setIsActionMenuOpen(prev => !prev);
+
+
+  const handleShareRestaurant = () => {
+    if (!restaurant) return;
+    const shareUrl = `${window.location.origin}/restaurants/${restaurant.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `Check out ${restaurant.name} on How's Everything!`,
+        text: `I'm using How's Everything to rate dishes at ${restaurant.name}.`,
+        url: shareUrl,
+      }).catch(console.error);
     } else {
-      setAllExpanded(true);
+      navigator.clipboard.writeText(shareUrl).then(() => {
+          alert('Share link copied to clipboard!');
+      }).catch(err => {
+          console.error('Could not copy link to clipboard:', err);
+          alert(`To share, copy this link: ${shareUrl}`);
+      });
     }
+    setIsActionMenuOpen(false);
   };
 
 
-  const handleToggleDishExpanded = (dishId: string) => {
-    if (allExpanded) {
-      setAllExpanded(false);
-      setExpandedDishId(dishId === expandedDishId ? null : dishId);
-    } else {
-      setExpandedDishId(dishId === expandedDishId ? null : dishId);
+  const handleDeleteRestaurant = async () => {
+    if (!restaurant || !canEditOrDelete) return;
+    if (window.confirm('Are you sure you want to delete this restaurant? This action cannot be undone.')) {
+        try {
+            const { error: rpcError } = await supabase.rpc('delete_restaurant_and_children', {
+                p_restaurant_id: restaurant.id,
+            });
+
+
+            if (rpcError) {
+                throw rpcError;
+            }
+            
+            alert('Restaurant deleted successfully.');
+            navigate('/find-restaurant', { replace: true });
+        } catch (err) {
+            console.error('Error deleting restaurant:', err);
+            alert(`Failed to delete restaurant: ${err instanceof Error ? err.message : 'An unknown error occurred'}`);
+        }
     }
+    setIsActionMenuOpen(false);
   };
+
+
 
 
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen message="Loading menu..."/>;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={() => navigate('/restaurants')} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={() => navigate('/restaurants')} />;
- 
   const displayAddress = [restaurant.address, (restaurant as any).city].filter(Boolean).join(', ');
 
 
+  const menuButtonStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
+    border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
+    textAlign: 'left', transition: 'background-color 0.2s ease',
+  };
+
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
-      <header style={{ backgroundColor: COLORS.white, borderBottom: `1px solid ${COLORS.gray200}`, position: 'sticky', top: '60px', /* Account for fixed TopNav */ zIndex: 10, boxShadow: STYLES.shadowSmall }}>
-        <div style={{ maxWidth: '768px', margin: '0 auto', padding: `${SPACING[3]} ${SPACING[4]}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>
+      <header style={{
+          backgroundColor: COLORS.white,
+          borderBottom: `1px solid ${COLORS.gray200}`,
+          position: 'sticky',
+          top: '60px',
+          zIndex: 10,
+          boxShadow: STYLES.shadowSmall,
+          width: '100vw',
+          marginLeft: 'calc(50% - 50vw)',
+          marginRight: 'calc(50% - 50vw)',
+      }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto', padding: `${SPACING[3]} ${LAYOUT_CONFIG.APP_CONTAINER.padding}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <button onClick={() => navigate(-1)} style={STYLES.iconButton} aria-label="Go back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
             </button>
@@ -387,17 +506,45 @@ const MenuScreen: React.FC = () => {
                 <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
-            <button onClick={handleToggleAllExpanded} style={{ ...STYLES.iconButton, backgroundColor: allExpanded ? COLORS.primary : COLORS.white, color: allExpanded ? COLORS.white : COLORS.gray700, border: allExpanded ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label={allExpanded ? "Collapse all dishes" : "Expand all dishes"}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">{allExpanded ? (<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z" />) : (<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />)}</svg>
-            </button>
-            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...STYLES.iconButton, backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white, color: showAdvancedSort ? COLORS.white : COLORS.gray700, border: showAdvancedSort ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label="Sort options">
+            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...STYLES.iconButton, backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white, color: showAdvancedSort ? COLORS.white : COLORS.gray700, border: showAdvancedSort ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label="Sort options">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" /></svg>
             </button>
+            <div style={{ position: 'relative' }} ref={menuRef}>
+              <button onClick={toggleActionMenu} style={{ ...STYLES.iconButton, backgroundColor: isActionMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+              </button>
+              {isActionMenuOpen && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusMedium, boxShadow: STYLES.shadowLarge, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: STYLES.zDropdown, minWidth: '160px', }}>
+                  <button onClick={handleShareRestaurant} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Share</span>
+                  </button>
+                  {restaurant.website_url && (
+                    <button onClick={() => { if(restaurant.website_url) window.open(restaurant.website_url, '_blank', 'noopener,noreferrer'); setIsActionMenuOpen(false); }} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"/></svg>
+                      <span>Website</span>
+                    </button>
+                  )}
+                  {canEditOrDelete && (
+                    <>
+                      <button onClick={() => { setShowEditForm(true); setIsActionMenuOpen(false); }} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>Edit</span>
+                      </button>
+                      <button onClick={handleDeleteRestaurant} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.red50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        <span>Delete</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
-      <main style={{ flex: 1, maxWidth: '768px', width: '100%', margin: '0 auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
+      <main style={{ flex: 1, maxWidth: '768px', width: '100%', margin: '0 auto', paddingTop: SPACING[4] }}>
+        <div style={{ display: 'flex', flexDirection: 'column', padding: `0 ${SPACING[1]}` }}>
           {dishesError && (<div style={{ backgroundColor: '#FEE2E2', border: `1px solid #FECACA`, borderRadius: STYLES.borderRadiusMedium, padding: SPACING[4], textAlign: 'center', marginBottom: SPACING[4] }}><p style={{ ...FONTS.body, color: COLORS.danger, margin: 0 }}>{dishesError}</p></div>)}
           {showAdvancedSort && (
             <div style={{ backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, padding: SPACING[4], boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}`, marginBottom: SPACING[4] }}>
@@ -419,12 +566,12 @@ const MenuScreen: React.FC = () => {
           {!showAddForm && hasDishes && (<div style={{ marginLeft: SPACING[1], marginRight: SPACING[1], marginBottom: SPACING[5] }}><ConsolidatedSearchAndAdd searchTerm={searchTerm} onSearchChange={handleSearchChange} onReset={handleResetSearch} onShowAddForm={handleShowAddForm} /></div>)}
           {!showAddForm ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-              {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onShare={handleShareDish} isSubmittingComment={false} isExpanded={allExpanded || expandedDishId === dish.id} onToggleExpand={() => handleToggleDishExpanded(dish.id)} />))}</>) : (<div style={{ textAlign: 'center', padding: SPACING[6], backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}` }}><p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, margin: 0 }}>No dishes found matching "{searchTerm}"</p></div>))}
+              {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />))}</>) : (<div style={{ textAlign: 'center', padding: SPACING[6], backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}` }}><p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, margin: 0 }}>No dishes found matching "{searchTerm}"</p></div>))}
               {searchTerm.length === 0 && (
                 hasDishes ? (
                   <>
                     {dishes.map((dish) => (
-                      <DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onShare={handleShareDish} isSubmittingComment={false} isExpanded={allExpanded || expandedDishId === dish.id} onToggleExpand={() => handleToggleDishExpanded(dish.id)} />
+                      <DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />
                     ))}
                   </>
                 ) : (
@@ -445,12 +592,21 @@ const MenuScreen: React.FC = () => {
       {dishInfoForConfirmation && (
         <DuplicateDishWarningModal isOpen={!!dishInfoForConfirmation} onClose={() => { setDishInfoForConfirmation(null); setPotentialDuplicates([]); }} onConfirm={() => { if (dishInfoForConfirmation) { executeAddDish(dishInfoForConfirmation.name, dishInfoForConfirmation.rating); } }} duplicates={potentialDuplicates} newDishName={dishInfoForConfirmation.name} onSelectDuplicate={handleSelectDuplicate} />
       )}
+       {showEditForm && restaurant && (
+          <EditRestaurantForm
+              restaurant={restaurant}
+              onCancel={() => setShowEditForm(false)}
+              onSuccess={() => {
+                  setShowEditForm(false);
+                  refreshRestaurant();
+              }}
+          />
+       )}
     </div>
   );
 };
 
 
+
+
 export default MenuScreen;
-
-
-

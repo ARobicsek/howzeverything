@@ -8,6 +8,43 @@ import React from 'react'; // Import React to get React.CSSProperties
 export const RESTAURANT_CARD_MAX_WIDTH = '350px';
 
 
+// NEW: Layout Configuration System
+export const LAYOUT_CONFIG = {
+  // App-level container settings
+  APP_CONTAINER: {
+    maxWidth: '1280px',
+    padding: '1rem', // 16px
+    paddingTop: '60px', // Space for top navigation
+  },
+  
+  // Screen-specific max widths
+  SCREEN_MAX_WIDTHS: {
+    menu: 'none', // Full width within app container
+    restaurants: '768px',
+    findRestaurant: 'none', // Already has special handling
+    ratings: '768px',
+    profile: '600px',
+    discovery: '1024px',
+    home: '1280px',
+    about: '768px',
+    admin: '1280px',
+  } as Record<string, string>,
+  
+  // Component-level widths
+  COMPONENT_WIDTHS: {
+    dishCard: '100%', // Full width of container
+    restaurantCard: '350px', // Already defined as RESTAURANT_CARD_MAX_WIDTH
+    searchBar: '100%',
+    header: '100%',
+  },
+  
+  // Spacing for consistent gutters
+  CONTENT_PADDING: {
+    mobile: '1rem', // 16px
+    tablet: '1.5rem', // 24px
+    desktop: '2rem', // 32px
+  }
+};
 
 
 export const COLORS = {
@@ -440,6 +477,3 @@ export const BREAKPOINTS = {
   xl: '1280px',
   '2xl': '1536px',
 };
-
-
-

@@ -25,7 +25,10 @@ export interface Restaurant {
     category: string | null;
     opening_hours: any | null;
     created_by: string | null; // Who originally created this global restaurant
+    total_unique_raters?: number;
 }
+
+
 
 
 export interface UserRestaurantVisit {
@@ -34,6 +37,8 @@ export interface UserRestaurantVisit {
   restaurant_id: string;
   visited_at: string;
 }
+
+
 
 
 export interface RestaurantWithPinStatus extends Restaurant {

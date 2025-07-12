@@ -1,7 +1,7 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, FONTS, SPACING } from './constants';
+import { COLORS, FONTS, LAYOUT_CONFIG } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
 // Screens
@@ -58,7 +58,6 @@ const SharedContentHandler: React.FC = () => {
         };
         process();
     }, [user, addToFavorites, navigate, hasProcessed]);
-   
     return null;
 };
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -70,9 +69,28 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
-   
     return children;
 };
+
+const getScreenConfig = (pathname: string) => {
+    if (pathname === '/find-restaurant') {
+        return { isFullBleed: true, hasStickyHeader: false, maxWidth: LAYOUT_CONFIG.SCREEN_MAX_WIDTHS.findRestaurant };
+    }
+    const pathSegments = pathname.split('/').filter(Boolean);
+    let screenKey: string;
+    let hasStickyHeader = false;
+
+    if (pathSegments[0] === 'restaurants' && pathSegments.length > 1) {
+        screenKey = 'menu'; // This is the MenuScreen
+        hasStickyHeader = true; // MenuScreen has its own sticky header
+    } else {
+        screenKey = pathSegments[0] || 'home';
+    }
+
+    const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
+    return { isFullBleed: false, hasStickyHeader, maxWidth };
+};
+
 const AppRoutes: React.FC = () => {
     const { user, profile, loading: authLoading, createProfile } = useAuth();
     const [showProfileEdit, setShowProfileEdit] = useState(false);
@@ -100,39 +118,37 @@ const AppRoutes: React.FC = () => {
     }, [user, profile, authLoading, createProfile]);
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
-   
-    // This page needs a special full-bleed layout.
-    const isFindRestaurantPage = location.pathname === '/find-restaurant';
-   
+    const screenConfig = getScreenConfig(location.pathname);
+
     return (
-        // This is the main app container. Its top padding is conditional.
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: isFindRestaurantPage ? 0 : '60px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
             <SharedContentHandler />
-            {/* The main content area. It's centered for normal pages but full-width for the find page. */}
             <div style={{
-                maxWidth: isFindRestaurantPage ? 'none' : '1280px',
+                maxWidth: screenConfig.isFullBleed ? 'none' : LAYOUT_CONFIG.APP_CONTAINER.maxWidth,
                 margin: '0 auto',
-                paddingLeft: isFindRestaurantPage ? 0 : SPACING.containerPadding,
-                paddingRight: isFindRestaurantPage ? 0 : SPACING.containerPadding,
+                paddingLeft: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
+                paddingRight: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
             }}>
-                <Routes>
-                    <Route path="/home" element={<HomeScreen />} />
-                    <Route path="/find-restaurant" element={<FindRestaurantScreen />} />
-                    <Route path="/restaurants" element={<RestaurantScreen />} />
-                    <Route path="/restaurants/:restaurantId" element={<MenuScreen />} />
-                    <Route path="/ratings" element={<RatingsScreen />} />
-                    <Route path="/profile" element={<ProfileScreen onEditProfile={() => setShowProfileEdit(true)} />} />
-                    <Route path="/discover" element={<DiscoveryScreen />} />
-                    <Route path="/about" element={<AboutScreen />} />
-                   
-                    {isAdmin && <Route path="/admin" element={<AdminScreen user={user} />} />}
-                   
-                    <Route path="*" element={<Navigate to="/home" replace />} />
-                </Routes>
+                <div style={{
+                    maxWidth: screenConfig.maxWidth,
+                    margin: '0 auto',
+                }}>
+                    <Routes>
+                        <Route path="/home" element={<HomeScreen />} />
+                        <Route path="/find-restaurant" element={<FindRestaurantScreen />} />
+                        <Route path="/restaurants" element={<RestaurantScreen />} />
+                        <Route path="/restaurants/:restaurantId" element={<MenuScreen />} />
+                        <Route path="/ratings" element={<RatingsScreen />} />
+                        <Route path="/profile" element={<ProfileScreen onEditProfile={() => setShowProfileEdit(true)} />} />
+                        <Route path="/discover" element={<DiscoveryScreen />} />
+                        <Route path="/about" element={<AboutScreen />} />
+                        {isAdmin && <Route path="/admin" element={<AdminScreen user={user} />} />}
+                        <Route path="*" element={<Navigate to="/home" replace />} />
+                    </Routes>
+                </div>
             </div>
-           
             {isAdmin && (
                 <button
                     onClick={() => navigate(location.pathname === '/admin' ? '/home' : '/admin')}
@@ -158,10 +174,10 @@ const AuthFlow: React.FC = () => {
             <img src="/logo.png" alt="Logo" style={{ maxWidth: '200px', height: 'auto', margin: '0 auto' }} />
           </div>
           <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', textAlign: 'center' }}>
-            <h2 style={{ ...FONTS.elegant, fontSize: '20px', fontWeight: '600', color: COLORS.text, margin: '0 0 24px 0' }}>      
-                Sign in and start dishing      
+            <h2 style={{ ...FONTS.elegant, fontSize: '20px', fontWeight: '600', color: COLORS.text, margin: '0 0 24px 0' }}>
+                Sign in and start dishing
             </h2>
-            <LoginForm onSuccess={handleLoginSuccess} onCancel={() => {}} />      
+            <LoginForm onSuccess={handleLoginSuccess} onCancel={() => {}} />
           </div>
         </div>
       </div>
@@ -172,7 +188,6 @@ const App: React.FC = () => {
   if (authLoading) {
     return <LoadingScreen />;
   }
- 
   return (
     <BrowserRouter>
       <Routes>

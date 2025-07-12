@@ -1,6 +1,7 @@
 // src/components/restaurant/EditRestaurantForm.tsx
 import React, { useCallback, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { useRestaurants } from '../../hooks/useRestaurants'; // Import the hook
 import type { AddressFormData } from '../../types/address';
 import type { Restaurant } from '../../types/restaurant';
 import AddressInput from '../shared/AddressInput';
@@ -8,12 +9,12 @@ import AddressInput from '../shared/AddressInput';
 
 interface EditRestaurantFormProps {
   restaurant: Restaurant;
-  onSave: (restaurantId: string, updatedData: Partial<Restaurant>) => Promise<void>;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
 
-const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onSave, onCancel }) => {
+const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onSuccess, onCancel }) => {
   const [name, setName] = useState(restaurant.name);
   const [addressData, setAddressData] = useState<AddressFormData>({
     fullAddress: restaurant.full_address || restaurant.address || '',
@@ -24,6 +25,7 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
     country: restaurant.country || 'USA',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const { updateRestaurant } = useRestaurants({ initialFetch: false });
 
 
   const handleAddressChange = useCallback((data: AddressFormData) => {
@@ -37,15 +39,27 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
    
     setIsSaving(true);
     try {
-      await onSave(restaurant.id, {
+      const success = await updateRestaurant(restaurant.id, {
         name: name.trim(),
-        ...addressData,
+        full_address: addressData.fullAddress,
+        address: addressData.address,
+        city: addressData.city,
+        state: addressData.state,
+        zip_code: addressData.zip_code,
+        country: addressData.country,
       });
+
+
+      if (success) {
+        onSuccess();
+      } else {
+        // Handle error case, e.g., show an alert
+        alert("Failed to save changes. Please try again.");
+      }
     } catch (error) {
       console.error("Failed to save restaurant", error);
-      // Optionally show an error to the user via an alert or toast
+      alert("An unexpected error occurred. Please try again.");
     } finally {
-      // onSave should handle closing the modal on success
       setIsSaving(false);
     }
   };

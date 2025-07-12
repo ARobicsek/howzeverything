@@ -241,7 +241,7 @@ const RestaurantScreen: React.FC = () => {
   const {
     restaurants, isLoading, error, addRestaurant, deleteRestaurant,
     searchResults, isSearching, searchError, restaurantErrors,
-    searchRestaurants, importRestaurant, clearSearchResults, resetSearch, updateRestaurant,
+    searchRestaurants, importRestaurant, clearSearchResults, resetSearch,
   } = useRestaurants({ sortBy, userLat, userLon });
  
   const wasSearching = usePrevious(isSearching);
@@ -421,13 +421,6 @@ const RestaurantScreen: React.FC = () => {
     if (restaurantToEdit) { setEditingRestaurant(restaurantToEdit); } else { console.error("Could not find restaurant to edit with ID:", restaurantId); alert("Sorry, there was an error opening the edit form for this restaurant."); }
   };
  
-  const handleSaveRestaurantUpdate = async (restaurantId: string, updatedData: any) => {
-    const dbUpdatePayload = { ...updatedData };
-    if (dbUpdatePayload.fullAddress !== undefined) { dbUpdatePayload.full_address = dbUpdatePayload.fullAddress; delete dbUpdatePayload.fullAddress; }
-    const success = await updateRestaurant(restaurantId, dbUpdatePayload);
-    if (success) { setEditingRestaurant(null); } else { alert("Failed to save changes. Please try again."); }
-  };
- 
   if (isLoading) { return <LoadingScreen />; }
  
   const hasSearchTerm = searchTerm.trim().length > 0;
@@ -510,7 +503,7 @@ const RestaurantScreen: React.FC = () => {
           )}
         </div>
       </main>
-      {editingRestaurant && (<EditRestaurantForm restaurant={editingRestaurant} onSave={handleSaveRestaurantUpdate} onCancel={() => setEditingRestaurant(null)} />)}
+      {editingRestaurant && (<EditRestaurantForm restaurant={editingRestaurant} onSuccess={() => setEditingRestaurant(null)} onCancel={() => setEditingRestaurant(null)} />)}
     </div>
   );
 };
@@ -523,6 +516,3 @@ const RestaurantScreen: React.FC = () => {
 
 
 export default RestaurantScreen;
-
-
-
