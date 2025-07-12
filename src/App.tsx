@@ -1,4 +1,6 @@
-// src/App.tsx - REFACTORED for UI Redesign with React Router
+// src/App.tsx
+
+﻿// src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { COLORS, FONTS, LAYOUT_CONFIG } from './constants';
@@ -72,6 +74,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
     return children;
 };
 
+
 const getScreenConfig = (pathname: string) => {
     if (pathname === '/find-restaurant') {
         return { isFullBleed: true, hasStickyHeader: false, maxWidth: LAYOUT_CONFIG.SCREEN_MAX_WIDTHS.findRestaurant };
@@ -80,6 +83,7 @@ const getScreenConfig = (pathname: string) => {
     let screenKey: string;
     let hasStickyHeader = false;
 
+
     if (pathSegments[0] === 'restaurants' && pathSegments.length > 1) {
         screenKey = 'menu'; // This is the MenuScreen
         hasStickyHeader = true; // MenuScreen has its own sticky header
@@ -87,9 +91,11 @@ const getScreenConfig = (pathname: string) => {
         screenKey = pathSegments[0] || 'home';
     }
 
+
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
+
 
 const AppRoutes: React.FC = () => {
     const { user, profile, loading: authLoading, createProfile } = useAuth();
@@ -119,6 +125,7 @@ const AppRoutes: React.FC = () => {
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
     const screenConfig = getScreenConfig(location.pathname);
+
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
