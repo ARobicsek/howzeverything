@@ -7,6 +7,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+
 export interface Database {
   public: {
     Tables: {
@@ -431,6 +432,16 @@ export interface Database {
           p_restaurant_id: string
         }
         Returns: undefined
+      }
+      get_restaurants_stats: {
+        Args: {
+          p_restaurant_ids: string[]
+        }
+        Returns: {
+            restaurant_id: string
+            dish_count: number
+            rater_count: number
+        }[]
       }
       get_user_favorite_restaurants_with_stats: {
         Args: {

@@ -26,10 +26,10 @@ export interface Restaurant {
     opening_hours: any | null;
     created_by: string | null; // Who originally created this global restaurant
     total_unique_raters?: number;
+    // Add dishCount and raterCount here to be populated by RPC
+    dishCount?: number;
+    raterCount?: number;
 }
-
-
-
 
 export interface UserRestaurantVisit {
   id: string;
@@ -38,10 +38,7 @@ export interface UserRestaurantVisit {
   visited_at: string;
 }
 
-
-
-
 export interface RestaurantWithPinStatus extends Restaurant {
   is_pinned?: boolean;
-  total_unique_raters?: number;
+  distance?: number | string;
 }

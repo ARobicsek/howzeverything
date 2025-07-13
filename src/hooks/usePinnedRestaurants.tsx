@@ -64,7 +64,7 @@ export const usePinnedRestaurants = () => {
 
   const getPinnedRestaurants = useCallback(async (): Promise<Restaurant[]> => {
     if (!user) return [];
-    const { data, error } = await supabase
+    const { data: linkData, error } = await supabase
       .from('user_pinned_restaurants')
       .select(`
         restaurant_id,
@@ -72,11 +72,33 @@ export const usePinnedRestaurants = () => {
       `)
       .eq('user_id', user.id)
       .order('pinned_at', { ascending: false });
+
     if (error) {
       console.error('Error fetching pinned restaurants:', error);
       return [];
     }
-    return data?.map(item => item.restaurants as Restaurant).filter(Boolean) || [];
+
+    let restaurants = linkData?.map(item => item.restaurants as Restaurant).filter(Boolean) || [];
+    
+    if (restaurants.length > 0) {
+      const restaurantIds = restaurants.map(r => r.id);
+      const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
+
+      if (statsError) {
+          console.error('Error fetching restaurant stats:', statsError);
+      } else if (stats) {
+          const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
+          restaurants = restaurants.map(r => {
+              const rStats = statsMap.get(r.id);
+              return {
+                  ...r,
+                  dishCount: rStats?.dish_count ?? 0,
+                  raterCount: rStats?.rater_count ?? 0,
+              };
+          });
+      }
+    }
+    return restaurants;
   }, [user]);
 
   return { pinnedRestaurantIds, togglePin, getPinnedRestaurants, refreshPinned: fetchPinnedRestaurants };

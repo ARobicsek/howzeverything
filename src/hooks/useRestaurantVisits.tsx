@@ -33,18 +33,42 @@ export const useRestaurantVisits = () => {
       .eq('user_id', user.id)
       .gte('visited_at', twentyFourHoursAgo.toISOString())
       .order('visited_at', { ascending: false });
+      
     if (error) {
       console.error('Error fetching recent visits:', error);
       return [];
     }
+    
     // Remove duplicates, keeping most recent visit
-    const uniqueRestaurants = new Map();
+    const uniqueRestaurantsMap = new Map();
     data?.forEach(visit => {
-      if (!uniqueRestaurants.has(visit.restaurant_id)) {
-        uniqueRestaurants.set(visit.restaurant_id, visit.restaurants);
+      if (visit.restaurants && !uniqueRestaurantsMap.has(visit.restaurant_id)) {
+        uniqueRestaurantsMap.set(visit.restaurant_id, visit.restaurants);
       }
     });
-    return Array.from(uniqueRestaurants.values());
+    
+    let restaurants = Array.from(uniqueRestaurantsMap.values());
+
+    if (restaurants.length > 0) {
+      const restaurantIds = restaurants.map(r => r.id);
+      const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
+
+      if (statsError) {
+          console.error('Error fetching restaurant stats for recents:', statsError);
+      } else if (stats) {
+          const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
+          restaurants = restaurants.map(r => {
+              const rStats = statsMap.get(r.id);
+              return {
+                  ...r,
+                  dishCount: rStats?.dish_count ?? 0,
+                  raterCount: rStats?.rater_count ?? 0,
+              };
+          });
+      }
+    }
+
+    return restaurants;
   }, [user]);
 
   return { trackVisit, getRecentVisits };

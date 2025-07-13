@@ -1,6 +1,7 @@
 // src/components/shared/AccordionSection.tsx
 import React, { ReactNode } from 'react';
-import { COLORS, SPACING } from '../../constants';
+import { COLORS, FONTS, SPACING } from '../../constants';
+
 
 interface AccordionSectionProps {
   title: string;
@@ -12,6 +13,7 @@ interface AccordionSectionProps {
   isDisabled?: boolean;
 }
 
+
 const AccordionSection: React.FC<AccordionSectionProps> = ({
   title,
   isExpanded,
@@ -22,6 +24,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   isDisabled = false,
 }) => {
   const isGrayedOut = isEmpty || isDisabled;
+
 
   return (
     <div className={className}>
@@ -41,7 +44,13 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           opacity: isGrayedOut ? 0.5 : 1,
         }}
       >
-        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 500, color: COLORS.text }}>
+        <h3 style={{
+          margin: 0,
+          fontSize: '1.25rem',
+          fontWeight: 500,
+          color: isGrayedOut ? COLORS.textSecondary : COLORS.accent,
+          ...FONTS.elegant,
+        }}>
           {title}
         </h3>
         <svg
@@ -64,8 +73,8 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
       </button>
       <div
         style={{
-          maxHeight: isExpanded ? '1000px' : '0',
-          overflow: 'hidden',
+          maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
+          overflowY: 'auto',
           transition: 'max-height 0.5s ease-in-out',
         }}
       >
@@ -74,5 +83,6 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
     </div>
   );
 };
+
 
 export default AccordionSection;

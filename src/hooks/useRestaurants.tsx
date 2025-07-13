@@ -7,11 +7,15 @@ import { supabase } from '../supabaseClient';
 import { Restaurant } from '../types/restaurant';
 import { GeoapifyPlace, GeoapifyPlaceDetails, RestaurantWithStats, UseRestaurantsOptions } from '../types/restaurantSearch';
 import { calculateDistance, formatDistanceMiles, sortRestaurantsArray } from '../utils/restaurantGeolocation';
+import { calculateEnhancedSimilarity } from '../utils/textUtils';
+
 
 const defaultSortBy = { criterion: 'name' as const, direction: 'asc' as const };
 
+
 export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   const { sortBy = defaultSortBy, userLat, userLon, initialFetch = true } = options;
+
 
   // --- STATE MANAGEMENT ---
   const [restaurants, setRestaurants] = useState<RestaurantWithStats[]>([]);
@@ -23,8 +27,10 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [restaurantErrors, setRestaurantErrors] = useState<Map<string, string>>(new Map());
 
+
   // --- SERVICE INITIALIZATION ---
   const searchService = useRef(new SearchService());
+
 
   // --- DATA FETCHING ---
   useEffect(() => {
@@ -35,8 +41,9 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setError('User not authenticated'); setRestaurants([]); return; }
 
+
         const restaurantDetails = await restaurantDataService.fetchUserRestaurantsWithStats(user.id);
-        
+       
         const combinedData: RestaurantWithStats[] = (restaurantDetails as any[]).map((r: any) => {
           let distance: string | undefined = undefined;
           if (userLat != null && userLon != null && r.latitude != null && r.longitude != null) {
@@ -61,6 +68,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     }
   }, [sortBy, userLat, userLon, initialFetch]);
 
+
   // --- SEARCH ---
   const searchRestaurants = useCallback(async (
     searchParams: string,
@@ -71,8 +79,73 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     setSearchError(null);
     setSearchResults([]);
     try {
-      const results = await searchService.current.searchRestaurants(searchParams, lat, lon);
-      setSearchResults(results);
+      const [apiResults, dbResponse] = await Promise.all([
+        searchService.current.searchRestaurants(searchParams, lat, lon),
+        supabase.from('restaurants').select('*').ilike('name', `%${searchParams}%`)
+      ]);
+
+
+      if (dbResponse.error) throw dbResponse.error;
+      const matchingDbRestaurants: Restaurant[] = dbResponse.data || [];
+
+
+      if (matchingDbRestaurants.length > 0) {
+        const restaurantIds = matchingDbRestaurants.map(r => r.id);
+        const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
+        if (stats && !statsError) {
+          const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
+          matchingDbRestaurants.forEach(r => {
+            const rStats = statsMap.get(r.id);
+            (r as RestaurantWithStats).dishCount = rStats?.dish_count ?? 0;
+            (r as RestaurantWithStats).raterCount = rStats?.rater_count ?? 0;
+          });
+        }
+      }
+
+
+      const uniqueApiResults = apiResults.filter(apiResult => {
+        return !matchingDbRestaurants.some(dbRestaurant => {
+            const nameScore = calculateEnhancedSimilarity(dbRestaurant.name, apiResult.properties.name);
+            if (nameScore < 95) return false;
+
+
+            const dbAddress = dbRestaurant.full_address || [dbRestaurant.address, dbRestaurant.city].filter(Boolean).join(', ');
+            const apiAddress = apiResult.properties.address_line1 || apiResult.properties.formatted;
+           
+            if (dbAddress && apiAddress) {
+                return calculateEnhancedSimilarity(dbAddress, apiAddress) > 65;
+            }
+            return nameScore > 98;
+        });
+      });
+
+
+      const dbResultsAsGeoapify = matchingDbRestaurants.map(dbRestaurant => ({
+        place_id: dbRestaurant.id,
+        properties: {
+            name: dbRestaurant.name,
+            formatted: dbRestaurant.full_address || [dbRestaurant.address, dbRestaurant.city].filter(Boolean).join(', '),
+            address_line1: dbRestaurant.address || undefined,
+            city: dbRestaurant.city || undefined,
+            state: dbRestaurant.state || undefined,
+            postcode: dbRestaurant.zip_code || undefined,
+            country: dbRestaurant.country?.toUpperCase() || undefined,
+            lat: dbRestaurant.latitude!,
+            lon: dbRestaurant.longitude!,
+            categories: dbRestaurant.category ? dbRestaurant.category.split(',') : [],
+            website: dbRestaurant.website_url || undefined,
+            phone: dbRestaurant.phone || undefined,
+            datasource: { sourcename: 'howzeverything-db', attribution: 'Our Database' },
+            dishCount: (dbRestaurant as RestaurantWithStats).dishCount,
+            raterCount: (dbRestaurant as RestaurantWithStats).raterCount,
+        },
+      } as GeoapifyPlace));
+
+
+      const combinedResults = [...dbResultsAsGeoapify, ...uniqueApiResults];
+      setSearchResults(combinedResults);
+
+
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         setSearchError(err.message);
@@ -81,6 +154,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       setIsSearching(false);
     }
   }, []);
+
 
   const getRestaurantDetails = useCallback(async (placeId: string): Promise<GeoapifyPlaceDetails | null> => {
     setIsLoadingDetails(true);
@@ -99,6 +173,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     }
   }, []);
 
+
   // --- RESTAURANT & FAVORITES MANAGEMENT ---
   const isAlreadyFavorited = useCallback(async (restaurantId: string): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -106,10 +181,11 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     return favoritesService.isAlreadyFavorited(user.id, restaurantId);
   }, []);
 
+
   const addToFavorites = useCallback(async (restaurant: Restaurant): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User must be authenticated');
-    
+   
     await favoritesService.addToFavorites(user.id, restaurant.id);
     // Add to local state if not already present
     if (!restaurants.some(r => r.id === restaurant.id)) {
@@ -120,18 +196,19 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     }
   }, [restaurants, sortBy, userLat, userLon]);
 
+
   const removeFromFavorites = useCallback(async (restaurantId: string): Promise<void> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User must be authenticated');
-    
+   
     await favoritesService.removeFromFavorites(user.id, restaurantId);
     setRestaurants(prev => prev.filter(r => r.id !== restaurantId));
   }, []);
-  
+ 
   const addRestaurant = useCallback(async (restaurantDataOrName: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> | string): Promise<Restaurant | boolean | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User must be authenticated to add restaurants');
-    
+   
     const result = await restaurantDataService.addRestaurant(restaurantDataOrName, user.id);
     if (result && typeof result === 'object' && 'id' in result) {
       // If a new restaurant was created and favorited, add it to local state
@@ -142,6 +219,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     return result;
   }, [restaurants, sortBy, userLat, userLon]);
 
+
   const addRestaurantAndFavorite = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>): Promise<Restaurant> => {
     const result = await addRestaurant(restaurantData);
     if (typeof result === 'boolean' || !result) {
@@ -150,10 +228,11 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     return result as Restaurant;
   }, [addRestaurant]);
 
+
   const updateRestaurant = useCallback(async (restaurantId: string, updates: Partial<Restaurant>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
-    
+   
     try {
       const updatedRestaurant = await restaurantDataService.updateRestaurantInSupabase(restaurantId, updates, user.id);
       if (updatedRestaurant) {
@@ -173,15 +252,18 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     }
   }, [sortBy, userLat, userLon]);
 
+
   const getOrCreateRestaurant = useCallback(async (place: GeoapifyPlace): Promise<Restaurant | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
     return restaurantDataService.getOrCreateRestaurant(place, user.id);
   }, []);
 
+
   const importRestaurant = useCallback(async (geoapifyPlace: GeoapifyPlace): Promise<string | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { throw new Error('User must be authenticated'); }
+
 
     if (geoapifyPlace.place_id.startsWith('db_')) {
         const restaurantId = geoapifyPlace.place_id.substring(3);
@@ -189,7 +271,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         if (restaurant) await addToFavorites(restaurant);
         return restaurantId;
     }
-    
+   
     const restaurant = await getOrCreateRestaurant(geoapifyPlace);
     if (restaurant) {
         await addToFavorites(restaurant);
@@ -198,17 +280,20 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     return null;
   }, [addToFavorites, getOrCreateRestaurant]);
 
+
   // --- UTILITIES ---
   const clearSearchResults = useCallback(() => {
     setSearchResults([]);
     setSearchError(null);
   }, []);
 
+
   const resetSearch = useCallback(() => {
     clearSearchResults();
     searchService.current.clearCache();
     searchService.current.abort();
   }, []);
+
 
   return {
     restaurants, isLoading, error, searchResults, isSearching, searchError, isLoadingDetails, restaurantErrors,

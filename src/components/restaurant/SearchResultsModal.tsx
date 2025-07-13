@@ -2,8 +2,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
+import { RestaurantWithPinStatus } from '../../types/restaurant';
 import type { GeoapifyPlace } from '../../types/restaurantSearch';
 import RestaurantCard from './RestaurantCard';
+
+
+
 
 interface SearchResultsModalProps {
   isOpen: boolean;
@@ -13,12 +17,15 @@ interface SearchResultsModalProps {
   isSearching: boolean;
   onManualAddClick: (searchTerm: string) => void;
   pinnedRestaurantIds: Set<string>;
-  onTogglePin: (id: string) => void;
+  onTogglePin: (restaurant: RestaurantWithPinStatus) => void;
   searchRestaurants: (searchParams: string, userLat: number | null, userLon: number | null) => void;
   userLocation: { latitude: number, longitude: number } | null;
   clearSearchResults: () => void;
   resetSearch: () => void;
 }
+
+
+
 
 const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
   isOpen,
@@ -39,6 +46,9 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+
+
+
   const performSearch = useMemo(() => (query: string) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
@@ -50,9 +60,15 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     }, 800);
   }, [searchRestaurants, userLocation, clearSearchResults]);
 
+
+
+
   useEffect(() => {
     performSearch(searchTerm);
   }, [searchTerm, performSearch]);
+
+
+
 
   useEffect(() => {
     if (isOpen) {
@@ -63,14 +79,26 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     }
   }, [isOpen, resetSearch]);
 
+
+
+
   if (!isOpen) return null;
+
+
+
 
   const handleReset = () => {
     setSearchTerm('');
     resetSearch();
   };
 
+
+
+
   const hasSearchTerm = searchTerm.trim().length > 0;
+
+
+
 
   return (
     <div style={STYLES.modalOverlay} onClick={onClose}>
@@ -113,13 +141,11 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
           {results.length > 0 ? (
             <div className="space-y-2">
               {results.map((place) => {
-                const isDbEntry = place.place_id.startsWith('db_');
-                const dbId = isDbEntry ? place.place_id.substring(3) : null;
-                const isPinned = dbId ? pinnedRestaurantIds.has(dbId) : false;
-               
                 const props = place.properties;
+                const isDbRestaurant = /^[0-9a-f]{8}-/i.test(place.place_id);
 
-                const restaurantForCard: any = {
+
+                const restaurantForCard: RestaurantWithPinStatus = {
                   id: place.place_id,
                   name: props.name,
                   address: props.address_line1 || null,
@@ -127,14 +153,25 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                   full_address: props.formatted,
                   state: props.state || null,
                   zip_code: props.postcode || null,
-                  country: props.country_code?.toUpperCase() || null,
+                  country: props.country_code?.toUpperCase() || props.country || null,
                   manually_added: false,
                   created_at: new Date().toISOString(),
+                  dateAdded: new Date().toISOString(),
                   latitude: props.lat,
                   longitude: props.lon,
-                  geoapify_place_id: place.place_id,
-                  is_pinned: isPinned,
+                  geoapify_place_id: isDbRestaurant ? null : place.place_id,
+                  is_pinned: pinnedRestaurantIds.has(place.place_id),
+                  phone: props.phone || null,
+                  website_url: props.website || null,
+                  rating: null,
+                  price_tier: null,
+                  category: Array.isArray(props.categories) ? props.categories.join(',') : null,
+                  opening_hours: null,
+                  created_by: null,
+                  dishCount: (props as any).dishCount,
+                  raterCount: (props as any).raterCount,
                 };
+
 
                 return (
                   <RestaurantCard
@@ -143,7 +180,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                     onClick={() => onRestaurantClick(place)}
                     onNavigateToMenu={() => onRestaurantClick(place)}
                     currentUserId={user?.id || null}
-                    isPinned={isPinned}
+                    isPinned={restaurantForCard.is_pinned}
                     onTogglePin={onTogglePin}
                   />
                 )
@@ -176,5 +213,6 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
     </div>
   );
 };
+
 
 export default SearchResultsModal;
