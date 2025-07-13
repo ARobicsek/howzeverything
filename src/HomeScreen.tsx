@@ -8,10 +8,10 @@ const InfoCard: React.FC<{
   to: string;
 }> = ({ title, imageSrc, to }) => {
   const [isHovering, setIsHovering] = React.useState(false);
-  
+ 
   return (
     <Link to={to} style={{ textDecoration: 'none', display: 'block' }}>
-      <div 
+      <div
         style={{
           ...STYLES.card,
           padding: 0,
@@ -40,50 +40,58 @@ const InfoCard: React.FC<{
   );
 };
 
-
 const HomeScreen: React.FC = () => {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: `${SPACING[6]} ${SPACING[4]}`,
-      paddingBottom: SPACING[12], // Extra bottom padding
-    }}>
-      <div style={{ maxWidth: '600px', width: '100%', textAlign: 'center' }}>
-        
-        {/* Hero Text */}
-        <p style={{
-          ...FONTS.body,
-          ...TYPOGRAPHY.lg,
-          color: COLORS.textSecondary,
-          lineHeight: 1.6,
-          marginBottom: SPACING[10],
+    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+      {/* HEADER SECTION */}
+      <div style={{
+        backgroundColor: COLORS.navBarDark,
+        marginLeft: 'calc(-50vw + 50%)',
+        marginRight: 'calc(-50vw + 50%)',
+        marginBottom: SPACING[6],
+      }}>
+        <div style={{
+          maxWidth: '700px',
+          margin: '0 auto',
+          padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
         }}>
-          Trying to figure out what to order? HowzEverything lets you embrace your inner food critic, rating dishes and seeing what everyone else thought. 
-          <br />
-          Never order a bad dish twice!
-        </p>
+          <p style={{
+            ...FONTS.body,
+            ...TYPOGRAPHY.lg,
+            color: COLORS.textWhite,
+            lineHeight: 1.6,
+            margin: 0,
+          }}>
+            Trying to figure out what to order? HowzEverything lets you embrace your inner food critic, rating dishes and seeing what everyone else thought.
+            <br />
+            <strong>Never order a bad dish twice!</strong>
+          </p>
+        </div>
+      </div>
 
-        {/* Cards */}
+      {/* BODY SECTION */}
+      <main className="w-full mx-auto p-4" style={{ maxWidth: '600px' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr',
           gap: SPACING[6],
         }}>
-          <InfoCard 
-            title="Start Dishing"
+          <InfoCard
+            title="Find a Restaurant and Start Dishing"
             imageSrc="/critic.png"
-            to="/restaurants"
+            to="/find-restaurant"
           />
-          <InfoCard 
+          <InfoCard
             title="Discover Dishes"
             imageSrc="/discover_dishes.png"
             to="/discover"
           />
         </div>
-
-      </div>
+      </main>
     </div>
   );
 };

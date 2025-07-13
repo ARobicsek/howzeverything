@@ -73,8 +73,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 };
 
 const getScreenConfig = (pathname: string) => {
-    if (pathname === '/find-restaurant' || pathname === '/discover') {
-        const screenKey = pathname.split('/')[1] as keyof typeof LAYOUT_CONFIG.SCREEN_MAX_WIDTHS;
+    // Add about to the full-bleed screens
+    if (pathname === '/' || pathname === '/home' || pathname === '/find-restaurant' || pathname === '/discover' || pathname === '/about') {
+        const screenKey = pathname === '/' ? 'home' : pathname.split('/')[1] as keyof typeof LAYOUT_CONFIG.SCREEN_MAX_WIDTHS;
         return { isFullBleed: true, hasStickyHeader: false, maxWidth: LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] };
     }
     const pathSegments = pathname.split('/').filter(Boolean);

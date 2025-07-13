@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
+
 interface TopNavigationProps {
   onToggleMenu: () => void;
 }
 
+
 const Avatar: React.FC = () => {
   const { user, profile } = useAuth();
+
 
   const getInitials = (name?: string | null): string => {
     if (!name) return user?.email?.charAt(0).toUpperCase() ?? '?';
@@ -19,7 +22,9 @@ const Avatar: React.FC = () => {
     return names[0].charAt(0).toUpperCase();
   };
 
+
   const initials = getInitials(profile?.full_name);
+
 
   return (
     <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -47,6 +52,7 @@ const Avatar: React.FC = () => {
   );
 };
 
+
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
   return (
     <header style={{
@@ -56,7 +62,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       right: 0,
       height: '60px',
       backgroundColor: COLORS.navBarDark,
-      // borderBottom: `1px solid ${COLORS.gray700}`, // REMOVED THIS LINE
+      border: 'none', // Explicitly remove any border to prevent a gap
       zIndex: STYLES.zHeader,
       padding: `0 ${SPACING[4]}`,
       display: 'flex',
@@ -74,9 +80,11 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
         </Link>
       </div>
 
+
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         {/* Empty space in the center */}
       </div>
+
 
       <div style={{ flex: 1, display: 'flex', justifyContent: 'end', alignItems: 'center', gap: SPACING[4] }}>
         <Avatar />
@@ -89,5 +97,6 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
     </header>
   );
 };
+
 
 export default TopNavigation;
