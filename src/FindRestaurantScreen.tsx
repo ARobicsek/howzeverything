@@ -17,12 +17,14 @@ import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/r
 import type { GeoapifyPlace } from './types/restaurantSearch';
 import { calculateDistance, formatDistanceMiles } from './utils/restaurantGeolocation';
 
+
 const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+
 
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [expandedSection, setExpandedSection] = useState<string | null>('pinned');
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [nearbyRadius, setNearbyRadius] = useState(1);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -54,6 +56,7 @@ const FindRestaurantScreen: React.FC = () => {
   const [similarRestaurants, setSimilarRestaurants] = useState<RestaurantType[]>([]);
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'> | null>(null);
 
+
   const loadInitialData = useCallback(async () => {
     if (user) {
       setAreInitialSectionsLoading(true);
@@ -63,6 +66,7 @@ const FindRestaurantScreen: React.FC = () => {
       setAreInitialSectionsLoading(false);
     }
   }, [user, getRecentVisits, getPinnedRestaurants]);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -77,6 +81,7 @@ const FindRestaurantScreen: React.FC = () => {
     loadInitialData();
   }, [user, loadInitialData]);
 
+
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantWithPinStatus[]) => {
     if (!userLocation) return restaurants;
     return restaurants.map(r => {
@@ -89,9 +94,11 @@ const FindRestaurantScreen: React.FC = () => {
     });
   }, [userLocation]);
 
+
   const recentsWithDistance = useMemo(() => addDistanceToRestaurants(recentRestaurants), [recentRestaurants, addDistanceToRestaurants]);
   const pinnedWithDistance = useMemo(() => addDistanceToRestaurants(pinnedRestaurants), [pinnedRestaurants, addDistanceToRestaurants]);
   const nearbyWithDistance = useMemo(() => addDistanceToRestaurants(nearbyRestaurants), [nearbyRestaurants, addDistanceToRestaurants]);
+
 
   const handleSectionClick = useCallback(async (section: string) => {
     if (expandedSection === section) {
@@ -104,16 +111,18 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
+
   const handleRestaurantNavigation = (restaurantId: string) => {
     trackVisit(restaurantId);
     navigate(`/restaurants/${restaurantId}`);
   };
-  
+ 
   const ensureDbRestaurant = useCallback(async (restaurant: RestaurantType): Promise<RestaurantType | null> => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRegex.test(restaurant.id)) {
         return restaurant;
     }
+
 
     const geoapifyPlace: GeoapifyPlace = {
         place_id: restaurant.geoapify_place_id!,
@@ -134,9 +143,10 @@ const FindRestaurantScreen: React.FC = () => {
           datasource: { sourcename: 'geoapify', attribution: 'Geoapify' }
         }
     };
-    
+   
     return await getOrCreateRestaurant(geoapifyPlace);
   }, [getOrCreateRestaurant]);
+
 
   const handleRestaurantClick = async (place: GeoapifyPlace | RestaurantType) => {
     setSearchModalOpen(false);
@@ -148,10 +158,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleModalClose = () => {
     setSearchModalOpen(false);
     resetSearch();
   };
+
 
   const handleManualAddClick = (searchTerm: string) => {
     setSearchModalOpen(false);
@@ -159,7 +171,7 @@ const FindRestaurantScreen: React.FC = () => {
     setManualAddInitialName(searchTerm);
     resetSearch();
   };
-  
+ 
   const createNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const result = await addRestaurant(data);
@@ -176,6 +188,7 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -186,10 +199,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
+
 
   const handleUseExistingRestaurant = async (restaurant: RestaurantType) => {
     await addToFavorites(restaurant);
@@ -197,20 +212,23 @@ const FindRestaurantScreen: React.FC = () => {
     setShowAddForm(false);
     handleRestaurantNavigation(restaurant.id);
   };
-  
+ 
   const handleTogglePin = useCallback(async (restaurantToToggle: RestaurantWithPinStatus) => {
     const originalId = restaurantToToggle.id;
     const dbRestaurant = await ensureDbRestaurant(restaurantToToggle);
+
 
     if (!dbRestaurant) {
         alert("Could not save restaurant. Please try again.");
         return;
     }
 
+
     const dbId = dbRestaurant.id;
     const isCurrentlyPinned = pinnedRestaurantIds.has(dbId);
-    
+   
     const success = await togglePin(dbId);
+
 
     if (success) {
         if (isCurrentlyPinned) {
@@ -222,36 +240,38 @@ const FindRestaurantScreen: React.FC = () => {
                 return [...prev, newPinnedItem];
             });
         }
-        
+       
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(originalId)) {
-            const updater = (prevList: RestaurantWithPinStatus[]) => prevList.map(r => 
-                r.id === originalId 
-                  ? { ...dbRestaurant, distance: r.distance } 
+            const updater = (prevList: RestaurantWithPinStatus[]) => prevList.map(r =>
+                r.id === originalId
+                  ? { ...dbRestaurant, distance: r.distance }
                   : r
             );
             setNearbyRestaurants(updater);
             setRecentRestaurants(updater);
-            
+           
             if (userLocation) {
                 clearCacheForLocation({ ...userLocation, radiusInMiles: nearbyRadius });
             }
         }
     } else {
-       await refreshPinned(); 
+       await refreshPinned();
        await loadInitialData();
     }
   }, [pinnedRestaurantIds, ensureDbRestaurant, togglePin, refreshPinned, loadInitialData, setNearbyRestaurants, setRecentRestaurants, userLocation, nearbyRadius, clearCacheForLocation]);
-  
+ 
   useEffect(() => {
     if (expandedSection === 'nearby' && userLocation) {
       fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
     }
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
 
+
   const getIsPinned = (restaurant: RestaurantWithPinStatus) => {
       return !!restaurant.id && pinnedRestaurantIds.has(restaurant.id);
   }
+
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.background }}>

@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import type { DishRating, DishSearchResultWithRestaurant } from './hooks/useDishes';
 import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
@@ -11,6 +11,8 @@ import { useRestaurants } from './hooks/useRestaurants';
 import { supabase } from './supabaseClient';
 import { enhancedDishSearch } from './utils/dishSearch';
 import { formatDistanceMiles, getDistanceFromLatLonInMiles } from './utils/geolocation';
+
+const SEARCH_BAR_WIDTH = '350px';
 
 // Re-using the location permission banner from RestaurantScreen
 const LocationPermissionBanner: React.FC<{
@@ -37,22 +39,6 @@ const LocationPermissionBanner: React.FC<{
   );
 };
 
-const ToggleSwitch: React.FC<{ checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled?: boolean }> = ({ checked, onChange, disabled }) => (
-    <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px', opacity: disabled ? 0.5 : 1 }}>
-        <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} style={{ opacity: 0, width: 0, height: 0 }} />
-        <span style={{
-            position: 'absolute', cursor: disabled ? 'not-allowed' : 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: checked ? COLORS.accent : COLORS.gray300,
-            transition: 'background-color 0.2s', borderRadius: '34px'
-        }}></span>
-        <span style={{
-            position: 'absolute', content: '""', height: '18px', width: '18px', left: '3px', bottom: '3px',
-            backgroundColor: 'white', transition: 'transform 0.2s', borderRadius: '50%',
-            transform: checked ? 'translateX(16px)' : 'translateX(0)'
-        }}></span>
-    </label>
-);
-
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -65,13 +51,12 @@ interface RestaurantGroup {
 const DiscoveryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { restaurants: favoriteRestaurants } = useRestaurants({ criterion: 'name', direction: 'asc' }, null, null);
+  const { restaurants: favoriteRestaurants } = useRestaurants({ sortBy: { criterion: 'name', direction: 'asc' }});
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxDistance, setMaxDistance] = useState(25); // in miles
-  const [isDistanceFilterEnabled, setIsDistanceFilterEnabled] = useState(false);
+  const [maxDistance, setMaxDistance] = useState(-1); // in miles, -1 for 'Any'
 
   // Data and loading states
   const [allDishes, setAllDishes] = useState<DishSearchResultWithRestaurant[]>([]);
@@ -91,24 +76,24 @@ const DiscoveryScreen: React.FC = () => {
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
+  const handleResetFilters = useCallback(() => {
+    setSearchTerm('');
+    setMinRating(0);
+    setMaxDistance(-1);
+  }, []);
+
   useEffect(() => {
     if (favoriteRestaurants.length > 0) {
       setFavoriteRestaurantIds(new Set(favoriteRestaurants.map(r => r.id)));
     }
   }, [favoriteRestaurants]);
 
-  const handleResetFilters = useCallback(() => {
-    setSearchTerm('');
-    setMinRating(0);
-    setMaxDistance(25);
-    setIsDistanceFilterEnabled(true);
-  }, []);
-
   const fetchAllDishes = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const dishes = await searchAllDishes(undefined, 3.5); // Pre-fetch dishes with a decent rating
+      // Pre-fetching all dishes. We will filter on the client-side.
+      const dishes = await searchAllDishes();
       setAllDishes(dishes);
     } catch (e: any) {
       setError('Could not load dishes. Please try again later.');
@@ -145,24 +130,22 @@ const DiscoveryScreen: React.FC = () => {
   }, [isRequestingLocation]);
 
   useEffect(() => {
-    // Only request location if we don't have it.
     if (!userLat && !userLon) {
         requestLocationPermission();
     }
   }, [requestLocationPermission, userLat, userLon]);
 
   const processAndFilterDishes = useCallback(() => {
-    let results: DishSearchResultWithRestaurant[] = [];
-
-    if (searchTerm.trim().length > 1) {
-        results = enhancedDishSearch(allDishes, searchTerm) as DishSearchResultWithRestaurant[];
-    } else {
-        results = allDishes;
+    if (searchTerm.trim().length < 2) {
+      setFilteredAndGrouped([]);
+      return;
     }
+
+    let results = enhancedDishSearch(allDishes, searchTerm) as DishSearchResultWithRestaurant[];
 
     results = results.filter(d => d.average_rating >= minRating);
 
-    if (isDistanceFilterEnabled && userLat && userLon) {
+    if (maxDistance > 0 && userLat && userLon) {
       results = results.filter(dish => {
         if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
           const distance = getDistanceFromLatLonInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
@@ -189,14 +172,16 @@ const DiscoveryScreen: React.FC = () => {
     }, {});
 
     const sortedGroups = Object.values(grouped).sort((a, b) => {
-        if (isDistanceFilterEnabled && userLat && userLon) {
-            return (a.restaurant.distance ?? Infinity) - (b.restaurant.distance ?? Infinity);
+        // Default to sorting by distance if location is available
+        if (userLat && userLon && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {
+            return a.restaurant.distance - b.restaurant.distance;
         }
+        // Fallback to name sort if distance is unavailable for either
         return a.restaurant.name.localeCompare(b.restaurant.name);
     });
 
     setFilteredAndGrouped(sortedGroups);
-  }, [allDishes, searchTerm, minRating, maxDistance, userLat, userLon, isDistanceFilterEnabled]);
+  }, [allDishes, searchTerm, minRating, maxDistance, userLat, userLon]);
 
   useEffect(() => {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -227,33 +212,29 @@ const DiscoveryScreen: React.FC = () => {
     if (!dishToUpdate) return;
 
     try {
-      // Step 1: Add restaurant to favorites if not already present (using local state)
       const isFavorite = favoriteRestaurantIds.has(dishToUpdate.restaurant.id);
       if (!isFavorite) {
         await addRestaurantToFavorites(dishToUpdate.restaurant.id);
-        // Optimistically update the local set of favorite IDs
         setFavoriteRestaurantIds(prev => new Set(prev).add(dishToUpdate.restaurant.id));
       }
 
-      // Step 2: Update the dish rating in the database
       const success = await updateRatingForDish(dishId, user.id, newRating);
       if (!success) {
         throw new Error("Failed to save rating to the database.");
       }
 
-      // Step 3: Optimistically update local state for immediate UI feedback
       setAllDishes(prevDishes => prevDishes.map(dish => {
         if (dish.id === dishId) {
-          const existingRatingIndex = dish.dish_ratings.findIndex(r => r.user_id === user.id);
-          let newRatings: DishRating[] = [...dish.dish_ratings];
+          const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
+          let newRatings: DishRating[] = [...dish.ratings];
 
           if (existingRatingIndex > -1) {
-            if (newRating === 0) { // Remove rating
+            if (newRating === 0) {
               newRatings.splice(existingRatingIndex, 1);
-            } else { // Update rating
+            } else {
               newRatings[existingRatingIndex] = { ...newRatings[existingRatingIndex], rating: newRating };
             }
-          } else if (newRating > 0) { // Add new rating
+          } else if (newRating > 0) {
             newRatings.push({
               id: `temp-${Date.now()}`, user_id: user.id, rating: newRating, dish_id: dishId,
               created_at: new Date().toISOString(), updated_at: new Date().toISOString(), date_tried: new Date().toISOString(),
@@ -262,7 +243,7 @@ const DiscoveryScreen: React.FC = () => {
 
           const total = newRatings.length;
           const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
-          return { ...dish, dish_ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
+          return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
         }
         return dish;
       }));
@@ -281,84 +262,146 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
 
-  if (isLoading && allDishes.length === 0) return <LoadingScreen message="Discovering amazing dishes..." />;
+  const selectStyle: React.CSSProperties = {
+    border: `1px solid ${COLORS.gray300}`,
+    borderRadius: '8px',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    backgroundColor: COLORS.white,
+    color: COLORS.text,
+    cursor: 'pointer',
+    appearance: 'none',
+    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+    backgroundPosition: 'right 0.5rem center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '1.25em 1.25em',
+    paddingRight: '2.5rem',
+    width: '100%'
+  };
 
-  const hasSearchTerm = searchTerm.trim().length > 0;
+  const renderContent = () => {
+    if (isLoading && allDishes.length === 0) {
+      return <LoadingScreen message="Discovering amazing dishes..." />;
+    }
+    if (searchTerm.trim().length < 2) {
+      return (
+        <div className="text-center py-12">
+          <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>
+          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Start typing in the search bar to find dishes others have rated</p>
+        </div>
+      );
+    }
+    if (filteredAndGrouped.length > 0) {
+      return filteredAndGrouped.map((group) => (
+        <div key={group.restaurant.id}>
+          <div className="mb-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${COLORS.gray200}`, paddingBottom: SPACING[2] }}>
+            <h2 style={{ ...FONTS.elegant, fontSize: '1.125rem', fontWeight: '600', color: COLORS.text, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
+            {group.restaurant.distance !== undefined && (
+              <span style={{...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, flexShrink: 0, marginLeft: SPACING[3]}}>
+                {formatDistanceMiles(group.restaurant.distance)}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
+            {group.dishes.map((dish) => (
+              <DishCard
+                key={dish.id} dish={dish} currentUserId={user?.id || null}
+                onDelete={() => { alert('Deletion is not supported from the discovery page.'); }}
+                onUpdateRating={handleUpdateRating}
+                onAddComment={() => Promise.resolve()} onUpdateComment={() => Promise.resolve()}
+                onDeleteComment={() => Promise.resolve()} onAddPhoto={() => Promise.resolve()} onDeletePhoto={() => Promise.resolve()}
+                onShare={() => handleShareDish(dish)} isSubmittingComment={false} isExpanded={expandedDishId === dish.id}
+                onToggleExpand={() => setExpandedDishId(prev => (prev === dish.id ? null : dish.id))}
+              />
+            ))}
+          </div>
+        </div>
+      ));
+    }
+    // This case is for when a search of >= 2 characters yields no results.
+    return (
+      <div className="text-center py-12">
+        <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No Dishes Found</p>
+        <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Try adjusting your search filters to find more results.</p>
+      </div>
+    );
+  };
+
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
-      <main style={{ flex: 1, maxWidth: '768px', width: '100%', margin: '0 auto' }}>
-        <div style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
-            <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>Discover Dishes</h1>
-            <img src="/stolen_dish.png" alt="A treasure map icon" style={{ height: '100px' }} />
+    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+      {/* HEADER SECTION */}
+      <div style={{
+        backgroundColor: COLORS.navBarDark,
+        marginLeft: 'calc(-50vw + 50%)',
+        marginRight: 'calc(-50vw + 50%)',
+        marginBottom: SPACING[6],
+      }}>
+        <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={{paddingTop: `calc(60px + ${SPACING[4]})`, paddingBottom: SPACING[6]}}>
+          <img
+              src="/stolen_dish.png"
+              alt="Discovering a new dish"
+              style={{
+                width: '160px',
+                marginTop: SPACING[4],
+                marginBottom: SPACING[4],
+                height: 'auto',
+                objectFit: 'contain',
+              }}
+          />
+          <h1 style={{...TYPOGRAPHY.h1, color: COLORS.textWhite, marginBottom: SPACING[6]}}>
+              Discover dishes
+          </h1>
+          <div className="w-full" style={{ maxWidth: SEARCH_BAR_WIDTH, position: 'relative' }}>
+            <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Dish name, e.g. pizza, apple pie" style={STYLES.input} />
+            {searchTerm.trim().length > 0 && (
+              <button
+                onClick={handleResetFilters}
+                style={{
+                    position: 'absolute',
+                    top: '-30px',
+                    right: '-5px',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    color: COLORS.white,
+                    opacity: 0.7,
+                    transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'scale(1)'; }}
+                aria-label="Reset search and filters" title="Reset search and filters"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
+              </button>
+            )}
           </div>
-          {showLocationBanner && <LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocation} isPermissionBlocked={isLocationPermissionBlocked} />}
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: SPACING[3], marginBottom: SPACING[6] }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[2] }}>
-                  <label htmlFor="discover-search" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary }}>Dish Name</label>
-                  {hasSearchTerm && (<button onClick={handleResetFilters} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary, transition: 'color 0.2s ease, transform 0.2s ease' }} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
-              </div>
-              <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g., 'Ramen', 'Tacos', 'Apple Pie'" style={STYLES.input} />
-            </div>
-
-            <div>
-              <label htmlFor="discover-rating" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>Minimum Rating: <span style={{color: COLORS.accent, fontWeight: 'bold'}}>{minRating.toFixed(1)} ★</span></label>
-              <input id="discover-rating" type="range" min="0" max="5" step="0.5" value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={{ width: '100%', accentColor: COLORS.accent }} />
-            </div>
-
+          <div style={{display: 'flex', gap: SPACING[3], marginTop: SPACING[4], width: '100%', maxWidth: SEARCH_BAR_WIDTH}}>
+            <select value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={selectStyle}>
+              <option value={0}>Any Rating</option>
+              {[...Array(8)].map((_, i) => <option key={i} value={i * 0.5 + 1}>{(i * 0.5 + 1).toFixed(1)}+ ★</option>)}
+              <option value={5}>5.0 ★</option>
+            </select>
             {userLat && userLon && (
-              <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[2] }}>
-                      <label htmlFor="discover-distance" style={{ ...FONTS.body, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary }}>
-                          Distance: <span style={{color: COLORS.accent, fontWeight: 'bold'}}>{isDistanceFilterEnabled ? `within ${maxDistance} mi` : 'Any'}</span>
-                      </label>
-                      <ToggleSwitch checked={isDistanceFilterEnabled} onChange={(e) => setIsDistanceFilterEnabled(e.target.checked)} />
-                  </div>
-                <input id="discover-distance" type="range" min="1" max="50" step="1" value={maxDistance} onChange={e => setMaxDistance(parseInt(e.target.value, 10))} style={{ width: '100%', accentColor: COLORS.accent }} disabled={!isDistanceFilterEnabled} />
-              </div>
+              <select value={maxDistance} onChange={e => setMaxDistance(parseInt(e.target.value, 10))} style={selectStyle}>
+                  <option value={-1}>Any Distance</option>
+                  <option value={1}>Within 1 mi</option>
+                  <option value={2}>Within 2 mi</option>
+                  <option value={5}>Within 5 mi</option>
+                  <option value={10}>Within 10 mi</option>
+                  <option value={25}>Within 25 mi</option>
+              </select>
             )}
           </div>
-
-          {error && <p style={{ color: COLORS.danger }}>{error}</p>}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[8] }}>
-            {filteredAndGrouped.length > 0 ? (
-              filteredAndGrouped.map((group) => (
-                <div key={group.restaurant.id}>
-                  <div className="mb-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${COLORS.gray200}`, paddingBottom: SPACING[2] }}>
-                    <h2 style={{ ...FONTS.elegant, fontSize: '1.125rem', fontWeight: '600', color: COLORS.text, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
-                    {group.restaurant.distance !== undefined && isDistanceFilterEnabled && (
-                      <span style={{...FONTS.body, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, flexShrink: 0, marginLeft: SPACING[3]}}>
-                        {formatDistanceMiles(group.restaurant.distance)}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-                    {group.dishes.map((dish) => (
-                      <DishCard
-                        key={dish.id} dish={dish} currentUserId={user?.id || null}
-                        onDelete={() => { alert('Deletion is not supported from the discovery page.'); }}
-                        onUpdateRating={handleUpdateRating}
-                        onAddComment={() => Promise.resolve()} onUpdateComment={() => Promise.resolve()}
-                        onDeleteComment={() => Promise.resolve()} onAddPhoto={() => Promise.resolve()} onDeletePhoto={() => Promise.resolve()}
-                        onShare={() => handleShareDish(dish)} isSubmittingComment={false} isExpanded={expandedDishId === dish.id}
-                        onToggleExpand={() => setExpandedDishId(prev => (prev === dish.id ? null : dish.id))}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : (
-              !isLoading && <div className="text-center py-12">
-                <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No Dishes Found</p>
-                <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Try adjusting your search filters to find more results.</p>
-              </div>
-            )}
-             {isLoading && filteredAndGrouped.length === 0 && <LoadingScreen message="Applying filters..." />}
-          </div>
+        </div>
+      </div>
+      {/* BODY SECTION */}
+      <main className="w-full mx-auto p-4" style={{ maxWidth: RESTAURANT_CARD_MAX_WIDTH }}>
+        {showLocationBanner && <LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocation} isPermissionBlocked={isLocationPermissionBlocked} />}
+        {error && <p style={{ color: COLORS.danger }}>{error}</p>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
+          {renderContent()}
         </div>
       </main>
     </div>
