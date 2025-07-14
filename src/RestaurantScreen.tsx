@@ -17,6 +17,14 @@ import type { Restaurant } from './types/restaurant';
 
 
 
+
+
+
+
+
+
+
+
 const usePrevious = (value: boolean): boolean | undefined => {
     const ref = React.useRef<boolean | undefined>(undefined);
     React.useEffect(() => {
@@ -24,6 +32,14 @@ const usePrevious = (value: boolean): boolean | undefined => {
     });
     return ref.current;
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -66,6 +82,14 @@ const getDeviceInfo = () => {
     os: isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'
   };
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -127,6 +151,14 @@ const LocationPermissionBanner: React.FC<{
 
 
 
+
+
+
+
+
+
+
+
 const SearchingIndicator: React.FC = () => {
   const [dotCount, setDotCount] = useState(1);
   const [pulsePhase, setPulsePhase] = useState(0);
@@ -150,6 +182,14 @@ const SearchingIndicator: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -193,6 +233,14 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 
 
 
+
+
+
+
+
+
+
+
 const RestaurantScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -214,6 +262,15 @@ const RestaurantScreen: React.FC = () => {
   const [isRequestingLocationPermission, setIsRequestingLocationPermission] = useState(false);
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(true);
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
+  const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
+
+
+
+
+
+
+
+
 
 
 
@@ -238,6 +295,14 @@ const RestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
+
+
+
+
   const {
     restaurants, isLoading, error, addRestaurant, deleteRestaurant,
     searchResults, isSearching, searchError, restaurantErrors,
@@ -251,6 +316,14 @@ const RestaurantScreen: React.FC = () => {
         setLastSearchedTerm(searchTerm);
     }
   }, [isSearching, wasSearching, searchTerm]);
+
+
+
+
+
+
+
+
 
 
 
@@ -289,6 +362,14 @@ const RestaurantScreen: React.FC = () => {
       setPendingRestaurantId(null);
     }
   }, [restaurants, pendingRestaurantId, navigate]);
+
+
+
+
+
+
+
+
 
 
 
@@ -347,6 +428,14 @@ const RestaurantScreen: React.FC = () => {
 
 
 
+
+
+
+
+
+
+
+
   const handleAddRestaurant = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => {
     const result = await addRestaurant(restaurantData);
     if (result && typeof result === 'object' && 'id' in result) {
@@ -372,7 +461,7 @@ const RestaurantScreen: React.FC = () => {
       handleNavigateToMenu(result);
     }
     setAddingRestaurantId(null);
-  }, [importRestaurant, clearSearchResults, handleNavigateToMenu]);
+  }, [importRestaurant, clearSearchResults, navigate]);
  
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
@@ -441,7 +530,7 @@ const RestaurantScreen: React.FC = () => {
             <img src="/victorian_restaurant2.png" alt="A Victorian-style restaurant illustration" style={{ height: '95px' }} />
           </div>
           {error && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p></div>)}
-          {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isLocationPermissionBlocked} />)}
+          {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isPermissionBlocked} />)}
           {fetchingLocation && (<div className="bg-white/10 p-3 rounded-lg text-center"><p style={{ color: COLORS.text, ...FONTS.elegant }}>Getting your current location for better search results...</p></div>)}
           {showAdvancedSort && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -479,14 +568,14 @@ const RestaurantScreen: React.FC = () => {
               </div>
               {hasSearchTerm ? (
                 <div className="space-y-2">
-                  {hasLocalResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>Your restaurants:</h3></div>{filteredAndSortedRestaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} />))}</div>)}
+                  {hasLocalResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>Your restaurants:</h3></div>{filteredAndSortedRestaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))}</div>)}
                   {hasOnlineResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>{hasLocalResults ? 'Found online:' : 'Online results:'}</h3></div>{searchError && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{searchError}</p></div>)}{searchResults.map((result) => (<div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4"><div className="flex justify-between items-start"><div className="flex-1 mr-4"><h4 style={{ ...FONTS.elegant, fontSize: '16px', fontWeight: '500', color: COLORS.text, margin: '0 0 4px 0' }}>{result.properties.name}</h4><p style={{ ...FONTS.elegant, fontSize: '14px', color: COLORS.text, opacity: 0.8, margin: 0, lineHeight: '1.4' }}>{result.properties.formatted}</p></div><button onClick={() => handleImportRestaurant(result)} disabled={addingRestaurantId === result.place_id} style={{ ...STYLES.addButton, padding: '8px 16px', fontSize: '14px', opacity: addingRestaurantId === result.place_id ? 0.6 : 1 }} onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}>{addingRestaurantId === result.place_id ? 'Adding...' : 'Add'}</button></div>{restaurantErrors.has(result.place_id) && (<div className="mt-2 p-2 bg-red-500/20 rounded"><p style={{ ...FONTS.elegant, fontSize: '12px', color: COLORS.danger, margin: 0 }}>{restaurantErrors.get(result.place_id)}</p></div>)}</div>))}</div>)}
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center"><p style={{ ...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px' }}>Can't find it?</p><button onClick={handleShowAddForm} className="px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105" style={STYLES.addButton} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}>Add New Restaurant</button></div>
                   {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (<div className="text-center py-12"><p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No restaurants found for "{searchTerm}"</p><p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7, marginBottom: '16px' }}>Try a different search term or add this restaurant.</p></div>)}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-                  {hasRestaurants ? (restaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} />))) : (<div className="text-center py-12"><p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start by searching for your first restaurant!</p></div>)}
+                  {hasRestaurants ? (restaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))) : (<div className="text-center py-12"><p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start by searching for your first restaurant!</p></div>)}
                 </div>
               )}
             </div>
@@ -507,6 +596,14 @@ const RestaurantScreen: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
+
+
+
 
 
 

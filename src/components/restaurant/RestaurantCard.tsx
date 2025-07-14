@@ -4,6 +4,8 @@ import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 
+
+
 interface RestaurantCardProps {
   restaurant: RestaurantWithPinStatus & {
     date_favorited?: string | null;
@@ -17,8 +19,11 @@ interface RestaurantCardProps {
   currentUserId: string | null;
   isPinned?: boolean;
   onTogglePin?: (restaurant: RestaurantWithPinStatus) => void;
+  isAdmin?: boolean;
   onClick?: () => void;
 }
+
+
 
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
@@ -30,11 +35,14 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   currentUserId,
   isPinned,
   onTogglePin,
+  isAdmin = false,
   onClick
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+
 
 
   const getDbId = (): string | null => {
@@ -51,6 +59,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const canEdit = !!(dbId && restaurant.manually_added && restaurant.created_by && restaurant.created_by === currentUserId);
 
 
+
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -64,6 +74,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+
 
 
   const handleAction = (e: React.MouseEvent, action: () => void) => {
@@ -82,6 +94,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
 
+
+
   const handleViewWebsite = (e: React.MouseEvent) => {
     handleAction(e, () => {
       if (restaurant.website_url) {
@@ -91,6 +105,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
 
+
+
   const handleShare = (e: React.MouseEvent) => {
     if (onShare) handleAction(e, () => onShare(restaurant));
   };
@@ -98,6 +114,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const handleEdit = (e: React.MouseEvent) => {
     if (onEdit && dbId) handleAction(e, () => onEdit(dbId));
   };
+
+
 
 
   const toggleMenu = (e: React.MouseEvent) => {
@@ -118,6 +136,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   };
 
 
+
+
   const handlePinClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onTogglePin) {
@@ -129,11 +149,16 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   const displayAddress = [restaurant.address, restaurant.city].filter(Boolean).join(', ');
 
 
+
+
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
     border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
     textAlign: 'left', transition: 'background-color 0.2s ease',
   };
+
+
+  const statsPaddingRight = canShowMenu ? `calc(32px + ${SPACING[2]})` : '0px';
 
 
   return (
@@ -174,15 +199,17 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               {restaurant.distance}
             </span>
           )}
-          <div style={{
-              ...FONTS.body,
-              fontSize: '0.65rem', fontWeight: '600', padding: '2px 4px', borderRadius: '4px',
-              color: isFromApi ? COLORS.gray500 : COLORS.primary,
-              backgroundColor: isFromApi ? 'rgba(107, 114, 128, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-              border: `1px solid ${isFromApi ? 'rgba(107, 114, 128, 0.2)' : 'rgba(99, 102, 241, 0.3)'}`,
-          }}>
-            {isFromApi ? 'API' : 'DB'}
-          </div>
+          {isAdmin && (
+            <div style={{
+                ...FONTS.body,
+                fontSize: '0.65rem', fontWeight: '600', padding: '2px 4px', borderRadius: '4px',
+                color: isFromApi ? COLORS.gray500 : COLORS.primary,
+                backgroundColor: isFromApi ? 'rgba(107, 114, 128, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+                border: `1px solid ${isFromApi ? 'rgba(107, 114, 128, 0.2)' : 'rgba(99, 102, 241, 0.3)'}`,
+            }}>
+              {isFromApi ? 'API' : 'DB'}
+            </div>
+          )}
           {onTogglePin && (
             <button
               onClick={handlePinClick}
@@ -228,7 +255,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             {displayAddress}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3], flexShrink: 0, paddingRight: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3], flexShrink: 0, paddingRight: statsPaddingRight }}>
           {(restaurant.dishCount ?? 0) > 0 && (
             <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
@@ -246,6 +273,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     </div>
   );
 };
+
+
 
 
 export default RestaurantCard;

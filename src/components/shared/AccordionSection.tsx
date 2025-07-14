@@ -3,6 +3,8 @@ import React, { ReactNode } from 'react';
 import { COLORS, FONTS, SPACING } from '../../constants';
 
 
+
+
 interface AccordionSectionProps {
   title: string;
   isExpanded: boolean;
@@ -12,6 +14,8 @@ interface AccordionSectionProps {
   isEmpty?: boolean;
   isDisabled?: boolean;
 }
+
+
 
 
 const AccordionSection: React.FC<AccordionSectionProps> = ({
@@ -24,6 +28,8 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   isDisabled = false,
 }) => {
   const isGrayedOut = isEmpty || isDisabled;
+
+
 
 
   return (
@@ -75,6 +81,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
         style={{
           maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
           overflowY: 'auto',
+          overflowX: 'hidden',
           transition: 'max-height 0.5s ease-in-out',
         }}
       >
@@ -83,6 +90,8 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
     </div>
   );
 };
+
+
 
 
 export default AccordionSection;
