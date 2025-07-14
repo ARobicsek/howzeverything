@@ -256,7 +256,7 @@ const DiscoveryScreen: React.FC = () => {
   const handleShareDish = (dish: DishSearchResultWithRestaurant) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
-      navigator.share({ title: `${dish.name} at ${dish.restaurant.name}`, text: `Check out ${dish.name} at ${dish.restaurant.name} on How's Everything!`, url: shareUrl, }).catch(console.error);
+      navigator.share({ title: `${dish.name} at ${dish.restaurant.name}`, text: `Check out ${dish.name} at ${dish.restaurant.name} on HowzEverything!`, url: shareUrl, }).catch(console.error);
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => alert('Share link copied to clipboard!'));
     }

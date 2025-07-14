@@ -317,7 +317,7 @@ const MenuScreen: React.FC = () => {
     if (navigator.share) {
       navigator.share({
         title: `${dish.name} at ${restaurant.name}`,
-        text: `Check out ${dish.name} at ${restaurant.name} on How's Everything!`,
+        text: `Check out ${dish.name} at ${restaurant.name} on HowzEverything!`,
         url: shareUrl,
       }).catch(console.error);
     } else {
@@ -362,8 +362,8 @@ const MenuScreen: React.FC = () => {
     const shareUrl = `${window.location.origin}/restaurants/${restaurant.id}`;
     if (navigator.share) {
       navigator.share({
-        title: `Check out ${restaurant.name} on How's Everything!`,
-        text: `I'm using How's Everything to rate dishes at ${restaurant.name}.`,
+        title: `Check out ${restaurant.name} on HowzEverything!`,
+        text: `I'm using HowzEverything to rate dishes at ${restaurant.name}.`,
         url: shareUrl,
       }).catch(console.error);
     } else {

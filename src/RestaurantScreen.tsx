@@ -410,7 +410,7 @@ const RestaurantScreen: React.FC = () => {
   const handleShareRestaurant = (restaurant: Restaurant) => {
     const shareUrl = `${window.location.origin}?shareType=restaurant&shareId=${restaurant.id}`;
     if (navigator.share) {
-      navigator.share({ title: restaurant.name, text: `Check out ${restaurant.name} on How's Everything!`, url: shareUrl, }).catch(console.error);
+      navigator.share({ title: restaurant.name, text: `Check out ${restaurant.name} on HowzEverything!`, url: shareUrl, }).catch(console.error);
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => { alert('Share link copied to clipboard!'); }).catch(err => { console.error('Could not copy link to clipboard:', err); alert(`To share, copy this link: ${shareUrl}`); });
     }

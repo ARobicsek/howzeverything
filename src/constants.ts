@@ -12,20 +12,18 @@ export const LAYOUT_CONFIG = {
     padding: '1rem', // 16px
     paddingTop: '60px', // Space for top navigation
   },
- 
   // Screen-specific max widths
   SCREEN_MAX_WIDTHS: {
     menu: 'none', // Full width within app container
     restaurants: '768px',
     findRestaurant: 'none', // Already has special handling
-    ratings: '768px',
+    ratings: 'none', // Set to none to allow full-bleed header
     profile: '600px',
     discovery: 'none', // Full bleed, handles its own width
     home: '1280px',
     about: '768px',
     admin: '1280px',
   } as Record<string, string>,
- 
   // Component-level widths
   COMPONENT_WIDTHS: {
     dishCard: '100%', // Full width of container
@@ -33,7 +31,6 @@ export const LAYOUT_CONFIG = {
     searchBar: '100%',
     header: '100%',
   },
- 
   // Spacing for consistent gutters
   CONTENT_PADDING: {
     mobile: '1rem', // 16px
