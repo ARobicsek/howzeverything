@@ -253,9 +253,11 @@ const FindRestaurantScreen: React.FC = () => {
                 src="/finding_restaurant.png"
                 alt="Finding Restaurant"
                 style={{
-                  width: '160px',
+                  width: '180px',
                   marginTop: SPACING[4],
                   marginBottom: SPACING[4],
+                  border: `2px solid ${COLORS.white}`,
+                    borderRadius: STYLES.borderRadiusMedium,
                   height: 'auto',
                   objectFit: 'contain',
                 }}

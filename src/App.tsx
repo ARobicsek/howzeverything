@@ -73,6 +73,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 };
 
 
+
+
 const getScreenConfig = (pathname: string) => {
     // Add ratings to the full-bleed screens
     if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
@@ -84,6 +86,8 @@ const getScreenConfig = (pathname: string) => {
     let hasStickyHeader = false;
 
 
+
+
     if (pathSegments[0] === 'restaurants' && pathSegments.length > 1) {
         screenKey = 'menu'; // This is the MenuScreen
         hasStickyHeader = true; // MenuScreen has its own sticky header
@@ -92,9 +96,13 @@ const getScreenConfig = (pathname: string) => {
     }
 
 
+
+
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
+
+
 
 
 const AppRoutes: React.FC = () => {
@@ -124,6 +132,8 @@ const AppRoutes: React.FC = () => {
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
     const screenConfig = getScreenConfig(location.pathname);
+
+
 
 
     return (
@@ -201,3 +211,6 @@ const App: React.FC = () => {
   );
 };
 export default App;
+
+
+

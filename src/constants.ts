@@ -1,8 +1,10 @@
 // src/constants.ts
 import React from 'react'; // Import React to get React.CSSProperties
 
+
 // --- NEW: Layout Controller for Restaurant Cards ---
 export const RESTAURANT_CARD_MAX_WIDTH = '350px';
+
 
 // NEW: Layout Configuration System
 export const LAYOUT_CONFIG = {
@@ -38,6 +40,7 @@ export const LAYOUT_CONFIG = {
     desktop: '2rem', // 32px
   }
 };
+
 
 export const COLORS = {
   // Primary Colors
@@ -111,6 +114,7 @@ export const COLORS = {
   textPrimary: '#374151', // Maps to text
 };
 
+
 export const FONTS = {
   primary: {
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -131,6 +135,7 @@ export const FONTS = {
     letterSpacing: '-0.01em',
   }
 };
+
 
 export const TYPOGRAPHY = {
   // Font Sizes & Line Heights
@@ -155,6 +160,7 @@ export const TYPOGRAPHY = {
   button: { ...FONTS.primary, fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties, // Maps to TYPOGRAPHY.base, semibold
 };
 
+
 export const SPACING = {
   // Consistent spacing scale
   1: '0.25rem', // 4px
@@ -171,6 +177,7 @@ export const SPACING = {
   sectionGap: '1.5rem', // 24px
   cardPadding: '1.25rem', // 20px
 };
+
 
 // NEW: Image compression settings
 export const IMAGE_COMPRESSION = {
@@ -191,6 +198,7 @@ export const IMAGE_COMPRESSION = {
   COMPRESSION_TIMEOUT: 15000, // 15 seconds max for compression
 };
 
+
 // --- Values defined before STYLES to prevent reference errors ---
 const _borderRadiusSmall = '6px';
 const _borderRadiusMedium = '8px';
@@ -199,6 +207,7 @@ const _borderRadiusFull = '9999px';
 const _shadowSmall = '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)';
 const _shadowMedium = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
 const _shadowLarge = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+
 
 export const STYLES = {
   // Border Radius
@@ -403,6 +412,7 @@ export const STYLES = {
   } as React.CSSProperties, // Added casting
 };
 
+
 // NEW: Export BORDERS and SHADOWS, mapping to STYLES for consistency
 export const BORDERS = {
   radius: {
@@ -413,11 +423,13 @@ export const BORDERS = {
   },
 };
 
+
 export const SHADOWS = {
   small: STYLES.shadowSmall,
   medium: STYLES.shadowMedium,
   large: STYLES.shadowLarge,
 };
+
 
 // Legacy SIZES for compatibility
 export const SIZES = {
@@ -431,6 +443,7 @@ export const SIZES = {
   '4xl': '4rem', // 64px
 };
 
+
 // Breakpoints for responsive design
 export const BREAKPOINTS = {
   sm: '640px',
@@ -439,3 +452,6 @@ export const BREAKPOINTS = {
   xl: '1280px',
   '2xl': '1536px',
 };
+
+
+

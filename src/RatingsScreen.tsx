@@ -208,10 +208,12 @@ const RatingsScreen: React.FC = () => {
             src="/my_ratings.png"
             alt="Person rating food"
             style={{
-              width: '160px',
+              width: '180px',
               height: 'auto',
               objectFit: 'contain',
               marginBottom: SPACING[4],
+              border: `2px solid ${COLORS.white}`,
+              borderRadius: STYLES.borderRadiusMedium,
             }}
           />
           <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.textWhite, marginBottom: SPACING[4] }}>

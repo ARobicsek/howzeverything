@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 
+
 const InfoCard: React.FC<{
   title: string;
   imageSrc: string;
@@ -40,41 +41,49 @@ const InfoCard: React.FC<{
   );
 };
 
+
 const HomeScreen: React.FC = () => {
   return (
-    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+    // This container is now set to fill the screen's height and has bottom padding.
+    <div style={{
+      backgroundColor: COLORS.navBarDark,
+      marginLeft: 'calc(-50vw + 50%)',
+      marginRight: 'calc(-50vw + 50%)',
+      minHeight: '100vh',
+      boxSizing: 'border-box',
+      paddingBottom: SPACING[8],
+    }}>
       {/* HEADER SECTION */}
       <div style={{
-        backgroundColor: COLORS.navBarDark,
-        marginLeft: 'calc(-50vw + 50%)',
-        marginRight: 'calc(-50vw + 50%)',
-        marginBottom: SPACING[6],
+        maxWidth: '700px',
+        margin: '0 auto',
+        padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
       }}>
-        <div style={{
-          maxWidth: '700px',
-          margin: '0 auto',
-          padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
+        <p style={{
+          ...FONTS.body,
+          ...TYPOGRAPHY.lg,
+          color: COLORS.textWhite,
+          lineHeight: 1.6,
+          margin: 0,
         }}>
-          <p style={{
-            ...FONTS.body,
-            ...TYPOGRAPHY.lg,
-            color: COLORS.textWhite,
-            lineHeight: 1.6,
-            margin: 0,
-          }}>
-            Trying to figure out what to order? HowzEverything lets you embrace your inner food critic, rating dishes and seeing what everyone else thought.
-            <br />
-            <strong>Never order a bad dish twice!</strong>
-          </p>
-        </div>
+          Trying to figure out what to order? HowzEverything lets you embrace your inner food critic. Rate dishes yourself <i>and</i> see what the unwashed masses thought.
+          <br />
+          <strong>Never order a bad dish twice!</strong>
+        </p>
       </div>
 
-      {/* BODY SECTION */}
-      <main className="w-full mx-auto p-4" style={{ maxWidth: '600px' }}>
+
+      {/* BODY SECTION - Added explicit horizontal padding for card margins. */}
+      <main style={{ 
+          maxWidth: '600px', 
+          margin: '0 auto',
+          paddingLeft: SPACING[4],
+          paddingRight: SPACING[4],
+        }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr',
@@ -82,12 +91,12 @@ const HomeScreen: React.FC = () => {
         }}>
           <InfoCard
             title="Find a Restaurant and Start Dishing"
-            imageSrc="/critic.png"
+            imageSrc="/critic_2.png"
             to="/find-restaurant"
           />
           <InfoCard
             title="Discover Dishes"
-            imageSrc="/discover_dishes.png"
+            imageSrc="/explorer_2.png"
             to="/discover"
           />
         </div>
@@ -95,5 +104,6 @@ const HomeScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default HomeScreen;

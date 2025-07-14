@@ -342,9 +342,11 @@ const DiscoveryScreen: React.FC = () => {
               src="/stolen_dish.png"
               alt="Discovering a new dish"
               style={{
-                width: '160px',
+                width: '180px',
                 marginTop: SPACING[4],
                 marginBottom: SPACING[4],
+                border: `2px solid ${COLORS.white}`,
+                borderRadius: STYLES.borderRadiusMedium,
                 height: 'auto',
                 objectFit: 'contain',
               }}

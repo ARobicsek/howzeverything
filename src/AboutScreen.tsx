@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { COLORS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 
 
+
+
 const AboutScreen: React.FC = () => {
   return (
     <div>
@@ -15,7 +17,7 @@ const AboutScreen: React.FC = () => {
         <div style={{
           maxWidth: '700px',
           margin: '0 auto',
-          padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
+          padding: `calc(60px + ${SPACING[4]}) ${SPACING[8]} ${SPACING[6]}`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -25,20 +27,24 @@ const AboutScreen: React.FC = () => {
             src="/ordering.png"
             alt="Person ordering food"
             style={{
-              width: '160px',
+              width: '180px',
               height: 'auto',
               objectFit: 'contain',
               marginBottom: SPACING[4],
+              border: `2px solid ${COLORS.white}`,
+              borderRadius: STYLES.borderRadiusMedium,
             }}
           />
           <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.textWhite, marginBottom: SPACING[4] }}>
             About HowzEverything
           </h1>
-          <p style={{ ...TYPOGRAPHY.lg, color: COLORS.textWhite, lineHeight: 1.7, fontSize: TYPOGRAPHY.lg.fontSize }}>
-            HowzEverything started from a simple, universal question: "What should I order?" We've all been there—staring at a long menu, overwhelmed by options, wishing we had a trusted friend's recommendation. This app is that friend.
+          <p style={{ ...TYPOGRAPHY.body, color: COLORS.textWhite, lineHeight: 1.7 }}>
+            HowzEverything started from a simple, universal question: "What should I order?" We've all been there—staring at a long menu, overwhelmed by options, wishing we had a trusted friend's recommendation. <strong>This app is that friend.</strong>
           </p>
         </div>
       </div>
+
+
 
 
       {/* BODY SECTION */}
@@ -57,21 +63,26 @@ const AboutScreen: React.FC = () => {
           </p>
 
 
+
+
           <h2 style={{ ...TYPOGRAPHY.h2, marginTop: SPACING[8], marginBottom: SPACING[3] }}>
             How It Works
           </h2>
           <ol style={{ paddingLeft: SPACING[5], listStyle: 'decimal' }}>
             <li style={{ marginBottom: SPACING[3] }}>
-              <strong>Search First:</strong> Find your restaurant and search for the dish you tried. This collaborative approach prevents duplicates and aggregates ratings effectively.
+              <strong>Search First:</strong> Find your restaurant. See which dishes other people liked (and hated). Go ahead and order. (Good luck!)
             </li>
             <li style={{ marginBottom: SPACING[3] }}>
-              <strong>Rate Your Dish:</strong> Give the dish a star rating from 1 to 5. Was it a culinary masterpiece or blech? Your rating helps everyone (especially you, next time). You can add a photo and a comment too.
-            </li>
-            <li style={{ marginBottom: SPACING[3] }}>
-              <strong>Discover with Confidence:</strong> Use the Discover screen to find the best-rated dishes near you. Filter by rating, distance, and cuisine to find exactly what you're craving.
+              <strong>Rate Your Dish:</strong> Culinary masterpiece or blech? Your rating helps everyone (especially you, next time). You can add a photo and a comment too. Don't see the dish? Add it!
             </li>
           </ol>
 
+          <h2 style={{ ...TYPOGRAPHY.h2, marginTop: SPACING[8], marginBottom: SPACING[3] }}>
+            Also...
+          </h2>
+          <p>
+            <strong>Discover with Confidence:</strong> Hankering for a specific dish? Use the Discover screen to find the best-rated version near you.
+          </p>
 
           <div style={{
             marginTop: SPACING[10],
@@ -84,7 +95,7 @@ const AboutScreen: React.FC = () => {
               Join the Community
             </h3>
             <p style={{ margin: `0 0 ${SPACING[4]} 0` }}>
-              Your ratings make the experience better for everyone. Start by adding your favorite (and not-so-favorite) dishes today.
+              Your ratings make restauranting better for everyone. Start by adding your favorite (and not-so-favorite) dishes today.
             </p>
             <Link to="/find-restaurant" style={{ ...STYLES.primaryButton, backgroundColor: COLORS.accent }}>
               Start Dishing
@@ -95,6 +106,8 @@ const AboutScreen: React.FC = () => {
     </div>
   );
 };
+
+
 
 
 export default AboutScreen;
