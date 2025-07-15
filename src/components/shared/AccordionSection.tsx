@@ -26,7 +26,12 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   const isGrayedOut = isEmpty || isDisabled;
 
   return (
-    <div className={className}>
+    // --- THIS IS THE FIX ---
+    // By adding `overflow: 'hidden'` to the component's root element,
+    // we create a new block formatting context. This isolates the accordion's
+    // internal layout (especially the scrollable content area) from the rest
+    // of the page, preventing it from interfering with the full-bleed header's layout.
+    <div className={className} style={{ overflow: 'hidden' }}>
       <div // MODIFIED from <button> to <div> to allow nesting an interactive element (the refresh button)
         onClick={isGrayedOut ? undefined : onClick}
         style={{
@@ -73,19 +78,16 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>
-      {/* --- THIS IS THE FIX --- */}
-      {/* Outer div handles the max-height transition and clipping */}
+      {/* Reverted the content wrapper to its original, functional state */}
       <div
         style={{
           maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
-          overflow: 'hidden', // Changed from specific overflow properties to a simple 'hidden'
+          overflowY: 'auto',
+          overflowX: 'hidden',
           transition: 'max-height 0.5s ease-in-out',
         }}
       >
-        {/* Inner div handles the vertical scrolling */}
-        <div style={{ height: '100%', overflowY: 'auto' }}>
-          {children}
-        </div>
+        {children}
       </div>
     </div>
   );
