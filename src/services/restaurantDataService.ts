@@ -1,12 +1,12 @@
 // src/services/restaurantDataService.ts
 import { supabase } from '../supabaseClient';
-import type { Restaurant } from '../types/restaurant';
-import type { GeoapifyPlace } from '../types/restaurantSearch';
+import { Restaurant } from '../types/restaurant';
+import { GeoapifyPlace } from '../types/restaurantSearch';
 import { parseAddress } from '../utils/addressParser';
-import { calculateEnhancedSimilarity } from '../utils/textUtils';
+import { calculateEnhancedSimilarity, normalizeText } from '../utils/textUtils';
 import { addToFavorites, isAlreadyFavorited } from './favoritesService';
+import { geocodeAddress } from './geocodingService';
 
-// --- NEW FUNCTION ---
 /**
  * Quickly checks if a restaurant with the given UUID exists in the database.
  * @param restaurantId The UUID of the restaurant to check.
@@ -15,138 +15,169 @@ import { addToFavorites, isAlreadyFavorited } from './favoritesService';
 export const verifyRestaurantExists = async (restaurantId: string): Promise<boolean> => {
     const { data, error } = await supabase
         .from('restaurants')
-        .select('id')
+        .select('id') // Select only the ID for efficiency
         .eq('id', restaurantId)
-        .maybeSingle();
+        .maybeSingle(); // Use maybeSingle to avoid an error if not found
 
     if (error) {
         console.error('Error verifying restaurant existence:', error);
-        return false;
+        return false; // On error, assume it doesn't exist or there's a problem
     }
-    return !!data;
+    
+    // If data is not null, the record exists.
+    return !!data; 
 };
 
+export const fetchUserRestaurantsWithStats = async (userId: string) => {
+  const { data, error } = await supabase
+    .rpc('get_user_favorite_restaurants_with_stats', { p_user_id: userId });
 
-/**
- * Finds restaurants in the database with names similar to the provided name.
- * @param name - The name of the restaurant to search for.
- * @param address - Optional address to improve matching accuracy.
- * @returns A promise that resolves to an array of similar restaurants.
- */
-export const findSimilarRestaurants = async (name: string, address?: string): Promise<Restaurant[]> => {
-    const { data: potentialMatches, error } = await supabase
+  if (error) {
+    throw new Error('Failed to load your restaurant list. Please try again.');
+  }
+  return data || [];
+};
+
+export const isDuplicateRestaurant = async (
+  newName: string,
+  newAddress?: string,
+  geoapifyPlaceId?: string
+): Promise<Restaurant | null> => {
+  try {
+    if (geoapifyPlaceId) {
+      const { data: existingByPlaceId, error } = await supabase
         .from('restaurants')
         .select('*')
-        .ilike('name', `%${name.trim()}%`);
-
-    if (error) {
-        console.error('Error finding similar restaurants:', error);
-        return [];
+        .eq('geoapify_place_id', geoapifyPlaceId)
+        .maybeSingle();
+      if (error) {
+        console.error("Error checking for duplicate by place ID:", error);
+      } else if (existingByPlaceId) {
+        return existingByPlaceId as Restaurant;
+      }
     }
 
-    // Further refine with textual similarity
-    return potentialMatches.filter(match => {
-        const nameSimilarity = calculateEnhancedSimilarity(name, match.name);
-        if (address && match.full_address) {
-            const addressSimilarity = calculateEnhancedSimilarity(address, match.full_address);
-            return nameSimilarity > 80 && addressSimilarity > 50;
-        }
-        return nameSimilarity > 90; // Higher threshold if no address to compare
+    const { data: allRestaurants } = await supabase.from('restaurants').select('*');
+    if (!allRestaurants) return null;
+
+    const normalizedNewName = normalizeText(newName);
+    const normalizedNewAddress = newAddress ? normalizeText(newAddress) : undefined;
+
+    const duplicate = allRestaurants.find(existing => {
+      const existingName = normalizeText(existing.name);
+      const existingAddress = existing.address ? normalizeText(existing.address) : undefined;
+      const nameScore = calculateEnhancedSimilarity(existingName, normalizedNewName);
+      if (nameScore < 80) return false;
+      if (existingAddress && normalizedNewAddress) {
+        return calculateEnhancedSimilarity(existingAddress, normalizedNewAddress) > 70;
+      }
+      return nameScore > 90;
     });
+
+    return duplicate ? (duplicate as Restaurant) : null;
+  } catch (err) {
+    console.error('Error checking for duplicates:', err);
+    return null;
+  }
 };
 
-/**
- * Checks if a restaurant with the same name and a similar address already exists.
- * @param name - The name of the restaurant.
- * @param address - The full address of the restaurant.
- * @returns A promise that resolves to the existing restaurant object or null.
- */
-export const isDuplicateRestaurant = async (name: string, address: string): Promise<Restaurant | null> => {
-    const similar = await findSimilarRestaurants(name, address);
-    // Assuming the first highly similar result is the duplicate
-    return similar.length > 0 ? similar[0] : null;
-};
+export const findSimilarRestaurants = async (newName: string, newAddress?: string): Promise<Restaurant[]> => {
+    try {
+      const { data: allRestaurants } = await supabase.from('restaurants').select('*');
+      if (!allRestaurants) return [];
+      const normalizedNewName = normalizeText(newName);
+      const normalizedNewAddress = newAddress ? normalizeText(newAddress) : undefined;
+      const similar = allRestaurants.filter(existing => {
+        const existingName = normalizeText(existing.name);
+        const existingAddress = existing.address ? normalizeText(existing.address) : undefined;
+        const nameScore = calculateEnhancedSimilarity(existingName, normalizedNewName);
+        if (nameScore < 80) return false;
+        if (existingAddress && normalizedNewAddress) {
+          if (calculateEnhancedSimilarity(existingAddress, normalizedNewAddress) > 70) {
+            return true;
+          }
+        }
+        return nameScore > 90;
+      });
+      return similar as Restaurant[];
+    } catch (err) {
+      console.error('Error finding similar restaurants:', err);
+      return [];
+    }
+  };
 
-/**
- * Adds a new restaurant to the database and adds it to the user's favorites.
- * @param restaurantDataOrName - The full restaurant data object or just a name string.
- * @param userId - The ID of the user adding the restaurant.
- * @returns A promise that resolves to the newly created restaurant object, true if it already exists, or null on error.
- */
+
 export const addRestaurant = async (
-    restaurantDataOrName: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> | string,
-    userId: string
+  restaurantDataOrName: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> | string,
+  userId: string
 ): Promise<Restaurant | boolean | null> => {
-    const restaurantData = typeof restaurantDataOrName === 'string'
-        ? { name: restaurantDataOrName, manually_added: true, created_by: userId }
-        : { ...restaurantDataOrName, manually_added: true, created_by: userId };
+  const restaurantData = typeof restaurantDataOrName === 'string'
+    ? {
+        name: restaurantDataOrName, address: '', full_address: null, city: null, state: null,
+        zip_code: null, country: null, latitude: null, longitude: null, manually_added: true,
+        geoapify_place_id: null,
+      }
+    : restaurantDataOrName;
 
-    // Check for duplicates before inserting
-    const existing = await isDuplicateRestaurant(restaurantData.name, restaurantData.full_address || restaurantData.address || '');
-    if (existing) {
-        if (!(await isAlreadyFavorited(userId, existing.id))) {
-            await addToFavorites(userId, existing.id);
-        }
-        return true; // Indicates it already existed
+  if (restaurantData.address && (restaurantData.latitude === null || restaurantData.longitude === null)) {
+    const coords = await geocodeAddress(restaurantData);
+    if (coords) {
+      restaurantData.latitude = coords.latitude;
+      restaurantData.longitude = coords.longitude;
     }
-    const { data, error } = await supabase
-        .from('restaurants')
-        .insert([restaurantData])
-        .select()
-        .single();
+  }
 
-    if (error) {
-        console.error('Error inserting restaurant:', error);
-        throw new Error(`Could not add restaurant: ${error.message}`);
+  const duplicate = await isDuplicateRestaurant(
+    restaurantData.name,
+    restaurantData.address || undefined,
+    restaurantData.geoapify_place_id || undefined
+  );
+
+  if (duplicate) {
+    const favorited = await isAlreadyFavorited(userId, duplicate.id);
+    if (!favorited) {
+      await addToFavorites(userId, duplicate.id);
     }
-    if (data) {
-        await addToFavorites(userId, data.id);
-    }
-    return data;
+    return typeof restaurantDataOrName === 'string' ? true : duplicate;
+  }
+
+  const { data: newRestaurant, error: insertError } = await supabase
+    .from('restaurants')
+    .insert([{ ...restaurantData, created_by: userId }])
+    .select()
+    .single();
+
+  if (insertError) { throw insertError; }
+  if (!newRestaurant) { throw new Error('Failed to create restaurant'); }
+
+  const restaurant = newRestaurant as Restaurant;
+  await addToFavorites(userId, restaurant.id);
+  return typeof restaurantDataOrName === 'string' ? true : restaurant;
 };
 
-/**
- * Gets a restaurant from the DB by its Geoapify Place ID, or creates it if it doesn't exist.
- * @param place - The GeoapifyPlace object.
- * @param userId - The ID of the current user.
- * @returns The existing or newly created restaurant from the database.
- */
 export const getOrCreateRestaurant = async (place: GeoapifyPlace, userId: string): Promise<Restaurant | null> => {
-    // 1. Check if it exists by geoapify_place_id
-    if (place.properties.place_id) {
-        const { data: existingByPlaceId } = await supabase
-            .from('restaurants')
-            .select('*')
-            .eq('geoapify_place_id', place.properties.place_id)
-            .single();
-        if (existingByPlaceId) return existingByPlaceId;
-    }
+    try {
+      if (place.place_id.startsWith('db_')) {
+        const restaurantId = place.place_id.substring(3);
+        const { data: restaurant, error } = await supabase.from('restaurants').select('*').eq('id', restaurantId).single();
+        if (error) throw new Error(`Could not find database restaurant: ${error.message}`);
+        if (!restaurant) throw new Error(`Restaurant with ID ${restaurantId} not found.`);
+        return restaurant as Restaurant;
+      }
 
-    // 2. Check for textual duplicates
-    const existingByName = await isDuplicateRestaurant(
-        place.properties.name,
-        place.properties.formatted || place.properties.address_line1 || ''
-    );
-    if (existingByName) {
-        // If we found a match but it's missing the place_id, update it.
-        if (!existingByName.geoapify_place_id && place.properties.place_id) {
-            await supabase
-                .from('restaurants')
-                .update({ geoapify_place_id: place.properties.place_id })
-                .eq('id', existingByName.id);
-            existingByName.geoapify_place_id = place.properties.place_id;
+      const { data: existingByPlaceId } = await supabase.from('restaurants').select('*').eq('geoapify_place_id', place.place_id).maybeSingle();
+      if (existingByPlaceId) return existingByPlaceId as Restaurant;
+      
+      const duplicate = await isDuplicateRestaurant(place.properties.name, place.properties.address_line1 || place.properties.formatted, place.place_id);
+      if (duplicate) {
+        if (!duplicate.geoapify_place_id && place.place_id) {
+          await supabase.from('restaurants').update({ geoapify_place_id: place.place_id }).eq('id', duplicate.id);
         }
-        return existingByName;
-    }
+        return duplicate;
+      }
 
-    // 3. Create new restaurant
-    let addressToParse = place.properties.formatted;
-    if (addressToParse.toLowerCase().startsWith(place.properties.name.toLowerCase())) {
-        addressToParse = addressToParse.substring(place.properties.name.length).replace(/^,?\s*/, '');
-    }
-    const parsed = parseAddress(addressToParse);
-    
-    const newRestaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> = {
+      const parsed = parseAddress(place.properties.formatted.replace(`${place.properties.name}, `, ''));
+      const newRestaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> = {
         name: place.properties.name,
         full_address: place.properties.formatted,
         address: parsed.data?.address || place.properties.address_line1 || null,
@@ -156,46 +187,51 @@ export const getOrCreateRestaurant = async (place: GeoapifyPlace, userId: string
         country: parsed.data?.country || place.properties.country_code?.toUpperCase() || null,
         latitude: place.properties.lat,
         longitude: place.properties.lon,
-        geoapify_place_id: place.properties.place_id,
+        geoapify_place_id: place.place_id,
         website_url: place.properties.website || place.properties.contact?.website || null,
         phone: place.properties.phone || place.properties.contact?.phone || null,
         manually_added: false,
         created_by: userId,
         dateAdded: new Date().toISOString(),
-        category: place.properties.categories.join(','),
-    };
+        rating: null,
+        price_tier: null,
+        category: null,
+        opening_hours: null,
+      };
 
-    const { data: createdRestaurant, error } = await supabase
+      const { data: created, error: insertError } = await supabase
         .from('restaurants')
         .insert(newRestaurantData)
         .select()
         .single();
-        
-    if (error) {
-        console.error('Error creating new restaurant from Geoapify:', error);
-        return null;
+      if (insertError) throw insertError;
+      
+      return created as Restaurant;
+    } catch (err) {
+      console.error("Error in getOrCreateRestaurant:", err);
+      return null;
     }
-    return createdRestaurant;
 };
 
-/**
- * Updates a restaurant record in the database.
- * @param restaurantId The UUID of the restaurant to update.
- * @param updates The partial data to update.
- * @param userId The ID of the user performing the update.
- * @returns The updated restaurant object.
- */
 export const updateRestaurantInSupabase = async (restaurantId: string, updates: Partial<Restaurant>, userId: string): Promise<Restaurant | null> => {
+    const isAddressChanging = 'address' in updates || 'city' in updates || 'state' in updates || 'zip_code' in updates || 'country' in updates;
+    if (isAddressChanging) {
+      const { data: currentRestaurant } = await supabase.from('restaurants').select('address, city, state, zip_code, country').eq('id', restaurantId).single();
+      const addressForGeocoding = { ...(currentRestaurant || {}), ...updates };
+      const coords = await geocodeAddress(addressForGeocoding);
+      updates.latitude = coords?.latitude ?? null;
+      updates.longitude = coords?.longitude ?? null;
+    }
+
     const { data, error } = await supabase
       .from('restaurants')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', restaurantId)
+      .eq('manually_added', true)
+      .eq('created_by', userId)
       .select()
       .single();
-  
-    if (error) {
-      console.error('Error updating restaurant:', error);
-      throw error;
-    }
-    return data;
+
+    if (error) throw error;
+    return data as Restaurant;
 };
