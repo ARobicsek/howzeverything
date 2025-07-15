@@ -77,7 +77,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
         style={{
           maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
           overflowY: 'auto',
-          overflowX: 'hidden',
+          overflowX: 'hidden', // This was the original line causing the problem
           transition: 'max-height 0.5s ease-in-out',
         }}
       >
