@@ -2,9 +2,6 @@
 import React, { ReactNode } from 'react';
 import { COLORS, FONTS, SPACING } from '../../constants';
 
-
-
-
 interface AccordionSectionProps {
   title: string;
   isExpanded: boolean;
@@ -13,10 +10,8 @@ interface AccordionSectionProps {
   className?: string;
   isEmpty?: boolean;
   isDisabled?: boolean;
+  headerAccessory?: React.ReactNode;
 }
-
-
-
 
 const AccordionSection: React.FC<AccordionSectionProps> = ({
   title,
@@ -26,17 +21,14 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   className = '',
   isEmpty = false,
   isDisabled = false,
+  headerAccessory,
 }) => {
   const isGrayedOut = isEmpty || isDisabled;
 
-
-
-
   return (
     <div className={className}>
-      <button
-        onClick={onClick}
-        disabled={isGrayedOut}
+      <div // MODIFIED from <button> to <div> to allow nesting an interactive element (the refresh button)
+        onClick={isGrayedOut ? undefined : onClick}
         style={{
           width: '100%',
           display: 'flex',
@@ -50,15 +42,18 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           opacity: isGrayedOut ? 0.5 : 1,
         }}
       >
-        <h3 style={{
-          margin: 0,
-          fontSize: '1.25rem',
-          fontWeight: 500,
-          color: isGrayedOut ? COLORS.textSecondary : COLORS.accent,
-          ...FONTS.elegant,
-        }}>
-          {title}
-        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+          <h3 style={{
+            margin: 0,
+            fontSize: '1.25rem',
+            fontWeight: 500,
+            color: isGrayedOut ? COLORS.textSecondary : COLORS.accent,
+            ...FONTS.elegant,
+          }}>
+            {title}
+          </h3>
+          {headerAccessory}
+        </div>
         <svg
           width="24"
           height="24"
@@ -72,11 +67,12 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.3s ease',
             color: COLORS.textSecondary,
+            flexShrink: 0, // Prevent icon from shrinking
           }}
         >
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-      </button>
+      </div>
       <div
         style={{
           maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
@@ -90,8 +86,5 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
     </div>
   );
 };
-
-
-
 
 export default AccordionSection;

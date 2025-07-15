@@ -18,7 +18,11 @@ import type { GeoapifyPlace } from './types/restaurantSearch';
 import { calculateDistance, formatDistanceMiles } from './utils/restaurantGeolocation';
 
 
+
+
 const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+
+
 
 
 const FindRestaurantScreen: React.FC = () => {
@@ -58,6 +62,8 @@ const FindRestaurantScreen: React.FC = () => {
   const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
 
 
+
+
   const loadInitialData = useCallback(async () => {
     if (user) {
       setAreInitialSectionsLoading(true);
@@ -67,6 +73,8 @@ const FindRestaurantScreen: React.FC = () => {
       setAreInitialSectionsLoading(false);
     }
   }, [user, getRecentVisits, getPinnedRestaurants]);
+
+
 
 
   useEffect(() => {
@@ -83,6 +91,8 @@ const FindRestaurantScreen: React.FC = () => {
   }, [user, loadInitialData]);
 
 
+
+
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantWithPinStatus[]) => {
     if (!userLocation) return restaurants;
     return restaurants.map(r => {
@@ -96,9 +106,13 @@ const FindRestaurantScreen: React.FC = () => {
   }, [userLocation]);
 
 
+
+
   const recentsWithDistance = useMemo(() => addDistanceToRestaurants(recentRestaurants), [recentRestaurants, addDistanceToRestaurants]);
   const pinnedWithDistance = useMemo(() => addDistanceToRestaurants(pinnedRestaurants), [pinnedRestaurants, addDistanceToRestaurants]);
   const nearbyWithDistance = useMemo(() => addDistanceToRestaurants(nearbyRestaurants), [nearbyRestaurants, addDistanceToRestaurants]);
+
+
 
 
   const handleSectionClick = useCallback(async (section: string) => {
@@ -113,6 +127,8 @@ const FindRestaurantScreen: React.FC = () => {
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
 
+
+
   const handleRestaurantNavigation = (restaurantId: string) => {
     trackVisit(restaurantId);
     navigate(`/restaurants/${restaurantId}`);
@@ -121,12 +137,15 @@ const FindRestaurantScreen: React.FC = () => {
   const ensureDbRestaurant = useCallback(async (placeOrRestaurant: GeoapifyPlace | RestaurantType): Promise<RestaurantType | null> => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+
     // Case 1: It's already a restaurant from our DB with a UUID.
     if ('id' in placeOrRestaurant && uuidRegex.test(placeOrRestaurant.id)) {
         return placeOrRestaurant as RestaurantType;
     }
 
+
     let geoapifyPlace: GeoapifyPlace;
+
 
     // Case 2: It's a GeoapifyPlace object from search results (has a `properties` key).
     if ('properties' in placeOrRestaurant && placeOrRestaurant.properties) {
@@ -161,9 +180,11 @@ const FindRestaurantScreen: React.FC = () => {
             },
         };
     }
-    
+   
     return await getOrCreateRestaurant(geoapifyPlace);
   }, [getOrCreateRestaurant]);
+
+
 
 
   const handleRestaurantClick = async (place: GeoapifyPlace | RestaurantType) => {
@@ -177,10 +198,14 @@ const FindRestaurantScreen: React.FC = () => {
   };
 
 
+
+
   const handleModalClose = () => {
     setSearchModalOpen(false);
     resetSearch();
   };
+
+
 
 
   const handleManualAddClick = (searchTerm: string) => {
@@ -207,6 +232,8 @@ const FindRestaurantScreen: React.FC = () => {
   };
 
 
+
+
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -218,10 +245,14 @@ const FindRestaurantScreen: React.FC = () => {
   };
 
 
+
+
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
+
+
 
 
   const handleUseExistingRestaurant = async (restaurant: RestaurantType) => {
@@ -236,16 +267,22 @@ const FindRestaurantScreen: React.FC = () => {
     const dbRestaurant = await ensureDbRestaurant(restaurantToToggle);
 
 
+
+
     if (!dbRestaurant) {
         alert("Could not save restaurant. Please try again.");
         return;
     }
 
 
+
+
     const dbId = dbRestaurant.id;
     const isCurrentlyPinned = pinnedRestaurantIds.has(dbId);
    
     const success = await togglePin(dbId);
+
+
 
 
     if (success) {
@@ -286,13 +323,30 @@ const FindRestaurantScreen: React.FC = () => {
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
 
 
+
+
   const getIsPinned = (restaurant: RestaurantWithPinStatus) => {
       return !!restaurant.id && pinnedRestaurantIds.has(restaurant.id);
   }
 
+  const handleRefreshNearby = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!userLocation || nearbyLoading || !hasLocationPermission) return;
+
+    clearCacheForLocation({ ...userLocation, radiusInMiles: nearbyRadius });
+    await fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
+  }, [userLocation, nearbyLoading, hasLocationPermission, clearCacheForLocation, nearbyRadius, fetchNearbyRestaurants]);
+
 
   return (
     <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+      {/* KEYFRAMES for spin animation */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* HEADER SECTION */}
       <div style={{
         backgroundColor: COLORS.navBarDark,
@@ -382,6 +436,42 @@ const FindRestaurantScreen: React.FC = () => {
               onClick={() => handleSectionClick('nearby')}
               isDisabled={!hasLocationPermission}
               className="bg-white rounded-lg shadow-sm"
+              headerAccessory={
+                <button
+                  onClick={handleRefreshNearby}
+                  disabled={nearbyLoading || !hasLocationPermission}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
+                  }}
+                  aria-label="Refresh nearby restaurants"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={COLORS.textSecondary}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
+                    }}
+                  >
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                    <path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                </button>
+              }
             >
               <div className="p-4">
                   {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
