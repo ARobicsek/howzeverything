@@ -73,15 +73,19 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>
+      {/* --- THIS IS THE FIX --- */}
+      {/* Outer div handles the max-height transition and clipping */}
       <div
         style={{
           maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
-          overflowY: 'auto',
-          overflowX: 'hidden', // This was the original line causing the problem
+          overflow: 'hidden', // Changed from specific overflow properties to a simple 'hidden'
           transition: 'max-height 0.5s ease-in-out',
         }}
       >
-        {children}
+        {/* Inner div handles the vertical scrolling */}
+        <div style={{ height: '100%', overflowY: 'auto' }}>
+          {children}
+        </div>
       </div>
     </div>
   );
