@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
+
 interface ProfileCardProps {
   onEditProfile?: () => void;
   showEditButton?: boolean;
 }
+
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   onEditProfile,
@@ -14,6 +16,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const { user, profile, signOut, loading, error } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
 
   const handleSignOut = async () => {
     try {
@@ -25,6 +28,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       setIsSigningOut(false);
     }
   };
+
 
   if (!user || !profile) {
     return (
@@ -45,6 +49,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
+
   // Get user initials for avatar fallback
   const getInitials = (name?: string | null): string => {
     if (!name) return user.email?.charAt(0).toUpperCase() ?? '?';
@@ -55,6 +60,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
     return names[0].charAt(0).toUpperCase();
   };
+
 
   const formatDate = (dateString: string): string => {
     try {
@@ -68,7 +74,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   };
 
+
   const initials = getInitials(profile.full_name);
+
 
   return (
     <div style={{
@@ -96,6 +104,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       )}
 
+
       {/* Profile Header */}
       <div style={{
         display: 'flex',
@@ -120,14 +129,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         }}>
           {!profile.avatar_url && (
             <span style={{
-              ...FONTS.heading,
-              fontSize: TYPOGRAPHY['2xl'].fontSize,
-              color: COLORS.white
+              // MODIFIED: Use Pinyon Script for the initial
+              fontFamily: '"Pinyon Script", cursive',
+              fontWeight: 400,
+              fontSize: '2.5rem', // Increased size for better script legibility
+              color: COLORS.white,
+              lineHeight: 1, // Prevent extra spacing from script font
             }}>
-              {initials}
+              {initials.length > 1 ? initials.charAt(0) : initials}
             </span>
           )}
         </div>
+
 
         {/* Name and Email */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -167,6 +180,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       </div>
 
+
       {/* Profile Details */}
       <div style={{
         marginBottom: SPACING[6],
@@ -199,6 +213,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
+
         {profile.location && (
           <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
@@ -223,6 +238,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
+
         <div>
           <h4 style={{
             ...FONTS.body,
@@ -245,6 +261,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </p>
         </div>
       </div>
+
 
       {/* Action Buttons */}
       <div style={{
@@ -278,6 +295,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </button>
         )}
 
+
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
@@ -304,5 +322,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 };
+
 
 export default ProfileCard;

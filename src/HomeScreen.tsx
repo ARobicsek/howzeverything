@@ -72,7 +72,7 @@ const HomeScreen: React.FC = () => {
         }}>
           Trying to figure out what to order? HowzEverything lets you embrace your inner food critic. Rate dishes yourself <i>and</i> see what the unwashed masses thought.
           <br />
-          <strong>Never order a bad dish twice!</strong>
+          <strong>Never order a bad dish twice.</strong>
         </p>
       </div>
 

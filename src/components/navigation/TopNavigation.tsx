@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, SPACING, STYLES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
+
+
 
 
 interface TopNavigationProps {
@@ -9,8 +11,12 @@ interface TopNavigationProps {
 }
 
 
+
+
 const Avatar: React.FC = () => {
   const { user, profile } = useAuth();
+
+
 
 
   const getInitials = (name?: string | null): string => {
@@ -23,7 +29,11 @@ const Avatar: React.FC = () => {
   };
 
 
+
+
   const initials = getInitials(profile?.full_name);
+
+
 
 
   return (
@@ -43,14 +53,18 @@ const Avatar: React.FC = () => {
         border: `1px solid ${COLORS.white}`,
         boxShadow: STYLES.shadowSmall,
         color: COLORS.white,
-        ...TYPOGRAPHY.h3,
-        fontWeight: '600'
+        // MODIFIED: Apply Pinyon Script font and adjust styles
+        fontFamily: '"Pinyon Script", cursive',
+        fontSize: '1.6rem', // Larger size for script font legibility
+        lineHeight: 1, // Adjust line height for better vertical centering
       }}>
-        {!profile?.avatar_url && <span>{initials}</span>}
+        {!profile?.avatar_url && <span>{initials.length > 1 ? initials.charAt(0) : initials}</span>}
       </div>
     </Link>
   );
 };
+
+
 
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
@@ -81,9 +95,13 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       </div>
 
 
+
+
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         {/* Empty space in the center */}
       </div>
+
+
 
 
       <div style={{ flex: 1, display: 'flex', justifyContent: 'end', alignItems: 'center', gap: SPACING[4] }}>
@@ -97,6 +115,8 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
     </header>
   );
 };
+
+
 
 
 export default TopNavigation;

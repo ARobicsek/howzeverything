@@ -75,6 +75,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 
 
+
+
+
+
 const getScreenConfig = (pathname: string) => {
     // Add ratings to the full-bleed screens
     if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
@@ -84,6 +88,10 @@ const getScreenConfig = (pathname: string) => {
     const pathSegments = pathname.split('/').filter(Boolean);
     let screenKey: string;
     let hasStickyHeader = false;
+
+
+
+
 
 
 
@@ -98,9 +106,17 @@ const getScreenConfig = (pathname: string) => {
 
 
 
+
+
+
+
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
+
+
+
+
 
 
 
@@ -136,13 +152,20 @@ const AppRoutes: React.FC = () => {
 
 
 
+
+
+
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} isAdmin={isAdmin} />
             <SharedContentHandler />
             <div style={{
-                maxWidth: screenConfig.isFullBleed ? 'none' : LAYOUT_CONFIG.APP_CONTAINER.maxWidth,
+                // --- THIS IS THE FIX ---
+                // This value was LAYOUT_CONFIG.APP_CONTAINER.maxWidth ('448px'), which capped the width of everything.
+                // It's now set to a larger value to allow inner content to define its own width.
+                maxWidth: screenConfig.isFullBleed ? 'none' : '1280px',
                 margin: '0 auto',
                 paddingLeft: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
                 paddingRight: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
@@ -211,6 +234,3 @@ const App: React.FC = () => {
   );
 };
 export default App;
-
-
-
