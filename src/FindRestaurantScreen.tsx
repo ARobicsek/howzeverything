@@ -17,7 +17,9 @@ import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/r
 import type { GeoapifyPlace } from './types/restaurantSearch';
 import { calculateDistance, formatDistanceMiles } from './utils/restaurantGeolocation';
 
+
 const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+
 
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -55,6 +57,7 @@ const FindRestaurantScreen: React.FC = () => {
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'> | null>(null);
   const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
 
+
   const loadInitialData = useCallback(async () => {
     if (user) {
       setAreInitialSectionsLoading(true);
@@ -64,6 +67,7 @@ const FindRestaurantScreen: React.FC = () => {
       setAreInitialSectionsLoading(false);
     }
   }, [user, getRecentVisits, getPinnedRestaurants]);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -78,6 +82,7 @@ const FindRestaurantScreen: React.FC = () => {
     loadInitialData();
   }, [user, loadInitialData]);
 
+
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantWithPinStatus[]) => {
     if (!userLocation) return restaurants;
     return restaurants.map(r => {
@@ -90,9 +95,11 @@ const FindRestaurantScreen: React.FC = () => {
     });
   }, [userLocation]);
 
+
   const recentsWithDistance = useMemo(() => addDistanceToRestaurants(recentRestaurants), [recentRestaurants, addDistanceToRestaurants]);
   const pinnedWithDistance = useMemo(() => addDistanceToRestaurants(pinnedRestaurants), [pinnedRestaurants, addDistanceToRestaurants]);
   const nearbyWithDistance = useMemo(() => addDistanceToRestaurants(nearbyRestaurants), [nearbyRestaurants, addDistanceToRestaurants]);
+
 
   const handleSectionClick = useCallback(async (section: string) => {
     if (expandedSection === section) {
@@ -105,24 +112,59 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
+
   const handleRestaurantNavigation = (restaurantId: string) => {
     trackVisit(restaurantId);
     navigate(`/restaurants/${restaurantId}`);
   };
-  
+ 
   const ensureDbRestaurant = useCallback(async (placeOrRestaurant: GeoapifyPlace | RestaurantType): Promise<RestaurantType | null> => {
-    // Check if it's already a DB restaurant (has UUID format ID)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    
-    // Type guard to check if it's a RestaurantType
+
+    // Case 1: It's already a restaurant from our DB with a UUID.
     if ('id' in placeOrRestaurant && uuidRegex.test(placeOrRestaurant.id)) {
-      return placeOrRestaurant as RestaurantType;
+        return placeOrRestaurant as RestaurantType;
     }
 
-    // It's a GeoapifyPlace, so convert it
-    const geoapifyPlace = placeOrRestaurant as GeoapifyPlace;
+    let geoapifyPlace: GeoapifyPlace;
+
+    // Case 2: It's a GeoapifyPlace object from search results (has a `properties` key).
+    if ('properties' in placeOrRestaurant && placeOrRestaurant.properties) {
+        geoapifyPlace = placeOrRestaurant as GeoapifyPlace;
+    } else {
+        // Case 3: It's a Restaurant-like object from the nearby list (API result).
+        // We need to reconstruct the GeoapifyPlace structure.
+        const r = placeOrRestaurant as RestaurantType;
+        geoapifyPlace = {
+            place_id: r.geoapify_place_id || r.id,
+            properties: {
+                name: r.name,
+                formatted: r.full_address || '',
+                address_line1: r.address || undefined,
+                city: r.city || undefined,
+                state: r.state || undefined,
+                postcode: r.zip_code || undefined,
+                country: r.country || undefined,
+                lat: r.latitude!,
+                lon: r.longitude!,
+                categories: r.category ? r.category.split(',') : [],
+                website: r.website_url || undefined,
+                phone: r.phone || undefined,
+                contact: {
+                    website: r.website_url || undefined,
+                    phone: r.phone || undefined,
+                },
+                datasource: {
+                    sourcename: 'geoapify',
+                    attribution: 'Geoapify, OpenStreetMap',
+                },
+            },
+        };
+    }
+    
     return await getOrCreateRestaurant(geoapifyPlace);
   }, [getOrCreateRestaurant]);
+
 
   const handleRestaurantClick = async (place: GeoapifyPlace | RestaurantType) => {
     setSearchModalOpen(false);
@@ -134,10 +176,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleModalClose = () => {
     setSearchModalOpen(false);
     resetSearch();
   };
+
 
   const handleManualAddClick = (searchTerm: string) => {
     setSearchModalOpen(false);
@@ -145,7 +189,7 @@ const FindRestaurantScreen: React.FC = () => {
     setManualAddInitialName(searchTerm);
     resetSearch();
   };
-  
+ 
   const createNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const result = await addRestaurant(data);
@@ -162,6 +206,7 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -172,10 +217,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
+
 
   const handleUseExistingRestaurant = async (restaurant: RestaurantType) => {
     await addToFavorites(restaurant);
@@ -183,20 +230,23 @@ const FindRestaurantScreen: React.FC = () => {
     setShowAddForm(false);
     handleRestaurantNavigation(restaurant.id);
   };
-  
+ 
   const handleTogglePin = useCallback(async (restaurantToToggle: RestaurantWithPinStatus) => {
     const originalId = restaurantToToggle.id;
     const dbRestaurant = await ensureDbRestaurant(restaurantToToggle);
+
 
     if (!dbRestaurant) {
         alert("Could not save restaurant. Please try again.");
         return;
     }
 
+
     const dbId = dbRestaurant.id;
     const isCurrentlyPinned = pinnedRestaurantIds.has(dbId);
-    
+   
     const success = await togglePin(dbId);
+
 
     if (success) {
         if (isCurrentlyPinned) {
@@ -208,7 +258,7 @@ const FindRestaurantScreen: React.FC = () => {
                 return [...prev, newPinnedItem];
             });
         }
-        
+       
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(originalId)) {
             const updater = (prevList: RestaurantWithPinStatus[]) => prevList.map(r =>
@@ -218,7 +268,7 @@ const FindRestaurantScreen: React.FC = () => {
             );
             setNearbyRestaurants(updater);
             setRecentRestaurants(updater);
-            
+           
             if (userLocation) {
                 clearCacheForLocation({ ...userLocation, radiusInMiles: nearbyRadius });
             }
@@ -228,16 +278,18 @@ const FindRestaurantScreen: React.FC = () => {
        await loadInitialData();
     }
   }, [pinnedRestaurantIds, ensureDbRestaurant, togglePin, refreshPinned, loadInitialData, setNearbyRestaurants, setRecentRestaurants, userLocation, nearbyRadius, clearCacheForLocation]);
-  
+ 
   useEffect(() => {
     if (expandedSection === 'nearby' && userLocation) {
       fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
     }
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
 
+
   const getIsPinned = (restaurant: RestaurantWithPinStatus) => {
       return !!restaurant.id && pinnedRestaurantIds.has(restaurant.id);
   }
+
 
   return (
     <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>

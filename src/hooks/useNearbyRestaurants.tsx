@@ -6,6 +6,7 @@ import { parseAddress } from '../utils/addressParser';
 import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { calculateEnhancedSimilarity } from '../utils/textUtils';
 
+
 // Helper function to calculate distance in miles
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371e3; // metres
@@ -21,29 +22,35 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return (d / 1000) * 0.621371; // convert to miles
 };
 
+
 interface NearbyRestaurantsOptions {
   latitude: number;
   longitude: number;
   radiusInMiles: number;
 }
 
+
 // Cache configuration
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 const CACHE_INVALIDATION_DISTANCE_MILES = 0.31; // ~500 meters
+
 
 export const useNearbyRestaurants = () => {
   const [loading, setLoading] = useState(false);
   const [restaurants, setRestaurants] = useState<RestaurantWithPinStatus[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+
   const clearCacheForLocation = useCallback((options: { latitude: number; longitude: number; radiusInMiles: number; }) => {
     const cacheKey = `nearby_cache_${options.latitude.toFixed(4)}_${options.longitude.toFixed(4)}_${options.radiusInMiles}`;
     localStorage.removeItem(cacheKey);
   }, []);
 
+
   const fetchNearbyRestaurants = useCallback(async (options: NearbyRestaurantsOptions) => {
     setLoading(true);
     setError(null);
+
 
     const cacheKey = `nearby_cache_${options.latitude.toFixed(4)}_${options.longitude.toFixed(4)}_${options.radiusInMiles}`;
    
@@ -59,6 +66,7 @@ export const useNearbyRestaurants = () => {
           cachedData.location.longitude
         ) > CACHE_INVALIDATION_DISTANCE_MILES;
 
+
         if (!isCacheStale && !userMovedSignificantly) {
           setRestaurants(cachedData.results);
           setLoading(false);
@@ -69,6 +77,7 @@ export const useNearbyRestaurants = () => {
       console.error("Failed to read from nearby cache", e);
       localStorage.removeItem(cacheKey);
     }
+
 
     const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
     if (!apiKey) {
@@ -81,6 +90,7 @@ export const useNearbyRestaurants = () => {
     const categories = 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub';
     const url = `https://api.geoapify.com/v2/places?categories=${categories}&filter=circle:${options.longitude},${options.latitude},${radiusInMeters}&bias=proximity:${options.longitude},${options.latitude}&limit=50&apiKey=${apiKey}`;
 
+
     try {
       incrementGeoapifyCount();
       logGeoapifyCount();
@@ -89,6 +99,7 @@ export const useNearbyRestaurants = () => {
         supabase.from('restaurants').select('*')
       ]);
 
+
       if (!apiResponse.ok) {
         const errorData = await apiResponse.json().catch(() => ({ message: 'API response was not valid JSON.' }));
         throw new Error(`Geoapify API failed with status ${apiResponse.status}: ${errorData.message || 'Unknown error'}`);
@@ -96,15 +107,17 @@ export const useNearbyRestaurants = () => {
       const data = await apiResponse.json();
       const allDbRestaurants = (dbResponse.data as Restaurant[]) || [];
 
+
       // 1. Find nearby restaurants from our DB
       let nearbyDbRestaurants: RestaurantWithPinStatus[] = allDbRestaurants.filter(r =>
         r.latitude && r.longitude &&
         calculateDistance(options.latitude, options.longitude, r.latitude, r.longitude) <= options.radiusInMiles
       );
-      
+     
       if (nearbyDbRestaurants.length > 0) {
         const restaurantIds = nearbyDbRestaurants.map(r => r.id);
         const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
+
 
         if (statsError) {
             console.error('Error fetching nearby restaurant stats:', statsError);
@@ -121,26 +134,39 @@ export const useNearbyRestaurants = () => {
         }
       }
 
-      // 2. Process API results, filtering out duplicates of *any* DB restaurant
+
+      // 2. Process API results, filtering out duplicates
       const uniqueApiRestaurants: Restaurant[] = [];
+      const dbPlaceIds = new Set(allDbRestaurants.map(r => r.geoapify_place_id).filter((id): id is string => !!id));
+
       for (const feature of data.features) {
         const props = feature.properties;
         if (!props || !props.name) continue;
 
-        const isDuplicateInDb = allDbRestaurants.some(dbRestaurant => {
-            const nameScore = calculateEnhancedSimilarity(dbRestaurant.name, props.name);
-            if (nameScore < 95) return false;
+        // Check 1: If the API place_id is already in our DB, it's a definite duplicate.
+        if (dbPlaceIds.has(props.place_id)) {
+            continue;
+        }
 
-            const dbAddress = dbRestaurant.full_address || [dbRestaurant.address, dbRestaurant.city].filter(Boolean).join(', ');
-            const apiAddress = props.address_line1 || props.formatted;
-           
+        // Check 2: Text-based similarity for restaurants that might not be linked by place_id.
+        const isTextuallySimilarInDb = allDbRestaurants.some(dbRestaurant => {
+            const nameScore = calculateEnhancedSimilarity(dbRestaurant.name, props.name);
+            if (nameScore < 90) return false;
+
+            const dbAddress = [dbRestaurant.address, dbRestaurant.city, dbRestaurant.state].filter(Boolean).join(', ') || dbRestaurant.full_address;
+            const apiAddress = props.formatted || props.address_line1;
+
             if (dbAddress && apiAddress) {
-                return calculateEnhancedSimilarity(dbAddress, apiAddress) > 65;
+                // If names are nearly identical, be more lenient on address.
+                const addressThreshold = nameScore > 98 ? 60 : 70;
+                return calculateEnhancedSimilarity(dbAddress, apiAddress) > addressThreshold;
             }
+            
+            // Fallback if no address on one of the records, require very high name similarity
             return nameScore > 98;
         });
 
-        if (isDuplicateInDb) {
+        if (isTextuallySimilarInDb) {
             continue;
         }
 
@@ -182,6 +208,7 @@ export const useNearbyRestaurants = () => {
         const distB = b.latitude && b.longitude ? calculateDistance(options.latitude, options.longitude, b.latitude, b.longitude) : Infinity;
         return distA - distB;
       });
+
 
       try {
         const cachePayload = {
