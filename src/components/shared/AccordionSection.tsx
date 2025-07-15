@@ -68,6 +68,10 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             transition: 'transform 0.3s ease',
             color: COLORS.textSecondary,
             flexShrink: 0, // Prevent icon from shrinking
+            // --- THIS IS THE FIX ---
+            // Adding a right margin pulls the chevron away from the edge.
+            // You can adjust this value (e.g., SPACING[3]) for more space.
+            marginRight: SPACING[12],
           }}
         >
           <polyline points="6 9 12 15 18 9"></polyline>
