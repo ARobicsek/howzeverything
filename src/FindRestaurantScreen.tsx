@@ -395,161 +395,168 @@ const FindRestaurantScreen: React.FC = () => {
             </div>
         </div>
       </div>
-      {/* BODY SECTION */}
-      <div className="w-full mx-auto p-4" style={{ maxWidth: RESTAURANT_CARD_MAX_WIDTH }}>
-        {hasLocationPermission === false && expandedSection === 'nearby' && (
-          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              Location services are disabled. Enable them in your browser or system settings to see nearby restaurants.
-            </p>
-          </div>
-        )}
-        {showAddForm ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500' }}>Add New Restaurant</h2>
-              </div>
-              <AddRestaurantForm
-                onSave={handleSaveNewRestaurant}
-                onCancel={() => {
-                  setShowAddForm(false);
-                  setManualAddInitialName('');
-                }}
-                initialName={manualAddInitialName}
-              />
+      {/* --- THIS IS THE FIX --- */}
+      {/* This new wrapper separates the body content from the header. */}
+      {/* By applying `overflow: 'hidden'`, it creates a new formatting context */}
+      {/* that contains the layout quirks of the accordions and prevents the */}
+      {/* horizontal scrollbar from appearing on the page. */}
+      <div style={{ overflow: 'hidden' }}>
+        {/* BODY SECTION */}
+        <div className="w-full mx-auto p-4" style={{ maxWidth: RESTAURANT_CARD_MAX_WIDTH }}>
+          {hasLocationPermission === false && expandedSection === 'nearby' && (
+            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                Location services are disabled. Enable them in your browser or system settings to see nearby restaurants.
+              </p>
             </div>
-        ) : (
-          <div className="space-y-2">
-            <AccordionSection
-              title="Recents"
-              isExpanded={expandedSection === 'recents'}
-              onClick={() => handleSectionClick('recents')}
-              isEmpty={!areInitialSectionsLoading && recentsWithDistance.length === 0}
-              className="bg-white rounded-lg shadow-sm"
-            >
-              <div className="p-4 pt-2 space-y-0">
-                {areInitialSectionsLoading && expandedSection === 'recents' ? <LoadingScreen message="Loading..."/> :
-                recentsWithDistance.map(restaurant => (
-                  <RestaurantCard
-                    key={`recents-${restaurant.id}`}
-                    restaurant={restaurant}
-                    isPinned={getIsPinned(restaurant)}
-                    onTogglePin={handleTogglePin}
-                    onClick={() => handleSmartNavigation(restaurant)}
-                    onNavigateToMenu={() => handleSmartNavigation(restaurant)}
-                    currentUserId={user?.id || null}
-                    isAdmin={isAdmin}
-                  />
-                ))}
-              </div>
-            </AccordionSection>
-            <AccordionSection
-              title="Nearby"
-              isExpanded={expandedSection === 'nearby'}
-              onClick={() => handleSectionClick('nearby')}
-              isDisabled={!hasLocationPermission}
-              className="bg-white rounded-lg shadow-sm"
-              headerAccessory={
-                expandedSection === 'nearby' ? (
-                  <button
-                    onClick={handleRefreshNearby}
-                    disabled={nearbyLoading || !hasLocationPermission}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
-                    }}
-                    aria-label="Refresh nearby restaurants"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={COLORS.textSecondary}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{
-                        animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
-                      }}
-                    >
-                      <polyline points="23 4 23 10 17 10"></polyline>
-                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                    </svg>
-                  </button>
-                ) : null
-              }
-            >
-              <div className="p-4">
-                  {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
-                <div className="flex items-center" style={{ marginBottom: '1rem' }}>
-                  <label style={{ ...FONTS.elegant, color: COLORS.accent, fontSize: '1rem', fontWeight: 500, marginLeft: '16px', marginRight: '12px' }}>
-                      Distance:
-                  </label>
-                  <select
-                    value={nearbyRadius}
-                    onChange={(e) => setNearbyRadius(Number(e.target.value))}
-                    style={{
-                      border: `1px solid ${COLORS.gray300}`, borderRadius: '8px', padding: '0.25rem 0.5rem', fontSize: '0.875rem',
-                      backgroundColor: COLORS.white, cursor: 'pointer', appearance: 'none',
-                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                      backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2rem',
-                    }}
-                  >
-                    <option value={0.5}>0.5 miles</option>
-                    <option value={1}>1 mile</option>
-                    <option value={2}>2 miles</option>
-                    <option value={5}>5 miles</option>
-                  </select>
+          )}
+          {showAddForm ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500' }}>Add New Restaurant</h2>
                 </div>
-                <div className="space-y-0">
-                  {nearbyLoading ? <LoadingScreen message="Finding restaurants..."/> :
-                  nearbyWithDistance.map(restaurant => (
+                <AddRestaurantForm
+                  onSave={handleSaveNewRestaurant}
+                  onCancel={() => {
+                    setShowAddForm(false);
+                    setManualAddInitialName('');
+                  }}
+                  initialName={manualAddInitialName}
+                />
+              </div>
+          ) : (
+            <div className="space-y-2">
+              <AccordionSection
+                title="Recents"
+                isExpanded={expandedSection === 'recents'}
+                onClick={() => handleSectionClick('recents')}
+                isEmpty={!areInitialSectionsLoading && recentsWithDistance.length === 0}
+                className="bg-white rounded-lg shadow-sm"
+              >
+                <div className="p-4 pt-2 space-y-0">
+                  {areInitialSectionsLoading && expandedSection === 'recents' ? <LoadingScreen message="Loading..."/> :
+                  recentsWithDistance.map(restaurant => (
                     <RestaurantCard
-                      key={`nearby-${restaurant.id}`}
+                      key={`recents-${restaurant.id}`}
                       restaurant={restaurant}
                       isPinned={getIsPinned(restaurant)}
                       onTogglePin={handleTogglePin}
-                      onClick={() => handleRestaurantClick(restaurant)}
-                      onNavigateToMenu={() => handleRestaurantClick(restaurant)}
+                      onClick={() => handleSmartNavigation(restaurant)}
+                      onNavigateToMenu={() => handleSmartNavigation(restaurant)}
                       currentUserId={user?.id || null}
                       isAdmin={isAdmin}
                     />
                   ))}
                 </div>
-              </div>
-            </AccordionSection>
-            <AccordionSection
-              title="Pinned"
-              isExpanded={expandedSection === 'pinned'}
-              onClick={() => handleSectionClick('pinned')}
-              isEmpty={!areInitialSectionsLoading && pinnedWithDistance.length === 0}
-              className="bg-white rounded-lg shadow-sm"
-            >
-              <div className="p-4 pt-2 space-y-0">
-                  {areInitialSectionsLoading && expandedSection === 'pinned' ? <LoadingScreen message="Loading..."/> :
-                  pinnedWithDistance.map(restaurant => (
+              </AccordionSection>
+              <AccordionSection
+                title="Nearby"
+                isExpanded={expandedSection === 'nearby'}
+                onClick={() => handleSectionClick('nearby')}
+                isDisabled={!hasLocationPermission}
+                className="bg-white rounded-lg shadow-sm"
+                headerAccessory={
+                  expandedSection === 'nearby' ? (
+                    <button
+                      onClick={handleRefreshNearby}
+                      disabled={nearbyLoading || !hasLocationPermission}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
+                      }}
+                      aria-label="Refresh nearby restaurants"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={COLORS.textSecondary}
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{
+                          animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
+                        }}
+                      >
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                      </svg>
+                    </button>
+                  ) : null
+                }
+              >
+                <div className="p-4">
+                    {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
+                  <div className="flex items-center" style={{ marginBottom: '1rem' }}>
+                    <label style={{ ...FONTS.elegant, color: COLORS.accent, fontSize: '1rem', fontWeight: 500, marginLeft: '16px', marginRight: '12px' }}>
+                        Distance:
+                    </label>
+                    <select
+                      value={nearbyRadius}
+                      onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                      style={{
+                        border: `1px solid ${COLORS.gray300}`, borderRadius: '8px', padding: '0.25rem 0.5rem', fontSize: '0.875rem',
+                        backgroundColor: COLORS.white, cursor: 'pointer', appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2rem',
+                      }}
+                    >
+                      <option value={0.5}>0.5 miles</option>
+                      <option value={1}>1 mile</option>
+                      <option value={2}>2 miles</option>
+                      <option value={5}>5 miles</option>
+                    </select>
+                  </div>
+                  <div className="space-y-0">
+                    {nearbyLoading ? <LoadingScreen message="Finding restaurants..."/> :
+                    nearbyWithDistance.map(restaurant => (
                       <RestaurantCard
-                          key={`pinned-${restaurant.id}`}
-                          restaurant={restaurant}
-                          isPinned={getIsPinned(restaurant)}
-                          onTogglePin={handleTogglePin}
-                          onClick={() => handleSmartNavigation(restaurant)}
-                          onNavigateToMenu={() => handleSmartNavigation(restaurant)}
-                          currentUserId={user?.id || null}
-                          isAdmin={isAdmin}
+                        key={`nearby-${restaurant.id}`}
+                        restaurant={restaurant}
+                        isPinned={getIsPinned(restaurant)}
+                        onTogglePin={handleTogglePin}
+                        onClick={() => handleRestaurantClick(restaurant)}
+                        onNavigateToMenu={() => handleRestaurantClick(restaurant)}
+                        currentUserId={user?.id || null}
+                        isAdmin={isAdmin}
                       />
-                  ))}
-              </div>
-            </AccordionSection>
-          </div>
-        )}
+                    ))}
+                  </div>
+                </div>
+              </AccordionSection>
+              <AccordionSection
+                title="Pinned"
+                isExpanded={expandedSection === 'pinned'}
+                onClick={() => handleSectionClick('pinned')}
+                isEmpty={!areInitialSectionsLoading && pinnedWithDistance.length === 0}
+                className="bg-white rounded-lg shadow-sm"
+              >
+                <div className="p-4 pt-2 space-y-0">
+                    {areInitialSectionsLoading && expandedSection === 'pinned' ? <LoadingScreen message="Loading..."/> :
+                    pinnedWithDistance.map(restaurant => (
+                        <RestaurantCard
+                            key={`pinned-${restaurant.id}`}
+                            restaurant={restaurant}
+                            isPinned={getIsPinned(restaurant)}
+                            onTogglePin={handleTogglePin}
+                            onClick={() => handleSmartNavigation(restaurant)}
+                            onNavigateToMenu={() => handleSmartNavigation(restaurant)}
+                            currentUserId={user?.id || null}
+                            isAdmin={isAdmin}
+                        />
+                    ))}
+                </div>
+              </AccordionSection>
+            </div>
+          )}
+        </div>
       </div>
       <SearchResultsModal
         isOpen={searchModalOpen}
@@ -577,6 +584,3 @@ const FindRestaurantScreen: React.FC = () => {
   );
 };
 export default FindRestaurantScreen;
-
-
-
