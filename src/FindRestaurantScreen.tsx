@@ -18,7 +18,9 @@ import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/r
 import type { GeoapifyPlace } from './types/restaurantSearch';
 import { calculateDistance, formatDistanceMiles } from './utils/restaurantGeolocation';
 
+
 const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+
 
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -56,6 +58,7 @@ const FindRestaurantScreen: React.FC = () => {
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'> | null>(null);
   const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
 
+
   const loadInitialData = useCallback(async () => {
     if (user) {
       setAreInitialSectionsLoading(true);
@@ -65,6 +68,7 @@ const FindRestaurantScreen: React.FC = () => {
       setAreInitialSectionsLoading(false);
     }
   }, [user, getRecentVisits, getPinnedRestaurants]);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -79,6 +83,7 @@ const FindRestaurantScreen: React.FC = () => {
     loadInitialData();
   }, [user, loadInitialData]);
 
+
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantWithPinStatus[]) => {
     if (!userLocation) return restaurants;
     return restaurants.map(r => {
@@ -91,9 +96,11 @@ const FindRestaurantScreen: React.FC = () => {
     });
   }, [userLocation]);
 
+
   const recentsWithDistance = useMemo(() => addDistanceToRestaurants(recentRestaurants), [recentRestaurants, addDistanceToRestaurants]);
   const pinnedWithDistance = useMemo(() => addDistanceToRestaurants(pinnedRestaurants), [pinnedRestaurants, addDistanceToRestaurants]);
   const nearbyWithDistance = useMemo(() => addDistanceToRestaurants(nearbyRestaurants), [nearbyRestaurants, addDistanceToRestaurants]);
+
 
   const handleSectionClick = useCallback(async (section: string) => {
     if (expandedSection === section) {
@@ -106,17 +113,22 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
+
   // --- START OF REORDERED FUNCTIONS ---
+
 
   const ensureDbRestaurant = useCallback(async (placeOrRestaurant: GeoapifyPlace | RestaurantType): Promise<RestaurantType | null> => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
     // Case 1: It's already a restaurant from our DB with a UUID.
     if ('id' in placeOrRestaurant && uuidRegex.test(placeOrRestaurant.id) && !('properties' in placeOrRestaurant)) {
         return placeOrRestaurant as RestaurantType;
     }
 
+
     let geoapifyPlace: GeoapifyPlace;
+
 
     // Case 2: It's a GeoapifyPlace object from search results (has a `properties` key).
     if ('properties' in placeOrRestaurant && placeOrRestaurant.properties) {
@@ -154,26 +166,29 @@ const FindRestaurantScreen: React.FC = () => {
     return await getOrCreateRestaurant(geoapifyPlace);
   }, [getOrCreateRestaurant]);
 
+
   // Self-healing navigation handler
   const handleSmartNavigation = useCallback(async (restaurant: RestaurantWithPinStatus) => {
       const exists = await verifyRestaurantExists(restaurant.id);
+
 
       if (exists) {
           trackVisit(restaurant.id);
           navigate(`/restaurants/${restaurant.id}`);
           return;
       }
-      
+     
       // If it doesn't exist, our cache is stale. Try to "find" it again.
       console.log(`Restaurant ${restaurant.name} (${restaurant.id}) not found in DB. Attempting to self-heal.`);
       const dbRestaurant = await ensureDbRestaurant(restaurant);
+
 
       if (dbRestaurant) {
           console.log(`Successfully re-created/found restaurant as ${dbRestaurant.id}. Navigating.`);
           // Also update the cached list to prevent this from happening again
           const updatedNearby = nearbyRestaurants.map(r => r.id === restaurant.id ? dbRestaurant : r);
           setNearbyRestaurants(updatedNearby as RestaurantWithPinStatus[]);
-          
+         
           trackVisit(dbRestaurant.id);
           navigate(`/restaurants/${dbRestaurant.id}`);
       } else {
@@ -204,19 +219,23 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleTogglePin = useCallback(async (restaurantToToggle: RestaurantWithPinStatus) => {
     const originalId = restaurantToToggle.id;
     const dbRestaurant = await ensureDbRestaurant(restaurantToToggle);
+
 
     if (!dbRestaurant) {
         alert("Could not save restaurant. Please try again.");
         return;
     }
 
+
     const dbId = dbRestaurant.id;
     const isCurrentlyPinned = pinnedRestaurantIds.has(dbId);
    
     const success = await togglePin(dbId);
+
 
     if (success) {
         if (isCurrentlyPinned) {
@@ -251,10 +270,12 @@ const FindRestaurantScreen: React.FC = () => {
  
   // --- END OF REORDERED FUNCTIONS ---
 
+
   const handleModalClose = () => {
     setSearchModalOpen(false);
     resetSearch();
   };
+
 
   const handleManualAddClick = (searchTerm: string) => {
     setSearchModalOpen(false);
@@ -280,6 +301,7 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -290,10 +312,12 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
+
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
+
 
   const handleUseExistingRestaurant = async (restaurant: RestaurantType) => {
     await addToFavorites(restaurant);
@@ -309,21 +333,26 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
 
+
   const getIsPinned = (restaurant: RestaurantWithPinStatus) => {
       return !!restaurant.id && pinnedRestaurantIds.has(restaurant.id);
   }
 
+
   const handleRefreshNearby = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!userLocation || nearbyLoading || !hasLocationPermission) return;
+
 
     clearCacheForLocation({ ...userLocation, radiusInMiles: nearbyRadius });
     await fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
   }, [userLocation, nearbyLoading, hasLocationPermission, clearCacheForLocation, nearbyRadius, fetchNearbyRestaurants]);
 
 
+
+
   return (
-    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+    <div>
       {/* KEYFRAMES for spin animation */}
       <style>{`
         @keyframes spin {
