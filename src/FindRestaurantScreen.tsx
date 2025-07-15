@@ -437,40 +437,40 @@ const FindRestaurantScreen: React.FC = () => {
               isDisabled={!hasLocationPermission}
               className="bg-white rounded-lg shadow-sm"
               headerAccessory={
-                <button
-                  onClick={handleRefreshNearby}
-                  disabled={nearbyLoading || !hasLocationPermission}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
-                  }}
-                  aria-label="Refresh nearby restaurants"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={COLORS.textSecondary}
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                expandedSection === 'nearby' ? (
+                  <button
+                    onClick={handleRefreshNearby}
+                    disabled={nearbyLoading || !hasLocationPermission}
                     style={{
-                      animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
                     }}
+                    aria-label="Refresh nearby restaurants"
                   >
-                    <path d="M23 4v6h-6"></path>
-                    <path d="M1 20v-6h6"></path>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
-                    <path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={COLORS.textSecondary}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
+                      }}
+                    >
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                  </button>
+                ) : null
               }
             >
               <div className="p-4">
