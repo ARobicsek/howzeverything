@@ -125,16 +125,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           justifyContent: 'center',
           marginRight: SPACING[5],
           flexShrink: 0,
-          border: `3px solid ${COLORS.gray100}`
+          border: `3px solid ${COLORS.gray100}`,
+          // --- THIS IS THE FIX ---
+          // Added a shadow to give the avatar depth
+          boxShadow: STYLES.shadowMedium,
         }}>
           {!profile.avatar_url && (
             <span style={{
-              // MODIFIED: Use Pinyon Script for the initial
               fontFamily: '"Pinyon Script", cursive',
               fontWeight: 400,
-              fontSize: '2.5rem', // Increased size for better script legibility
+              fontSize: '2.5rem', 
               color: COLORS.white,
-              lineHeight: 1, // Prevent extra spacing from script font
+              lineHeight: 1, 
             }}>
               {initials.length > 1 ? initials.charAt(0) : initials}
             </span>

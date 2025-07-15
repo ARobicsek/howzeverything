@@ -59,7 +59,7 @@ const AboutScreen: React.FC = () => {
             Our Mission
           </h2>
           <p>
-            Hate wasting money on lousy food? Us too! Our mission is to end "menu anxiety" and help people make better dining decisions by focusing on what matters most: the food itself. While restaurant reviews are helpful, the quality of individual dishes can vary wildly. We empower a community of food lovers to rate and discover specific dishes, creating a global, dish-level guide to the world's best food.
+            Hate wasting money on lousy food? Us too! Our mission is to end "menu anxiety" and help people make better dining decisions by focusing on what matters most: the food itself. While restaurant reviews are helpful, the quality of individual dishes can vary wildly. We empower a community of food lovers to rate and discover specific dishes, creating a global, dish-level guide to restaurant food.
           </p>
 
 
@@ -81,7 +81,7 @@ const AboutScreen: React.FC = () => {
             Also...
           </h2>
           <p>
-            <strong>Discover with Confidence:</strong> Hankering for a specific dish? Use the Discover screen to find the best-rated version near you.
+            <strong>Discover with Confidence:</strong> Hankering for a specific dish? Use the Discover Dishes screen to find the best-rated version near you.
           </p>
 
           <div style={{
@@ -95,7 +95,7 @@ const AboutScreen: React.FC = () => {
               Join the Community
             </h3>
             <p style={{ margin: `0 0 ${SPACING[4]} 0` }}>
-              Your ratings make restauranting better for everyone. Start by adding your favorite (and not-so-favorite) dishes today.
+              Your ratings make restauranting better for everyone. Start by rating your favorite (and not-so-favorite) dishes today.
             </p>
             <Link to="/find-restaurant" style={{ ...STYLES.primaryButton, backgroundColor: COLORS.accent }}>
               Start Dishing
