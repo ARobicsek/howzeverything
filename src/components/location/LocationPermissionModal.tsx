@@ -3,25 +3,20 @@ import React from 'react';
 import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useLocationService } from '../../hooks/useLocationService';
 
-
 interface LocationPermissionModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-
 const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpen, onClose }) => {
-  const { status, denialType, browserInfo } = useLocationService();
-
+  const { denialType, browserInfo } = useLocationService();
 
   if (!isOpen) return null;
-
 
   const getInstructions = () => {
     const { os, browser } = browserInfo;
     
     let instructions = '';
-
 
     if (denialType === 'browser') {
       instructions = "Your browser is not configured to allow location services. Please check your browser's main settings.";
@@ -33,20 +28,18 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
       instructions = "To enable location services, please go to your browser's settings for this site and change the Location permission to 'Allow' or 'Ask'.";
     }
 
-
-    return `HowzEverything is much more fun if location services are enabled.\n\n${instructions}`;
+    return instructions;
   };
 
-
-  const title = status === 'denied' ? "Location Access Denied" : "Location Services";
   const message = getInstructions();
-
 
   return (
     <div style={STYLES.modalOverlay} onClick={onClose}>
       <div style={{ ...STYLES.modal, maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ ...TYPOGRAPHY.h3, marginTop: 0, color: COLORS.textPrimary }}>{title}</h3>
-        <p style={{ ...TYPOGRAPHY.body, whiteSpace: 'pre-wrap', color: COLORS.textSecondary }}>
+        <h3 style={{ ...TYPOGRAPHY.h3, marginTop: 0, color: COLORS.textPrimary }}>
+          HowzEverything is much more fun if location services are enabled.
+        </h3>
+        <p style={{ ...TYPOGRAPHY.body, whiteSpace: 'pre-wrap', color: COLORS.textSecondary, marginTop: SPACING[4] }}>
           {message}
         </p>
         <div style={{ marginTop: SPACING[6], display: 'flex', justifyContent: 'flex-end' }}>
@@ -58,6 +51,5 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
     </div>
   );
 };
-
 
 export default LocationPermissionModal;

@@ -19,22 +19,19 @@ import { Restaurant as RestaurantType, RestaurantWithPinStatus } from './types/r
 import type { GeoapifyPlace } from './types/restaurantSearch';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
 
-
-const SEARCH_BAR_WIDTH = '350px'; // Adjustable: controls the max width of the search bar
+const SEARCH_BAR_WIDTH = '350px';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
-
 
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { 
-    coordinates: userLocation, 
+  const {
+    coordinates: userLocation,
     isAvailable: hasLocationPermission,
     status: locationStatus,
     requestLocation,
     openPermissionModal,
   } = useLocationService();
-
 
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -67,14 +64,11 @@ const FindRestaurantScreen: React.FC = () => {
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'> | null>(null);
   const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
 
-
   useEffect(() => {
-    if (!user) return;
-
+    if (!user || locationStatus === 'granted') return;
 
     const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);
     if (hasInteracted) return;
-
 
     if (locationStatus === 'denied') {
       openPermissionModal();
@@ -84,7 +78,6 @@ const FindRestaurantScreen: React.FC = () => {
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
     }
   }, [locationStatus, user, openPermissionModal, requestLocation]);
-
 
   const loadInitialData = useCallback(async () => {
     if (user) {
@@ -96,11 +89,9 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [user, getRecentVisits, getPinnedRestaurants]);
 
-
   useEffect(() => {
     loadInitialData();
   }, [user, loadInitialData]);
-
 
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantWithPinStatus[]) => {
     if (!userLocation) return restaurants;
@@ -114,11 +105,9 @@ const FindRestaurantScreen: React.FC = () => {
     });
   }, [userLocation]);
 
-
   const recentsWithDistance = useMemo(() => addDistanceToRestaurants(recentRestaurants), [recentRestaurants, addDistanceToRestaurants]);
   const pinnedWithDistance = useMemo(() => addDistanceToRestaurants(pinnedRestaurants), [pinnedRestaurants, addDistanceToRestaurants]);
   const nearbyWithDistance = useMemo(() => addDistanceToRestaurants(nearbyRestaurants), [nearbyRestaurants, addDistanceToRestaurants]);
-
 
   const handleSectionClick = useCallback(async (section: string) => {
     if (expandedSection === section) {
@@ -131,38 +120,33 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
-
   const handleNearbyClick = useCallback(() => {
     if (hasLocationPermission) {
       handleSectionClick('nearby');
     } else {
       if (locationStatus === 'denied') {
         openPermissionModal();
-      } else if (locationStatus === 'idle') {
+      } else if (locationStatus === 'idle' || locationStatus === 'requesting') {
         requestLocation();
       }
     }
   }, [hasLocationPermission, locationStatus, handleSectionClick, openPermissionModal, requestLocation]);
 
-
   const ensureDbRestaurant = useCallback(async (placeOrRestaurant: GeoapifyPlace | RestaurantType): Promise<RestaurantType | null> => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 
     if ('id' in placeOrRestaurant && uuidRegex.test(placeOrRestaurant.id) && !('properties' in placeOrRestaurant)) {
         return placeOrRestaurant as RestaurantType;
     }
 
-
     let geoapifyPlace: GeoapifyPlace;
-
 
     if ('properties' in placeOrRestaurant && placeOrRestaurant.properties) {
         geoapifyPlace = placeOrRestaurant as GeoapifyPlace;
     } else {
         const r = placeOrRestaurant as RestaurantType;
         geoapifyPlace = {
-            place_id: r.geoapify_place_id || r.id, 
+            place_id: r.geoapify_place_id || r.id,
             properties: {
                 name: r.name,
                 formatted: r.full_address || '',
@@ -191,10 +175,8 @@ const FindRestaurantScreen: React.FC = () => {
     return await getOrCreateRestaurant(geoapifyPlace);
   }, [getOrCreateRestaurant]);
 
-
   const handleSmartNavigation = useCallback(async (restaurant: RestaurantWithPinStatus) => {
       const exists = await verifyRestaurantExists(restaurant.id);
-
 
       if (exists) {
           trackVisit(restaurant.id);
@@ -204,7 +186,6 @@ const FindRestaurantScreen: React.FC = () => {
      
       console.log(`Restaurant ${restaurant.name} (${restaurant.id}) not found in DB. Attempting to self-heal.`);
       const dbRestaurant = await ensureDbRestaurant(restaurant);
-
 
       if (dbRestaurant) {
           console.log(`Successfully re-created/found restaurant as ${dbRestaurant.id}. Navigating.`);
@@ -238,23 +219,19 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
-
   const handleTogglePin = useCallback(async (restaurantToToggle: RestaurantWithPinStatus) => {
     const originalId = restaurantToToggle.id;
     const dbRestaurant = await ensureDbRestaurant(restaurantToToggle);
-
 
     if (!dbRestaurant) {
         alert("Could not save restaurant. Please try again.");
         return;
     }
 
-
     const dbId = dbRestaurant.id;
     const isCurrentlyPinned = pinnedRestaurantIds.has(dbId);
    
     const success = await togglePin(dbId);
-
 
     if (success) {
         if (isCurrentlyPinned) {
@@ -292,7 +269,6 @@ const FindRestaurantScreen: React.FC = () => {
     resetSearch();
   };
 
-
   const handleManualAddClick = (searchTerm: string) => {
     setSearchModalOpen(false);
     setShowAddForm(true);
@@ -317,7 +293,6 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
-
   const handleSaveNewRestaurant = async (data: Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'>) => {
     const similar = await findSimilarRestaurants(data.name, data.address || undefined);
     if (similar.length > 0) {
@@ -328,12 +303,10 @@ const FindRestaurantScreen: React.FC = () => {
     }
   };
 
-
   const handleCloseDuplicateModal = () => {
     setSimilarRestaurants([]);
     setNewRestaurantData(null);
   };
-
 
   const handleUseExistingRestaurant = async (restaurant: RestaurantType) => {
     await addToFavorites(restaurant);
@@ -349,21 +322,17 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [nearbyRadius, expandedSection, userLocation, fetchNearbyRestaurants]);
 
-
   const getIsPinned = (restaurant: RestaurantWithPinStatus) => {
       return !!restaurant.id && pinnedRestaurantIds.has(restaurant.id);
   }
-
 
   const handleRefreshNearby = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!userLocation || nearbyLoading || !hasLocationPermission) return;
 
-
     clearCacheForLocation({ ...userLocation, radiusInMiles: nearbyRadius });
     await fetchNearbyRestaurants({ ...userLocation, radiusInMiles: nearbyRadius });
   }, [userLocation, nearbyLoading, hasLocationPermission, clearCacheForLocation, nearbyRadius, fetchNearbyRestaurants]);
-
 
   return (
     <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
@@ -448,88 +417,92 @@ const FindRestaurantScreen: React.FC = () => {
                   ))}
                 </div>
               </AccordionSection>
-              <AccordionSection
-                title="Nearby"
-                isExpanded={expandedSection === 'nearby'}
-                onClick={handleNearbyClick}
-                isDisabled={!hasLocationPermission}
-                className="bg-white rounded-lg shadow-sm"
-                headerAccessory={
-                  expandedSection === 'nearby' ? (
-                    <button
-                      onClick={handleRefreshNearby}
-                      disabled={nearbyLoading || !hasLocationPermission}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
-                      }}
-                      aria-label="Refresh nearby restaurants"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={COLORS.textSecondary}
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+              
+              <div onClick={handleNearbyClick}>
+                <AccordionSection
+                  title="Nearby"
+                  isExpanded={expandedSection === 'nearby'}
+                  onClick={hasLocationPermission ? () => handleSectionClick('nearby') : () => {}}
+                  isDisabled={!hasLocationPermission}
+                  className="bg-white rounded-lg shadow-sm"
+                  headerAccessory={
+                    expandedSection === 'nearby' ? (
+                      <button
+                        onClick={handleRefreshNearby}
+                        disabled={nearbyLoading || !hasLocationPermission}
                         style={{
-                          animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          opacity: (nearbyLoading || !hasLocationPermission) ? 0.5 : 1,
+                        }}
+                        aria-label="Refresh nearby restaurants"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke={COLORS.textSecondary}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{
+                            animation: nearbyLoading ? 'spin 1s linear infinite' : 'none',
+                          }}
+                        >
+                          <polyline points="23 4 23 10 17 10"></polyline>
+                          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                      </button>
+                    ) : null
+                  }
+                >
+                  <div className="p-4">
+                      {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
+                    <div className="flex items-center" style={{ marginBottom: '1rem' }}>
+                      <label style={{ ...FONTS.elegant, color: COLORS.accent, fontSize: '1rem', fontWeight: 500, marginLeft: '16px', marginRight: '12px' }}>
+                          Distance:
+                      </label>
+                      <select
+                        value={nearbyRadius}
+                        onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                        style={{
+                          border: `1px solid ${COLORS.gray300}`, borderRadius: '8px', padding: '0.25rem 0.5rem', fontSize: '0.875rem',
+                          backgroundColor: COLORS.white, cursor: 'pointer', appearance: 'none',
+                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                          backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2rem',
                         }}
                       >
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                      </svg>
-                    </button>
-                  ) : null
-                }
-              >
-                <div className="p-4">
-                    {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
-                  <div className="flex items-center" style={{ marginBottom: '1rem' }}>
-                    <label style={{ ...FONTS.elegant, color: COLORS.accent, fontSize: '1rem', fontWeight: 500, marginLeft: '16px', marginRight: '12px' }}>
-                        Distance:
-                    </label>
-                    <select
-                      value={nearbyRadius}
-                      onChange={(e) => setNearbyRadius(Number(e.target.value))}
-                      style={{
-                        border: `1px solid ${COLORS.gray300}`, borderRadius: '8px', padding: '0.25rem 0.5rem', fontSize: '0.875rem',
-                        backgroundColor: COLORS.white, cursor: 'pointer', appearance: 'none',
-                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                        backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2rem',
-                      }}
-                    >
-                      <option value={0.5}>0.5 miles</option>
-                      <option value={1}>1 mile</option>
-                      <option value={2}>2 miles</option>
-                      <option value={5}>5 miles</option>
-                    </select>
+                        <option value={0.5}>0.5 miles</option>
+                        <option value={1}>1 mile</option>
+                        <option value={2}>2 miles</option>
+                        <option value={5}>5 miles</option>
+                      </select>
+                    </div>
+                    <div className="space-y-0">
+                      {nearbyLoading ? <LoadingScreen message="Finding restaurants..."/> :
+                      nearbyWithDistance.map(restaurant => (
+                        <RestaurantCard
+                          key={`nearby-${restaurant.id}`}
+                          restaurant={restaurant}
+                          isPinned={getIsPinned(restaurant)}
+                          onTogglePin={handleTogglePin}
+                          onClick={() => handleRestaurantClick(restaurant)}
+                          onNavigateToMenu={() => handleRestaurantClick(restaurant)}
+                          currentUserId={user?.id || null}
+                          isAdmin={isAdmin}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-0">
-                    {nearbyLoading ? <LoadingScreen message="Finding restaurants..."/> :
-                    nearbyWithDistance.map(restaurant => (
-                      <RestaurantCard
-                        key={`nearby-${restaurant.id}`}
-                        restaurant={restaurant}
-                        isPinned={getIsPinned(restaurant)}
-                        onTogglePin={handleTogglePin}
-                        onClick={() => handleRestaurantClick(restaurant)}
-                        onNavigateToMenu={() => handleRestaurantClick(restaurant)}
-                        currentUserId={user?.id || null}
-                        isAdmin={isAdmin}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </AccordionSection>
+                </AccordionSection>
+              </div>
+
               <AccordionSection
                 title="Pinned"
                 isExpanded={expandedSection === 'pinned'}
