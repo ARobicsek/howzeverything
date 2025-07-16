@@ -3,16 +3,23 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import type { BrowserInfo, LocationDenialType, LocationState } from '../types/location';
 import { getBrowserInfo } from '../utils/browserDetection';
 
+
 const LOCATION_CACHE_KEY = 'howzeverything-user-location';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
 
 interface LocationContextType extends LocationState {
   browserInfo: BrowserInfo;
   requestLocation: () => void;
   isAvailable: boolean;
+  isPermissionModalOpen: boolean;
+  openPermissionModal: () => void;
+  closePermissionModal: () => void;
 }
 
+
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
+
 
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<LocationState>({
@@ -23,17 +30,25 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     lastChecked: null,
   });
   const [browserInfo] = useState<BrowserInfo>(getBrowserInfo());
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+
+
+  const openPermissionModal = useCallback(() => setIsPermissionModalOpen(true), []);
+  const closePermissionModal = useCallback(() => setIsPermissionModalOpen(false), []);
+
 
   const setLocation = useCallback((position: GeolocationPosition) => {
     const { latitude, longitude } = position.coords;
     const coordinates = { latitude, longitude };
     const locationData = { coordinates, timestamp: Date.now() };
 
+
     try {
       localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(locationData));
     } catch (e) {
       console.warn('Failed to save location to localStorage:', e);
     }
+
 
     setState(prev => ({
       ...prev,
@@ -44,6 +59,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       lastChecked: Date.now(),
     }));
   }, []);
+
 
   const handleError = useCallback((error: GeolocationPositionError) => {
     let denialType: LocationDenialType = 'unavailable';
@@ -63,13 +79,16 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   }, []);
 
+
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setState(prev => ({ ...prev, status: 'denied', denialType: 'browser', lastChecked: Date.now() }));
       return;
     }
 
+
     setState(prev => ({ ...prev, status: 'requesting' }));
+
 
     navigator.geolocation.getCurrentPosition(setLocation, handleError, {
       enableHighAccuracy: true,
@@ -77,6 +96,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       maximumAge: 60000,
     });
   }, [setLocation, handleError]);
+
 
   // Initial check on load
   useEffect(() => {
@@ -99,6 +119,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       } catch (e) {
         console.warn('Failed to read location from cache', e);
       }
+
 
       // 2. If no valid cache, check permissions silently
       if (navigator.permissions) {
@@ -127,15 +148,21 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     checkInitialState();
   }, [requestLocation]);
 
+
   const value = {
     ...state,
     browserInfo,
     requestLocation,
     isAvailable: state.status === 'granted' && state.coordinates !== null,
+    isPermissionModalOpen,
+    openPermissionModal,
+    closePermissionModal,
   };
+
 
   return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;
 };
+
 
 export const useLocationService = (): LocationContextType => {
   const context = useContext(LocationContext);

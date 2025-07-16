@@ -4,22 +4,25 @@ import { COLORS } from '../../constants';
 import { useLocationService } from '../../hooks/useLocationService';
 import LocationPermissionModal from './LocationPermissionModal';
 
+
 const LocationAwareButton: React.FC = () => {
-  const { status, requestLocation, isAvailable } = useLocationService();
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const { status, requestLocation, isAvailable, openPermissionModal, isPermissionModalOpen, closePermissionModal } = useLocationService();
+
 
   // If location is already granted and available, do not render the button.
   if (isAvailable) {
     return null;
   }
 
+
   const handleClick = () => {
     if (status === 'denied') {
-      setIsModalOpen(true);
-    } else if (status === 'idle') {
+      openPermissionModal();
+    } else if (status === 'idle' || status === 'requesting') {
       requestLocation();
     }
   };
+
 
   const getTitle = () => {
      switch (status) {
@@ -34,6 +37,7 @@ const LocationAwareButton: React.FC = () => {
     }
   }
 
+
   return (
     <>
       <button
@@ -42,28 +46,16 @@ const LocationAwareButton: React.FC = () => {
         title={getTitle()}
         aria-label={getTitle()}
       >
-        <div style={{ animation: status === 'requesting' ? 'spin 1.5s linear infinite' : 'none' }}>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={COLORS.accent}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            >
-                <path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/>
-                <path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/>
-                <path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/>
-                <circle cx="12" cy="12" r="10"/>
+        <div style={{ animation: status === 'requesting' ? 'spin 1.5s linear infinite' : 'none', color: COLORS.white, width: '25px', height: '25px' }}>
+            <svg viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="1.2">
+                <path d="M5.5 16.5H19.5M5.5 8.5H19.5M4.5 12.5H20.5M12.5 20.5C12.5 20.5 8 18.5 8 12.5C8 6.5 12.5 4.5 12.5 4.5M12.5 4.5C12.5 4.5 17 6.5 17 12.5C17 18.5 12.5 20.5 12.5 20.5M12.5 4.5V20.5M20.5 12.5C20.5 16.9183 16.9183 20.5 12.5 20.5C8.08172 20.5 4.5 16.9183 4.5 12.5C4.5 8.08172 8.08172 4.5 12.5 4.5C16.9183 4.5 20.5 8.08172 20.5 12.5Z"></path>
             </svg>
         </div>
       </button>
-      <LocationPermissionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <LocationPermissionModal isOpen={isPermissionModalOpen} onClose={closePermissionModal} />
     </>
   );
 };
+
 
 export default LocationAwareButton;
