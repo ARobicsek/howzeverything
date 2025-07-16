@@ -1,23 +1,16 @@
+// src/components/navigation/TopNavigation.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { COLORS, SPACING, STYLES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
-
-
-
+import LocationAwareButton from '../location/LocationAwareButton';
 
 interface TopNavigationProps {
   onToggleMenu: () => void;
 }
 
-
-
-
 const Avatar: React.FC = () => {
   const { user, profile } = useAuth();
-
-
-
 
   const getInitials = (name?: string | null): string => {
     if (!name) return user?.email?.charAt(0).toUpperCase() ?? '?';
@@ -28,13 +21,7 @@ const Avatar: React.FC = () => {
     return names[0].charAt(0).toUpperCase();
   };
 
-
-
-
   const initials = getInitials(profile?.full_name);
-
-
-
 
   return (
     <Link to="/profile" style={{ textDecoration: 'none' }}>
@@ -53,19 +40,15 @@ const Avatar: React.FC = () => {
         border: `1px solid ${COLORS.white}`,
         boxShadow: STYLES.shadowSmall,
         color: COLORS.white,
-        // MODIFIED: Apply Pinyon Script font and adjust styles
         fontFamily: '"Pinyon Script", cursive',
-        fontSize: '1.6rem', // Larger size for script font legibility
-        lineHeight: 1, // Adjust line height for better vertical centering
+        fontSize: '1.6rem',
+        lineHeight: 1,
       }}>
         {!profile?.avatar_url && <span>{initials.length > 1 ? initials.charAt(0) : initials}</span>}
       </div>
     </Link>
   );
 };
-
-
-
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
   return (
@@ -76,7 +59,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       right: 0,
       height: '60px',
       backgroundColor: COLORS.navBarDark,
-      border: 'none', // Explicitly remove any border to prevent a gap
+      border: 'none',
       zIndex: STYLES.zHeader,
       padding: `0 ${SPACING[4]}`,
       display: 'flex',
@@ -85,26 +68,20 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
     }}>
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
         <Link to="/home">
-          {/* Using logo.png which is white text and suitable for dark backgrounds */}
           <img
             src="/HowzEverything.png"
             alt="HowzEverything Logo"
-            style={{ height: '60px', width: 'auto' }} // UPDATED: Increased size by ~40% (from 32px)
+            style={{ height: '60px', width: 'auto' }}
           />
         </Link>
       </div>
-
-
-
 
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         {/* Empty space in the center */}
       </div>
 
-
-
-
       <div style={{ flex: 1, display: 'flex', justifyContent: 'end', alignItems: 'center', gap: SPACING[4] }}>
+        <LocationAwareButton />
         <Avatar />
         <button onClick={onToggleMenu} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: SPACING[2] }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color={COLORS.white}>
@@ -115,8 +92,5 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
     </header>
   );
 };
-
-
-
 
 export default TopNavigation;

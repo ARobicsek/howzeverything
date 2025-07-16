@@ -6,15 +6,21 @@ import { SearchService } from '../services/searchService';
 import { supabase } from '../supabaseClient';
 import { Restaurant } from '../types/restaurant';
 import { GeoapifyPlace, GeoapifyPlaceDetails, RestaurantWithStats, UseRestaurantsOptions } from '../types/restaurantSearch';
-import { calculateDistance, formatDistanceMiles, sortRestaurantsArray } from '../utils/restaurantGeolocation';
+import { calculateDistanceInMiles, formatDistanceMiles, sortRestaurantsArray } from '../utils/geolocation';
 import { calculateEnhancedSimilarity } from '../utils/textUtils';
+
+
 
 
 const defaultSortBy = { criterion: 'name' as const, direction: 'asc' as const };
 
 
+
+
 export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   const { sortBy = defaultSortBy, userLat, userLon, initialFetch = true } = options;
+
+
 
 
   // --- STATE MANAGEMENT ---
@@ -28,8 +34,12 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   const [restaurantErrors, setRestaurantErrors] = useState<Map<string, string>>(new Map());
 
 
+
+
   // --- SERVICE INITIALIZATION ---
   const searchService = useRef(new SearchService());
+
+
 
 
   // --- DATA FETCHING ---
@@ -42,12 +52,14 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         if (!user) { setError('User not authenticated'); setRestaurants([]); return; }
 
 
+
+
         const restaurantDetails = await restaurantDataService.fetchUserRestaurantsWithStats(user.id);
        
         const combinedData: RestaurantWithStats[] = (restaurantDetails as any[]).map((r: any) => {
           let distance: string | undefined = undefined;
           if (userLat != null && userLon != null && r.latitude != null && r.longitude != null) {
-            const distMiles = calculateDistance(userLat, userLon, r.latitude, r.longitude);
+            const distMiles = calculateDistanceInMiles(userLat, userLon, r.latitude, r.longitude);
             distance = formatDistanceMiles(distMiles);
           }
           return {
@@ -69,6 +81,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, [sortBy, userLat, userLon, initialFetch]);
 
 
+
+
   // --- SEARCH ---
   const searchRestaurants = useCallback(async (
     searchParams: string,
@@ -85,8 +99,12 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       ]);
 
 
+
+
       if (dbResponse.error) throw dbResponse.error;
       const matchingDbRestaurants: Restaurant[] = dbResponse.data || [];
+
+
 
 
       if (matchingDbRestaurants.length > 0) {
@@ -103,10 +121,14 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       }
 
 
+
+
       const uniqueApiResults = apiResults.filter(apiResult => {
         return !matchingDbRestaurants.some(dbRestaurant => {
             const nameScore = calculateEnhancedSimilarity(dbRestaurant.name, apiResult.properties.name);
             if (nameScore < 95) return false;
+
+
 
 
             const dbAddress = dbRestaurant.full_address || [dbRestaurant.address, dbRestaurant.city].filter(Boolean).join(', ');
@@ -118,6 +140,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
             return nameScore > 98;
         });
       });
+
+
 
 
       const dbResultsAsGeoapify = matchingDbRestaurants.map(dbRestaurant => ({
@@ -142,8 +166,12 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       } as GeoapifyPlace));
 
 
+
+
       const combinedResults = [...dbResultsAsGeoapify, ...uniqueApiResults];
       setSearchResults(combinedResults);
+
+
 
 
     } catch (err: any) {
@@ -154,6 +182,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       setIsSearching(false);
     }
   }, []);
+
+
 
 
   const getRestaurantDetails = useCallback(async (placeId: string): Promise<GeoapifyPlaceDetails | null> => {
@@ -174,12 +204,16 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, []);
 
 
+
+
   // --- RESTAURANT & FAVORITES MANAGEMENT ---
   const isAlreadyFavorited = useCallback(async (restaurantId: string): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
     return favoritesService.isAlreadyFavorited(user.id, restaurantId);
   }, []);
+
+
 
 
   const addToFavorites = useCallback(async (restaurant: Restaurant): Promise<void> => {
@@ -195,6 +229,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       ));
     }
   }, [restaurants, sortBy, userLat, userLon]);
+
+
 
 
   const removeFromFavorites = useCallback(async (restaurantId: string): Promise<void> => {
@@ -220,6 +256,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, [restaurants, sortBy, userLat, userLon]);
 
 
+
+
   const addRestaurantAndFavorite = useCallback(async (restaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>): Promise<Restaurant> => {
     const result = await addRestaurant(restaurantData);
     if (typeof result === 'boolean' || !result) {
@@ -227,6 +265,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     }
     return result as Restaurant;
   }, [addRestaurant]);
+
+
 
 
   const updateRestaurant = useCallback(async (restaurantId: string, updates: Partial<Restaurant>) => {
@@ -253,6 +293,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, [sortBy, userLat, userLon]);
 
 
+
+
   const getOrCreateRestaurant = useCallback(async (place: GeoapifyPlace): Promise<Restaurant | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
@@ -260,9 +302,13 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, []);
 
 
+
+
   const importRestaurant = useCallback(async (geoapifyPlace: GeoapifyPlace): Promise<string | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { throw new Error('User must be authenticated'); }
+
+
 
 
     if (geoapifyPlace.place_id.startsWith('db_')) {
@@ -281,6 +327,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, [addToFavorites, getOrCreateRestaurant]);
 
 
+
+
   // --- UTILITIES ---
   const clearSearchResults = useCallback(() => {
     setSearchResults([]);
@@ -288,11 +336,15 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   }, []);
 
 
+
+
   const resetSearch = useCallback(() => {
     clearSearchResults();
     searchService.current.clearCache();
     searchService.current.abort();
   }, []);
+
+
 
 
   return {

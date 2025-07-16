@@ -10,9 +10,11 @@ import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
 import { useRestaurants } from './hooks/useRestaurants';
 import { supabase } from './supabaseClient';
 import { enhancedDishSearch } from './utils/dishSearch';
-import { formatDistanceMiles, getDistanceFromLatLonInMiles } from './utils/geolocation';
+import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
+
 
 const SEARCH_BAR_WIDTH = '350px';
+
 
 // Re-using the location permission banner from RestaurantScreen
 const LocationPermissionBanner: React.FC<{
@@ -39,6 +41,7 @@ const LocationPermissionBanner: React.FC<{
   );
 };
 
+
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -48,15 +51,18 @@ interface RestaurantGroup {
   dishes: DishSearchResultWithRestaurant[];
 }
 
+
 const DiscoveryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { restaurants: favoriteRestaurants } = useRestaurants({ sortBy: { criterion: 'name', direction: 'asc' }});
 
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxDistance, setMaxDistance] = useState(-1); // in miles, -1 for 'Any'
+
 
   // Data and loading states
   const [allDishes, setAllDishes] = useState<DishSearchResultWithRestaurant[]>([]);
@@ -65,6 +71,7 @@ const DiscoveryScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
 
+
   // Location states
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLon, setUserLon] = useState<number | null>(null);
@@ -72,9 +79,11 @@ const DiscoveryScreen: React.FC = () => {
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
   const [showLocationBanner, setShowLocationBanner] = useState(true);
 
+
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
 
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
@@ -82,11 +91,13 @@ const DiscoveryScreen: React.FC = () => {
     setMaxDistance(-1);
   }, []);
 
+
   useEffect(() => {
     if (favoriteRestaurants.length > 0) {
       setFavoriteRestaurantIds(new Set(favoriteRestaurants.map(r => r.id)));
     }
   }, [favoriteRestaurants]);
+
 
   const fetchAllDishes = useCallback(async () => {
     setIsLoading(true);
@@ -103,9 +114,11 @@ const DiscoveryScreen: React.FC = () => {
     }
   }, []);
 
+
   useEffect(() => {
     fetchAllDishes();
   }, [fetchAllDishes]);
+
 
   const requestLocationPermission = useCallback(async () => {
     if (!navigator.geolocation || isRequestingLocation) return;
@@ -129,11 +142,13 @@ const DiscoveryScreen: React.FC = () => {
     );
   }, [isRequestingLocation]);
 
+
   useEffect(() => {
     if (!userLat && !userLon) {
         requestLocationPermission();
     }
   }, [requestLocationPermission, userLat, userLon]);
+
 
   const processAndFilterDishes = useCallback(() => {
     if (searchTerm.trim().length < 2) {
@@ -141,26 +156,30 @@ const DiscoveryScreen: React.FC = () => {
       return;
     }
 
+
     let results = enhancedDishSearch(allDishes, searchTerm) as DishSearchResultWithRestaurant[];
 
+
     results = results.filter(d => d.average_rating >= minRating);
+
 
     if (maxDistance > 0 && userLat && userLon) {
       results = results.filter(dish => {
         if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
-          const distance = getDistanceFromLatLonInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
+          const distance = calculateDistanceInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
           return distance <= maxDistance;
         }
         return false;
       });
     }
 
+
     const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {
       const restaurantId = dish.restaurant.id;
       if (!acc[restaurantId]) {
         let distance: number | undefined;
         if (userLat && userLon && dish.restaurant.latitude && dish.restaurant.longitude) {
-            distance = getDistanceFromLatLonInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
+            distance = calculateDistanceInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
         }
         acc[restaurantId] = {
           restaurant: { ...dish.restaurant, distance },
@@ -171,6 +190,7 @@ const DiscoveryScreen: React.FC = () => {
       return acc;
     }, {});
 
+
     const sortedGroups = Object.values(grouped).sort((a, b) => {
         // Default to sorting by distance if location is available
         if (userLat && userLon && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {
@@ -180,8 +200,10 @@ const DiscoveryScreen: React.FC = () => {
         return a.restaurant.name.localeCompare(b.restaurant.name);
     });
 
+
     setFilteredAndGrouped(sortedGroups);
   }, [allDishes, searchTerm, minRating, maxDistance, userLat, userLon]);
+
 
   useEffect(() => {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -191,6 +213,7 @@ const DiscoveryScreen: React.FC = () => {
     setSearchDebounceTimer(timer);
     return () => clearTimeout(timer);
   }, [processAndFilterDishes]);
+
 
   const addRestaurantToFavorites = async (restaurantId: string) => {
     if (!user) return;
@@ -203,6 +226,7 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
 
+
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     if (!user) {
       alert("Please log in to rate dishes.");
@@ -211,6 +235,7 @@ const DiscoveryScreen: React.FC = () => {
     const dishToUpdate = allDishes.find(d => d.id === dishId);
     if (!dishToUpdate) return;
 
+
     try {
       const isFavorite = favoriteRestaurantIds.has(dishToUpdate.restaurant.id);
       if (!isFavorite) {
@@ -218,15 +243,18 @@ const DiscoveryScreen: React.FC = () => {
         setFavoriteRestaurantIds(prev => new Set(prev).add(dishToUpdate.restaurant.id));
       }
 
+
       const success = await updateRatingForDish(dishId, user.id, newRating);
       if (!success) {
         throw new Error("Failed to save rating to the database.");
       }
 
+
       setAllDishes(prevDishes => prevDishes.map(dish => {
         if (dish.id === dishId) {
           const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
           let newRatings: DishRating[] = [...dish.ratings];
+
 
           if (existingRatingIndex > -1) {
             if (newRating === 0) {
@@ -241,6 +269,7 @@ const DiscoveryScreen: React.FC = () => {
             });
           }
 
+
           const total = newRatings.length;
           const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
           return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
@@ -253,6 +282,7 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
 
+
   const handleShareDish = (dish: DishSearchResultWithRestaurant) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
@@ -261,6 +291,7 @@ const DiscoveryScreen: React.FC = () => {
       navigator.clipboard.writeText(shareUrl).then(() => alert('Share link copied to clipboard!'));
     }
   };
+
 
   const selectStyle: React.CSSProperties = {
     border: `1px solid ${COLORS.gray300}`,
@@ -278,6 +309,7 @@ const DiscoveryScreen: React.FC = () => {
     paddingRight: '2.5rem',
     width: '100%'
   };
+
 
   const renderContent = () => {
     if (isLoading && allDishes.length === 0) {
@@ -326,6 +358,8 @@ const DiscoveryScreen: React.FC = () => {
       </div>
     );
   };
+
+
 
 
   return (
@@ -409,5 +443,6 @@ const DiscoveryScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default DiscoveryScreen;

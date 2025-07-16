@@ -22,7 +22,9 @@ import UserForm from './components/user/UserForm';
 import NavigationModal from './components/navigation/NavigationModal';
 import TopNavigation from './components/navigation/TopNavigation';
 // ADDED: Import sharing utilities
+import { LocationProvider } from './hooks/useLocationService';
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler';
+
 // This component will handle the shared content logic within the router context
 const SharedContentHandler: React.FC = () => {
     const { user } = useAuth();
@@ -79,6 +81,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 
 
+
+
+
+
+
+
+
+
 const getScreenConfig = (pathname: string) => {
     // Add ratings to the full-bleed screens
     if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
@@ -88,6 +98,14 @@ const getScreenConfig = (pathname: string) => {
     const pathSegments = pathname.split('/').filter(Boolean);
     let screenKey: string;
     let hasStickyHeader = false;
+
+
+
+
+
+
+
+
 
 
 
@@ -110,9 +128,25 @@ const getScreenConfig = (pathname: string) => {
 
 
 
+
+
+
+
+
+
+
+
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -148,6 +182,14 @@ const AppRoutes: React.FC = () => {
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
     const screenConfig = getScreenConfig(location.pathname);
+
+
+
+
+
+
+
+
 
 
 
@@ -221,16 +263,18 @@ const App: React.FC = () => {
     return <LoadingScreen />;
   }
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<AuthFlow />} />
-        <Route path="/*" element={
-            <ProtectedRoute>
-                <AppRoutes />
-            </ProtectedRoute>
-        }/>
-      </Routes>
-    </BrowserRouter>
+    <LocationProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<AuthFlow />} />
+          <Route path="/*" element={
+              <ProtectedRoute>
+                  <AppRoutes />
+              </ProtectedRoute>
+          }/>
+        </Routes>
+      </BrowserRouter>
+    </LocationProvider>
   );
 };
 export default App;

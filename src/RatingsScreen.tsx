@@ -6,10 +6,11 @@ import LoadingScreen from './components/LoadingScreen';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
-// This import is assumed to exist based on other files in the project.
-import { calculateDistance, formatDistanceMiles } from './utils/restaurantGeolocation';
+import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
+
 
 const SEARCH_BAR_WIDTH = '450px';
+
 
 const StarRating: React.FC<{
   rating: number;
@@ -21,6 +22,7 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.accent, empty: COLORS.ratingEmpty },
     community: { filled: '#101010', empty: COLORS.ratingEmpty },
   };
+
 
   return (
     <div className="flex items-center gap-0.5">
@@ -41,6 +43,7 @@ const StarRating: React.FC<{
   );
 };
 
+
 // A dish card that now includes distance.
 const RatedDishCard: React.FC<{
   item: DishSearchResultWithRestaurant & { distanceFormatted: string | null };
@@ -48,9 +51,11 @@ const RatedDishCard: React.FC<{
 }> = ({ item, myRating }) => {
   const navigate = useNavigate();
 
+
   const handleNavigate = () => {
     navigate(`/restaurants/${item.restaurant.id}?dish=${item.id}`);
   };
+
 
   return (
     <div
@@ -109,6 +114,7 @@ const RatedDishCard: React.FC<{
   );
 };
 
+
 const RatingsScreen: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,6 +122,7 @@ const RatingsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -130,6 +137,7 @@ const RatingsScreen: React.FC = () => {
       }
     );
   }, []);
+
 
   const loadRatedDishes = useCallback(async () => {
     if (!user) return;
@@ -146,17 +154,20 @@ const RatingsScreen: React.FC = () => {
     }
   }, [user]);
 
+
   useEffect(() => {
     loadRatedDishes();
   }, [loadRatedDishes]);
 
+
   const processedDishes = useMemo(() => {
     if (!rawRatedDishes.length) return [];
+
 
     const withDistance = rawRatedDishes.map(dish => {
         let distance: number | null = null;
         if (userLocation && dish.restaurant.latitude && dish.restaurant.longitude) {
-            distance = calculateDistance(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);
+            distance = calculateDistanceInMiles(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);
         }
         return {
             ...dish,
@@ -165,14 +176,17 @@ const RatingsScreen: React.FC = () => {
         };
     });
 
+
     withDistance.sort((a, b) => {
         if (a.distance === null) return 1;
         if (b.distance === null) return -1;
         return a.distance - b.distance;
     });
 
+
     return withDistance;
   }, [rawRatedDishes, userLocation]);
+
 
   const filteredDishes = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -186,6 +200,7 @@ const RatingsScreen: React.FC = () => {
     });
     return fuse.search(searchTerm.trim()).map((result) => result.item);
   }, [processedDishes, searchTerm]);
+
 
   return (
     <div>
@@ -253,6 +268,7 @@ const RatingsScreen: React.FC = () => {
         </div>
       </div>
 
+
       {/* BODY SECTION */}
       <div style={{
         maxWidth: '768px',
@@ -287,5 +303,6 @@ const RatingsScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default RatingsScreen;
