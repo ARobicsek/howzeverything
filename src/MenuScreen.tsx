@@ -1,6 +1,4 @@
 // src/MenuScreen.tsx
-
-﻿// src/MenuScreen.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import DishCard from './components/DishCard';
@@ -331,28 +329,53 @@ const MenuScreen: React.FC = () => {
   };
 
   const handleAddComment = async (dishId: string, text: string) => {
-    try { await addComment(dishId, text); }
-    catch (err: unknown) { setError(err instanceof Error ? `Failed to add comment: ${err.message}` : 'Failed to add comment: An unknown error occurred.'); }
+    try { 
+      await addComment(dishId, text); 
+    } catch (err: unknown) { 
+      const message = err instanceof Error ? `Failed to add comment: ${err.message}` : 'Failed to add comment: An unknown error occurred.';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
-    try { await updateComment(commentId, newText); }
-    catch (err: unknown) { setError(err instanceof Error ? `Failed to update comment: ${err.message}` : 'Failed to update comment: An unknown error occurred.'); }
+    try { 
+      await updateComment(commentId, newText); 
+    } catch (err: unknown) { 
+      const message = err instanceof Error ? `Failed to update comment: ${err.message}` : 'Failed to update comment: An unknown error occurred.';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
-    try { await deleteComment(commentId); }
-    catch (err: unknown) { setError(err instanceof Error ? `Failed to delete comment: ${err.message}` : 'Failed to delete comment: An unknown error occurred.'); }
+    try { 
+      await deleteComment(commentId); 
+    } catch (err: unknown) { 
+      const message = err instanceof Error ? `Failed to delete comment: ${err.message}` : 'Failed to delete comment: An unknown error occurred.';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
-    try { await addPhoto(dishId, file, caption); }
-    catch (err: unknown) { setError(err instanceof Error ? `Failed to add photo: ${err.message}` : 'Failed to add photo: An unknown error occurred.'); }
+    try { 
+      await addPhoto(dishId, file, caption); 
+    } catch (err: unknown) { 
+      const message = err instanceof Error ? `Failed to add photo: ${err.message}` : 'Failed to add photo: An unknown error occurred.';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
-    try { await deletePhoto(photoId); }
-    catch (err: unknown) { setError(err instanceof Error ? `Failed to delete photo: ${err.message}` : 'Failed to delete photo: An unknown error occurred.'); }
+    try { 
+      await deletePhoto(photoId); 
+    } catch (err: unknown) { 
+      const message = err instanceof Error ? `Failed to delete photo: ${err.message}` : 'Failed to delete photo: An unknown error occurred.';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
   const toggleActionMenu = () => setIsActionMenuOpen(prev => !prev);
