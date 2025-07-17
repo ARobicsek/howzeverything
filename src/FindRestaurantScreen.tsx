@@ -65,15 +65,19 @@ const FindRestaurantScreen: React.FC = () => {
   const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
 
   useEffect(() => {
-    if (!user || locationStatus === 'granted') return;
+    // This effect handles showing the permission modal automatically ONCE per session.
+    if (!user || locationStatus === 'granted' || locationStatus === 'requesting') return;
 
     const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);
     if (hasInteracted) return;
 
+    // If status is determined to be 'denied', show our help modal.
     if (locationStatus === 'denied') {
       openPermissionModal();
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
-    } else if (locationStatus === 'idle') {
+    } 
+    // If status is 'idle' (not yet asked), trigger the native browser prompt.
+    else if (locationStatus === 'idle') {
       requestLocation();
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
     }
@@ -121,6 +125,7 @@ const FindRestaurantScreen: React.FC = () => {
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
   const handleNearbyClick = useCallback(() => {
+    // This logic is now reliable because `locationStatus` is kept up-to-date.
     if (hasLocationPermission) {
       handleSectionClick('nearby');
     } else {
@@ -398,7 +403,7 @@ const FindRestaurantScreen: React.FC = () => {
                 title="Recents"
                 isExpanded={expandedSection === 'recents'}
                 onClick={() => handleSectionClick('recents')}
-                isEmpty={!areInitialSectionsLoading && recentsWithDistance.length === 0}
+                isEmpty={areInitialSectionsLoading ? false : recentsWithDistance.length === 0}
                 className="bg-white rounded-lg shadow-sm"
               >
                 <div className="p-4 pt-2 space-y-0">
@@ -507,7 +512,7 @@ const FindRestaurantScreen: React.FC = () => {
                 title="Pinned"
                 isExpanded={expandedSection === 'pinned'}
                 onClick={() => handleSectionClick('pinned')}
-                isEmpty={!areInitialSectionsLoading && pinnedWithDistance.length === 0}
+                isEmpty={areInitialSectionsLoading ? false : pinnedWithDistance.length === 0}
                 className="bg-white rounded-lg shadow-sm"
               >
                 <div className="p-4 pt-2 space-y-0">

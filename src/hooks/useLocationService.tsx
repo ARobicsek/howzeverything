@@ -3,9 +3,6 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import type { BrowserInfo, LocationDenialType, LocationState } from '../types/location';
 import { getBrowserInfo } from '../utils/browserDetection';
 
-const LOCATION_CACHE_KEY = 'howzeverything-user-location';
-const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
-
 interface LocationContextType extends LocationState {
   browserInfo: BrowserInfo;
   requestLocation: () => void;
@@ -34,13 +31,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setLocation = useCallback((position: GeolocationPosition) => {
     const { latitude, longitude } = position.coords;
     const coordinates = { latitude, longitude };
-    const locationData = { coordinates, timestamp: Date.now() };
-
-    try {
-      localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(locationData));
-    } catch (e) {
-      console.warn('Failed to save location to localStorage:', e);
-    }
 
     setState(prev => ({
       ...prev,
@@ -65,9 +55,36 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       error,
       lastChecked: Date.now(),
     }));
-    // If permission is denied, we should also open the help modal.
-    openPermissionModal();
-  }, [openPermissionModal]);
+  }, []);
+
+  const checkInitialState = useCallback(async () => {
+    if (navigator.permissions) {
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        
+        if (permissionStatus.state === 'granted') {
+          navigator.geolocation.getCurrentPosition(setLocation, handleError, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          });
+        } else if (permissionStatus.state === 'denied') {
+          setState(prev => ({ ...prev, status: 'denied', denialType: 'site', lastChecked: Date.now() }));
+        } else { // 'prompt'
+          setState(prev => ({ ...prev, status: 'idle', lastChecked: Date.now() }));
+        }
+
+        permissionStatus.onchange = () => checkInitialState();
+      } catch (error) {
+         console.warn('Permissions API not supported or failed, falling back.', error);
+         setState(prev => ({ ...prev, status: 'idle', lastChecked: Date.now() }));
+      }
+    } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(setLocation, handleError);
+    } else {
+        setState(prev => ({ ...prev, status: 'denied', denialType: 'browser', lastChecked: Date.now() }));
+    }
+  }, [setLocation, handleError]);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -77,65 +94,26 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     setState(prev => ({ ...prev, status: 'requesting' }));
-
     navigator.geolocation.getCurrentPosition(setLocation, handleError, {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 60000,
+      maximumAge: 60000, 
     });
   }, [setLocation, handleError, openPermissionModal]);
-
-  const checkInitialState = useCallback(async (forceRequest = false) => {
-    try {
-      const cachedItem = localStorage.getItem(LOCATION_CACHE_KEY);
-      if (cachedItem) {
-        const cachedData = JSON.parse(cachedItem);
-        if (Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
-          setState(prev => ({
-            ...prev,
-            status: 'granted',
-            coordinates: cachedData.coordinates,
-            lastChecked: cachedData.timestamp,
-          }));
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to read location from cache', e);
-    }
-
-    if (navigator.permissions) {
-      try {
-        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
-        
-        permissionStatus.onchange = () => checkInitialState();
-
-        if (permissionStatus.state === 'granted') {
-          requestLocation();
-        } else if (permissionStatus.state === 'denied') {
-          setState(prev => ({ ...prev, status: 'denied', denialType: 'site', lastChecked: Date.now() }));
-          if (forceRequest) {
-              openPermissionModal();
-          }
-        } else { // 'prompt'
-          setState(prev => ({ ...prev, status: 'idle', lastChecked: Date.now() }));
-          if (forceRequest) {
-              requestLocation();
-          }
-        }
-      } catch (error) {
-         console.warn('Permissions API not supported or failed, falling back.', error);
-         setState(prev => ({ ...prev, status: 'idle', lastChecked: Date.now() }));
-         if(forceRequest) requestLocation();
-      }
-    } else {
-       setState(prev => ({ ...prev, status: 'idle', lastChecked: Date.now() }));
-       if(forceRequest) requestLocation();
-    }
-  }, [requestLocation, openPermissionModal]);
-
+  
   useEffect(() => {
-    checkInitialState(false); // Initial silent check
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkInitialState();
+      }
+    };
+
+    checkInitialState();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [checkInitialState]);
 
   const value = {
