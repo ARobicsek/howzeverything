@@ -126,7 +126,7 @@ const FindRestaurantScreen: React.FC = () => {
     if (hasLocationPermission) {
       handleSectionClick('nearby');
     } else {
-      requestLocation(); // This will now correctly show the modal if 'denied' or prompt if 'idle'
+      requestLocation();
     }
   }, [hasLocationPermission, requestLocation, handleSectionClick]);
 

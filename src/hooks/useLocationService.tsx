@@ -99,7 +99,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       navigator.geolocation.getCurrentPosition(setLocation, handleError, {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 60000, 
+        maximumAge: 60000,
       });
     }
   }, [state.status, openPermissionModal, setLocation, handleError]);
