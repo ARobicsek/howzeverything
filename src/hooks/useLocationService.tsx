@@ -58,11 +58,17 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const checkInitialState = useCallback(async () => {
+    if (!navigator.geolocation) {
+      setState(prev => ({ ...prev, status: 'denied', denialType: 'browser', lastChecked: Date.now() }));
+      return;
+    }
+
     if (navigator.permissions) {
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
         
         if (permissionStatus.state === 'granted') {
+          setState(prev => ({ ...prev, status: 'requesting' }));
           navigator.geolocation.getCurrentPosition(setLocation, handleError, {
             enableHighAccuracy: true,
             timeout: 10000,
@@ -79,27 +85,24 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
          console.warn('Permissions API not supported or failed, falling back.', error);
          setState(prev => ({ ...prev, status: 'idle', lastChecked: Date.now() }));
       }
-    } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(setLocation, handleError);
     } else {
-        setState(prev => ({ ...prev, status: 'denied', denialType: 'browser', lastChecked: Date.now() }));
+        setState(prev => ({ ...prev, status: 'requesting' }));
+        navigator.geolocation.getCurrentPosition(setLocation, handleError);
     }
   }, [setLocation, handleError]);
 
   const requestLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setState(prev => ({ ...prev, status: 'denied', denialType: 'browser', lastChecked: Date.now() }));
+    if (state.status === 'denied') {
       openPermissionModal();
-      return;
+    } else if (state.status === 'idle') {
+      setState(prev => ({ ...prev, status: 'requesting' }));
+      navigator.geolocation.getCurrentPosition(setLocation, handleError, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000, 
+      });
     }
-
-    setState(prev => ({ ...prev, status: 'requesting' }));
-    navigator.geolocation.getCurrentPosition(setLocation, handleError, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 60000, 
-    });
-  }, [setLocation, handleError, openPermissionModal]);
+  }, [state.status, openPermissionModal, setLocation, handleError]);
   
   useEffect(() => {
     const handleVisibilityChange = () => {

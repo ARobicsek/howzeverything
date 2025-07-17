@@ -66,18 +66,16 @@ const FindRestaurantScreen: React.FC = () => {
 
   useEffect(() => {
     // This effect handles showing the permission modal automatically ONCE per session.
+    // It waits until the status is no longer 'requesting'.
     if (!user || locationStatus === 'granted' || locationStatus === 'requesting') return;
 
     const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);
     if (hasInteracted) return;
 
-    // If status is determined to be 'denied', show our help modal.
     if (locationStatus === 'denied') {
       openPermissionModal();
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
-    } 
-    // If status is 'idle' (not yet asked), trigger the native browser prompt.
-    else if (locationStatus === 'idle') {
+    } else if (locationStatus === 'idle') {
       requestLocation();
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
     }
@@ -125,17 +123,12 @@ const FindRestaurantScreen: React.FC = () => {
   }, [expandedSection, userLocation, nearbyRadius, fetchNearbyRestaurants]);
 
   const handleNearbyClick = useCallback(() => {
-    // This logic is now reliable because `locationStatus` is kept up-to-date.
     if (hasLocationPermission) {
       handleSectionClick('nearby');
     } else {
-      if (locationStatus === 'denied') {
-        openPermissionModal();
-      } else if (locationStatus === 'idle' || locationStatus === 'requesting') {
-        requestLocation();
-      }
+      requestLocation(); // This will now correctly show the modal if 'denied' or prompt if 'idle'
     }
-  }, [hasLocationPermission, locationStatus, handleSectionClick, openPermissionModal, requestLocation]);
+  }, [hasLocationPermission, requestLocation, handleSectionClick]);
 
   const ensureDbRestaurant = useCallback(async (placeOrRestaurant: GeoapifyPlace | RestaurantType): Promise<RestaurantType | null> => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
