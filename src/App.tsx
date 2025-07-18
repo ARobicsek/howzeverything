@@ -25,6 +25,7 @@ import TopNavigation from './components/navigation/TopNavigation';
 import { LocationProvider } from './hooks/useLocationService';
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler';
 
+
 // This component will handle the shared content logic within the router context
 const SharedContentHandler: React.FC = () => {
     const { user } = useAuth();
@@ -76,19 +77,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 const getScreenConfig = (pathname: string) => {
     // Add ratings to the full-bleed screens
     if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
@@ -98,19 +86,6 @@ const getScreenConfig = (pathname: string) => {
     const pathSegments = pathname.split('/').filter(Boolean);
     let screenKey: string;
     let hasStickyHeader = false;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -125,32 +100,9 @@ const getScreenConfig = (pathname: string) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -182,20 +134,6 @@ const AppRoutes: React.FC = () => {
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
     const screenConfig = getScreenConfig(location.pathname);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     return (
@@ -238,8 +176,10 @@ const AppRoutes: React.FC = () => {
 }
 const AuthFlow: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const handleLoginSuccess = () => {
-        navigate('/home', { replace: true });
+        const from = location.state?.from;
+        navigate(from || '/home', { replace: true });
     };
     return (
       <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>
