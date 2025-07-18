@@ -21,11 +21,11 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
     if (denialType === 'browser') {
       instructions = "Your browser is not configured to allow location services. Please check your browser's main settings.";
     } else if (os === 'iOS') {
-      instructions = `To enable location for ${browser} on your device:\n\n1. Open the Settings app\n2. Tap 'Privacy & Security'\n3. Tap 'Location Services' (make sure it's ON)\n4. Scroll down and find '${browser}'\n5. Select 'While Using the App'`;
+      instructions = `To enable location for ${browser} on your device:\n\n1. Open the Settings app\n2. Tap 'Privacy & Security'\n3. Tap 'Location Services' (make sure it's ON)\n4. Scroll down and find '${browser}'\n5. Select 'While Using the App'\n6. Refresh HowzEverything`;
     } else if (os === 'Android') {
-      instructions = `To enable location for ${browser} on your device:\n\n1. Open Settings\n2. Tap 'Location'\n3. Tap 'App permissions'\n4. Find and tap on '${browser}'\n5. Select 'Allow only while using the app'`;
+      instructions = `To enable location for ${browser} on your device:\n\n1. Open Settings\n2. Tap 'Location'\n3. Tap 'App permissions'\n4. Find and tap on '${browser}'\n5. Select 'Allow only while using the app'\n6. Refresh HowzEverything`;
     } else {
-      instructions = "To enable location services, please go to your browser's settings for this site and change the Location permission to 'Allow' or 'Ask'.";
+      instructions = "To enable location services, please go to your browser's settings for this site and change the Location permission to 'Allow' or 'Ask'. Then refresh HowzEverything.";
     }
 
     return instructions;
