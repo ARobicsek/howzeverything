@@ -363,8 +363,11 @@ const DiscoveryScreen: React.FC = () => {
               <select
                 value={maxDistance}
                 onChange={e => setMaxDistance(parseInt(e.target.value, 10))}
-                style={{ ...selectStyle, cursor: !hasLocationPermission ? 'pointer' : 'default' }}
-                disabled={!hasLocationPermission}
+                style={{
+                  ...selectStyle,
+                  cursor: !hasLocationPermission ? 'pointer' : 'default',
+                  pointerEvents: !hasLocationPermission ? 'none' : 'auto',
+                }}
               >
                   <option value={-1}>Any Distance</option>
                   <option value={1}>Within 1 mi</option>

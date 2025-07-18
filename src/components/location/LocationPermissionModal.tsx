@@ -15,7 +15,7 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
 
   const getInstructions = () => {
     const { os, browser } = browserInfo;
-    
+   
     let instructions = '';
 
     if (denialType === 'browser') {
@@ -43,7 +43,16 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
           {message}
         </p>
         <div style={{ marginTop: SPACING[6], display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ ...STYLES.primaryButton, minWidth: '120px' }}>
+          <button
+            onClick={onClose}
+            style={{
+              ...STYLES.primaryButton,
+              minWidth: '120px',
+              backgroundColor: COLORS.accent,
+              color: COLORS.white,
+              border: `1px solid ${COLORS.text}`,
+            }}
+          >
             OK
           </button>
         </div>
