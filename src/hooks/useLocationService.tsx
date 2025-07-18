@@ -63,11 +63,16 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!initialCheckComplete) setInitialCheckComplete(true);
   }, [initialCheckComplete]);
 
-  const checkAndFetchLocation = useCallback(async () => {
+  const checkAndFetchLocation = useCallback(() => {
     if (isRequestingRef.current) return;
 
     if (!navigator.geolocation) {
-      setState(prev => ({ ...prev, status: 'denied', denialType: 'browser', lastChecked: Date.now() }));
+      setState(prev => ({
+        ...prev,
+        status: 'denied',
+        denialType: 'browser',
+        lastChecked: Date.now(),
+      }));
       setInitialCheckComplete(true);
       return;
     }
@@ -75,44 +80,109 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isRequestingRef.current = true;
     setState(prev => ({ ...prev, status: 'requesting' }));
 
-    try {
-      if (navigator.permissions) {
-        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation(position);
+      },
+      (error) => {
+        handleError(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }, [setLocation, handleError]);
 
-        if (permissionStatus.state === 'granted') {
-          navigator.geolocation.getCurrentPosition(setLocation, handleError, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
-          });
-        } else if (permissionStatus.state === 'denied') {
-          handleError({
-            code: GeolocationPositionError.PERMISSION_DENIED,
-            message: 'Permission denied by user.',
-            PERMISSION_DENIED: 1,
-            POSITION_UNAVAILABLE: 2,
-            TIMEOUT: 3,
-          });
-        } else { // 'prompt'
-          isRequestingRef.current = false;
-          setState(prev => ({ ...prev, status: 'idle', denialType: null, coordinates: null, error: null, lastChecked: Date.now() }));
-          setInitialCheckComplete(true);
-        }
-      } else {
-        // Fallback for older browsers without Permissions API
-        navigator.geolocation.getCurrentPosition(setLocation, handleError);
+  const fetchCoordinatesIfGranted = useCallback(async () => {
+    if (!navigator.permissions || state.coordinates || isRequestingRef.current) return;
+    try {
+      const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+      if (permissionStatus.state === 'granted' && state.status !== 'requesting') {
+        checkAndFetchLocation();
       }
     } catch (error) {
-      // Fallback if the Permissions API itself throws an error
-      handleError({
-        code: GeolocationPositionError.POSITION_UNAVAILABLE,
-        message: 'Location service unavailable.',
-        PERMISSION_DENIED: 1,
-        POSITION_UNAVAILABLE: 2,
-        TIMEOUT: 3,
-      });
+      // This is a proactive check, so we can ignore errors.
+      // The main checkAndFetchLocation will handle the user flow.
     }
-  }, [setLocation, handleError]);
+  }, [state.coordinates, state.status, checkAndFetchLocation]);
+
+  // Main event handler for focus and visibility changes
+  useEffect(() => {
+    const handleAction = () => {
+      if (!state.coordinates && state.status !== 'requesting') {
+        checkAndFetchLocation();
+      }
+      setTimeout(() => fetchCoordinatesIfGranted(), 500);
+    };
+
+    window.addEventListener('focus', handleAction);
+    document.addEventListener('visibilitychange', handleAction);
+
+    // Initial check on mount
+    if (state.status === 'idle' && !state.coordinates) {
+        checkAndFetchLocation();
+    }
+
+    return () => {
+      window.removeEventListener('focus', handleAction);
+      document.removeEventListener('visibilitychange', handleAction);
+    };
+  }, [state.coordinates, state.status, checkAndFetchLocation, fetchCoordinatesIfGranted]);
+  
+  // Listener specifically for permission state changes
+  useEffect(() => {
+    if (!navigator.permissions) return;
+    let permissionStatus: PermissionStatus | null = null;
+
+    const handlePermissionChange = () => {
+      if (permissionStatus?.state === 'granted' && !state.coordinates) {
+        checkAndFetchLocation();
+      } else if (permissionStatus?.state === 'denied') {
+        setState(prev => ({
+          ...prev,
+          status: 'denied',
+          denialType: 'site',
+          coordinates: null,
+          lastChecked: Date.now(),
+        }));
+        setInitialCheckComplete(true);
+      }
+    };
+
+    navigator.permissions.query({ name: 'geolocation' })
+      .then(status => {
+        permissionStatus = status;
+        permissionStatus.addEventListener('change', handlePermissionChange);
+      })
+      .catch(() => {});
+
+    return () => {
+      if (permissionStatus) {
+        permissionStatus.removeEventListener('change', handlePermissionChange);
+      }
+    };
+  }, [state.coordinates, checkAndFetchLocation]);
+
+  // Safety valve for stuck "requesting" state
+  useEffect(() => {
+    if (state.status === 'requesting') {
+      const timeout = setTimeout(() => {
+        if (isRequestingRef.current) {
+          isRequestingRef.current = false;
+          setState(prev => ({
+            ...prev,
+            status: 'idle',
+            lastChecked: Date.now(),
+          }));
+          setInitialCheckComplete(true);
+        }
+      }, 15000); // 15 seconds
+
+      return () => clearTimeout(timeout);
+    }
+  }, [state.status]);
 
   const requestLocation = useCallback(() => {
     if (state.status === 'denied') {
@@ -121,36 +191,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       checkAndFetchLocation();
     }
   }, [state.status, openPermissionModal, checkAndFetchLocation]);
-
-  useEffect(() => {
-    const recheck = () => {
-      if (document.visibilityState === 'visible') {
-        checkAndFetchLocation();
-      }
-    };
-
-    window.addEventListener('focus', recheck);
-    document.addEventListener('visibilitychange', recheck);
-    
-    let permissionStatus: PermissionStatus | null = null;
-    const handleChange = () => recheck();
-
-    navigator.permissions?.query({ name: 'geolocation' }).then(status => {
-      permissionStatus = status;
-      permissionStatus.addEventListener('change', handleChange);
-    });
-
-    recheck(); // Initial check
-
-    return () => {
-      window.removeEventListener('focus', recheck);
-      document.removeEventListener('visibilitychange', recheck);
-      if (permissionStatus) {
-        permissionStatus.removeEventListener('change', handleChange);
-      }
-    };
-  }, [checkAndFetchLocation]);
-
+  
   const value = {
     ...state,
     browserInfo,
