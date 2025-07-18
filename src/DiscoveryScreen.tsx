@@ -7,40 +7,14 @@ import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY }
 import { useAuth } from './hooks/useAuth';
 import type { DishRating, DishSearchResultWithRestaurant } from './hooks/useDishes';
 import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
+import { useLocationService } from './hooks/useLocationService';
 import { useRestaurants } from './hooks/useRestaurants';
 import { supabase } from './supabaseClient';
 import { enhancedDishSearch } from './utils/dishSearch';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
 
-
 const SEARCH_BAR_WIDTH = '350px';
-
-
-// Re-using the location permission banner from RestaurantScreen
-const LocationPermissionBanner: React.FC<{
-  onRequestPermission: () => void;
-  isRequestingLocationPermission: boolean;
-  isPermissionBlocked: boolean;
-}> = ({ onRequestPermission, isRequestingLocationPermission, isPermissionBlocked }) => {
-  return (
-    <div style={{ backgroundColor: COLORS.primaryLight, border: `1px solid ${COLORS.blue200}`, borderRadius: STYLES.borderRadiusMedium, padding: SPACING[4], marginBottom: SPACING[4] }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: SPACING[3] }}>
-        <div style={{ flexShrink: 0, marginTop: '2px' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-        </div>
-        <div style={{ flex: 1 }}>
-          <p style={{ ...FONTS.body, fontSize: '15px', lineHeight: '1.5', color: COLORS.gray700, margin: 0 }}>
-            To find dishes near you, please{' '}
-            <button onClick={onRequestPermission} disabled={isRequestingLocationPermission} style={{ color: COLORS.primary, fontWeight: '600', background: 'none', border: 'none', padding: 0, cursor: 'pointer', borderBottom: `1px solid ${COLORS.primary}` }}>
-              {isRequestingLocationPermission ? 'requesting...' : (isPermissionBlocked ? 'enable location services' : 'turn on location')}
-            </button>.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
+const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
 
 interface RestaurantGroup {
   restaurant: {
@@ -51,18 +25,23 @@ interface RestaurantGroup {
   dishes: DishSearchResultWithRestaurant[];
 }
 
-
 const DiscoveryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { restaurants: favoriteRestaurants } = useRestaurants({ sortBy: { criterion: 'name', direction: 'asc' }});
-
+  const {
+    coordinates: userLocation,
+    isAvailable: hasLocationPermission,
+    status: locationStatus,
+    requestLocation,
+    openPermissionModal,
+    initialCheckComplete,
+  } = useLocationService();
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxDistance, setMaxDistance] = useState(-1); // in miles, -1 for 'Any'
-
 
   // Data and loading states
   const [allDishes, setAllDishes] = useState<DishSearchResultWithRestaurant[]>([]);
@@ -71,19 +50,9 @@ const DiscoveryScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
 
-
-  // Location states
-  const [userLat, setUserLat] = useState<number | null>(null);
-  const [userLon, setUserLon] = useState<number | null>(null);
-  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
-  const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
-  const [showLocationBanner, setShowLocationBanner] = useState(true);
-
-
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
-
 
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
@@ -91,13 +60,11 @@ const DiscoveryScreen: React.FC = () => {
     setMaxDistance(-1);
   }, []);
 
-
   useEffect(() => {
     if (favoriteRestaurants.length > 0) {
       setFavoriteRestaurantIds(new Set(favoriteRestaurants.map(r => r.id)));
     }
   }, [favoriteRestaurants]);
-
 
   const fetchAllDishes = useCallback(async () => {
     setIsLoading(true);
@@ -114,41 +81,28 @@ const DiscoveryScreen: React.FC = () => {
     }
   }, []);
 
-
   useEffect(() => {
     fetchAllDishes();
   }, [fetchAllDishes]);
 
-
-  const requestLocationPermission = useCallback(async () => {
-    if (!navigator.geolocation || isRequestingLocation) return;
-    setIsRequestingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLat(latitude);
-        setUserLon(longitude);
-        setShowLocationBanner(false);
-        setIsLocationPermissionBlocked(false);
-        setIsRequestingLocation(false);
-      },
-      (error) => {
-        setIsRequestingLocation(false);
-        if (error.code === error.PERMISSION_DENIED) {
-          setIsLocationPermissionBlocked(true);
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  }, [isRequestingLocation]);
-
-
   useEffect(() => {
-    if (!userLat && !userLon) {
-        requestLocationPermission();
-    }
-  }, [requestLocationPermission, userLat, userLon]);
+    // This effect handles showing the permission modal automatically ONCE per session.
+    // It waits until the initial check is complete to avoid a race condition.
+    if (!initialCheckComplete) return;
 
+    if (!user || locationStatus === 'granted' || locationStatus === 'requesting') return;
+
+    const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);
+    if (hasInteracted) return;
+
+    if (locationStatus === 'denied') {
+      openPermissionModal();
+      sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
+    } else if (locationStatus === 'idle') {
+      requestLocation();
+      sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
+    }
+  }, [locationStatus, user, openPermissionModal, requestLocation, initialCheckComplete]);
 
   const processAndFilterDishes = useCallback(() => {
     if (searchTerm.trim().length < 2) {
@@ -156,30 +110,26 @@ const DiscoveryScreen: React.FC = () => {
       return;
     }
 
-
     let results = enhancedDishSearch(allDishes, searchTerm) as DishSearchResultWithRestaurant[];
-
 
     results = results.filter(d => d.average_rating >= minRating);
 
-
-    if (maxDistance > 0 && userLat && userLon) {
+    if (maxDistance > 0 && userLocation) {
       results = results.filter(dish => {
         if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
-          const distance = calculateDistanceInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
+          const distance = calculateDistanceInMiles(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);
           return distance <= maxDistance;
         }
         return false;
       });
     }
 
-
     const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {
       const restaurantId = dish.restaurant.id;
       if (!acc[restaurantId]) {
         let distance: number | undefined;
-        if (userLat && userLon && dish.restaurant.latitude && dish.restaurant.longitude) {
-            distance = calculateDistanceInMiles(userLat, userLon, dish.restaurant.latitude, dish.restaurant.longitude);
+        if (userLocation && dish.restaurant.latitude && dish.restaurant.longitude) {
+            distance = calculateDistanceInMiles(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);
         }
         acc[restaurantId] = {
           restaurant: { ...dish.restaurant, distance },
@@ -190,20 +140,17 @@ const DiscoveryScreen: React.FC = () => {
       return acc;
     }, {});
 
-
     const sortedGroups = Object.values(grouped).sort((a, b) => {
         // Default to sorting by distance if location is available
-        if (userLat && userLon && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {
+        if (userLocation && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {
             return a.restaurant.distance - b.restaurant.distance;
         }
         // Fallback to name sort if distance is unavailable for either
         return a.restaurant.name.localeCompare(b.restaurant.name);
     });
 
-
     setFilteredAndGrouped(sortedGroups);
-  }, [allDishes, searchTerm, minRating, maxDistance, userLat, userLon]);
-
+  }, [allDishes, searchTerm, minRating, maxDistance, userLocation]);
 
   useEffect(() => {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -213,7 +160,6 @@ const DiscoveryScreen: React.FC = () => {
     setSearchDebounceTimer(timer);
     return () => clearTimeout(timer);
   }, [processAndFilterDishes]);
-
 
   const addRestaurantToFavorites = async (restaurantId: string) => {
     if (!user) return;
@@ -226,7 +172,6 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
 
-
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     if (!user) {
       alert("Please log in to rate dishes.");
@@ -235,7 +180,6 @@ const DiscoveryScreen: React.FC = () => {
     const dishToUpdate = allDishes.find(d => d.id === dishId);
     if (!dishToUpdate) return;
 
-
     try {
       const isFavorite = favoriteRestaurantIds.has(dishToUpdate.restaurant.id);
       if (!isFavorite) {
@@ -243,18 +187,15 @@ const DiscoveryScreen: React.FC = () => {
         setFavoriteRestaurantIds(prev => new Set(prev).add(dishToUpdate.restaurant.id));
       }
 
-
       const success = await updateRatingForDish(dishId, user.id, newRating);
       if (!success) {
         throw new Error("Failed to save rating to the database.");
       }
 
-
       setAllDishes(prevDishes => prevDishes.map(dish => {
         if (dish.id === dishId) {
           const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
           let newRatings: DishRating[] = [...dish.ratings];
-
 
           if (existingRatingIndex > -1) {
             if (newRating === 0) {
@@ -269,7 +210,6 @@ const DiscoveryScreen: React.FC = () => {
             });
           }
 
-
           const total = newRatings.length;
           const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
           return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
@@ -282,7 +222,6 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
 
-
   const handleShareDish = (dish: DishSearchResultWithRestaurant) => {
     const shareUrl = `${window.location.origin}?shareType=dish&shareId=${dish.id}&restaurantId=${dish.restaurant_id}`;
     if (navigator.share) {
@@ -291,7 +230,6 @@ const DiscoveryScreen: React.FC = () => {
       navigator.clipboard.writeText(shareUrl).then(() => alert('Share link copied to clipboard!'));
     }
   };
-
 
   const selectStyle: React.CSSProperties = {
     border: `1px solid ${COLORS.gray300}`,
@@ -309,7 +247,6 @@ const DiscoveryScreen: React.FC = () => {
     paddingRight: '2.5rem',
     width: '100%'
   };
-
 
   const renderContent = () => {
     if (isLoading && allDishes.length === 0) {
@@ -358,9 +295,6 @@ const DiscoveryScreen: React.FC = () => {
       </div>
     );
   };
-
-
-
 
   return (
     <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
@@ -414,13 +348,24 @@ const DiscoveryScreen: React.FC = () => {
             )}
           </div>
           <div style={{display: 'flex', gap: SPACING[3], marginTop: SPACING[4], width: '100%', maxWidth: SEARCH_BAR_WIDTH}}>
-            <select value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={selectStyle}>
-              <option value={0}>Any Rating</option>
-              {[...Array(8)].map((_, i) => <option key={i} value={i * 0.5 + 1}>{(i * 0.5 + 1).toFixed(1)}+ ★</option>)}
-              <option value={5}>5.0 ★</option>
-            </select>
-            {userLat && userLon && (
-              <select value={maxDistance} onChange={e => setMaxDistance(parseInt(e.target.value, 10))} style={selectStyle}>
+            <div style={{ flex: 1 }}>
+              <select value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={selectStyle}>
+                <option value={0}>Any Rating</option>
+                {[...Array(8)].map((_, i) => <option key={i} value={i * 0.5 + 1}>{(i * 0.5 + 1).toFixed(1)}+ ★</option>)}
+                <option value={5}>5.0 ★</option>
+              </select>
+            </div>
+            <div
+                style={{ flex: 1, opacity: !hasLocationPermission ? 0.6 : 1, cursor: !hasLocationPermission ? 'pointer' : 'default', position: 'relative' }}
+                onClick={!hasLocationPermission ? requestLocation : undefined}
+                title={!hasLocationPermission ? 'Enable location services to filter by distance' : ''}
+            >
+              <select
+                value={maxDistance}
+                onChange={e => setMaxDistance(parseInt(e.target.value, 10))}
+                style={{ ...selectStyle, cursor: !hasLocationPermission ? 'pointer' : 'default' }}
+                disabled={!hasLocationPermission}
+              >
                   <option value={-1}>Any Distance</option>
                   <option value={1}>Within 1 mi</option>
                   <option value={2}>Within 2 mi</option>
@@ -428,13 +373,12 @@ const DiscoveryScreen: React.FC = () => {
                   <option value={10}>Within 10 mi</option>
                   <option value={25}>Within 25 mi</option>
               </select>
-            )}
+            </div>
           </div>
         </div>
       </div>
       {/* BODY SECTION */}
       <main className="w-full mx-auto p-4" style={{ maxWidth: RESTAURANT_CARD_MAX_WIDTH }}>
-        {showLocationBanner && <LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocation} isPermissionBlocked={isLocationPermissionBlocked} />}
         {error && <p style={{ color: COLORS.danger }}>{error}</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
           {renderContent()}
@@ -443,6 +387,5 @@ const DiscoveryScreen: React.FC = () => {
     </div>
   );
 };
-
 
 export default DiscoveryScreen;
