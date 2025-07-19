@@ -1,32 +1,51 @@
 // src/hooks/useShare.tsx
 import { useCallback } from 'react';
 
+
 interface ShareOptions {
   title: string;
   text: string;
   url: string;
 }
 
-interface ShareItem {
+
+export interface ShareItem {
   type: 'restaurant' | 'dish';
   id: string;
   name: string;
   restaurantName?: string; // For dishes, to include restaurant context
+  restaurantId?: string; // For dishes, to build a robust URL
 }
+
 
 export const useShare = () => {
   const generateShareUrl = useCallback((item: ShareItem): string => {
     const baseUrl = window.location.origin;
+    const url = new URL(baseUrl);
+
+
+    // Use a new, more robust format with query parameters for all shares.
     if (item.type === 'restaurant') {
-      return `${baseUrl}/shared/restaurant/${item.id}`;
-    } else {
-      return `${baseUrl}/shared/dish/${item.id}`;
+      url.searchParams.set('shareType', 'restaurant');
+      url.searchParams.set('shareId', item.id);
+      return url.toString();
+    } else { // 'dish'
+      if (!item.restaurantId) {
+        console.error("Cannot generate share link for dish without restaurantId. This will likely fail on a cold start.");
+        // Fallback to old, fragile path-based URL if restaurantId is missing
+        return `${baseUrl}/shared/dish/${item.id}`;
+      }
+      url.searchParams.set('shareType', 'dish');
+      url.searchParams.set('shareId', item.id);
+      url.searchParams.set('restaurantId', item.restaurantId);
+      return url.toString();
     }
   }, []);
 
+
   const generateShareContent = useCallback((item: ShareItem): ShareOptions => {
     const shareUrl = generateShareUrl(item);
-    
+   
     if (item.type === 'restaurant') {
       return {
         title: `Check out ${item.name} on Howzeverything!`,
@@ -42,8 +61,10 @@ export const useShare = () => {
     }
   }, [generateShareUrl]);
 
+
   const shareItem = useCallback(async (item: ShareItem): Promise<boolean> => {
     const shareContent = generateShareContent(item);
+
 
     // Check if Web Share API is available
     if (navigator.share) {
@@ -57,23 +78,25 @@ export const useShare = () => {
       }
     }
 
+
     // Fallback: Copy to clipboard
     try {
       const textToCopy = `${shareContent.text}\n\n${shareContent.url}`;
       await navigator.clipboard.writeText(textToCopy);
-      
+     
       // Show a simple notification
       alert('Link copied to clipboard! You can now paste it in a text or email.');
       return true;
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
-      
+     
       // Final fallback: Show the link in an alert
       const textToShow = `${shareContent.text}\n\n${shareContent.url}`;
       alert(`Copy this link to share:\n\n${textToShow}`);
       return false;
     }
   }, [generateShareContent]);
+
 
   return {
     shareItem,

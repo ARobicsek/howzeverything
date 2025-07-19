@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { COLORS, FONTS, LAYOUT_CONFIG } from './constants';
 import { useAuth } from './hooks/useAuth';
-import { useRestaurants } from './hooks/useRestaurants';
 // Screens
 import AboutScreen from './AboutScreen';
 import AdminScreen from './AdminScreen';
@@ -26,13 +25,15 @@ import { LocationProvider } from './hooks/useLocationService';
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler';
 
 
+
+
+
+
+
+
 // This component will handle the shared content logic within the router context
 const SharedContentHandler: React.FC = () => {
     const { user } = useAuth();
-    const { addToFavorites } = useRestaurants({
-      sortBy: { criterion: 'name', direction: 'asc' },
-      initialFetch: false
-    });
     const navigate = useNavigate();
     const [hasProcessed, setHasProcessed] = useState(false);
     useEffect(() => {
@@ -43,15 +44,14 @@ const SharedContentHandler: React.FC = () => {
                 console.log('Processing shared content for logged-in user:', sharedContent);
                 const success = await handleSharedContent(
                     sharedContent,
-                    addToFavorites,
                     (restaurantId: string, dishId?: string) => {
                         let path = `/restaurants/${restaurantId}`;
                         if (dishId) {
                             path += `?dish=${dishId}`;
                         }
-                        navigate(path);
+                        navigate(path, { replace: true });
                     },
-                    (screen: string) => navigate(`/${screen}`)
+                    (screen: string) => navigate(`/${screen}`, { replace: true })
                 );
                 if (success) {
                     clearSharedUrlParams();
@@ -60,7 +60,7 @@ const SharedContentHandler: React.FC = () => {
             }
         };
         process();
-    }, [user, addToFavorites, navigate, hasProcessed]);
+    }, [user, navigate, hasProcessed]);
     return null;
 };
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -77,8 +77,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 
 
+
+
+
+
+
+
+
+
+
 const getScreenConfig = (pathname: string) => {
-    // Add ratings to the full-bleed screens
+    // Add ratings to the a full-bleed screens
     if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
         const screenKey = pathname === '/' ? 'home' : pathname.split('/')[1] as keyof typeof LAYOUT_CONFIG.SCREEN_MAX_WIDTHS;
         return { isFullBleed: true, hasStickyHeader: false, maxWidth: LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] };
@@ -86,6 +95,15 @@ const getScreenConfig = (pathname: string) => {
     const pathSegments = pathname.split('/').filter(Boolean);
     let screenKey: string;
     let hasStickyHeader = false;
+
+
+
+
+
+
+
+
+
 
 
 
@@ -100,9 +118,36 @@ const getScreenConfig = (pathname: string) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -134,6 +179,12 @@ const AppRoutes: React.FC = () => {
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
     const screenConfig = getScreenConfig(location.pathname);
+
+
+
+
+
+
 
 
     return (

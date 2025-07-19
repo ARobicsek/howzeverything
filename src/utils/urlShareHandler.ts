@@ -4,6 +4,10 @@ import { supabase } from '../supabaseClient';
 
 
 
+
+
+
+
 export interface SharedContent {
   type: 'restaurant' | 'dish';
   id: string;
@@ -13,13 +17,21 @@ export interface SharedContent {
 
 
 
+
+
+
+
 export const parseSharedUrl = (): SharedContent | null => {
   const urlParams = new URLSearchParams(window.location.search);
  
-  // Primary method: Check for shareType and shareId parameters
+  // Primary method: Check for new, robust shareType and shareId parameters
   const shareType = urlParams.get('shareType');
   const shareId = urlParams.get('shareId');
   const restaurantId = urlParams.get('restaurantId');
+
+
+
+
 
 
 
@@ -32,6 +44,10 @@ export const parseSharedUrl = (): SharedContent | null => {
       restaurantId: restaurantId || undefined
     };
   }
+
+
+
+
 
 
 
@@ -51,6 +67,10 @@ export const parseSharedUrl = (): SharedContent | null => {
 
 
 
+
+
+
+
   // Fallback for very old format ('?shared=...' and '?id=...')
   const legacySharedType = urlParams.get('shared');
   const legacySharedId = urlParams.get('id');
@@ -66,15 +86,22 @@ export const parseSharedUrl = (): SharedContent | null => {
 
 
 
+
+
+
+
   return null;
 };
 
 
 
 
+
+
+
+
 export const handleSharedContent = async (
   sharedContent: SharedContent,
-  addToFavorites: (restaurant: any) => Promise<void>,
   navigateToMenu: (restaurantId: string, dishId?: string) => void,
   navigateToScreen: (screen: string) => void
 ): Promise<boolean> => {
@@ -86,6 +113,17 @@ export const handleSharedContent = async (
     }
 
 
+    const addRestaurantToFavorites = async (restaurantId: string) => {
+      const { error } = await supabase
+        .from('user_favorite_restaurants')
+        .insert({ user_id: user.id, restaurant_id: restaurantId });
+      // 23505 is unique_violation, ok to ignore
+      if (error && error.code !== '23505') {
+        console.error('[Share] Error adding restaurant to favorites:', error);
+      } else if (!error) {
+        console.log('[Share] Restaurant added to favorites from shared link.');
+      }
+    };
 
 
     if (sharedContent.type === 'restaurant') {
@@ -96,15 +134,11 @@ export const handleSharedContent = async (
         .single();
 
 
-
-
       if (restaurantError || !restaurant) {
         console.error('[Share] Restaurant not found:', restaurantError);
         alert("Sorry, we couldn't find the shared restaurant.");
         return false;
       }
-
-
 
 
       const { data: existingFavorite } = await supabase
@@ -115,14 +149,9 @@ export const handleSharedContent = async (
         .single();
 
 
-
-
       if (!existingFavorite) {
-        await addToFavorites(restaurant);
-        console.log('[Share] Restaurant added to favorites from shared link.');
+        await addRestaurantToFavorites(restaurant.id);
       }
-
-
 
 
       navigateToScreen('restaurants');
@@ -131,11 +160,7 @@ export const handleSharedContent = async (
       }, 100);
 
 
-
-
       return true;
-
-
 
 
     } else if (sharedContent.type === 'dish') {
@@ -143,18 +168,14 @@ export const handleSharedContent = async (
       let restaurantId = sharedContent.restaurantId;
 
 
-
-
-      // If restaurantId isn't in the URL, we must fetch the dish to find it.
+      // This lookup is now a fallback, only triggered if the robust URL isn't used.
       if (!restaurantId) {
-        console.log('[Share] Restaurant ID not in URL, fetching dish from DB...');
+        console.warn('[Share] Restaurant ID not in URL, performing fragile DB lookup...');
         const { data: dishData, error: dishError } = await supabase
           .from('restaurant_dishes')
           .select('restaurant_id')
           .eq('id', sharedContent.id)
           .single();
-
-
 
 
         if (dishError || !dishData) {
@@ -172,8 +193,6 @@ export const handleSharedContent = async (
       }
 
 
-
-
       // Now we have the restaurantId, fetch the restaurant
       const { data: restaurant, error: restaurantError } = await supabase
         .from('restaurants')
@@ -182,15 +201,11 @@ export const handleSharedContent = async (
         .single();
 
 
-
-
       if (restaurantError || !restaurant) {
         console.error('[Share] Could not find the restaurant for the shared dish:', restaurantError);
         alert("Sorry, we couldn't find the restaurant for the shared dish.");
         return false;
       }
-
-
 
 
       // Check if the restaurant is already a favorite
@@ -202,23 +217,16 @@ export const handleSharedContent = async (
         .single();
 
 
-
-
       if (!existingFavorite) {
-        await addToFavorites(restaurant);
-        console.log('[Share] Added restaurant to favorites from shared dish link.');
+        await addRestaurantToFavorites(restaurant.id);
       }
      
       // Navigate to the restaurant's menu, and pass the dishId to be expanded
       navigateToMenu(restaurant.id, sharedContent.id);
 
 
-
-
       return true;
     }
-
-
 
 
     return false;
@@ -229,14 +237,10 @@ export const handleSharedContent = async (
 };
 
 
-
-
 export const clearSharedUrlParams = () => {
   const url = new URL(window.location.href);
   const paramsToDelete = ['shareType', 'shareId', 'restaurantId', 'shared', 'id'];
   let hasChanged = false;
-
-
 
 
   paramsToDelete.forEach(param => {
@@ -247,15 +251,11 @@ export const clearSharedUrlParams = () => {
   });
 
 
-
-
   if (url.pathname.includes('/shared/')) {
     const newPath = url.pathname.split('/shared/')[0] || '/';
     url.pathname = newPath;
     hasChanged = true;
   }
-
-
 
 
   if (hasChanged) {
