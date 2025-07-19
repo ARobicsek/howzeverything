@@ -111,17 +111,18 @@ export const useAuth = (): UseAuthReturn => {
   // Initialize auth with better race condition protection
   useEffect(() => {  
     let isMounted = true  
-    
-    // Prevent multiple simultaneous initializations
-    if (initializingRef.current) {
-      console.log('🔐 useAuth: Already initializing, skipping...')
-      return
-    }
      
     console.log('🔐 useAuth: Initializing...')
-    initializingRef.current = true
 
     const initializeAuth = async () => {  
+      // Less aggressive check - only skip if actively initializing
+      if (initializingRef.current) {
+        console.log('🔐 useAuth: Already initializing, waiting...')
+        return
+      }
+      
+      initializingRef.current = true
+      
       try {  
         console.log('🔐 useAuth: Getting session...')  
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()  
