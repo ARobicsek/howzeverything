@@ -7,6 +7,7 @@ import {
   type DatabaseUser
 } from '../supabaseClient'
 
+
 interface AuthState {  
   user: User | null  
   profile: DatabaseUser | null  
@@ -14,6 +15,7 @@ interface AuthState {
   loading: boolean  
   error: string | null  
 }
+
 
 interface AuthActions {  
   signIn: (email: string, password: string) => Promise<boolean>  
@@ -25,7 +27,9 @@ interface AuthActions {
   refreshProfile: () => Promise<void>  
 }
 
+
 export type UseAuthReturn = AuthState & AuthActions
+
 
 export const useAuth = (): UseAuthReturn => {  
   const [user, setUser] = useState<User | null>(null)  
@@ -34,10 +38,8 @@ export const useAuth = (): UseAuthReturn => {
   const [loading, setLoading] = useState(true)  
   const [error, setError] = useState<string | null>(null)  
   const loadingRef = useRef<string | null>(null)
-  // @ts-ignore - Used via .current access
-  const initializingRef = useRef(false)
-  // @ts-ignore - Used via .current access  
   const profileLoadedRef = useRef<string | null>(null)
+
 
   // Load user profile from database with better race condition protection
   const loadUserProfile = useCallback(async (userId: string): Promise<boolean> => {  
@@ -46,7 +48,7 @@ export const useAuth = (): UseAuthReturn => {
       console.log('🔐 loadUserProfile: Already loading for this user')  
       return false  
     }
-    
+   
     // Check if we already loaded this user's profile
     if (profileLoadedRef.current === userId && profile) {
       console.log('🔐 loadUserProfile: Profile already loaded for this user')
@@ -108,21 +110,19 @@ export const useAuth = (): UseAuthReturn => {
     }  
   }, [profile])
 
+
   // Initialize auth with better race condition protection
   useEffect(() => {  
     let isMounted = true  
      
     console.log('🔐 useAuth: Initializing...')
 
+
     const initializeAuth = async () => {  
-      // Less aggressive check - only skip if actively initializing
-      if (initializingRef.current) {
-        console.log('🔐 useAuth: Already initializing, waiting...')
-        return
-      }
-      
-      initializingRef.current = true
-      
+      // The initialization guard was removed. It caused a deadlock with React 18's Strict Mode
+      // by preventing the second `useEffect` call from running after the first one was canceled.
+      // supabase.auth.getSession() is safe to call multiple times.
+     
       try {  
         console.log('🔐 useAuth: Getting session...')  
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()  
@@ -135,6 +135,7 @@ export const useAuth = (): UseAuthReturn => {
           setLoading(false)  
           return  
         }
+
 
         console.log('🔐 Initial session:', session?.user?.email || 'No user')  
          
@@ -163,12 +164,12 @@ export const useAuth = (): UseAuthReturn => {
           setError(err instanceof Error ? err.message : 'Failed to initialize auth')  
           setLoading(false)  
         }  
-      } finally {
-        initializingRef.current = false
       }
     }
 
+
     initializeAuth()
+
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {  
       if (!isMounted) return  
@@ -181,7 +182,7 @@ export const useAuth = (): UseAuthReturn => {
         setError(null)  
          
         // Only load profile on specific events and if not already loaded
-        if ((_event === 'SIGNED_IN' || _event === 'USER_UPDATED') && 
+        if ((_event === 'SIGNED_IN' || _event === 'USER_UPDATED') &&
             profileLoadedRef.current !== session.user.id) {  
           setTimeout(() => {  
             if (isMounted) {  
@@ -199,27 +200,32 @@ export const useAuth = (): UseAuthReturn => {
       }  
     })
 
+
     return () => {  
       isMounted = false  
       subscription.unsubscribe()  
     }  
   }, [loadUserProfile])
 
+
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {  
     try {  
       setLoading(true)  
       setError(null)
+
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({  
         email: email.trim().toLowerCase(),  
         password  
       })
 
+
       if (signInError) {  
         setError(signInError.message)  
         setLoading(false)  
         return false  
       }
+
 
       setLoading(false)  
       return !!data.user  
@@ -230,10 +236,12 @@ export const useAuth = (): UseAuthReturn => {
     }  
   }, [])
 
+
   const signUp = useCallback(async (email: string, password: string, fullName?: string): Promise<boolean> => {  
     try {  
       setLoading(true)  
       setError(null)
+
 
       const { data, error: signUpError } = await supabase.auth.signUp({  
         email: email.trim().toLowerCase(),  
@@ -245,15 +253,18 @@ export const useAuth = (): UseAuthReturn => {
         }  
       })
 
+
       if (signUpError) {  
         setError(signUpError.message)  
         setLoading(false)  
         return false  
       }
 
+
       if (data.user && !data.user.email_confirmed_at) {  
         setError('Please check your email and click the confirmation link to complete registration.')  
       }
+
 
       setLoading(false)  
       return !!data.user  
@@ -263,6 +274,7 @@ export const useAuth = (): UseAuthReturn => {
       return false  
     }  
   }, [])
+
 
   const signOut = useCallback(async (): Promise<void> => {  
     try {  
@@ -274,12 +286,14 @@ export const useAuth = (): UseAuthReturn => {
     }  
   }, [])
 
+
   const createProfile = useCallback(async (profileData: Partial<DatabaseUser>): Promise<boolean> => {  
     try {  
       if (!user) {  
         setError('No authenticated user found')  
         return false  
       }
+
 
       setError(null)  
        
@@ -288,7 +302,7 @@ export const useAuth = (): UseAuthReturn => {
         console.log('🔐 createProfile: Profile already exists in memory')
         return true
       }
-      
+     
       const profileExists = await loadUserProfile(user.id)  
       if (profileExists) {  
         console.log('🔐 createProfile: Profile already exists in database')  
@@ -311,6 +325,7 @@ export const useAuth = (): UseAuthReturn => {
         .select()  
         .single()
 
+
       if (createError) {  
         if (createError.code === '23505' || createError.code === '406') {  
           console.log('🔐 createProfile: Profile already exists (conflict) - reloading')  
@@ -323,6 +338,7 @@ export const useAuth = (): UseAuthReturn => {
         return false  
       }
 
+
       console.log('🔐 createProfile: Profile created successfully')  
       setProfile(data)
       profileLoadedRef.current = user.id
@@ -334,6 +350,7 @@ export const useAuth = (): UseAuthReturn => {
     }  
   }, [user, loadUserProfile, profile])
 
+
   const updateProfile = useCallback(async (updates: Partial<DatabaseUser>): Promise<boolean> => {  
     try {  
       if (!user || !profile) {  
@@ -341,7 +358,9 @@ export const useAuth = (): UseAuthReturn => {
         return false  
       }
 
+
       setError(null)
+
 
       const { data, error: updateError }: PostgrestSingleResponse<DatabaseUser> = await supabase  
         .from('users')  
@@ -353,10 +372,12 @@ export const useAuth = (): UseAuthReturn => {
         .select()  
         .single()
 
+
       if (updateError) {  
         setError(`Failed to update profile: ${updateError.message}`)  
         return false  
       }
+
 
       setProfile(data)  
       return true  
@@ -366,6 +387,7 @@ export const useAuth = (): UseAuthReturn => {
     }  
   }, [user, profile])
 
+
   const refreshProfile = useCallback(async (): Promise<void> => {  
     if (user) {
       // Clear the loaded flag to force a fresh load
@@ -374,9 +396,11 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [user, loadUserProfile])
 
+
   const clearError = useCallback(() => {  
     setError(null)  
   }, [])
+
 
   return {  
     user,  
