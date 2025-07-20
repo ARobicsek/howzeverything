@@ -2,6 +2,7 @@
 import React from 'react';
 import { COLORS, FONTS, SPACING, TYPOGRAPHY } from '../constants';
 
+
 // We define the keyframes for our animation here. By injecting this <style>
 // tag, the `spin` animation becomes available for the component to use.
 const spinAnimation = `
@@ -11,9 +12,11 @@ const spinAnimation = `
   }
 `;
 
+
 interface LoadingScreenProps {
   message?: string;
 }
+
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
   return (
@@ -21,13 +24,15 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
     <>
       <style>{spinAnimation}</style>
       <div style={{
-        minHeight: '100vh',
+        // MODIFIED: Replaced 100vh with generous vertical padding.
+        // This works for both full-screen loading and in-content loading
+        // without being pushed off the screen by other elements like a header.
+        padding: '8rem 1rem',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: COLORS.background,
-        padding: SPACING[4]
       }}>
         <div style={{
           display: 'flex',
@@ -44,7 +49,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
             borderRadius: '50%',
             animation: 'spin 0.8s linear infinite'
           }}></div>
-        
+       
           {/* Loading text */}
           <p style={{
             ...FONTS.body,
@@ -59,5 +64,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
     </>
   );
 };
+
 
 export default LoadingScreen;

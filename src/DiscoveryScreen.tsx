@@ -14,8 +14,12 @@ import { enhancedDishSearch } from './utils/dishSearch';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
 
 
+
+
 const SEARCH_BAR_WIDTH = '350px';  
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
+
+
 
 
 interface RestaurantGroup {  
@@ -26,6 +30,8 @@ interface RestaurantGroup {
   };  
   dishes: DishSearchResultWithRestaurant[];  
 }
+
+
 
 
 const DiscoveryScreen: React.FC = () => {  
@@ -42,23 +48,30 @@ const DiscoveryScreen: React.FC = () => {
   } = useLocationService();
 
 
+
+
   // Filter states  
   const [searchTerm, setSearchTerm] = useState('');  
   const [minRating, setMinRating] = useState(0);  
   const [maxDistance, setMaxDistance] = useState(-1); // in miles, -1 for 'Any'
 
 
+
+
   // Data and loading states  
-  const [allDishes, setAllDishes] = useState<DishSearchResultWithRestaurant[]>([]);  
   const [filteredAndGrouped, setFilteredAndGrouped] = useState<RestaurantGroup[]>([]);  
-  const [isLoading, setIsLoading] = useState(true);  
+  const [isLoading, setIsLoading] = useState(false); // MODIFIED: Now used for every search
   const [error, setError] = useState<string | null>(null);  
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
+
+
 
 
   // UI States  
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);  
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+
 
 
   const handleResetFilters = useCallback(() => {  
@@ -68,6 +81,8 @@ const DiscoveryScreen: React.FC = () => {
   }, []);
 
 
+
+
   useEffect(() => {  
     if (favoriteRestaurants.length > 0) {  
       setFavoriteRestaurantIds(new Set(favoriteRestaurants.map(r => r.id)));  
@@ -75,38 +90,26 @@ const DiscoveryScreen: React.FC = () => {
   }, [favoriteRestaurants]);
 
 
-  const fetchAllDishes = useCallback(async () => {  
-    setIsLoading(true);  
-    setError(null);  
-    try {  
-      // Pre-fetching all dishes. We will filter on the client-side.  
-      const dishes = await searchAllDishes();  
-      setAllDishes(dishes);  
-    } catch (e: any) {  
-      setError('Could not load dishes. Please try again later.');  
-      console.error(e);  
-    } finally {  
-      setIsLoading(false);  
-    }  
-  }, []);
 
 
-  useEffect(() => {  
-    fetchAllDishes();  
-  }, [fetchAllDishes]);
-
-
+  // REMOVED: One-time fetchAllDishes is replaced by dynamic runSearch.
   useEffect(() => {  
     // This effect handles showing the permission modal automatically ONCE per session.  
     // It waits until the initial check is complete to avoid a race condition.  
     if (!initialCheckComplete) return;
 
 
+
+
     if (!user || locationStatus === 'granted' || locationStatus === 'requesting') return;
+
+
 
 
     const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);  
     if (hasInteracted) return;
+
+
 
 
     if (locationStatus === 'denied') {  
@@ -119,69 +122,94 @@ const DiscoveryScreen: React.FC = () => {
   }, [locationStatus, user, openPermissionModal, requestLocation, initialCheckComplete]);
 
 
-  const processAndFilterDishes = useCallback(() => {  
-    if (searchTerm.trim().length < 2) {  
-      setFilteredAndGrouped([]);  
-      return;  
+
+
+  // NEW: Central search logic that queries the server on filter/search term changes.
+  const runSearch = useCallback(async () => {
+    const hasSearchTerm = searchTerm.trim().length >= 2;
+    const hasActiveFilters = minRating > 0 || maxDistance > -1;
+
+    if (!hasSearchTerm && !hasActiveFilters) {
+        setFilteredAndGrouped([]);
+        setIsLoading(false); // Not loading if there's no search to perform
+        return;
     }
 
+    setIsLoading(true);
+    setError(null);
 
-    let results = enhancedDishSearch(allDishes, searchTerm) as DishSearchResultWithRestaurant[];
+    try {
+        // Step 1: Fetch from server with filters that work server-side (text, rating).
+        let results = await searchAllDishes(searchTerm.trim(), minRating);
 
+        // Step 2: If a search term was used, refine server results with more advanced client-side search.
+        if (hasSearchTerm) {
+            results = enhancedDishSearch(results, searchTerm) as DishSearchResultWithRestaurant[];
+        }
 
-    results = results.filter(d => d.average_rating >= minRating);
+        // Step 3: Apply client-side filters (distance).
+        if (maxDistance > -1 && userLocation) {
+            results = results.filter(dish => {
+                if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
+                    const distance = calculateDistanceInMiles(
+                        userLocation.latitude,
+                        userLocation.longitude,
+                        dish.restaurant.latitude,
+                        dish.restaurant.longitude
+                    );
+                    return distance <= maxDistance;
+                }
+                return false;
+            });
+        }
 
+        // Step 4: Group and sort the final results.
+        const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {
+            const restaurantId = dish.restaurant.id;
+            if (!acc[restaurantId]) {
+                let distance: number | undefined;
+                if (userLocation && dish.restaurant.latitude && dish.restaurant.longitude) {
+                    distance = calculateDistanceInMiles(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);
+                }
+                acc[restaurantId] = {
+                    restaurant: { ...dish.restaurant, distance },
+                    dishes: [],
+                };
+            }
+            acc[restaurantId].dishes.push(dish);
+            return acc;
+        }, {});
 
-    if (maxDistance > 0 && userLocation) {  
-      results = results.filter(dish => {  
-        if (dish.restaurant?.latitude && dish.restaurant?.longitude) {  
-          const distance = calculateDistanceInMiles(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);  
-          return distance <= maxDistance;  
-        }  
-        return false;  
-      });  
+        const sortedGroups = Object.values(grouped).sort((a, b) => {
+            if (userLocation && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {
+                return a.restaurant.distance - b.restaurant.distance;
+            }
+            return a.restaurant.name.localeCompare(b.restaurant.name);
+        });
+
+        setFilteredAndGrouped(sortedGroups);
+    } catch (e: any) {
+        setError('Could not load dishes. Please try again later.');
+        console.error(e);
+    } finally {
+        setIsLoading(false);
     }
+  }, [searchTerm, minRating, maxDistance, userLocation]);
 
 
-    const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {  
-      const restaurantId = dish.restaurant.id;  
-      if (!acc[restaurantId]) {  
-        let distance: number | undefined;  
-        if (userLocation && dish.restaurant.latitude && dish.restaurant.longitude) {  
-            distance = calculateDistanceInMiles(userLocation.latitude, userLocation.longitude, dish.restaurant.latitude, dish.restaurant.longitude);  
-        }  
-        acc[restaurantId] = {  
-          restaurant: { ...dish.restaurant, distance },  
-          dishes: [],  
-        };  
-      }  
-      acc[restaurantId].dishes.push(dish);  
-      return acc;  
-    }, {});
 
 
-    const sortedGroups = Object.values(grouped).sort((a, b) => {  
-        // Default to sorting by distance if location is available  
-        if (userLocation && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {  
-            return a.restaurant.distance - b.restaurant.distance;  
-        }  
-        // Fallback to name sort if distance is unavailable for either  
-        return a.restaurant.name.localeCompare(b.restaurant.name);  
-    });
+  // MODIFIED: This debounced effect now calls runSearch, triggering API calls on filter changes.
+  useEffect(() => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    const timer = setTimeout(() => {
+        runSearch();
+    }, 300);
+    setSearchDebounceTimer(timer);
+    return () => clearTimeout(timer);
+  }, [runSearch]);
 
 
-    setFilteredAndGrouped(sortedGroups);  
-  }, [allDishes, searchTerm, minRating, maxDistance, userLocation]);
-
-
-  useEffect(() => {  
-    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);  
-    const timer = setTimeout(() => {  
-        processAndFilterDishes();  
-    }, 300);  
-    setSearchDebounceTimer(timer);  
-    return () => clearTimeout(timer);  
-  }, [processAndFilterDishes]);
 
 
   const addRestaurantToFavorites = async (restaurantId: string) => {  
@@ -196,13 +224,18 @@ const DiscoveryScreen: React.FC = () => {
   };
 
 
+
+
+  // MODIFIED: `handleUpdateRating` now optimistically updates `filteredAndGrouped` state.
   const handleUpdateRating = async (dishId: string, newRating: number) => {  
     if (!user) {  
       alert("Please log in to rate dishes.");  
       return;  
     }  
-    const dishToUpdate = allDishes.find(d => d.id === dishId);  
+    const dishToUpdate = [...filteredAndGrouped].flatMap(g => g.dishes).find(d => d.id === dishId);  
     if (!dishToUpdate) return;
+
+
 
 
     try {  
@@ -213,43 +246,56 @@ const DiscoveryScreen: React.FC = () => {
       }
 
 
+
+
       const success = await updateRatingForDish(dishId, user.id, newRating);  
       if (!success) {  
         throw new Error("Failed to save rating to the database.");  
       }
 
 
-      setAllDishes(prevDishes => prevDishes.map(dish => {  
-        if (dish.id === dishId) {  
-          const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);  
-          let newRatings: DishRating[] = [...dish.ratings];
 
 
-          if (existingRatingIndex > -1) {  
-            if (newRating === 0) {  
-              newRatings.splice(existingRatingIndex, 1);  
-            } else {  
-              newRatings[existingRatingIndex] = { ...newRatings[existingRatingIndex], rating: newRating };  
-            }  
-          } else if (newRating > 0) {  
-            newRatings.push({  
-              id: `temp-${Date.now()}`, user_id: user.id, rating: newRating, dish_id: dishId,  
-              created_at: new Date().toISOString(), updated_at: new Date().toISOString(), date_tried: new Date().toISOString(),  
-            });  
-          }
+      setFilteredAndGrouped(prevGroups => prevGroups.map(group => ({
+          ...group,
+          dishes: group.dishes.map(dish => {
+              if (dish.id === dishId) {
+                  const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
+                  let newRatings: DishRating[] = [...dish.ratings];
 
 
-          const total = newRatings.length;  
-          const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;  
-          return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };  
-        }  
-        return dish;  
-      }));  
+
+
+                  if (existingRatingIndex > -1) {
+                      if (newRating === 0) {
+                          newRatings.splice(existingRatingIndex, 1);
+                      } else {
+                          newRatings[existingRatingIndex] = { ...newRatings[existingRatingIndex], rating: newRating };
+                      }
+                  } else if (newRating > 0) {
+                      newRatings.push({
+                          id: `temp-${Date.now()}`, user_id: user.id, rating: newRating, dish_id: dishId,
+                          created_at: new Date().toISOString(), updated_at: new Date().toISOString(), date_tried: new Date().toISOString(),
+                      });
+                  }
+
+
+
+
+                  const total = newRatings.length;
+                  const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+                  return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
+              }
+              return dish;
+          })
+      })));
     } catch (error) {  
       console.error("Error during rating update process:", error);  
       alert("There was a problem saving your rating. Please try again.");  
     }  
   };
+
+
 
 
   // FIXED: Updated handleShareDish function with proper error handling and fallback
@@ -305,6 +351,8 @@ const DiscoveryScreen: React.FC = () => {
   };
 
 
+
+
   const selectStyle: React.CSSProperties = {  
     border: `1px solid ${COLORS.gray300}`,  
     borderRadius: '8px',  
@@ -323,18 +371,26 @@ const DiscoveryScreen: React.FC = () => {
   };
 
 
+
+
+  // MODIFIED: renderContent now handles the new loading and initial states.
   const renderContent = () => {  
-    if (isLoading && allDishes.length === 0) {  
-      return <LoadingScreen message="Discovering amazing dishes..." />;  
-    }  
-    if (searchTerm.trim().length < 2) {  
-      return (  
-        <div className="text-center py-12">  
-          <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>  
-          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Start typing in the search bar to find dishes others have rated</p>  
-        </div>  
-      );  
-    }  
+    const hasSearchTerm = searchTerm.trim().length >= 2;
+    const hasActiveFilters = minRating > 0 || maxDistance > -1;
+
+    if (isLoading) {
+      return <LoadingScreen message="Fetching dishes for you" />;
+    }
+
+    if (!hasSearchTerm && !hasActiveFilters) {
+      return (
+        <div className="text-center py-12">
+          <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>
+          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Use the search bar or filters above to find dishes.</p>
+        </div>
+      );
+    }
+
     if (filteredAndGrouped.length > 0) {  
       return filteredAndGrouped.map((group) => (  
         <div key={group.restaurant.id}>  
@@ -362,14 +418,16 @@ const DiscoveryScreen: React.FC = () => {
         </div>  
       ));  
     }  
-    // This case is for when a search of >= 2 characters yields no results.  
+    // This case is for when a search or filter combination yields no results.
     return (  
       <div className="text-center py-12">  
         <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No Dishes Found</p>  
-        <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Try adjusting your search filters to find more results.</p>  
+        <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Try adjusting your search or filters to find more results.</p>  
       </div>  
     );  
   };
+
+
 
 
   return (  
@@ -466,6 +524,8 @@ const DiscoveryScreen: React.FC = () => {
     </div>  
   );  
 };
+
+
 
 
 export default DiscoveryScreen;
