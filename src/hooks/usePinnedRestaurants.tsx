@@ -4,9 +4,11 @@ import { supabase } from '../supabaseClient';
 import { Restaurant } from '../types/restaurant';
 import { useAuth } from './useAuth';
 
+
 export const usePinnedRestaurants = () => {
   const { user } = useAuth();
   const [pinnedRestaurantIds, setPinnedRestaurantIds] = useState<Set<string>>(new Set());
+
 
   const fetchPinnedRestaurants = useCallback(async () => {
     if (!user) return;
@@ -22,11 +24,13 @@ export const usePinnedRestaurants = () => {
     setPinnedRestaurantIds(ids);
   }, [user]);
 
+
   useEffect(() => {
     if (user) {
       fetchPinnedRestaurants();
     }
   }, [user, fetchPinnedRestaurants]);
+
 
   const togglePin = useCallback(async (restaurantId: string) => {
     if (!user) return false;
@@ -62,6 +66,7 @@ export const usePinnedRestaurants = () => {
     }
   }, [user, pinnedRestaurantIds]);
 
+
   const getPinnedRestaurants = useCallback(async (): Promise<Restaurant[]> => {
     if (!user) return [];
     const { data: linkData, error } = await supabase
@@ -73,33 +78,17 @@ export const usePinnedRestaurants = () => {
       .eq('user_id', user.id)
       .order('pinned_at', { ascending: false });
 
+
     if (error) {
       console.error('Error fetching pinned restaurants:', error);
       return [];
     }
 
-    let restaurants = linkData?.map(item => item.restaurants as Restaurant).filter(Boolean) || [];
-    
-    if (restaurants.length > 0) {
-      const restaurantIds = restaurants.map(r => r.id);
-      const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
 
-      if (statsError) {
-          console.error('Error fetching restaurant stats:', statsError);
-      } else if (stats) {
-          const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
-          restaurants = restaurants.map(r => {
-              const rStats = statsMap.get(r.id);
-              return {
-                  ...r,
-                  dishCount: rStats?.dish_count ?? 0,
-                  raterCount: rStats?.rater_count ?? 0,
-              };
-          });
-      }
-    }
-    return restaurants;
+    // MODIFIED: Removed the slow stats calculation. This function is now fast.
+    return linkData?.map(item => item.restaurants as Restaurant).filter(Boolean) || [];
   }, [user]);
+
 
   return { pinnedRestaurantIds, togglePin, getPinnedRestaurants, refreshPinned: fetchPinnedRestaurants };
 };
