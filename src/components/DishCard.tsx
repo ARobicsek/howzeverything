@@ -8,6 +8,7 @@ import PhotoCarousel from './PhotoCarousel';
 import PhotoModal from './PhotoModal';
 import PhotoUpload from './PhotoUpload';
 
+
 interface DishCardProps {
   dish: DishWithDetails | null;
   currentUserId: string | null;
@@ -24,6 +25,7 @@ interface DishCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
 }
+
 
 const StarRating: React.FC<{
   rating: number;
@@ -43,6 +45,7 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.accent, empty: COLORS.ratingEmpty }, // UPDATED
     community: { filled: '#101010', empty: COLORS.ratingEmpty } // UPDATED
   };
+
 
   return (
     <div className="flex items-center gap-3">
@@ -103,6 +106,7 @@ const StarRating: React.FC<{
   );
 };
 
+
 const RatingSummary: React.FC<{
   personalRating: number | null;
   communityAverage: number;
@@ -138,6 +142,7 @@ const RatingSummary: React.FC<{
     </div>
   </div>
 );
+
 
 const RatingBreakdown: React.FC<{
   personalRating: number | null;
@@ -213,6 +218,7 @@ const RatingBreakdown: React.FC<{
   </div>
 );
 
+
 const CommentsSection: React.FC<{
   comments: DishComment[];
   showComments: boolean;
@@ -239,6 +245,7 @@ const CommentsSection: React.FC<{
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openActionMenuCommentId && actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
@@ -255,7 +262,9 @@ const CommentsSection: React.FC<{
     };
   }, [openActionMenuCommentId]);
 
+
   if (comments.length === 0) return null;
+
 
   return (
     <div style={{ marginTop: SPACING[6] }}>
@@ -292,6 +301,7 @@ const CommentsSection: React.FC<{
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
         </svg>
       </button>
+
 
       {showComments && (
         <div style={{ marginTop: SPACING[3], display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>
@@ -458,11 +468,13 @@ const CommentsSection: React.FC<{
   );
 };
 
+
 const getUserPersonalRating = (dishRatings: DishRating[], userId: string | null): number | null => {
   if (!userId) return null;
   const userRating = dishRatings.find(rating => rating.user_id === userId);
   return userRating ? userRating.rating : null;
 };
+
 
 const PortalModal: React.FC<{
   isOpen: boolean;
@@ -473,6 +485,7 @@ const PortalModal: React.FC<{
     return null;
   }
 
+
   // Get or create modal root to ensure modals can always be rendered.
   let modalRoot = document.getElementById('modal-root');
   if (!modalRoot) {
@@ -480,7 +493,7 @@ const PortalModal: React.FC<{
     modalRoot.id = 'modal-root';
     document.body.appendChild(modalRoot);
   }
-  
+ 
   return ReactDOM.createPortal(
     <div
       style={STYLES.modalOverlay}
@@ -499,6 +512,7 @@ const PortalModal: React.FC<{
     modalRoot
   );
 };
+
 
 const DishCard: React.FC<DishCardProps> = ({
   dish,
@@ -520,6 +534,7 @@ const DishCard: React.FC<DishCardProps> = ({
     return null;
   }
 
+
   const [showComments, setShowComments] = useState(false);
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -527,12 +542,14 @@ const DishCard: React.FC<DishCardProps> = ({
   const [selectedPhotoModal, setSelectedPhotoModal] = useState<{ photo: DishPhoto; index: number } | null>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [editedDishName, setEditedDishName] = useState(dish.name);
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -548,8 +565,10 @@ const DishCard: React.FC<DishCardProps> = ({
     };
   }, [isMenuOpen]);
 
+
   const personalRating = getUserPersonalRating(dish.ratings, currentUserId);
   const canModify = currentUserId && dish.created_by === currentUserId;
+
 
   const handleAction = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
@@ -557,11 +576,13 @@ const DishCard: React.FC<DishCardProps> = ({
     setIsMenuOpen(false);
   };
 
+
   const handleDeleteDish = () => {
     if (window.confirm('Are you sure you want to delete this dish and all its comments?')) {
       onDelete(dish.id);
     }
   };
+
 
   const handleAddCommentInternal = async (text: string) => {
     await onAddComment(dish.id, text);
@@ -569,10 +590,12 @@ const DishCard: React.FC<DishCardProps> = ({
     setShowComments(true);
   };
 
+
   const handleUpdateCommentInternal = async (commentId: string, text: string) => {
     await onUpdateComment(commentId, dish.id, text);
     setEditingComment(null);
   };
+
 
   const handleDeleteCommentInternal = async (commentId: string) => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
@@ -580,9 +603,11 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
+
   const handleDirectPhotoUpload = () => {
     fileInputRef.current?.click();
   };
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -599,6 +624,7 @@ const DishCard: React.FC<DishCardProps> = ({
       setShowPhotoUpload(true);
     }
   };
+
 
   const handlePhotoUpload = async (file: File, caption?: string) => {
     setIsUploadingPhoto(true);
@@ -617,6 +643,7 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
+
   const handleDeletePhoto = async (photoId: string) => {
     try {
       await onDeletePhoto(dish.id, photoId);
@@ -629,14 +656,18 @@ const DishCard: React.FC<DishCardProps> = ({
     }
   };
 
-  const handleEditName = async (newName: string) => {
-    if (onUpdateDishName) {
-      const success = await onUpdateDishName(dish.id, newName);
-      if (success) {
-        setIsEditingName(false);
-      }
+
+  const handleSaveDishName = async () => {
+    if (onUpdateDishName && editedDishName.trim() && editedDishName.trim() !== dish.name) {
+        const success = await onUpdateDishName(dish.id, editedDishName.trim());
+        if (success) {
+            setIsEditingName(false);
+        }
+    } else {
+        setIsEditingName(false); // Close if unchanged or empty
     }
   };
+
 
   const handleCardClick = () => {
     if (isMenuOpen) {
@@ -645,6 +676,7 @@ const DishCard: React.FC<DishCardProps> = ({
     }
     onToggleExpand();
   };
+
 
   if (!isExpanded) {
     return (
@@ -712,6 +744,7 @@ const DishCard: React.FC<DishCardProps> = ({
     );
   }
 
+
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
@@ -726,6 +759,7 @@ const DishCard: React.FC<DishCardProps> = ({
     textAlign: 'left',
     transition: 'background-color 0.2s ease',
   };
+
 
   return (
     <>
@@ -744,20 +778,54 @@ const DishCard: React.FC<DishCardProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING[2] }}>
             <div style={{ flex: 1, minWidth: 0, paddingRight: SPACING[4] }}>
               {isEditingName ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-                  <input type="text" value={dish.name} onChange={(e) => handleEditName(e.target.value)} style={{ ...STYLES.input, flex: 1 }} autoFocus/>
-                  <button onClick={() => setIsEditingName(false)} style={{ ...STYLES.primaryButton, padding: '8px 16px', minHeight: '36px', backgroundColor: COLORS.success }}>Save</button>
-                  <button onClick={() => setIsEditingName(false)} style={{ ...STYLES.secondaryButton, padding: '8px 16px', minHeight: '36px' }}>Cancel</button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[3], width: '100%' }}>
+                  <input
+                    type="text"
+                    value={editedDishName}
+                    onChange={(e) => setEditedDishName(e.target.value)}
+                    style={{ ...STYLES.input, width: '100%', boxSizing: 'border-box' }}
+                    autoFocus
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSaveDishName();
+                        }
+                        if (e.key === 'Escape') {
+                            setIsEditingName(false);
+                            setEditedDishName(dish.name);
+                        }
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: SPACING[2] }}>
+                      <button
+                          onClick={() => {
+                              setIsEditingName(false);
+                              setEditedDishName(dish.name);
+                          }}
+                          style={{ ...STYLES.secondaryButton, padding: '8px 16px', minHeight: '36px' }}
+                      >
+                          Cancel
+                      </button>
+                      <button
+                          onClick={handleSaveDishName}
+                          style={{ ...STYLES.primaryButton, padding: '8px 16px', minHeight: '36px' }}
+                      >
+                          Save
+                      </button>
+                  </div>
                 </div>
               ) : (
                 <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: 0, wordBreak: 'break-word' }}>
                   {dish.name}
                 </h3>
               )}
-              <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: COLORS.textSecondary, margin: 0, marginTop: SPACING[1] }}>
-                Added {new Date(dish.dateAdded).toLocaleDateString()}
-              </p>
+              {!isEditingName && (
+                <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: COLORS.textSecondary, margin: 0, marginTop: SPACING[1] }}>
+                  Added {new Date(dish.dateAdded).toLocaleDateString()}
+                </p>
+              )}
             </div>
+
 
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(prev => !prev); }} style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
@@ -780,7 +848,7 @@ const DishCard: React.FC<DishCardProps> = ({
                   {canModify && (
                     <>
                       <hr style={{ border: 0, borderTop: `1px solid ${COLORS.gray200}`, margin: `${SPACING[1]} 0` }} />
-                      <button onClick={(e) => handleAction(e, () => setIsEditingName(true))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <button onClick={(e) => handleAction(e, () => { setIsEditingName(true); setEditedDishName(dish.name); })} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                         Edit Name
                       </button>
@@ -796,12 +864,14 @@ const DishCard: React.FC<DishCardProps> = ({
           </div>
         </div>
 
+
         <RatingBreakdown
           personalRating={personalRating}
           communityAverage={dish.average_rating}
           totalRatings={dish.total_ratings}
           onUpdatePersonalRating={(rating) => onUpdateRating(dish.id, rating)}
         />
+
 
         <input
           ref={fileInputRef}
@@ -810,6 +880,7 @@ const DishCard: React.FC<DishCardProps> = ({
           onChange={handleFileSelect}
           style={{ display: 'none' }}
         />
+
 
         {dish.photos.length > 0 && (
           <div style={{ marginTop: SPACING[3] }}>
@@ -822,6 +893,7 @@ const DishCard: React.FC<DishCardProps> = ({
             />
           </div>
         )}
+
 
         <CommentsSection
           comments={dish.comments}
@@ -836,6 +908,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isSubmittingComment={isSubmittingComment}
         />
       </div>
+
 
       <PortalModal
         isOpen={showCommentModal}
@@ -855,6 +928,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isLoading={isSubmittingComment}
         />
       </PortalModal>
+
 
       <PortalModal
         isOpen={showPhotoUpload}
@@ -881,6 +955,7 @@ const DishCard: React.FC<DishCardProps> = ({
         />
       </PortalModal>
 
+
       {selectedPhotoModal && (
         <PhotoModal
           photos={dish.photos}
@@ -895,5 +970,6 @@ const DishCard: React.FC<DishCardProps> = ({
     </>
   );
 };
+
 
 export default DishCard;
