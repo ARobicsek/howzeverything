@@ -8,7 +8,7 @@ import AboutScreen from './AboutScreen';
 import AdminScreen from './AdminScreen';
 import LoadingScreen from './components/LoadingScreen';
 import DiscoveryScreen from './DiscoveryScreen';
-import FindRestaurantScreen from './FindRestaurantScreen'; // Import the new screen
+import FindRestaurantScreen from './FindRestaurantScreen';
 import HomeScreen from './HomeScreen';
 import MenuScreen from './MenuScreen';
 import ProfileScreen from './ProfileScreen';
@@ -24,24 +24,31 @@ import TopNavigation from './components/navigation/TopNavigation';
 import { LocationProvider } from './hooks/useLocationService';
 import { clearSharedUrlParams, handleSharedContent, parseSharedUrl } from './utils/urlShareHandler';
 
-
-
-
-
-
-
-
-// This component will handle the shared content logic within the router context
+// Enhanced SharedContentHandler with proper URL handling
 const SharedContentHandler: React.FC = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [hasProcessed, setHasProcessed] = useState(false);
+    
     useEffect(() => {
         const process = async () => {
-            if (!user || hasProcessed) return;
+            // Don't process if we're still loading auth or have already processed
+            if (authLoading || hasProcessed) return;
+            
+            // CRITICAL: Don't process direct restaurant URLs
+            // These should be handled by normal React Router, not shared content processor
+            const pathname = location.pathname;
+            const isDirectRestaurantUrl = pathname.match(/^\/restaurants\/[a-zA-Z0-9-]+$/);
+            if (isDirectRestaurantUrl) {
+                return;
+            }
+            
+            // Only process if user is logged in
+            if (!user) return;
+            
             const sharedContent = parseSharedUrl();
             if (sharedContent) {
-                console.log('Processing shared content for logged-in user:', sharedContent);
                 const success = await handleSharedContent(
                     sharedContent,
                     (restaurantId: string, dishId?: string) => {
@@ -59,10 +66,13 @@ const SharedContentHandler: React.FC = () => {
                 }
             }
         };
+        
         process();
-    }, [user, navigate, hasProcessed]);
+    }, [user, authLoading, navigate, hasProcessed, location.pathname]);
+    
     return null;
 };
+
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
     const { user, loading } = useAuth();
     const location = useLocation();
@@ -75,17 +85,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
     return children;
 };
 
-
-
-
-
-
-
-
-
-
-
-
 const getScreenConfig = (pathname: string) => {
     // Add ratings to the a full-bleed screens
     if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
@@ -96,17 +95,6 @@ const getScreenConfig = (pathname: string) => {
     let screenKey: string;
     let hasStickyHeader = false;
 
-
-
-
-
-
-
-
-
-
-
-
     if (pathSegments[0] === 'restaurants' && pathSegments.length > 1) {
         screenKey = 'menu'; // This is the MenuScreen
         hasStickyHeader = true; // MenuScreen has its own sticky header
@@ -114,49 +102,16 @@ const getScreenConfig = (pathname: string) => {
         screenKey = pathSegments[0] || 'home';
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const maxWidth = LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] || LAYOUT_CONFIG.APP_CONTAINER.maxWidth;
     return { isFullBleed: false, hasStickyHeader, maxWidth };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const AppRoutes: React.FC = () => {
     const { user, profile, loading: authLoading, createProfile } = useAuth();
     const [showProfileEdit, setShowProfileEdit] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
+    
     useEffect(() => {
         if (!user || profile !== null || authLoading) return;
         let isMounted = true;
@@ -176,16 +131,10 @@ const AppRoutes: React.FC = () => {
         }, 1000);
         return () => { isMounted = false; clearTimeout(timeoutId) };
     }, [user, profile, authLoading, createProfile]);
+    
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
     const screenConfig = getScreenConfig(location.pathname);
-
-
-
-
-
-
-
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
@@ -225,6 +174,7 @@ const AppRoutes: React.FC = () => {
         </div>
     );
 }
+
 const AuthFlow: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -248,6 +198,7 @@ const AuthFlow: React.FC = () => {
       </div>
     );
 };
+
 const App: React.FC = () => {
   const { loading: authLoading } = useAuth();
   if (authLoading) {
@@ -268,4 +219,5 @@ const App: React.FC = () => {
     </LocationProvider>
   );
 };
+
 export default App;

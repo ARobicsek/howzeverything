@@ -183,20 +183,67 @@ const MenuScreen: React.FC = () => {
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
 
-  // Track visit when the screen for a specific restaurant is loaded
+// Track visit when the screen for a specific restaurant is loaded
   useEffect(() => {
     if (restaurant?.id) {
       trackVisit(restaurant.id);
     }
   }, [restaurant?.id, trackVisit]);
-  // Set initial expanded dish from URL query parameter
+ 
+  // Enhanced dish parameter handling - REPLACE the existing dish parameter useEffect with this
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dishToExpand = params.get('dish');
+    
+    console.log('[MenuScreen] Processing URL parameters:', {
+      search: location.search,
+      dishToExpand: dishToExpand,
+      currentDishes: dishes.length,
+      isLoadingDishes: isLoadingDishes
+    });
+    
     if (dishToExpand) {
-      setExpandedDishId(dishToExpand);
+      // If dishes haven't loaded yet, wait for them
+      if (isLoadingDishes) {
+        console.log('[MenuScreen] Dishes still loading, will wait...');
+        return;
+      }
+      
+      // Check if the dish exists in the loaded dishes
+      const foundDish = dishes.find(dish => dish.id === dishToExpand);
+      if (foundDish) {
+        console.log('[MenuScreen] Found dish to expand:', foundDish.name);
+        setExpandedDishId(dishToExpand);
+      } else if (dishes.length > 0) {
+        // Dishes have loaded but we didn't find the dish
+        console.warn('[MenuScreen] Dish not found in restaurant:', {
+          searchingFor: dishToExpand,
+          availableDishes: dishes.map(d => ({ id: d.id, name: d.name }))
+        });
+        // Clear the invalid dish parameter
+        const newParams = new URLSearchParams(location.search);
+        newParams.delete('dish');
+        const newSearch = newParams.toString();
+        const newUrl = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+        navigate(newUrl, { replace: true });
+      }
+      // If dishes.length === 0, we'll wait for them to load in the next render
     }
-  }, [location.search]);
+  }, [location.search, dishes, isLoadingDishes, navigate]);
+
+  // Additional debugging useEffect - ADD this as a new useEffect after the dish parameter one
+  useEffect(() => {
+    console.log('[MenuScreen] State update:', {
+      restaurantId: restaurantId,
+      restaurant: restaurant?.name || 'not loaded',
+      dishesCount: dishes.length,
+      isLoadingRestaurant: isLoadingRestaurant,
+      isLoadingDishes: isLoadingDishes,
+      restaurantError: restaurantError,
+      dishesError: dishesError,
+      expandedDishId: expandedDishId
+    });
+  }, [restaurantId, restaurant, dishes.length, isLoadingRestaurant, isLoadingDishes, restaurantError, dishesError, expandedDishId]);
 
   useEffect(() => {
     // Reset scroll to top on mount to ensure search bar is visible below the sticky header
