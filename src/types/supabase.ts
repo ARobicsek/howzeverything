@@ -10,6 +10,10 @@ export type Json =
 
 
 
+
+
+
+
 export interface Database {
   public: {
     Tables: {
@@ -57,6 +61,12 @@ export interface Database {
           {
             foreignKeyName: "dish_comments_user_id_fkey"
             columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dish_comments_hidden_by_fkey"
+            columns: ["hidden_by"]
             referencedRelation: "users"
             referencedColumns: ["id"]
           }
@@ -115,32 +125,32 @@ export interface Database {
         Row: {
           created_at: string | null
           date_tried: string | null
-          dish_id: string | null
+          dish_id: string
           id: string
           notes: string | null
           rating: number
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
           date_tried?: string | null
-          dish_id?: string | null
+          dish_id: string
           id?: string
           notes?: string | null
           rating: number
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
           date_tried?: string | null
-          dish_id?: string | null
+          dish_id?: string
           id?: string
           notes?: string | null
           rating?: number
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -167,7 +177,7 @@ export interface Database {
           id: string
           is_active: boolean | null
           name: string
-          restaurant_id: string | null
+          restaurant_id: string
           total_ratings: number | null
           updated_at: string | null
           verified_by_restaurant: boolean | null
@@ -181,7 +191,7 @@ export interface Database {
           id?: string
           is_active?: boolean | null
           name: string
-          restaurant_id?: string | null
+          restaurant_id: string
           total_ratings?: number | null
           updated_at?: string | null
           verified_by_restaurant?: boolean | null
@@ -195,7 +205,7 @@ export interface Database {
           id?: string
           is_active?: boolean | null
           name?: string
-          restaurant_id?: string | null
+          restaurant_id?: string
           total_ratings?: number | null
           updated_at?: string | null
           verified_by_restaurant?: boolean | null

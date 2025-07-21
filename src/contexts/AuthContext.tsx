@@ -7,6 +7,9 @@ import {
     type DatabaseUser
 } from '../supabaseClient';
 
+
+
+
 interface AuthState {
   user: User | null;
   profile: DatabaseUser | null;
@@ -15,8 +18,11 @@ interface AuthState {
   error: string | null;
 }
 
+
+
+
 interface AuthActions {
-  signIn: (email: string, password: string) => Promise<boolean>;
+  signIn: (email: string, password:string) => Promise<boolean>;
   signUp: (email: string, password: string, fullName?: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<DatabaseUser>) => Promise<boolean>;
@@ -25,9 +31,18 @@ interface AuthActions {
   refreshProfile: () => Promise<void>;
 }
 
+
+
+
 export type UseAuthReturn = AuthState & AuthActions;
 
+
+
+
 const AuthContext = createContext<UseAuthReturn | null>(null);
+
+
+
 
 function useAuthLogic(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
@@ -37,6 +52,9 @@ function useAuthLogic(): UseAuthReturn {
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef<string | null>(null);
   const profileLoadedRef = useRef<string | null>(null);
+
+
+
 
   const loadUserProfile = useCallback(async (userId: string): Promise<boolean> => {
     if (loadingRef.current === userId) {
@@ -92,24 +110,26 @@ function useAuthLogic(): UseAuthReturn {
     } finally {
       loadingRef.current = null;
     }
-  }, [profile]);
+  }, []); // <-- THE FIX: Removed `profile` from the dependency array
+
+
+
 
   useEffect(() => {
     let isMounted = true;
-    
     // setLoading(true) is the default state, so no need to set it again.
     // We will now only set it to false after the initial session is handled.
 
+
+
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
-       
       console.log('🔐 Auth event:', _event);
-       
       if (session?.user) {
         setSession(session);
         setUser(session.user);
         setError(null);
-         
         if ((_event === 'SIGNED_IN' || _event === 'USER_UPDATED' || _event === 'INITIAL_SESSION') &&
             profileLoadedRef.current !== session.user.id) {
           loadUserProfile(session.user.id).catch(err => {
@@ -123,6 +143,9 @@ function useAuthLogic(): UseAuthReturn {
         profileLoadedRef.current = null;
       }
 
+
+
+
       // **THE FIX**: Only set loading to false after the initial session has been retrieved.
       // This ensures the app shows a loading screen until we know for sure if a user is logged in.
       if (_event === 'INITIAL_SESSION') {
@@ -133,11 +156,17 @@ function useAuthLogic(): UseAuthReturn {
       }
     });
 
+
+
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
   }, [loadUserProfile]);
+
+
+
 
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
@@ -160,6 +189,9 @@ function useAuthLogic(): UseAuthReturn {
       return false;
     }
   }, []);
+
+
+
 
   const signUp = useCallback(async (email: string, password: string, fullName?: string): Promise<boolean> => {
     try {
@@ -191,6 +223,9 @@ function useAuthLogic(): UseAuthReturn {
     }
   }, []);
 
+
+
+
   const signOut = useCallback(async (): Promise<void> => {
     try {
       setError(null);
@@ -200,6 +235,9 @@ function useAuthLogic(): UseAuthReturn {
       throw err;
     }
   }, []);
+
+
+
 
   const createProfile = useCallback(async (profileData: Partial<DatabaseUser>): Promise<boolean> => {
     try {
@@ -252,6 +290,9 @@ function useAuthLogic(): UseAuthReturn {
     }
   }, [user, loadUserProfile, profile]);
 
+
+
+
   const updateProfile = useCallback(async (updates: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user || !profile) {
@@ -280,6 +321,9 @@ function useAuthLogic(): UseAuthReturn {
     }
   }, [user, profile]);
 
+
+
+
   const refreshProfile = useCallback(async (): Promise<void> => {
     if (user) {
       profileLoadedRef.current = null;
@@ -287,9 +331,15 @@ function useAuthLogic(): UseAuthReturn {
     }
   }, [user, loadUserProfile]);
 
+
+
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
+
+
+
 
   return {
     user,
@@ -307,14 +357,15 @@ function useAuthLogic(): UseAuthReturn {
   };
 }
 
+
+
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuthLogic();
-  
   useEffect(() => {
     console.log('🔐 AuthContext: Provider initialized');
     return () => console.log('🔐 AuthContext: Provider cleanup');
   }, []);
-  
   return (
     <AuthContext.Provider value={auth}>
       {children}
@@ -322,5 +373,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export { AuthContext };
 
+
+
+export { AuthContext };

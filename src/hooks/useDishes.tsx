@@ -1,7 +1,13 @@
 // src/hooks/useDishes.tsx
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { enhancedDishSearch, findSimilarDishes } from '../utils/dishSearch';
+import { enhancedDishSearch, findSimilarDishes, getAllRelatedTerms } from '../utils/dishSearch';
+
+
+
+
+
+
 
 
 // Photo interface
@@ -23,6 +29,12 @@ export interface DishPhoto {
 }
 
 
+
+
+
+
+
+
 // Updated interfaces to include user information in comments
 export interface DishComment {
   id: string;
@@ -38,6 +50,12 @@ export interface DishComment {
 }
 
 
+
+
+
+
+
+
 export interface DishRating {
   id: string;
   user_id: string;
@@ -48,6 +66,12 @@ export interface DishRating {
   updated_at: string;
   dish_id: string;
 }
+
+
+
+
+
+
 
 
 export interface RestaurantDish {
@@ -66,6 +90,12 @@ export interface RestaurantDish {
 }
 
 
+
+
+
+
+
+
 export interface DishWithDetails extends RestaurantDish {
   comments: DishComment[];
   ratings: DishRating[];
@@ -74,12 +104,24 @@ export interface DishWithDetails extends RestaurantDish {
 }
 
 
+
+
+
+
+
+
 // New interface for search/discovery results
 export interface DishSearchResult extends DishWithDetails {
   similarityScore?: number;
   isExactMatch?: boolean;
   matchType?: 'exact' | 'fuzzy' | 'partial';
 }
+
+
+
+
+
+
 
 
 // NEW: Interface for global dish search results that includes restaurant data
@@ -93,6 +135,12 @@ export interface DishSearchResultWithRestaurant extends DishWithDetails {
 }
 
 
+
+
+
+
+
+
 // NEW: Standalone processor for useDishes hook to avoid dependency on restaurant data
 const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
   return (rawData || [])
@@ -103,6 +151,12 @@ const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
       const actualAverageRating = actualTotalRatings > 0
         ? ratings.reduce((sum: number, r: DishRating) => sum + r.rating, 0) / actualTotalRatings
         : 0;
+
+
+
+
+
+
 
 
       const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || [])
@@ -118,6 +172,12 @@ const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
           commenter_name: comment.users?.full_name || 'Anonymous User',
           commenter_email: comment.users?.email,
         }));
+
+
+
+
+
+
 
 
       const photosWithInfo: DishPhoto[] = ((d.dish_photos as any[]) || [])
@@ -139,6 +199,12 @@ const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
             url: urlData?.publicUrl,
           };
         }).filter((p): p is DishPhoto => p !== null);
+
+
+
+
+
+
 
 
       const result: DishWithDetails = {
@@ -165,6 +231,12 @@ const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
 };
 
 
+
+
+
+
+
+
 // NEW: Helper to process raw dish data from Supabase into our detailed types
 const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
   return (rawData || [])
@@ -175,6 +247,12 @@ const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
       const actualAverageRating = actualTotalRatings > 0
         ? ratings.reduce((sum: number, r: DishRating) => sum + r.rating, 0) / actualTotalRatings
         : 0;
+
+
+
+
+
+
 
 
       const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || [])
@@ -190,6 +268,12 @@ const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
             commenter_name: comment.users?.full_name || 'Anonymous User',
             commenter_email: comment.users?.email,
         }));
+
+
+
+
+
+
 
 
       const photosWithInfo: DishPhoto[] = ((d.dish_photos as any[]) || [])
@@ -211,6 +295,12 @@ const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
             url: urlData?.publicUrl,
           };
         }).filter((p): p is DishPhoto => p !== null);
+
+
+
+
+
+
 
 
       const result: DishSearchResultWithRestaurant = {
@@ -236,6 +326,12 @@ const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
     })
     .filter((d): d is DishSearchResultWithRestaurant => d !== null);
 };
+
+
+
+
+
+
 
 
 // MODIFIED: Reusable sorting function for dishes, now accepts currentUserId
@@ -268,12 +364,24 @@ const sortDishesArray = (
 };
 
 
+
+
+
+
+
+
 // MODIFIED: Updated sortBy type
 export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }) => {
   const [dishes, setDishes] = useState<DishWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+
+
+
+
+
 
 
   useEffect(() => {
@@ -283,6 +391,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     };
     getCurrentUser();
   }, []);
+
+
+
+
+
+
 
 
   useEffect(() => {
@@ -299,6 +413,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         let dbOrderAscending = true;
 
 
+
+
+
+
+
+
         if (sortBy.criterion === 'community_rating') {
           dbOrderByColumn = 'average_rating';
           dbOrderAscending = sortBy.direction === 'asc';
@@ -309,6 +429,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           dbOrderByColumn = 'name';
           dbOrderAscending = sortBy.direction === 'asc';
         }
+
+
+
+
+
+
 
 
         const { data, error: fetchError } = await supabase
@@ -339,8 +465,20 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           .order('created_at', { foreignTable: 'dish_photos', ascending: false });
 
 
+
+
+
+
+
+
         if (fetchError) throw fetchError;
         const dishesWithDetails = processDishesForMenu(data);
+
+
+
+
+
+
 
 
         setDishes(sortDishesArray(dishesWithDetails, sortBy, currentUserId));
@@ -353,8 +491,20 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     };
 
 
+
+
+
+
+
+
     fetchDishes();
   }, [restaurantId, sortBy.criterion, sortBy.direction, currentUserId]);
+
+
+
+
+
+
 
 
   const searchDishes = (searchTerm: string): DishSearchResult[] => {
@@ -370,9 +520,21 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
+
+
+
+
   const findSimilarDishesForDuplicate = (newDishName: string): DishSearchResult[] => {
     return findSimilarDishes(dishes, newDishName, 75); // 75% similarity threshold
   };
+
+
+
+
+
+
 
 
   const addDish = async (name: string, rating: number): Promise<DishWithDetails | null> => {
@@ -384,6 +546,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         setError('You must be logged in to add a dish');
         return null;
       }
+
+
+
+
+
+
 
 
       const { data: dishData, error: dishError } = await supabase
@@ -399,7 +567,19 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         .single();
 
 
+
+
+
+
+
+
       if (dishError) throw dishError;
+
+
+
+
+
+
 
 
       if (dishData) {
@@ -414,9 +594,21 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             }]);
 
 
+
+
+
+
+
+
           if (ratingError) {
             console.warn('Failed to create initial rating:', ratingError);
           }
+
+
+
+
+
+
 
 
           tempRating = {
@@ -430,6 +622,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             dish_id: dishData.id
           };
         }
+
+
+
+
+
+
 
 
         const newDish: DishWithDetails = {
@@ -448,6 +646,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
     return null;
   };
+
+
+
+
+
+
 
 
   const deleteDish = async (dishId: string) => {
@@ -472,6 +676,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }
 
 
+
+
+
+
+
+
       const { data: deletedData, error } = await supabase
         .from('restaurant_dishes')
         .delete()
@@ -493,6 +703,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
+
+
+
+
   const updateDishName = async (dishId: string, newName: string) => {
     setError(null);
     try {
@@ -502,7 +718,19 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             .eq('id', dishId);
 
 
+
+
+
+
+
+
         if (updateError) throw updateError;
+
+
+
+
+
+
 
 
         setDishes(prev => {
@@ -523,6 +751,12 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
+
+
+
+
   const updateDishRating = async (dishId: string, rating: number, notes?: string, dateTried?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -531,12 +765,30 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
 
 
+
+
+
+
+
+
     const originalDishes = [...dishes];
+
+
+
+
+
+
 
 
     setDishes(prevDishes => prevDishes.map(dish => {
       if (dish.id === dishId) {
         let updatedRatings: DishRating[];
+
+
+
+
+
+
 
 
         if (rating === 0) {
@@ -568,6 +820,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }));
 
 
+
+
+
     try {
       if (rating === 0) {
         const { error: deleteError } = await supabase
@@ -596,6 +851,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       setDishes(originalDishes);
     }
   };
+
+
 
 
   const addComment = async (dishId: string, commentText: string) => {
@@ -640,6 +897,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
   const deleteComment = async (commentId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -665,6 +923,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       throw err instanceof Error ? err : new Error('Failed to delete comment');
     }
   };
+
 
 
   const updateComment = async (commentId: string, commentText: string) => {
@@ -694,6 +953,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       throw err instanceof Error ? err : new Error('Failed to update comment');
     }
   };
+
+
 
 
   const addPhoto = async (dishId: string, file: File, caption?: string) => {
@@ -763,6 +1024,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
+
   const deletePhoto = async (photoId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -794,12 +1057,14 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
 
+
   const refetch = async () => {
     if (!restaurantId) return;
     setIsLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUserId(user?.id || null);
   };
+
 
 
   return {
@@ -824,6 +1089,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
 };
 
 
+
+
 export const updateRatingForDish = async (
   dishId: string,
   userId: string,
@@ -833,6 +1100,8 @@ export const updateRatingForDish = async (
     if (!userId) {
       throw new Error("User must be authenticated to rate a dish.");
     }
+
+
 
 
     if (rating === 0) {
@@ -856,6 +1125,8 @@ export const updateRatingForDish = async (
     return false;
   }
 };
+
+
 
 
 export const fetchMyRatedDishes = async (userId: string): Promise<DishSearchResultWithRestaurant[]> => {
@@ -886,6 +1157,8 @@ export const fetchMyRatedDishes = async (userId: string): Promise<DishSearchResu
 };
 
 
+
+
 export const searchAllDishes = async (
   searchTerm?: string,
   minRating?: number
@@ -904,14 +1177,22 @@ export const searchAllDishes = async (
     .not('restaurants.longitude', 'is', null);
 
 
-  if (searchTerm && searchTerm.trim().length > 1) {
-    query = query.ilike('name', `%${searchTerm.trim()}%`);
+
+  const term = searchTerm?.trim();
+  if (term && term.length > 1) {
+    const expandedTerms = getAllRelatedTerms(term).slice(0, 15); // Limit to 15 to prevent massive queries
+    const orFilter = expandedTerms
+        .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
+        .join(',');
+    query = query.or(orFilter);
   }
+
 
 
   if (minRating && minRating > 0) {
     query = query.gte('average_rating', minRating);
   }
+
 
 
   query = query.order('average_rating', { ascending: false }).limit(200);
@@ -920,12 +1201,14 @@ export const searchAllDishes = async (
   const { data, error } = await query;
 
 
+
   if (error) {
     console.error("Error searching all dishes:", error);
     throw error;
   }
   return processRawDishes(data || []);
 };
+
 
 
 const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {

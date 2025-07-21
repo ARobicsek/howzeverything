@@ -11,8 +11,6 @@ import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
 import type { Restaurant } from './types/restaurant';
 import { findSimilarDishes, getAllRelatedTerms } from './utils/dishSearch';
-
-
 // Simplified local interface for the admin dish list
 interface AdminDish {
   id: string;
@@ -20,8 +18,6 @@ interface AdminDish {
   restaurant_name?: string;
   created_at: string | null;
 }
-
-
 interface Comment {
   id: string;
   comment: string;
@@ -34,19 +30,13 @@ interface Comment {
   username?: string;
   is_hidden: boolean;
 }
-
-
 interface AdminScreenProps {
   user: User | null;
 }
-
-
 interface GeocodedCoordinates {
   lat: number;
   lon: number;
 }
-
-
 // User activity interface for analytics
 interface UserActivity {
   userId: string;
@@ -58,8 +48,6 @@ interface UserActivity {
   dishesCommented: number;
   dishesAdded: number;
 }
-
-
 const geocodeAddress = async (address: string): Promise<GeocodedCoordinates | null> => {
   const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
   if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
@@ -70,8 +58,6 @@ const geocodeAddress = async (address: string): Promise<GeocodedCoordinates | nu
     console.warn('Address is empty, cannot geocode.');
     return null;
   }
-
-
   try {
     const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(address)}&limit=1&apiKey=${apiKey}`;
     const response = await fetch(url);
@@ -92,8 +78,6 @@ const geocodeAddress = async (address: string): Promise<GeocodedCoordinates | nu
     return null;
   }
 };
-
-
 const PaginationControls: React.FC<{
     currentPage: number;
     totalItems: number;
@@ -103,8 +87,6 @@ const PaginationControls: React.FC<{
 }> = ({ currentPage, totalItems, itemsPerPage, onPageChange, loading }) => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (totalPages <= 1) return null;
-
-
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: SPACING[2], marginTop: SPACING[4], flexWrap: 'wrap' }}>
             <button
@@ -141,8 +123,6 @@ const PaginationControls: React.FC<{
         </div>
     );
 };
-
-
 const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes' | 'comments' | 'analytics'>('restaurants');
@@ -151,13 +131,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
- 
   const [restaurantSearchTerm, setRestaurantSearchTerm] = useState('');
   const [dishSearchTerm, setDishSearchTerm] = useState('');
   const [commentRestaurantSearch, setCommentRestaurantSearch] = useState('');
   const [commentDishSearch, setCommentDishSearch] = useState('');
-
-
   // Pagination
   const ITEMS_PER_PAGE = 20;
   const [restaurantPage, setRestaurantPage] = useState(1);
@@ -166,34 +143,23 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [dishTotal, setDishTotal] = useState(0);
   const [commentPage, setCommentPage] = useState(1);
   const [commentTotal, setCommentTotal] = useState(0);
-
-
   const [newRestaurantName, setNewRestaurantName] = useState('');
   const [newAddressData, setNewAddressData] = useState<AddressFormData>({
     fullAddress: '', address: '', city: '', state: '', zip_code: '', country: 'USA',
   });
   const [addressInputKey, setAddressInputKey] = useState(Date.now());
- 
   const [similarRestaurants, setSimilarRestaurants] = useState<Restaurant[]>([]);
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<Restaurant, 'id' | 'created_at' | 'updated_at' | 'dateAdded'> | null>(null);
-
-
   const [editingRestaurantId, setEditingRestaurantId] = useState<string | null>(null);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editAddressData, setEditAddressData] = useState<AddressFormData | null>(null);
   const [editAddressInputKey, setEditAddressInputKey] = useState(Date.now() + 1);
-
-
   const [addingDishToRestaurantId, setAddingDishToRestaurantId] = useState<string | null>(null);
   const [newDishName, setNewDishName] = useState('');
   const [similarDishesForModal, setSimilarDishesForModal] = useState<DishSearchResult[]>([]);
   const [dishDataForModal, setDishDataForModal] = useState<{name: string, restaurantId: string} | null>(null);
-
-
   const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
-
-
   // Analytics State
   const [analyticsStartDate, setAnalyticsStartDate] = useState(() => {
       const date = new Date();
@@ -206,138 +172,131 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [analyticsSort, setAnalyticsSort] = useState<{key: keyof UserActivity, direction: 'asc' | 'desc'}>({ key: 'fullName', direction: 'asc' });
   const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
-
-
   const handleNewAddressChange = useCallback((data: AddressFormData) => {
     setNewAddressData(data);
   }, []);
- 
   const handleResetNewRestaurantForm = () => {
     setNewRestaurantName('');
     setNewAddressData({ fullAddress: '', address: '', city: '', state: '', zip_code: '', country: 'USA' });
     setError(null);
     setAddressInputKey(Date.now());
   };
-
-
   const handleEditAddressChange = useCallback((data: AddressFormData) => {
     setEditAddressData(data);
   }, []);
-
-
-  const loadData = useCallback(async () => {
-    if (activeTab === 'analytics') return;
-    setLoading(true);
-    setError(null);
-    try {
-      if (activeTab === 'restaurants') {
-        const from = (restaurantPage - 1) * ITEMS_PER_PAGE;
-        const to = from + ITEMS_PER_PAGE - 1;
-        const term = restaurantSearchTerm.trim();
-        let query = supabase.from('restaurants').select('*', { count: 'exact' });
-        if (term) {
-          query = query.or(`name.ilike.%${term}%,city.ilike.%${term}%,full_address.ilike.%${term}%`);
-        }
-        const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
-        if (error) throw error;
-        setRestaurants(data as Restaurant[] || []);
-        setRestaurantTotal(count || 0);
-      } else if (activeTab === 'dishes') {
-        const from = (dishPage - 1) * ITEMS_PER_PAGE;
-        const to = from + ITEMS_PER_PAGE - 1;
-        const term = dishSearchTerm.trim();
-        let query = supabase.from('restaurant_dishes').select(`id, name, created_at, restaurants (name)`, { count: 'exact' });
-        if (term.length >= 2) {
-            if (term.length > 2) {
-                const expandedTerms = getAllRelatedTerms(term).slice(0, 10);
-                const orFilter = expandedTerms.map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
-                query = query.or(orFilter);
-            } else {
-                query = query.ilike('name', `%${term}%`);
-            }
-        }
-        const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
-        if (error) throw error;
-        setDishes(data?.map(d => ({ id: d.id, name: d.name, created_at: d.created_at, restaurant_name: (d.restaurants as any)?.name })) || []);
-        setDishTotal(count || 0);
-      } else if (activeTab === 'comments') {
-        const from = (commentPage - 1) * ITEMS_PER_PAGE;
-        const to = from + ITEMS_PER_PAGE - 1;
-        let query = supabase
-            .from('dish_comments')
-            .select(`
-                *,
-                restaurant_dishes!inner(name, restaurant_id, restaurants!inner(name)),
-                users!dish_comments_user_id_fkey(full_name, email)
-            `, { count: 'exact' });
-
-
-        if (commentRestaurantSearch.trim()) {
-            query = query.ilike('restaurant_dishes.restaurants.name', `%${commentRestaurantSearch.trim()}%`);
-        }
-       
-        const dishTerm = commentDishSearch.trim();
-        if (dishTerm.length >= 2) {
-             if (dishTerm.length > 2) {
-                const expandedTerms = getAllRelatedTerms(dishTerm).slice(0, 10);
-                const orFilter = expandedTerms.map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
-                query = query.or(orFilter, { foreignTable: 'restaurant_dishes' });
-            } else {
-                query = query.ilike('restaurant_dishes.name', `%${dishTerm}%`);
-            }
-        }
-
-
-        const { data, error, count } = await query
-            .order('created_at', { ascending: false })
-            .range(from, to);
-           
-        if (error) throw error;
-        setComments(data?.map(c => {
-            const dishInfo = c.restaurant_dishes as any;
-            return {
-                id: c.id,
-                comment: c.comment_text,
-                created_at: c.created_at,
-                dish_id: c.dish_id || '',
-                dish_name: dishInfo?.name,
-                restaurant_id: dishInfo?.restaurant_id,
-                restaurant_name: dishInfo?.restaurants?.name,
-                user_id: c.user_id,
-                username: (c.users as any)?.full_name || (c.users as any)?.email,
-                is_hidden: c.is_hidden ?? false,
-            };
-        }) || []);
-        setCommentTotal(count || 0);
-      }
-    } catch (err: any) {
-      console.error('Error loading data:', err);
-      setError('Failed to load data');
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, restaurantSearchTerm, dishSearchTerm, commentRestaurantSearch, commentDishSearch, restaurantPage, dishPage, commentPage]);
-
-
   // Reset page to 1 on search
   useEffect(() => { setRestaurantPage(1); }, [restaurantSearchTerm]);
   useEffect(() => { setDishPage(1); }, [dishSearchTerm]);
   useEffect(() => { setCommentPage(1); }, [commentRestaurantSearch, commentDishSearch]);
-
-
-
-
+  // --- THE FIX: Refactored data fetching logic ---
   useEffect(() => {
-    if (isAdmin) {
-      const isSearching = (activeTab === 'restaurants' && restaurantSearchTerm) || (activeTab === 'dishes' && dishSearchTerm) || (activeTab === 'comments' && (commentDishSearch || commentRestaurantSearch));
-      const timer = setTimeout(() => {
-        loadData();
-      }, isSearching ? 500 : 0);
-      return () => clearTimeout(timer);
+    if (!isAdmin || activeTab === 'analytics') {
+        return;
     }
-  }, [isAdmin, loadData]);
-
-
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        if (activeTab === 'restaurants') {
+          const from = (restaurantPage - 1) * ITEMS_PER_PAGE;
+          const to = from + ITEMS_PER_PAGE - 1;
+          const term = restaurantSearchTerm.trim();
+          let query = supabase.from('restaurants').select('*', { count: 'exact' });
+          if (term) {
+            query = query.or(`name.ilike.%${term}%,city.ilike.%${term}%,full_address.ilike.%${term}%`);
+          }
+          const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
+          if (error) throw error;
+          setRestaurants(data as Restaurant[] || []);
+          setRestaurantTotal(count || 0);
+        } else if (activeTab === 'dishes') {
+          const from = (dishPage - 1) * ITEMS_PER_PAGE;
+          const to = from + ITEMS_PER_PAGE - 1;
+          const term = dishSearchTerm.trim();
+          let query = supabase.from('restaurant_dishes').select(`id, name, created_at, restaurants (name)`, { count: 'exact' });
+          if (term.length >= 2) {
+              const expandedTerms = getAllRelatedTerms(term).slice(0, 10);
+              const orFilter = expandedTerms.map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
+              query = query.or(orFilter);
+          }
+          const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
+          if (error) throw error;
+          setDishes(data?.map(d => ({ id: d.id, name: d.name, created_at: d.created_at, restaurant_name: (d.restaurants as any)?.name })) || []);
+          setDishTotal(count || 0);
+        } else if (activeTab === 'comments') {
+          const from = (commentPage - 1) * ITEMS_PER_PAGE;
+          const to = from + ITEMS_PER_PAGE - 1;
+          let query = supabase
+              .from('dish_comments')
+              .select(`
+                  *,
+                  restaurant_dishes!inner(name, restaurant_id, restaurants!inner(name)),
+                  users!dish_comments_user_id_fkey(full_name, email)
+              `, { count: 'exact' });
+          const restaurantTerm = commentRestaurantSearch.trim();
+          const dishTerm = commentDishSearch.trim();
+          const foreignTableFilters: string[] = [];
+          if (restaurantTerm) {
+            foreignTableFilters.push(`restaurants.name.ilike.%${restaurantTerm}%`);
+          }
+          if (dishTerm.length >= 2) {
+            const expandedTerms = getAllRelatedTerms(dishTerm).slice(0, 10);
+            const dishOrFilter = expandedTerms.map(t => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
+            if (expandedTerms.length > 0) {
+              foreignTableFilters.push(`or(${dishOrFilter})`);
+            }
+          }
+          // --- THE FIX: Build a single filter string and apply it to avoid TS error and runtime bug ---
+          if (foreignTableFilters.length > 0) {
+            const filterString = foreignTableFilters.length > 1
+                ? `and(${foreignTableFilters.join(',')})`
+                : foreignTableFilters[0];
+            query = query.or(filterString, { foreignTable: 'restaurant_dishes' });
+          }
+          const { data, error, count } = await query
+              .order('created_at', { ascending: false })
+              .range(from, to);
+          if (error) throw error;
+          setComments(data?.map(c => {
+              const dishInfo = c.restaurant_dishes as any;
+              return {
+                  id: c.id,
+                  comment: c.comment_text,
+                  created_at: c.created_at,
+                  dish_id: c.dish_id || '',
+                  dish_name: dishInfo?.name,
+                  restaurant_id: dishInfo?.restaurant_id,
+                  restaurant_name: dishInfo?.restaurants?.name,
+                  user_id: c.user_id,
+                  username: (c.users as any)?.full_name || (c.users as any)?.email,
+                  is_hidden: c.is_hidden ?? false,
+              };
+          }) || []);
+          setCommentTotal(count || 0);
+        }
+      } catch (err: any) {
+        console.error('Error loading data:', err);
+        setError('Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    const isSearching = (activeTab === 'restaurants' && restaurantSearchTerm) || (activeTab === 'dishes' && dishSearchTerm) || (activeTab === 'comments' && (commentDishSearch || commentRestaurantSearch));
+    const timer = setTimeout(() => {
+      loadData();
+    }, isSearching ? 500 : 0);
+    return () => clearTimeout(timer);
+  }, [
+      isAdmin,
+      activeTab,
+      restaurantSearchTerm,
+      dishSearchTerm,
+      commentRestaurantSearch,
+      commentDishSearch,
+      restaurantPage,
+      dishPage,
+      commentPage
+  ]);
   const createNewRestaurant = async (data: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'| 'dateAdded'>) => {
     setLoading(true);
     setError(null);
@@ -365,7 +324,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       handleResetNewRestaurantForm();
       setSimilarRestaurants([]);
       setNewRestaurantData(null);
-      await loadData();
+      // Trigger a refetch by changing a dependency of the main useEffect
+      setActiveTab('restaurants'); 
+      setRestaurantPage(1);
     } catch (err: any) {
       console.error('Error adding restaurant:', err);
       setError(`Failed to add restaurant: ${err.message}`);
@@ -373,8 +334,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
-
-
   const findSimilarRestaurantsAdmin = async (name: string, city?: string | null) => {
     let query = supabase
         .from('restaurants')
@@ -390,8 +349,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
     return data || [];
   };
-
-
   const handleAttemptAddRestaurant = async () => {
     if (!newRestaurantName.trim()) {
       setError('Restaurant Name cannot be empty.');
@@ -431,8 +388,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setError(`An unexpected error occurred while checking for duplicates: ${err.message}`);
     }
   };
-
-
   const startEditRestaurant = (restaurant: Restaurant) => {
     setEditingRestaurantId(restaurant.id);
     setEditName(restaurant.name);
@@ -446,8 +401,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     });
     setEditAddressInputKey(Date.now());
   };
-
-
   const updateRestaurant = async (id: string) => {
     if (!editAddressData) return;
     setLoading(true);
@@ -482,7 +435,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       if (error) throw error;
       setEditingRestaurantId(null);
       setEditAddressData(null);
-      loadData();
+      setRestaurantPage(restaurantPage); // Trigger refetch
     } catch (err: any) {
       console.error('Error updating restaurant:', err);
       setError(`Failed to update restaurant: ${err.message}`);
@@ -490,8 +443,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
-
-
   const deleteRestaurant = async (id: string) => {
     if (!confirm('Are you sure? This deletes the restaurant, its dishes, ratings, and comments.')) return;
     setLoading(true);
@@ -499,7 +450,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     try {
       const { error } = await supabase.rpc('delete_restaurant_and_children', { p_restaurant_id: id });
       if (error) throw error;
-      loadData();
+      setRestaurantPage(1); // Force refetch from page 1
     } catch (err: any) {
       console.error('Error deleting restaurant:', err);
       if (err.message && (err.message.includes('404') || err.message.includes('does not exist'))) {
@@ -511,13 +462,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
- 
   const startEditDish = (dish: AdminDish) => {
     setEditingDishId(dish.id);
     setEditName(dish.name);
   };
-
-
   const updateDish = async (id: string) => {
     setLoading(true);
     setError(null);
@@ -525,7 +473,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       const { error } = await supabase.from('restaurant_dishes').update({ name: editName.trim(), updated_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
       setEditingDishId(null);
-      loadData();
+      setDishPage(dishPage); // Trigger refetch
     } catch (err: any) {
       console.error('Error updating dish:', err);
       setError(`Failed to update dish: ${err.message}`);
@@ -533,8 +481,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
-
-
   const createNewDish = async (name: string, restaurantId: string) => {
     if (!name.trim() || !user) {
         setError('Dish name cannot be empty.');
@@ -547,8 +493,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             .from('restaurant_dishes')
             .insert({ name: name.trim(), restaurant_id: restaurantId, created_by: user.id });
         if (insertError) throw insertError;
-
-
         setNewDishName('');
         setAddingDishToRestaurantId(null);
         setSimilarDishesForModal([]);
@@ -561,8 +505,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setLoading(false);
     }
   };
-
-
   const handleAttemptAddDish = async (restaurantId: string) => {
     const name = newDishName.trim();
     if (!name) {
@@ -575,22 +517,16 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           .from('restaurant_dishes')
           .select('*, dish_comments(*), dish_ratings(*), dish_photos(*)')
           .eq('restaurant_id', restaurantId);
-
-
       if (dishError) {
           setError('Could not check for existing dishes.');
           return;
       }
-
-
       const dishesToSearch: DishWithDetails[] = (restaurantDishesRaw || []).map(d => {
         const ratings = (d as any).dish_ratings || [];
         const total_ratings = ratings.length;
         const average_rating = total_ratings > 0
             ? ratings.reduce((acc: number, r: any) => acc + r.rating, 0) / total_ratings
             : 0;
-
-
         return {
           id: d.id,
           restaurant_id: d.restaurant_id || '',
@@ -610,10 +546,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           dateAdded: d.created_at || new Date().toISOString(),
         };
       });
-
-
       const similar = findSimilarDishes(dishesToSearch, name, 75);
-   
       if (similar.length > 0) {
           setDishDataForModal({ name, restaurantId });
           setSimilarDishesForModal(similar);
@@ -625,8 +558,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setError(`An unexpected error occurred while checking for duplicate dishes: ${err.message}`);
     }
   };
-
-
   const deleteDish = async (id: string) => {
     if (!confirm('Are you sure you want to delete this dish and all its ratings/comments?')) return;
     setLoading(true);
@@ -634,7 +565,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     try {
       const { error } = await supabase.from('restaurant_dishes').delete().eq('id', id);
       if (error) throw error;
-      loadData();
+      setDishPage(1); // Force refetch
     } catch (err: any) {
       console.error('Error deleting dish:', err);
       setError(`Failed to delete dish: ${err.message}`);
@@ -642,8 +573,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
-
-
   const deleteComment = async (id: string) => {
     if (!confirm('Are you sure you want to delete this comment?')) return;
     setLoading(true);
@@ -651,7 +580,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     try {
       const { error } = await supabase.from('dish_comments').delete().eq('id', id);
       if (error) throw error;
-      loadData();
+      setCommentPage(commentPage); // Force refetch
     } catch (err: any) {
       console.error('Error deleting comment:', err);
       setError(`Failed to delete comment: ${err.message}`);
@@ -659,8 +588,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
-
-
   const toggleCommentVisibility = async (commentId: string, isHidden: boolean) => {
     setLoading(true);
     setError(null);
@@ -673,11 +600,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 hidden_by: !isHidden ? user?.id : null,
             })
             .eq('id', commentId);
-
-
         if (error) throw error;
-
-
         // Update local state to avoid a full refetch
         setComments(prevComments =>
             prevComments.map(c =>
@@ -691,7 +614,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setLoading(false);
     }
   };
- 
   const handleAnalyticsSort = (key: keyof UserActivity) => {
     setAnalyticsSort(prevSort => {
         if (prevSort.key === key) {
@@ -701,51 +623,38 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         return { key, direction: defaultDirection };
     });
   };
-
-
   useEffect(() => {
     const sorted = [...rawAnalyticsData].sort((a, b) => {
         const { key, direction } = analyticsSort;
         const valA = a[key];
         const valB = b[key];
-
-
         let comparison = 0;
-
         // Place null/undefined values at the bottom
         if (valA == null && valB != null) return 1;
         if (valA != null && valB == null) return -1;
         if (valA == null && valB == null) return 0;
-
         if (typeof valA === 'number' && typeof valB === 'number') {
             comparison = valA - valB;
         } else {
             // Safely convert to string for comparison
             comparison = String(valA).localeCompare(String(valB));
         }
-
-
         return direction === 'asc' ? comparison : -comparison;
     });
     setSortedAnalyticsData(sorted);
   }, [rawAnalyticsData, analyticsSort]);
-
-
   const fetchAnalyticsData = async () => {
     setIsAnalyticsLoading(true);
     setAnalyticsError(null);
     try {
         const startDate = `${analyticsStartDate} 00:00:00+00`;
         const endDate = `${analyticsEndDate} 23:59:59+00`;
-
-
         const { data: users, error: usersError } = await supabase.from('users').select('id, full_name, email');
         if (usersError) throw usersError;
         if (!users) {
             setRawAnalyticsData([]);
             return;
         }
-       
         const userActivityMap = new Map<string, UserActivity>();
         users.forEach(user => {
             userActivityMap.set(user.id, {
@@ -759,8 +668,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 dishesAdded: 0,
             });
         });
-
-
         const [
             viewsRes,
             addsRes,
@@ -774,8 +681,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             supabase.from('dish_comments').select('user_id').gte('created_at', startDate).lte('created_at', endDate),
             supabase.from('restaurant_dishes').select('created_by').gte('created_at', startDate).lte('created_at', endDate).not('created_by', 'is', null)
         ]);
-
-
         if (viewsRes.error) throw viewsRes.error;
         viewsRes.data?.forEach(item => {
             if (item.user_id) {
@@ -783,8 +688,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 if (activity) activity.restaurantsViewed++;
             }
         });
-
-
         if (addsRes.error) throw addsRes.error;
         addsRes.data?.forEach(item => {
             if (item.created_by) {
@@ -792,8 +695,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 if (activity) activity.restaurantsAdded++;
             }
         });
-
-
         if (ratingsRes.error) throw ratingsRes.error;
         ratingsRes.data?.forEach(item => {
             if (item.user_id) {
@@ -801,8 +702,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 if (activity) activity.dishesRated++;
             }
         });
-
-
         if (commentsRes.error) throw commentsRes.error;
         commentsRes.data?.forEach(item => {
             if (item.user_id) {
@@ -810,8 +709,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 if (activity) activity.dishesCommented++;
             }
         });
-
-
         if (dishAddsRes.error) throw dishAddsRes.error;
         dishAddsRes.data?.forEach(item => {
             if (item.created_by) {
@@ -819,10 +716,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 if (activity) activity.dishesAdded++;
             }
         });
-       
         setRawAnalyticsData(Array.from(userActivityMap.values()));
-
-
     } catch(err: any) {
         setAnalyticsError(`Failed to load analytics: ${err.message}`);
         console.error(err);
@@ -830,8 +724,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setIsAnalyticsLoading(false);
     }
   };
-
-
   if (!isAdmin) {
     return (
       <div style={{ padding: SPACING[4], textAlign: 'center' }}>
@@ -840,7 +732,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       </div>
     );
   }
- 
   const tableHeaderStyle: React.CSSProperties = {
     ...TYPOGRAPHY.caption,
     fontWeight: TYPOGRAPHY.semibold,
@@ -848,7 +739,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     textAlign: 'left',
     borderBottom: `2px solid ${COLORS.border}`
   };
- 
   const SortableHeader: React.FC<{
     title: string;
     sortKey: keyof UserActivity;
@@ -866,15 +756,11 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     ...TYPOGRAPHY.body,
     padding: SPACING[3],
   };
-
-
   const linkStyle: React.CSSProperties = {
     color: COLORS.primary,
     textDecoration: 'underline',
     cursor: 'pointer'
   };
-
-
   return (
     <div style={{ padding: SPACING[4], maxWidth: '1200px', margin: '0 auto' }}>
       <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Admin Panel</h1>
@@ -885,7 +771,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         <button onClick={() => setActiveTab('analytics')} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: activeTab === 'analytics' ? COLORS.primary : 'transparent', color: activeTab === 'analytics' ? COLORS.white : COLORS.textPrimary, border: 'none', borderRadius: `${BORDERS.radius.medium} ${BORDERS.radius.medium} 0 0`, cursor: 'pointer' }}>Analytics</button>
       </div>
       {error && <div style={{...TYPOGRAPHY.body, color: COLORS.error, background: `${COLORS.error}10`, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[4], cursor: 'pointer' }} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
-     
       {activeTab === 'restaurants' && (
         <div>
           <div style={{ background: COLORS.surface, padding: SPACING[6], borderRadius: BORDERS.radius.large, marginBottom: SPACING[6], boxShadow: SHADOWS.small }}>
@@ -970,8 +855,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           )}
         </div>
       )}
-
-
       {activeTab === 'dishes' && (
         <div>
             <div style={{ marginBottom: SPACING[4] }}>
@@ -1020,8 +903,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             )}
         </div>
       )}
-
-
       {activeTab === 'comments' && (
         <>
             <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>All Comments ({!loading ? commentTotal : '...'})</h2>
@@ -1059,8 +940,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             )}
         </>
       )}
-
-
       {activeTab === 'analytics' && (
           <div>
               <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>User Activity Analytics</h2>
@@ -1077,11 +956,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                       {isAnalyticsLoading ? 'Loading...' : 'Fetch Activity'}
                   </button>
               </div>
-             
               {analyticsError && <div style={{...TYPOGRAPHY.body, color: COLORS.error, background: `${COLORS.error}10`, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[4]}}>{analyticsError}</div>}
-             
               {isAnalyticsLoading && <p>Loading analytics data...</p>}
-             
               {!isAnalyticsLoading && sortedAnalyticsData.length > 0 && (
                   <div style={{ overflowX: 'auto', background: COLORS.surface, borderRadius: BORDERS.radius.medium, padding: SPACING[2] }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
@@ -1120,7 +996,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               )}
           </div>
       )}
-     
       <DuplicateRestaurantModal
         isOpen={similarRestaurants.length > 0}
         newRestaurantName={newRestaurantData?.name || ''}
@@ -1136,8 +1011,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             setNewRestaurantData(null);
         }}
       />
-
-
       <DuplicateDishModal
         isOpen={similarDishesForModal.length > 0}
         newDishName={dishDataForModal?.name || ''}
@@ -1160,6 +1033,4 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     </div>
   );
 };
-
-
 export default AdminScreen;
