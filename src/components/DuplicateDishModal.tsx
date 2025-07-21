@@ -5,6 +5,7 @@ import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
 import { DishSearchResult } from '../hooks/useDishes';
 import { getSimilarityDescription } from '../utils/dishSearch';
 
+
 interface DuplicateDishModalProps {
   isOpen: boolean;
   newDishName: string;
@@ -13,6 +14,7 @@ interface DuplicateDishModalProps {
   onUseExisting: (dish: DishSearchResult) => void;
   onCancel: () => void;
 }
+
 
 const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
   isOpen,
@@ -24,11 +26,14 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 
+
   const topSimilarDish = similarDishes[0];
   const hasMultipleSimilar = similarDishes.length > 1;
+
 
   return createPortal(
     <div
@@ -76,10 +81,11 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
             color: COLORS.textSecondary,
             margin: 0
           }}>
-            We found {hasMultipleSimilar ? 'dishes' : 'a dish'} that might be the same as "{newDishName}". 
+            We found {hasMultipleSimilar ? 'dishes' : 'a dish'} that might be the same as "{newDishName}".
             Would you like to use the existing {hasMultipleSimilar ? 'one' : 'dish'} or create a new one?
           </p>
         </div>
+
 
         {/* Similar Dishes List */}
         <div style={{ marginBottom: SPACING[6] }}>
@@ -113,7 +119,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
                   }}>
                     {dish.name}
                   </h3>
-                  
+                 
                   <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3], marginBottom: SPACING[2] }}>
                     {/* Community Rating */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
@@ -135,6 +141,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
                     </div>
                   </div>
 
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
                     <span style={{
                       ...FONTS.body,
@@ -155,7 +162,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
                     </span>
                   </div>
                 </div>
-                
+               
                 {index === 0 && (
                   <div style={{
                     color: COLORS.primary,
@@ -169,7 +176,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
               </div>
             </div>
           ))}
-          
+         
           {similarDishes.length > 3 && (
             <p style={{
               ...FONTS.body,
@@ -183,6 +190,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
             </p>
           )}
         </div>
+
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: SPACING[3], flexDirection: 'column' }}>
@@ -204,7 +212,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
           >
             Use "{topSimilarDish.name}"
           </button>
-          
+         
           {/* Secondary action - Create new */}
           <button
             onClick={onCreateNew}
@@ -222,7 +230,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
           >
             Create "{newDishName}" as New Dish
           </button>
-          
+         
           {/* Cancel action */}
           <button
             onClick={onCancel}
@@ -250,5 +258,6 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
     modalRoot
   );
 };
+
 
 export default DuplicateDishModal;

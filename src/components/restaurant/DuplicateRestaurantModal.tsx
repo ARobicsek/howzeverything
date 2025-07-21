@@ -4,6 +4,7 @@ import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { Restaurant } from '../../types/restaurant';
 import RestaurantCard from './RestaurantCard';
 
+
 interface DuplicateRestaurantModalProps {
   isOpen: boolean;
   newRestaurantName: string;
@@ -12,6 +13,7 @@ interface DuplicateRestaurantModalProps {
   onUseExisting: (restaurant: Restaurant) => void;
   onCancel: () => void;
 }
+
 
 const DuplicateRestaurantModal: React.FC<DuplicateRestaurantModalProps> = ({
   isOpen,
@@ -23,12 +25,14 @@ const DuplicateRestaurantModal: React.FC<DuplicateRestaurantModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) {
     // In a test environment, or if the root doesn't exist, you might want a fallback.
     // For this app, 'modal-root' should be in index.html.
     return null;
   }
+
 
   return createPortal(
     <div style={STYLES.modalOverlay} onClick={onCancel}>
@@ -44,6 +48,7 @@ const DuplicateRestaurantModal: React.FC<DuplicateRestaurantModalProps> = ({
             We found {similarRestaurants.length > 1 ? 'restaurants' : 'a restaurant'} that might be the same as "{newRestaurantName}". Please review before creating a new entry.
           </p>
         </div>
+
 
         <div style={{ flex: 1, overflowY: 'auto', margin: `0 -${SPACING[4]}`, padding: `0 ${SPACING[4]}` }}>
           <div className="space-y-3">
@@ -75,6 +80,7 @@ const DuplicateRestaurantModal: React.FC<DuplicateRestaurantModalProps> = ({
           </div>
         </div>
 
+
         <div style={{ paddingTop: SPACING[5], marginTop: 'auto', flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: SPACING[3], flexDirection: 'column' }}>
             <button
@@ -105,5 +111,6 @@ const DuplicateRestaurantModal: React.FC<DuplicateRestaurantModalProps> = ({
     modalRoot
   );
 };
+
 
 export default DuplicateRestaurantModal;
