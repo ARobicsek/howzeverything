@@ -31,6 +31,7 @@ export interface DishComment {
   created_at: string;
   updated_at: string;
   user_id: string;
+  is_hidden?: boolean | null; // <-- THE FIX: Changed from boolean | undefined
   // User information joined from users table
   commenter_name?: string;
   commenter_email?: string;
@@ -104,16 +105,19 @@ const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
         : 0;
 
 
-      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || []).map((comment: any): DishComment => ({
-        id: comment.id,
-        dish_id: comment.dish_id || d.id,
-        comment_text: comment.comment_text,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user_id: comment.user_id,
-        commenter_name: comment.users?.full_name || 'Anonymous User',
-        commenter_email: comment.users?.email,
-      }));
+      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || [])
+        .filter((comment: any) => comment.is_hidden !== true)
+        .map((comment: any): DishComment => ({
+          id: comment.id,
+          dish_id: comment.dish_id || d.id,
+          comment_text: comment.comment_text,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          user_id: comment.user_id,
+          is_hidden: comment.is_hidden,
+          commenter_name: comment.users?.full_name || 'Anonymous User',
+          commenter_email: comment.users?.email,
+        }));
 
 
       const photosWithInfo: DishPhoto[] = ((d.dish_photos as any[]) || [])
@@ -173,16 +177,19 @@ const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
         : 0;
 
 
-      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || []).map((comment: any): DishComment => ({
-        id: comment.id,
-        dish_id: comment.dish_id || d.id,
-        comment_text: comment.comment_text,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user_id: comment.user_id,
-        commenter_name: comment.users?.full_name || 'Anonymous User',
-        commenter_email: comment.users?.email,
-      }));
+      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || [])
+        .filter((comment: any) => comment.is_hidden !== true)
+        .map((comment: any): DishComment => ({
+            id: comment.id,
+            dish_id: comment.dish_id || d.id,
+            comment_text: comment.comment_text,
+            created_at: comment.created_at,
+            updated_at: comment.updated_at,
+            user_id: comment.user_id,
+            is_hidden: comment.is_hidden,
+            commenter_name: comment.users?.full_name || 'Anonymous User',
+            commenter_email: comment.users?.email,
+        }));
 
 
       const photosWithInfo: DishPhoto[] = ((d.dish_photos as any[]) || [])
@@ -611,7 +618,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         `)
         .single();
       if (error) throw error;
-      const newComment = {
+      const newComment: DishComment = {
         ...data,
         commenter_name: data.users?.full_name || 'Unknown User',
         commenter_email: data.users?.email || ''
@@ -860,7 +867,8 @@ export const fetchMyRatedDishes = async (userId: string): Promise<DishSearchResu
         *,
         restaurants!inner(id, name, latitude, longitude),
         dish_ratings ( id, user_id, rating ),
-        dish_photos ( id, user_id, storage_path, created_at, updated_at )
+        dish_photos ( id, user_id, storage_path, created_at, updated_at ),
+        dish_comments ( id, user_id, comment_text, created_at, updated_at, is_hidden )
       )
     `)
     .eq('user_id', userId)

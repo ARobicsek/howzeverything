@@ -8,6 +8,8 @@ export type Json =
   | Json[]
 
 
+
+
 export interface Database {
   public: {
     Tables: {
@@ -19,6 +21,9 @@ export interface Database {
           comment_text: string
           updated_at: string
           user_id: string
+          is_hidden: boolean | null
+          hidden_at: string | null
+          hidden_by: string | null
         }
         Insert: {
           created_at?: string
@@ -27,6 +32,9 @@ export interface Database {
           comment_text: string
           updated_at?: string
           user_id: string
+          is_hidden?: boolean | null
+          hidden_at?: string | null
+          hidden_by?: string | null
         }
         Update: {
           created_at?: string
@@ -35,6 +43,9 @@ export interface Database {
           comment_text?: string
           updated_at?: string
           user_id?: string
+          is_hidden?: boolean | null
+          hidden_at?: string | null
+          hidden_by?: string | null
         }
         Relationships: [
           {
