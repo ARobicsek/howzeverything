@@ -13,6 +13,7 @@ import { useRestaurant } from './hooks/useRestaurant';
 import { useRestaurantVisits } from './hooks/useRestaurantVisits';
 import { supabase } from './supabaseClient';
 
+
 // Modal for warning about duplicate dishes
 interface DuplicateDishWarningModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface DuplicateDishWarningModalProps {
   newDishName: string;
   onSelectDuplicate: (dishId: string) => void;
 }
+
 
 const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   isOpen,
@@ -67,6 +69,7 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   );
 };
 
+
 const ConsolidatedSearchAndAdd: React.FC<{
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -101,6 +104,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
     </div>
   );
 };
+
 
 const EnhancedAddDishForm: React.FC<{
   initialDishName?: string;
@@ -156,12 +160,14 @@ const EnhancedAddDishForm: React.FC<{
   );
 };
 
+
 const MenuScreen: React.FC = () => {
   const { restaurantId } = useParams<{ restaurantId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'your_rating' | 'community_rating' | 'date'; direction: 'asc' | 'desc' }>({ criterion: 'community_rating', direction: 'desc' });
@@ -173,6 +179,8 @@ const MenuScreen: React.FC = () => {
   const [dishInfoForConfirmation, setDishInfoForConfirmation] = useState<{ name: string; rating: number } | null>(null);
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showFullRestaurantName, setShowFullRestaurantName] = useState(false);
+
 
   const { restaurant, isLoading: isLoadingRestaurant, error: restaurantError, refreshRestaurant } = useRestaurant(restaurantId || '');
   const {
@@ -182,6 +190,7 @@ const MenuScreen: React.FC = () => {
   } = useDishes(restaurantId || '', sortBy);
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
+
 
 // Track visit when the screen for a specific restaurant is loaded
   useEffect(() => {
@@ -194,21 +203,21 @@ const MenuScreen: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dishToExpand = params.get('dish');
-    
+   
     console.log('[MenuScreen] Processing URL parameters:', {
       search: location.search,
       dishToExpand: dishToExpand,
       currentDishes: dishes.length,
       isLoadingDishes: isLoadingDishes
     });
-    
+   
     if (dishToExpand) {
       // If dishes haven't loaded yet, wait for them
       if (isLoadingDishes) {
         console.log('[MenuScreen] Dishes still loading, will wait...');
         return;
       }
-      
+     
       // Check if the dish exists in the loaded dishes
       const foundDish = dishes.find(dish => dish.id === dishToExpand);
       if (foundDish) {
@@ -231,6 +240,7 @@ const MenuScreen: React.FC = () => {
     }
   }, [location.search, dishes, isLoadingDishes, navigate]);
 
+
   // Additional debugging useEffect - ADD this as a new useEffect after the dish parameter one
   useEffect(() => {
     console.log('[MenuScreen] State update:', {
@@ -245,10 +255,12 @@ const MenuScreen: React.FC = () => {
     });
   }, [restaurantId, restaurant, dishes.length, isLoadingRestaurant, isLoadingDishes, restaurantError, dishesError, expandedDishId]);
 
+
   useEffect(() => {
     // Reset scroll to top on mount to ensure search bar is visible below the sticky header
     window.scrollTo(0, 0);
   }, []);
+
 
   useEffect(() => {
     const dishIdToScrollTo = justAddedDishId || expandedDishId;
@@ -266,6 +278,7 @@ const MenuScreen: React.FC = () => {
     }
   }, [justAddedDishId, expandedDishId]);
 
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -280,9 +293,11 @@ const MenuScreen: React.FC = () => {
     };
   }, [isActionMenuOpen]);
 
+
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
   }, [dishes, searchTerm, searchDishes]);
+
 
   const hasOtherUserContributions = useMemo(() => {
     if (!dishes || !user) return true;
@@ -301,12 +316,15 @@ const MenuScreen: React.FC = () => {
     return false;
   }, [dishes, user]);
 
+
   const isOwner = restaurant?.created_by === user?.id;
   const isAdmin = profile?.is_admin === true;
   const canEditOrDelete = isAdmin || (isOwner && !hasOtherUserContributions);
 
+
   const hasDishes = dishes.length > 0;
   const isPinned = restaurantId ? pinnedRestaurantIds.has(restaurantId) : false;
+
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
@@ -315,14 +333,17 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleResetSearch = () => {
     setSearchTerm('');
     setShowAddForm(false);
   };
 
+
   const handleShowAddForm = () => {
     setShowAddForm(true);
   };
+
 
   const executeAddDish = async (name: string, rating: number) => {
     const newDish = await addDish(name, rating);
@@ -335,6 +356,7 @@ const MenuScreen: React.FC = () => {
       setJustAddedDishId(newDish.id);
     }
   };
+
 
   const handleAttemptAddDish = async (name: string, rating: number) => {
     setShowAddForm(false);
@@ -356,6 +378,7 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleShareDish = (dish: DishWithDetails) => {
     if (!restaurant) return;
     const shareUrl = `${window.location.origin}/restaurants/${dish.restaurant_id}?dish=${dish.id}`;
@@ -375,57 +398,64 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+
   const handleAddComment = async (dishId: string, text: string) => {
-    try { 
-      await addComment(dishId, text); 
-    } catch (err: unknown) { 
+    try {
+      await addComment(dishId, text);
+    } catch (err: unknown) {
       const message = err instanceof Error ? `Failed to add comment: ${err.message}` : 'Failed to add comment: An unknown error occurred.';
       setError(message);
       throw new Error(message);
     }
   };
 
+
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
-    try { 
-      await updateComment(commentId, newText); 
-    } catch (err: unknown) { 
+    try {
+      await updateComment(commentId, newText);
+    } catch (err: unknown) {
       const message = err instanceof Error ? `Failed to update comment: ${err.message}` : 'Failed to update comment: An unknown error occurred.';
       setError(message);
       throw new Error(message);
     }
   };
 
+
   const handleDeleteComment = async (_dishId: string, commentId: string) => {
-    try { 
-      await deleteComment(commentId); 
-    } catch (err: unknown) { 
+    try {
+      await deleteComment(commentId);
+    } catch (err: unknown) {
       const message = err instanceof Error ? `Failed to delete comment: ${err.message}` : 'Failed to delete comment: An unknown error occurred.';
       setError(message);
       throw new Error(message);
     }
   };
 
+
   const handleAddPhoto = async (dishId: string, file: File, caption?: string) => {
-    try { 
-      await addPhoto(dishId, file, caption); 
-    } catch (err: unknown) { 
+    try {
+      await addPhoto(dishId, file, caption);
+    } catch (err: unknown) {
       const message = err instanceof Error ? `Failed to add photo: ${err.message}` : 'Failed to add photo: An unknown error occurred.';
       setError(message);
       throw new Error(message);
     }
   };
 
+
   const handleDeletePhoto = async (_dishId: string, photoId: string) => {
-    try { 
-      await deletePhoto(photoId); 
-    } catch (err: unknown) { 
+    try {
+      await deletePhoto(photoId);
+    } catch (err: unknown) {
       const message = err instanceof Error ? `Failed to delete photo: ${err.message}` : 'Failed to delete photo: An unknown error occurred.';
       setError(message);
       throw new Error(message);
     }
   };
 
+
   const toggleActionMenu = () => setIsActionMenuOpen(prev => !prev);
+
 
   const handleShareRestaurant = () => {
     if (!restaurant) return;
@@ -447,6 +477,7 @@ const MenuScreen: React.FC = () => {
     setIsActionMenuOpen(false);
   };
 
+
   const handleDeleteRestaurant = async () => {
     if (!restaurant || !canEditOrDelete) return;
     if (window.confirm('Are you sure you want to delete this restaurant? This action cannot be undone.')) {
@@ -454,6 +485,7 @@ const MenuScreen: React.FC = () => {
             const { error: rpcError } = await supabase.rpc('delete_restaurant_and_children', {
                 p_restaurant_id: restaurant.id,
             });
+
 
             if (rpcError) {
                 throw rpcError;
@@ -469,16 +501,19 @@ const MenuScreen: React.FC = () => {
     setIsActionMenuOpen(false);
   };
 
+
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen message="Loading menu..."/>;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={() => navigate('/restaurants')} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={() => navigate('/restaurants')} />;
   const displayAddress = [restaurant.address, (restaurant as any).city].filter(Boolean).join(', ');
+
 
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
     border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
     textAlign: 'left', transition: 'background-color 0.2s ease',
   };
+
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background }}>
@@ -497,12 +532,15 @@ const MenuScreen: React.FC = () => {
             <button onClick={() => navigate(-1)} style={STYLES.iconButton} aria-label="Go back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
             </button>
-          <div style={{ flex: 1, textAlign: 'center', margin: `0 ${SPACING[2]}`, overflow: 'hidden' }}>
+          <div
+            onClick={() => setShowFullRestaurantName(true)}
+            style={{ flex: 1, textAlign: 'center', margin: `0 ${SPACING[2]}`, overflow: 'hidden', cursor: 'pointer' }}
+          >
             <h1 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={restaurant.name}>
               {restaurant.name}
             </h1>
             {displayAddress && (
-              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7, fontSize: '0.8rem', lineHeight: '1.3', margin: '2px 0 0 0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7, fontSize: '0.8rem', lineHeight: '1.3', margin: '2px 0 0 0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={displayAddress}>
                 {displayAddress}
               </p>
             )}
@@ -600,6 +638,38 @@ const MenuScreen: React.FC = () => {
           )}
         </div>
       </main>
+      {showFullRestaurantName && (
+          <div style={STYLES.modalOverlay} onClick={() => setShowFullRestaurantName(false)}>
+              <div style={{ ...STYLES.modal, maxWidth: '500px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                  <p style={{
+                      ...FONTS.elegant,
+                      color: COLORS.text,
+                      marginBottom: displayAddress ? SPACING[2] : SPACING[6],
+                      fontSize: '1.5rem',
+                      fontWeight: 500,
+                      lineHeight: 1.4,
+                      wordBreak: 'break-word',
+                  }}>
+                      {restaurant.name}
+                  </p>
+                  {displayAddress && (
+                      <p style={{
+                          ...FONTS.elegant,
+                          color: COLORS.textSecondary,
+                          fontSize: TYPOGRAPHY.base.fontSize,
+                          lineHeight: 1.5,
+                          marginBottom: SPACING[6],
+                          wordBreak: 'break-word',
+                      }}>
+                          {displayAddress}
+                      </p>
+                  )}
+                  <button onClick={() => setShowFullRestaurantName(false)} style={{ ...STYLES.secondaryButton, width: '100%' }}>
+                      Close
+                  </button>
+              </div>
+          </div>
+      )}
       {dishInfoForConfirmation && (
         <DuplicateDishWarningModal isOpen={!!dishInfoForConfirmation} onClose={() => { setDishInfoForConfirmation(null); setPotentialDuplicates([]); }} onConfirm={() => { if (dishInfoForConfirmation) { executeAddDish(dishInfoForConfirmation.name, dishInfoForConfirmation.rating); } }} duplicates={potentialDuplicates} newDishName={dishInfoForConfirmation.name} onSelectDuplicate={handleSelectDuplicate} />
       )}
@@ -616,5 +686,6 @@ const MenuScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default MenuScreen;

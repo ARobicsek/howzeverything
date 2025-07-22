@@ -257,50 +257,34 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       setIsLoading(true);
       setError(null);
       try {
-        let dbOrderByColumn: 'name' | 'average_rating' | 'created_at' = 'name';
-        let dbOrderAscending = true;
-        if (sortBy.criterion === 'community_rating') {
-          dbOrderByColumn = 'average_rating';
-          dbOrderAscending = sortBy.direction === 'asc';
-        } else if (sortBy.criterion === 'date') {
-          dbOrderByColumn = 'created_at';
-          dbOrderAscending = sortBy.direction === 'asc';
-        } else {
-          dbOrderByColumn = 'name';
-          dbOrderAscending = sortBy.direction === 'asc';
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const response = await fetch(`${supabaseUrl}/functions/v1/get-menu-data`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+            },
+            body: JSON.stringify({ restaurantId }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Request failed with status ${response.status}`);
         }
-        const { data, error: fetchError } = await supabase
-          .from('restaurant_dishes')
-          .select(`
-            *,
-            dish_comments (
-              *,
-              users!dish_comments_user_id_fkey (
-                full_name,
-                email
-              )
-            ),
-            dish_ratings (*),
-            dish_photos (
-              *,
-              users!dish_photos_user_id_fkey (
-                full_name,
-                email
-              )
-            )
-          `)
-          .eq('restaurant_id', restaurantId)
-          .eq('is_active', true)
-          .order(dbOrderByColumn, { ascending: dbOrderAscending })
-          .order('created_at', { foreignTable: 'dish_comments', ascending: true })
-          .order('created_at', { foreignTable: 'dish_ratings', ascending: false })
-          .order('created_at', { foreignTable: 'dish_photos', ascending: false });
-        if (fetchError) throw fetchError;
-        const dishesWithDetails = processDishesForMenu(data);
+        const data = await response.json();
+        
+        // Sanitize data from the edge function to ensure it matches client-side types
+        const dishesWithDetails = (data || []).map((dish: any) => ({
+            ...dish,
+            ratings: dish.ratings || [],
+            comments: dish.comments || [],
+            photos: dish.photos || [],
+        }));
         setDishes(sortDishesArray(dishesWithDetails, sortBy, currentUserId));
       } catch (err: any) {
-        console.error('Error fetching dishes:', err);
-        setError(`Failed to load dishes: ${err.message}`);
+        console.error('Error fetching menu data:', err);
+        setError(`Failed to load menu: ${err.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -786,6 +770,8 @@ export const searchAllDishes = async (
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 
+
+
     const response = await fetch(`${supabaseUrl}/functions/v1/dish-search`, {
       method: 'POST',
       headers: {
@@ -800,7 +786,11 @@ export const searchAllDishes = async (
     });
 
 
+
+
     console.timeEnd('edge-function-dish-search');
+
+
 
 
     if (!response.ok) {
@@ -809,7 +799,10 @@ export const searchAllDishes = async (
     }
 
 
+
+
     const results: any[] = await response.json();
+
 
     // --- THE FIX: Client-side data sanitization ---
     // This is a safety net to ensure that the data shape from the edge function
@@ -820,6 +813,7 @@ export const searchAllDishes = async (
       comments: dish.comments || [],
       photos: dish.photos || [],
     }));
+
 
   } catch (err) {
     console.error('Client-side error calling dish-search edge function:', err);
