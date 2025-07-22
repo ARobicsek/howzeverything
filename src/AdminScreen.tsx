@@ -11,6 +11,7 @@ import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
 import type { Restaurant } from './types/restaurant';
 import { findSimilarDishes } from './utils/dishSearch';
+
 // Simplified local interface for the admin dish list
 interface AdminDish {
   id: string;
@@ -48,6 +49,7 @@ interface UserActivity {
   dishesCommented: number;
   dishesAdded: number;
 }
+
 const geocodeAddress = async (address: string): Promise<GeocodedCoordinates | null> => {
   const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
   if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
@@ -78,6 +80,7 @@ const geocodeAddress = async (address: string): Promise<GeocodedCoordinates | nu
     return null;
   }
 };
+
 const PaginationControls: React.FC<{
     currentPage: number;
     totalItems: number;
@@ -123,6 +126,7 @@ const PaginationControls: React.FC<{
         </div>
     );
 };
+
 const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes' | 'comments' | 'analytics'>('restaurants');
@@ -155,7 +159,6 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [editName, setEditName] = useState('');
   const [editAddressData, setEditAddressData] = useState<AddressFormData | null>(null);
   const [editAddressInputKey, setEditAddressInputKey] = useState(Date.now() + 1);
-  const [addingDishToRestaurantId, setAddingDishToRestaurantId] = useState<string | null>(null);
   const [newDishName, setNewDishName] = useState('');
   const [similarDishesForModal, setSimilarDishesForModal] = useState<DishSearchResult[]>([]);
   const [dishDataForModal, setDishDataForModal] = useState<{name: string, restaurantId: string} | null>(null);
@@ -172,6 +175,13 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [analyticsSort, setAnalyticsSort] = useState<{key: keyof UserActivity, direction: 'asc' | 'desc'}>({ key: 'fullName', direction: 'asc' });
   const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+
+  // --- NEW STATE for "Dishes for Restaurant" view ---
+  const [viewingDishesForRestaurant, setViewingDishesForRestaurant] = useState<Restaurant | null>(null);
+  const [restaurantSpecificDishes, setRestaurantSpecificDishes] = useState<AdminDish[]>([]);
+  const [loadingRestaurantSpecificDishes, setLoadingRestaurantSpecificDishes] = useState(false);
+  const [showAddDishFormForRestaurant, setShowAddDishFormForRestaurant] = useState(false);
+
   const handleNewAddressChange = useCallback((data: AddressFormData) => {
     setNewAddressData(data);
   }, []);
@@ -188,10 +198,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   useEffect(() => { setRestaurantPage(1); }, [restaurantSearchTerm]);
   useEffect(() => { setDishPage(1); }, [dishSearchTerm]);
   useEffect(() => { setCommentPage(1); }, [commentRestaurantSearch, commentDishSearch]);
-  
-  // --- THE FIX: Refactored data fetching logic to use the Edge Function ---
+ 
+  // --- Data fetching for main admin tabs ---
   useEffect(() => {
-    if (!isAdmin || activeTab === 'analytics') {
+    if (!isAdmin || activeTab === 'analytics' || viewingDishesForRestaurant) {
         return;
     }
     const loadData = async () => {
@@ -233,11 +243,11 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               setRestaurants(data || []);
               setRestaurantTotal(count || 0);
           } else if (activeTab === 'dishes') {
-              const formattedDishes = data?.map((d: any) => ({ 
-                  id: d.id, 
-                  name: d.name, 
-                  created_at: d.created_at, 
-                  restaurant_name: d.restaurants?.name 
+              const formattedDishes = data?.map((d: any) => ({
+                  id: d.id,
+                  name: d.name,
+                  created_at: d.created_at,
+                  restaurant_name: d.restaurants?.name
               })) || [];
               setDishes(formattedDishes);
               setDishTotal(count || 0);
@@ -280,8 +290,38 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       commentDishSearch,
       restaurantPage,
       dishPage,
-      commentPage
+      commentPage,
+      viewingDishesForRestaurant
   ]);
+
+  // --- NEW: Fetch dishes for a specific restaurant ---
+  useEffect(() => {
+    if (viewingDishesForRestaurant) {
+        const fetchDishesForRestaurant = async () => {
+            setLoadingRestaurantSpecificDishes(true);
+            setError(null);
+            try {
+                const { data, error } = await supabase
+                    .from('restaurant_dishes')
+                    .select('id, name, created_at')
+                    .eq('restaurant_id', viewingDishesForRestaurant.id)
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+                
+                const dishesWithRestaurant = data.map(d => ({ ...d, restaurant_name: viewingDishesForRestaurant.name }));
+                setRestaurantSpecificDishes(dishesWithRestaurant);
+            } catch (err: any) {
+                setError(`Failed to load dishes for ${viewingDishesForRestaurant.name}: ${err.message}`);
+                setRestaurantSpecificDishes([]);
+            } finally {
+                setLoadingRestaurantSpecificDishes(false);
+            }
+        };
+        fetchDishesForRestaurant();
+    }
+  }, [viewingDishesForRestaurant]);
+
 
   const createNewRestaurant = async (data: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'| 'dateAdded'>) => {
     setLoading(true);
@@ -467,7 +507,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setLoading(false);
     }
   };
-  const createNewDish = async (name: string, restaurantId: string) => {
+  const createNewDish = async (name: string, restaurantId: string, successCallback?: (newDish: AdminDish) => void) => {
     if (!name.trim() || !user) {
         setError('Dish name cannot be empty.');
         return;
@@ -475,15 +515,23 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     setLoading(true);
     setError(null);
     try {
-        const { error: insertError } = await supabase
+        const { data: newDishData, error: insertError } = await supabase
             .from('restaurant_dishes')
-            .insert({ name: name.trim(), restaurant_id: restaurantId, created_by: user.id });
+            .insert({ name: name.trim(), restaurant_id: restaurantId, created_by: user.id })
+            .select('id, name, created_at')
+            .single();
+
         if (insertError) throw insertError;
+        
         setNewDishName('');
-        setAddingDishToRestaurantId(null);
         setSimilarDishesForModal([]);
         setDishDataForModal(null);
-        alert('Dish added successfully!');
+        
+        if (successCallback && newDishData) {
+            successCallback(newDishData);
+        } else {
+            alert('Dish added successfully!');
+        }
     } catch (err: any) {
         console.error('Error adding dish:', err);
         setError(`Failed to add dish: ${err.message}`);
@@ -491,7 +539,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setLoading(false);
     }
   };
-  const handleAttemptAddDish = async (restaurantId: string) => {
+  const handleAttemptAddDish = async (restaurantId: string, successCallback?: (newDish: AdminDish) => void) => {
     const name = newDishName.trim();
     if (!name) {
         setError("Dish name can't be empty.");
@@ -499,64 +547,71 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     }
     setError(null);
     try {
-      const { data: restaurantDishesRaw, error: dishError } = await supabase
-          .from('restaurant_dishes')
-          .select('*, dish_comments(*), dish_ratings(*), dish_photos(*)')
-          .eq('restaurant_id', restaurantId);
+      // For simplicity in admin, we'll use a simpler check than on the main app
+      const { data: existingDishes, error: dishError } = await supabase
+        .from('restaurant_dishes')
+        .select('id, name')
+        .eq('restaurant_id', restaurantId);
+
       if (dishError) {
           setError('Could not check for existing dishes.');
           return;
       }
-      const dishesToSearch: DishWithDetails[] = (restaurantDishesRaw || []).map(d => {
-        const ratings = (d as any).dish_ratings || [];
-        const total_ratings = ratings.length;
-        const average_rating = total_ratings > 0
-            ? ratings.reduce((acc: number, r: any) => acc + r.rating, 0) / total_ratings
-            : 0;
-        return {
-          id: d.id,
-          restaurant_id: d.restaurant_id || '',
-          name: d.name || '',
-          description: d.description,
-          category: d.category,
-          is_active: d.is_active ?? true,
-          created_by: d.created_by,
-          verified_by_restaurant: d.verified_by_restaurant ?? false,
-          created_at: d.created_at || new Date().toISOString(),
-          updated_at: d.updated_at || new Date().toISOString(),
-          comments: (d as any).dish_comments || [],
-          ratings: ratings,
-          photos: (d as any).dish_photos || [],
-          total_ratings: total_ratings,
-          average_rating: Math.round(average_rating * 10) / 10,
-          dateAdded: d.created_at || new Date().toISOString(),
-        };
-      });
+
+      // FIX: Construct a full DishWithDetails object to satisfy the type
+      const dishesToSearch: DishWithDetails[] = (existingDishes || []).map(d => ({
+        id: d.id,
+        name: d.name,
+        restaurant_id: restaurantId,
+        description: null,
+        category: null,
+        is_active: true,
+        created_by: null,
+        verified_by_restaurant: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        comments: [],
+        ratings: [],
+        photos: [],
+        total_ratings: 0,
+        average_rating: 0,
+        dateAdded: new Date().toISOString(),
+      }));
+
       const similar = findSimilarDishes(dishesToSearch, name, 75);
+
       if (similar.length > 0) {
           setDishDataForModal({ name, restaurantId });
           setSimilarDishesForModal(similar);
       } else {
-          await createNewDish(name, restaurantId);
+          await createNewDish(name, restaurantId, successCallback);
       }
     } catch (err: any) {
         console.error("Error during add dish attempt:", err);
         setError(`An unexpected error occurred while checking for duplicate dishes: ${err.message}`);
     }
   };
+  // MODIFIED: Optimistic delete for "All Dishes" tab
   const deleteDish = async (id: string) => {
     if (!confirm('Are you sure you want to delete this dish and all its ratings/comments?')) return;
-    setLoading(true);
+    
+    const originalDishes = [...dishes];
+    const originalTotal = dishTotal;
+
+    // Optimistically update UI
+    setDishes(prevDishes => prevDishes.filter(dish => dish.id !== id));
+    setDishTotal(prevTotal => (prevTotal > 0 ? prevTotal - 1 : 0));
     setError(null);
+
     try {
       const { error } = await supabase.from('restaurant_dishes').delete().eq('id', id);
       if (error) throw error;
-      setDishPage(1); // Force refetch
     } catch (err: any) {
       console.error('Error deleting dish:', err);
-      setError(`Failed to delete dish: ${err.message}`);
-    } finally {
-      setLoading(false);
+      setError(`Failed to delete dish. Reverting changes. Error: ${err.message}`);
+      // Revert UI on failure
+      setDishes(originalDishes);
+      setDishTotal(originalTotal);
     }
   };
   const deleteComment = async (id: string) => {
@@ -710,6 +765,40 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         setIsAnalyticsLoading(false);
     }
   };
+
+  // --- NEW handlers for the "Dishes for Restaurant" view ---
+  const updateDishInRestaurantView = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.from('restaurant_dishes').update({ name: editName.trim(), updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      setRestaurantSpecificDishes(prev => prev.map(d =>
+        d.id === id ? { ...d, name: editName.trim() } : d
+      ));
+      setEditingDishId(null);
+    } catch (err: any) {
+      console.error('Error updating dish:', err);
+      setError(`Failed to update dish: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const deleteDishFromRestaurantView = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this dish?')) return;
+    const originalDishes = [...restaurantSpecificDishes];
+    setRestaurantSpecificDishes(prevDishes => prevDishes.filter(dish => dish.id !== id));
+    setError(null);
+    try {
+      const { error } = await supabase.from('restaurant_dishes').delete().eq('id', id);
+      if (error) throw error;
+    } catch (err: any) {
+      console.error('Error deleting dish:', err);
+      setError(`Failed to delete dish. Reverting changes. Error: ${err.message}`);
+      setRestaurantSpecificDishes(originalDishes);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div style={{ padding: SPACING[4], textAlign: 'center' }}>
@@ -747,6 +836,90 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     textDecoration: 'underline',
     cursor: 'pointer'
   };
+
+  // --- NEW: Render "Dishes for Restaurant" view if a restaurant is selected ---
+  if (viewingDishesForRestaurant) {
+    return (
+        <div style={{ padding: SPACING[4], maxWidth: '1200px', margin: '0 auto' }}>
+            <button
+                onClick={() => setViewingDishesForRestaurant(null)}
+                style={{ ...STYLES.secondaryButton, marginBottom: SPACING[4], display: 'inline-flex', alignItems: 'center', gap: SPACING[2] }}
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                Back to All Restaurants
+            </button>
+            <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Dishes for {viewingDishesForRestaurant.name}</h1>
+
+            {error && <div style={{...TYPOGRAPHY.body, color: COLORS.error, background: `${COLORS.error}10`, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[4], cursor: 'pointer' }} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
+            
+            {showAddDishFormForRestaurant ? (
+                <div style={{ background: COLORS.surface, padding: SPACING[6], borderRadius: BORDERS.radius.large, marginBottom: SPACING[6], boxShadow: SHADOWS.small }}>
+                    <h2 style={{ ...TYPOGRAPHY.h2, margin: 0, marginBottom: SPACING[4] }}>Add New Dish</h2>
+                    <div style={{ display: 'grid', gap: SPACING[4] }}>
+                        <input
+                            type="text"
+                            placeholder="New Dish Name *"
+                            value={newDishName}
+                            onChange={(e) => setNewDishName(e.target.value)}
+                            style={STYLES.input}
+                        />
+                         <div style={{ display: 'flex', gap: SPACING[2], justifyContent: 'flex-end' }}>
+                             <button onClick={() => setShowAddDishFormForRestaurant(false)} style={{...TYPOGRAPHY.button, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, padding: `${SPACING[2]} ${SPACING[4]}` }}>Cancel</button>
+                             <button
+                                 onClick={() => handleAttemptAddDish(viewingDishesForRestaurant.id, (newDish) => {
+                                     const newAdminDish: AdminDish = { ...newDish, restaurant_name: viewingDishesForRestaurant.name };
+                                     setRestaurantSpecificDishes(prev => [...prev, newAdminDish].sort((a,b) => a.name.localeCompare(b.name)));
+                                     setShowAddDishFormForRestaurant(false);
+                                 })}
+                                 disabled={loading}
+                                 style={{ ...TYPOGRAPHY.button, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, padding: `${SPACING[2]} ${SPACING[4]}` }}
+                             >
+                                 Add
+                             </button>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div style={{ marginBottom: SPACING[6] }}>
+                    <button onClick={() => setShowAddDishFormForRestaurant(true)} style={{...STYLES.primaryButton, width: '100%', padding: SPACING[4]}}>Add New Dish</button>
+                </div>
+            )}
+
+
+            <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>Existing Dishes ({restaurantSpecificDishes.length})</h2>
+            {loadingRestaurantSpecificDishes ? (
+                <p style={TYPOGRAPHY.body}>Loading dishes...</p>
+            ) : (
+                <div style={{ display: 'grid', gap: SPACING[4] }}>
+                    {restaurantSpecificDishes.length > 0 ? restaurantSpecificDishes.map((dish) => (
+                        <div key={dish.id} style={{ background: COLORS.surface, padding: SPACING[4], borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.small }}>
+                        {editingDishId === dish.id ? (
+                            <div style={{ display: 'grid', gap: SPACING[2] }}>
+                                <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} style={STYLES.input}/>
+                                <div style={{ display: 'flex', gap: SPACING[2] }}>
+                                    <button onClick={() => updateDishInRestaurantView(dish.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Save</button>
+                                    <button onClick={() => setEditingDishId(null)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Cancel</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <h3 style={{ ...TYPOGRAPHY.h3, marginBottom: SPACING[2] }}>{dish.name}</h3>
+                                <div style={{ display: 'flex', gap: SPACING[2] }}>
+                                    <button onClick={() => startEditDish(dish)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Edit</button>
+                                    <button onClick={() => deleteDishFromRestaurantView(dish.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.error, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Delete</button>
+                                </div>
+                            </div>
+                        )}
+                        </div>
+                    )) : (
+                        <p style={TYPOGRAPHY.body}>No dishes found for this restaurant.</p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+  }
+
   return (
     <div style={{ padding: SPACING[4], maxWidth: '1200px', margin: '0 auto' }}>
       <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Admin Panel</h1>
@@ -814,20 +987,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                                   <button onClick={() => startEditRestaurant(restaurant)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Edit</button>
                                   <button onClick={() => deleteRestaurant(restaurant.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.error, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Delete</button>
                                 </div>
-                                <button onClick={() => { setAddingDishToRestaurantId(restaurant.id); setNewDishName(''); }} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.success, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Add Dish</button>
+                                <button onClick={() => setViewingDishesForRestaurant(restaurant)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.success, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>See Dishes</button>
                             </div>
-                            {addingDishToRestaurantId === restaurant.id && (
-                                <div style={{ marginTop: SPACING[4], borderTop: `1px solid ${COLORS.border}`, paddingTop: SPACING[4] }}>
-                                  <h4 style={{ ...TYPOGRAPHY.body, fontWeight: TYPOGRAPHY.semibold, marginBottom: SPACING[2] }}>Add new dish to {restaurant.name}</h4>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-                                      <input type="text" placeholder="New Dish Name" value={newDishName} onChange={(e) => setNewDishName(e.target.value)} style={STYLES.input}/>
-                                      <div style={{ display: 'flex', gap: SPACING[2], justifyContent: 'flex-end' }}>
-                                          <button onClick={() => setAddingDishToRestaurantId(null)} style={{...TYPOGRAPHY.button, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, padding: `${SPACING[2]} ${SPACING[4]}` }}>Cancel</button>
-                                          <button onClick={() => handleAttemptAddDish(restaurant.id)} disabled={loading} style={{...TYPOGRAPHY.button, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, padding: `${SPACING[2]} ${SPACING[4]}` }}>Add</button>
-                                      </div>
-                                  </div>
-                                </div>
-                            )}
                           </div>
                         )}
                       </div>
@@ -1002,8 +1163,15 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         newDishName={dishDataForModal?.name || ''}
         similarDishes={similarDishesForModal}
         onCreateNew={() => {
-            if (dishDataForModal) {
-                createNewDish(dishDataForModal.name, dishDataForModal.restaurantId);
+            if (dishDataForModal && viewingDishesForRestaurant) {
+                // FIX: Use type assertion to explicitly tell TypeScript this is a Restaurant type
+                const restaurantName = (viewingDishesForRestaurant as Restaurant).name;
+                createNewDish(dishDataForModal.name, dishDataForModal.restaurantId, (newDish: AdminDish) => {
+                    const newAdminDish: AdminDish = { ...newDish, restaurant_name: restaurantName };
+                    setRestaurantSpecificDishes(prev => [...prev, newAdminDish].sort((a,b) => a.name.localeCompare(b.name)));
+                });
+            } else if (dishDataForModal) {
+                createNewDish(dishDataForModal.name, dishDataForModal.restaurantId, () => setDishPage(1));
             }
         }}
         onUseExisting={(dish) => {
