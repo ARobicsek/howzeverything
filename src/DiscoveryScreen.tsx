@@ -96,8 +96,8 @@ const DiscoveryScreen: React.FC = () => {
       console.time(`DiscoveryScreen-search-${searchId}`);
       console.log(`[PERF] Starting search (${searchId}) at:`, new Date().toISOString());
       try {
-          // --- THE FIX: Removed withTimeout to measure the true duration of the Supabase freeze ---
-          let results = await searchAllDishes(searchTerm.trim(), minRating, searchId);
+          // --- THE FIX: Removed the third argument 'searchId' to match the function definition ---
+          let results = await searchAllDishes(searchTerm.trim(), minRating);
           if (!isActive) {
             console.log(`[DISCOVERY] Search aborted (${searchId}), effect is no longer active.`);
             return;

@@ -782,18 +782,16 @@ export const searchAllDishes = async (
 ): Promise<DishSearchResultWithRestaurant[]> => {
   try {
     console.time('edge-function-dish-search');
-    // --- THE DEFINITIVE FIX: Bypass supabase.functions.invoke entirely ---
-    // Use the standard browser 'fetch' to call the endpoint directly.
-    // This isolates the call from any performance issues in the Supabase client's session handling.
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 
     const response = await fetch(`${supabaseUrl}/functions/v1/dish-search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`, // Required for public function calls
+        'Authorization': `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify({
         searchTerm: searchTerm?.trim(),
@@ -801,14 +799,28 @@ export const searchAllDishes = async (
       }),
     });
 
+
     console.timeEnd('edge-function-dish-search');
+
 
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
 
-    return await response.json();
+
+    const results: any[] = await response.json();
+
+    // --- THE FIX: Client-side data sanitization ---
+    // This is a safety net to ensure that the data shape from the edge function
+    // is always what the client components expect, preventing crashes.
+    return (results || []).map((dish: any) => ({
+      ...dish,
+      ratings: dish.ratings || [],
+      comments: dish.comments || [],
+      photos: dish.photos || [],
+    }));
+
   } catch (err) {
     console.error('Client-side error calling dish-search edge function:', err);
     if (err instanceof Error) {
