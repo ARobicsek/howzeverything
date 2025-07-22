@@ -6,10 +6,6 @@ import {
     signOut as supabaseSignOut,
     type DatabaseUser
 } from '../supabaseClient';
-
-
-
-
 interface AuthState {
   user: User | null;
   profile: DatabaseUser | null;
@@ -17,10 +13,6 @@ interface AuthState {
   loading: boolean;
   error: string | null;
 }
-
-
-
-
 interface AuthActions {
   signIn: (email: string, password:string) => Promise<boolean>;
   signUp: (email: string, password: string, fullName?: string) => Promise<boolean>;
@@ -30,20 +22,8 @@ interface AuthActions {
   clearError: () => void;
   refreshProfile: () => Promise<void>;
 }
-
-
-
-
 export type UseAuthReturn = AuthState & AuthActions;
-
-
-
-
 const AuthContext = createContext<UseAuthReturn | null>(null);
-
-
-
-
 function useAuthLogic(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<DatabaseUser | null>(null);
@@ -52,10 +32,6 @@ function useAuthLogic(): UseAuthReturn {
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef<string | null>(null);
   const profileLoadedRef = useRef<string | null>(null);
-
-
-
-
   const loadUserProfile = useCallback(async (userId: string): Promise<boolean> => {
     if (loadingRef.current === userId) {
       console.log('🔐 AuthContext: loadUserProfile: Already loading for this user');
@@ -111,20 +87,19 @@ function useAuthLogic(): UseAuthReturn {
       loadingRef.current = null;
     }
   }, []); // <-- THE FIX: Removed `profile` from the dependency array
-
-
-
-
   useEffect(() => {
     let isMounted = true;
     // setLoading(true) is the default state, so no need to set it again.
     // We will now only set it to false after the initial session is handled.
-
-
-
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
+      console.log('[AUTH] Session state change:', {
+        event: _event,
+        hasSession: !!session,
+        userId: session?.user?.id,
+        tokenExpiresIn: session?.expires_at ? `${Math.round((new Date(session.expires_at * 1000).getTime() - Date.now()) / 1000)}s` : 'N/A',
+        timestamp: new Date().toISOString()
+      });
       console.log('🔐 Auth event:', _event);
       if (session?.user) {
         setSession(session);
@@ -142,10 +117,6 @@ function useAuthLogic(): UseAuthReturn {
         setProfile(null);
         profileLoadedRef.current = null;
       }
-
-
-
-
       // **THE FIX**: Only set loading to false after the initial session has been retrieved.
       // This ensures the app shows a loading screen until we know for sure if a user is logged in.
       if (_event === 'INITIAL_SESSION') {
@@ -155,19 +126,29 @@ function useAuthLogic(): UseAuthReturn {
         }
       }
     });
-
-
-
-
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
   }, [loadUserProfile]);
-
-
-
-
+  // --- THE FIX: Add a listener to proactively refresh the session on window focus ---
+  useEffect(() => {
+    const handleFocus = async () => {
+        console.log('🔐 [Auth] Window focused, proactively checking session...');
+        console.time('proactive-focus-refresh');
+        const { error } = await supabase.auth.getSession();
+        console.timeEnd('proactive-focus-refresh');
+        if (error) {
+            console.error('🔐 [Auth] Error on focus-triggered session refresh:', error.message);
+        } else {
+            console.log('🔐 [Auth] Session checked on focus.');
+        }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+        window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
@@ -189,10 +170,6 @@ function useAuthLogic(): UseAuthReturn {
       return false;
     }
   }, []);
-
-
-
-
   const signUp = useCallback(async (email: string, password: string, fullName?: string): Promise<boolean> => {
     try {
       setLoading(true);
@@ -222,10 +199,6 @@ function useAuthLogic(): UseAuthReturn {
       return false;
     }
   }, []);
-
-
-
-
   const signOut = useCallback(async (): Promise<void> => {
     try {
       setError(null);
@@ -235,10 +208,6 @@ function useAuthLogic(): UseAuthReturn {
       throw err;
     }
   }, []);
-
-
-
-
   const createProfile = useCallback(async (profileData: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user) {
@@ -289,10 +258,6 @@ function useAuthLogic(): UseAuthReturn {
       return false;
     }
   }, [user, loadUserProfile, profile]);
-
-
-
-
   const updateProfile = useCallback(async (updates: Partial<DatabaseUser>): Promise<boolean> => {
     try {
       if (!user || !profile) {
@@ -320,27 +285,15 @@ function useAuthLogic(): UseAuthReturn {
       return false;
     }
   }, [user, profile]);
-
-
-
-
   const refreshProfile = useCallback(async (): Promise<void> => {
     if (user) {
       profileLoadedRef.current = null;
       await loadUserProfile(user.id);
     }
   }, [user, loadUserProfile]);
-
-
-
-
   const clearError = useCallback(() => {
     setError(null);
   }, []);
-
-
-
-
   return {
     user,
     profile,
@@ -356,10 +309,6 @@ function useAuthLogic(): UseAuthReturn {
     refreshProfile
   };
 }
-
-
-
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuthLogic();
   useEffect(() => {
@@ -372,8 +321,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-
-
-
 export { AuthContext };

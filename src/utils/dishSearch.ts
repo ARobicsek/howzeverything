@@ -5,6 +5,10 @@ import { DishSearchResult, DishWithDetails } from '../hooks/useDishes';
 
 
 
+
+
+
+
 // Hierarchical category system
 const FOOD_CATEGORIES = {
   'beverages': {
@@ -37,6 +41,10 @@ const FOOD_CATEGORIES = {
     'flatbreads': ['pita', 'naan', 'tortilla', 'lavash', 'matzo']
   }
 };
+
+
+
+
 
 
 
@@ -195,6 +203,10 @@ const FOOD_SYNONYMS: { [key: string]: string[] } = {
 
 
 
+
+
+
+
 // Cuisine-based groupings
 const CUISINE_FAMILIES = {
   'italian': ['pasta', 'pizza', 'risotto', 'lasagna', 'carbonara', 'marinara', 'pesto', 'bruschetta', 'panini', 'calzone', 'tiramisu', 'gelato', 'cappuccino', 'espresso'],
@@ -214,6 +226,10 @@ const CUISINE_FAMILIES = {
 
 
 
+
+
+
+
 // Meal time categories
 const MEAL_TIMES = {
   'breakfast': ['eggs', 'pancakes', 'waffles', 'french toast', 'cereal', 'oatmeal', 'bacon', 'sausage', 'toast', 'bagel', 'muffin', 'croissant', 'yogurt', 'granola', 'smoothie bowl', 'danish', 'scone', 'coffee cake', 'cinnamon roll', 'bialy'],
@@ -224,6 +240,8 @@ const MEAL_TIMES = {
   'snack': ['chips', 'popcorn', 'nuts', 'fruit', 'cheese', 'crackers', 'granola bar', 'trail mix'],
   'appetizer': ['wings', 'nachos', 'bruschetta', 'spring rolls', 'calamari', 'cheese sticks', 'spinach dip']
 };
+
+
 
 
 // --- THE FIX: Pre-compute the expensive reverse lookup ONCE at module load time. ---
@@ -239,6 +257,15 @@ Object.entries(FOOD_SYNONYMS).forEach(([key, synonyms]) => {
     }
   });
 });
+// --- LOGIC HARDENING: Ensure all primary keys map to themselves to prevent being overwritten. ---
+Object.keys(FOOD_SYNONYMS).forEach(key => {
+  const normalizedKey = normalizeText(key);
+  REVERSE_FOOD_SYNONYMS.set(normalizedKey, normalizedKey);
+});
+
+
+
+
 
 
 
@@ -259,6 +286,10 @@ function normalizeText(text: string): string {
     .replace(/\'s\b/g, 's')
     .replace(/s\'\b/g, 's');
 }
+
+
+
+
 
 
 
@@ -289,6 +320,10 @@ function generatePlurals(term: string): string[] {
 
 
 
+
+
+
+
 // Helper function to expand search with compound word handling
 function expandCompoundWords(term: string): string[] {
   const expanded = [term];
@@ -311,6 +346,10 @@ function expandCompoundWords(term: string): string[] {
   }
   return [...new Set(expanded)];
 }
+
+
+
+
 
 
 
@@ -352,6 +391,10 @@ export function expandSearchTermWithSynonyms(term: string): string[] {
 
 
 
+
+
+
+
 // Enhanced function to get all related terms including categories
 export function getAllRelatedTerms(term: string): string[] {
   const normalizedTerm = normalizeText(term);
@@ -381,6 +424,10 @@ export function getAllRelatedTerms(term: string): string[] {
 
 
 
+
+
+
+
 // Enhanced configuration for Fuse.js
 const FUSE_OPTIONS = {
   threshold: 0.4, // Slightly more lenient for fuzzy matches
@@ -390,6 +437,10 @@ const FUSE_OPTIONS = {
   ignoreLocation: true,
   useExtendedSearch: false
 };
+
+
+
+
 
 
 
@@ -413,6 +464,7 @@ export function enhancedDishSearch(
     }));
   }
 
+
   const startTime = performance.now();
   const normalizedSearch = normalizeText(searchTerm);
   const results = new Map<string, DishSearchResult>();
@@ -432,12 +484,15 @@ export function enhancedDishSearch(
   const originalTermWords = normalizeText(searchTerm).split(' ');
   console.log('[DishSearch] Expanded terms:', expandedTerms.slice(0, 10), '...');
 
+
   dishes.forEach(dish => {
     const dishName = normalizeText(dish.name);
     const dishWords = dishName.split(' ');
 
+
     let score = 0;
     let matchType: 'exact' | 'partial' | 'fuzzy' = 'fuzzy';
+
 
     // Tier 1: Exact match on original term
     if (dishName === normalizedSearch) {
@@ -462,6 +517,7 @@ export function enhancedDishSearch(
           }
         }
       }
+
 
       if (isOriginalWordMatch) {
         score = 90;
@@ -494,6 +550,7 @@ export function enhancedDishSearch(
     // Get IDs of dishes we already scored to avoid re-processing
     const matchedDishIds = new Set(Array.from(results.keys()));
     const dishesForFuse = dishes.filter(d => !matchedDishIds.has(d.id));
+
 
     if (dishesForFuse.length > 0) {
         const fuse = new Fuse(dishesForFuse, FUSE_OPTIONS);
@@ -535,6 +592,10 @@ export function enhancedDishSearch(
 
 
 
+
+
+
+
 /**
  * Check if the search term is a category
  */
@@ -568,6 +629,10 @@ function checkCategorySearch(term: string): boolean {
   }
   return false;
 }
+
+
+
+
 
 
 
@@ -725,6 +790,10 @@ function findDishesInCategory(dishes: DishWithDetails[], category: string): Dish
 
 
 
+
+
+
+
 /**
  * Check for potential duplicate dishes when adding a new dish
  */
@@ -742,6 +811,10 @@ export function findSimilarDishes(
 
 
 
+
+
+
+
 /**
  * Get a readable similarity description for the user
  */
@@ -751,6 +824,10 @@ export function getSimilarityDescription(score: number): string {
   if (score >= 75) return "Somewhat similar";
   return "Possibly related";
 }
+
+
+
+
 
 
 
@@ -778,6 +855,10 @@ export function debugSearchTest(dishes: DishWithDetails[], searchTerm: string): 
   }
   console.log('=== END DEBUG ===\n');
 }
+
+
+
+
 
 
 

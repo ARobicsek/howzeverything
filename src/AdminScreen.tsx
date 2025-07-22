@@ -10,7 +10,7 @@ import { DishSearchResult, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
 import type { Restaurant } from './types/restaurant';
-import { findSimilarDishes, getAllRelatedTerms } from './utils/dishSearch';
+import { findSimilarDishes } from './utils/dishSearch';
 // Simplified local interface for the admin dish list
 interface AdminDish {
   id: string;
@@ -188,97 +188,82 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   useEffect(() => { setRestaurantPage(1); }, [restaurantSearchTerm]);
   useEffect(() => { setDishPage(1); }, [dishSearchTerm]);
   useEffect(() => { setCommentPage(1); }, [commentRestaurantSearch, commentDishSearch]);
-  // --- THE FIX: Refactored data fetching logic ---
+  
+  // --- THE FIX: Refactored data fetching logic to use the Edge Function ---
   useEffect(() => {
     if (!isAdmin || activeTab === 'analytics') {
         return;
     }
     const loadData = async () => {
+      console.time(`AdminScreen-loadData-${activeTab}`);
       setLoading(true);
       setError(null);
       try {
-        if (activeTab === 'restaurants') {
-          const from = (restaurantPage - 1) * ITEMS_PER_PAGE;
-          const to = from + ITEMS_PER_PAGE - 1;
-          const term = restaurantSearchTerm.trim();
-          let query = supabase.from('restaurants').select('*', { count: 'exact' });
-          if (term) {
-            query = query.or(`name.ilike.%${term}%,city.ilike.%${term}%,full_address.ilike.%${term}%`);
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+              throw new Error("Authentication session not found. Please log in again.");
           }
-          const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
-          if (error) throw error;
-          setRestaurants(data as Restaurant[] || []);
-          setRestaurantTotal(count || 0);
-        } else if (activeTab === 'dishes') {
-          const from = (dishPage - 1) * ITEMS_PER_PAGE;
-          const to = from + ITEMS_PER_PAGE - 1;
-          const term = dishSearchTerm.trim();
-          let query = supabase.from('restaurant_dishes').select(`id, name, created_at, restaurants (name)`, { count: 'exact' });
-          if (term.length >= 2) {
-              const expandedTerms = getAllRelatedTerms(term).slice(0, 10);
-              const orFilter = expandedTerms.map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
-              query = query.or(orFilter);
+
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-data`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY!,
+                  'Authorization': `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({
+                  dataType: activeTab,
+                  page: activeTab === 'restaurants' ? restaurantPage : (activeTab === 'dishes' ? dishPage : commentPage),
+                  limit: ITEMS_PER_PAGE,
+                  restaurantSearchTerm,
+                  dishSearchTerm,
+                  commentRestaurantSearch,
+                  commentDishSearch
+              }),
+          });
+
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `Request failed with status ${response.status}`);
           }
-          const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
-          if (error) throw error;
-          setDishes(data?.map(d => ({ id: d.id, name: d.name, created_at: d.created_at, restaurant_name: (d.restaurants as any)?.name })) || []);
-          setDishTotal(count || 0);
-        } else if (activeTab === 'comments') {
-          const from = (commentPage - 1) * ITEMS_PER_PAGE;
-          const to = from + ITEMS_PER_PAGE - 1;
-          let query = supabase
-              .from('dish_comments')
-              .select(`
-                  *,
-                  restaurant_dishes!inner(name, restaurant_id, restaurants!inner(name)),
-                  users!dish_comments_user_id_fkey(full_name, email)
-              `, { count: 'exact' });
-          const restaurantTerm = commentRestaurantSearch.trim();
-          const dishTerm = commentDishSearch.trim();
-          const foreignTableFilters: string[] = [];
-          if (restaurantTerm) {
-            foreignTableFilters.push(`restaurants.name.ilike.%${restaurantTerm}%`);
-          }
-          if (dishTerm.length >= 2) {
-            const expandedTerms = getAllRelatedTerms(dishTerm).slice(0, 10);
-            const dishOrFilter = expandedTerms.map(t => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
-            if (expandedTerms.length > 0) {
-              foreignTableFilters.push(`or(${dishOrFilter})`);
-            }
-          }
-          // --- THE FIX: Build a single filter string and apply it to avoid TS error and runtime bug ---
-          if (foreignTableFilters.length > 0) {
-            const filterString = foreignTableFilters.length > 1
-                ? `and(${foreignTableFilters.join(',')})`
-                : foreignTableFilters[0];
-            query = query.or(filterString, { foreignTable: 'restaurant_dishes' });
-          }
-          const { data, error, count } = await query
-              .order('created_at', { ascending: false })
-              .range(from, to);
-          if (error) throw error;
-          setComments(data?.map(c => {
-              const dishInfo = c.restaurant_dishes as any;
-              return {
+
+          const { data, count } = await response.json();
+
+          if (activeTab === 'restaurants') {
+              setRestaurants(data || []);
+              setRestaurantTotal(count || 0);
+          } else if (activeTab === 'dishes') {
+              const formattedDishes = data?.map((d: any) => ({ 
+                  id: d.id, 
+                  name: d.name, 
+                  created_at: d.created_at, 
+                  restaurant_name: d.restaurants?.name 
+              })) || [];
+              setDishes(formattedDishes);
+              setDishTotal(count || 0);
+          } else if (activeTab === 'comments') {
+              const formattedComments = data?.map((c: any) => ({
                   id: c.id,
                   comment: c.comment_text,
                   created_at: c.created_at,
                   dish_id: c.dish_id || '',
-                  dish_name: dishInfo?.name,
-                  restaurant_id: dishInfo?.restaurant_id,
-                  restaurant_name: dishInfo?.restaurants?.name,
+                  dish_name: c.restaurant_dishes?.name,
+                  restaurant_id: c.restaurant_dishes?.restaurant_id,
+                  restaurant_name: c.restaurant_dishes?.restaurants?.name,
                   user_id: c.user_id,
-                  username: (c.users as any)?.full_name || (c.users as any)?.email,
+                  username: c.users?.full_name || c.users?.email,
                   is_hidden: c.is_hidden ?? false,
-              };
-          }) || []);
-          setCommentTotal(count || 0);
-        }
+              })) || [];
+              setComments(formattedComments);
+              setCommentTotal(count || 0);
+          }
+
       } catch (err: any) {
-        console.error('Error loading data:', err);
-        setError('Failed to load data');
+        console.error('Error loading admin data:', err);
+        setError(`Failed to load data: ${err.message}`);
       } finally {
         setLoading(false);
+        console.timeEnd(`AdminScreen-loadData-${activeTab}`);
       }
     };
     const isSearching = (activeTab === 'restaurants' && restaurantSearchTerm) || (activeTab === 'dishes' && dishSearchTerm) || (activeTab === 'comments' && (commentDishSearch || commentRestaurantSearch));
@@ -297,6 +282,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       dishPage,
       commentPage
   ]);
+
   const createNewRestaurant = async (data: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'| 'dateAdded'>) => {
     setLoading(true);
     setError(null);
@@ -325,7 +311,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setSimilarRestaurants([]);
       setNewRestaurantData(null);
       // Trigger a refetch by changing a dependency of the main useEffect
-      setActiveTab('restaurants'); 
+      setActiveTab('restaurants');
       setRestaurantPage(1);
     } catch (err: any) {
       console.error('Error adding restaurant:', err);

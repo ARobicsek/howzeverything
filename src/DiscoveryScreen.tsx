@@ -1,5 +1,5 @@
 // src/DiscoveryScreen.tsx
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
@@ -11,40 +11,8 @@ import { useLocationService } from './hooks/useLocationService';
 import { useRestaurants } from './hooks/useRestaurants';
 import { supabase } from './supabaseClient';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const SEARCH_BAR_WIDTH = '350px';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -53,22 +21,6 @@ interface RestaurantGroup {
   };
   dishes: DishSearchResultWithRestaurant[];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const DiscoveryScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -81,177 +33,34 @@ const DiscoveryScreen: React.FC = () => {
     openPermissionModal,
     initialCheckComplete,
   } = useLocationService();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxDistance, setMaxDistance] = useState(-1); // in miles, -1 for 'Any'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // Data and loading states
   const [filteredAndGrouped, setFilteredAndGrouped] = useState<RestaurantGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const effectRunCount = useRef(0);
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
     setMinRating(0);
     setMaxDistance(-1);
   }, []);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   useEffect(() => {
     if (favoriteRestaurants.length > 0) {
       setFavoriteRestaurantIds(new Set(favoriteRestaurants.map(r => r.id)));
     }
   }, [favoriteRestaurants]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   useEffect(() => {
     if (!initialCheckComplete) return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (!user || locationStatus === 'granted' || locationStatus === 'requesting') return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);
     if (hasInteracted) return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (locationStatus === 'denied') {
       openPermissionModal();
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
@@ -260,44 +69,39 @@ const DiscoveryScreen: React.FC = () => {
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
     }
   }, [locationStatus, user, openPermissionModal, requestLocation, initialCheckComplete]);
-
-
-
-
-
-
-
-
-  // --- THE FIX: The search logic is moved inside useEffect to avoid stale closures and useCallback complexity. ---
   useEffect(() => {
+    effectRunCount.current++;
+    console.log(`[DISCOVERY] Search Effect Run #${effectRunCount.current}`, {
+      searchTerm,
+      minRating,
+      maxDistance,
+      hasUserLocation: !!userLocation,
+      timestamp: new Date().toISOString()
+    });
+    let isActive = true;
     const runSearch = async () => {
+      const searchId = `${searchTerm.trim()}-${Date.now()}`;
       const hasSearchTerm = searchTerm.trim().length >= 2;
       const hasActiveFilters = minRating > 0 || maxDistance > -1;
-
-
-
-
       if (!hasSearchTerm && !hasActiveFilters) {
-          setFilteredAndGrouped([]);
-          setIsLoading(false);
+          if (isActive) {
+            setFilteredAndGrouped([]);
+            setIsLoading(false);
+            setError(null);
+          }
           return;
       }
-
-
-
-
       setIsLoading(true);
       setError(null);
-
-
-
-
+      console.time(`DiscoveryScreen-search-${searchId}`);
+      console.log(`[PERF] Starting search (${searchId}) at:`, new Date().toISOString());
       try {
-          let results = await searchAllDishes(searchTerm.trim(), minRating);
-
-
-
-
+          // --- THE FIX: Removed withTimeout to measure the true duration of the Supabase freeze ---
+          let results = await searchAllDishes(searchTerm.trim(), minRating, searchId);
+          if (!isActive) {
+            console.log(`[DISCOVERY] Search aborted (${searchId}), effect is no longer active.`);
+            return;
+          }
           if (maxDistance > -1 && userLocation) {
               results = results.filter(dish => {
                   if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
@@ -312,10 +116,6 @@ const DiscoveryScreen: React.FC = () => {
                   return false;
               });
           }
-
-
-
-
           const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {
               const restaurantId = dish.restaurant.id;
               if (!acc[restaurantId]) {
@@ -331,60 +131,40 @@ const DiscoveryScreen: React.FC = () => {
               acc[restaurantId].dishes.push(dish);
               return acc;
           }, {});
-
-
-
-
           const sortedGroups = Object.values(grouped).sort((a, b) => {
               if (userLocation && a.restaurant.distance !== undefined && b.restaurant.distance !== undefined) {
                   return a.restaurant.distance - b.restaurant.distance;
               }
               return a.restaurant.name.localeCompare(b.restaurant.name);
           });
-
-
-
-
-          setFilteredAndGrouped(sortedGroups);
+          if (isActive) {
+            setFilteredAndGrouped(sortedGroups);
+          }
       } catch (e: any) {
-          setError('Could not load dishes. Please try again later.');
+          if (isActive) {
+            setError('Could not load dishes. Please try again later.');
+          }
           console.error(e);
       } finally {
-          setIsLoading(false);
+          if (isActive) {
+            setIsLoading(false);
+          }
+          console.timeEnd(`DiscoveryScreen-search-${searchId}`);
       }
     };
-
-
-
-
-
-
-
-
-    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
     const timer = setTimeout(() => {
         runSearch();
     }, 300);
     setSearchDebounceTimer(timer);
-    return () => clearTimeout(timer);
-    // This useEffect now correctly depends on all variables that should trigger a search.
+    return () => {
+        isActive = false;
+        console.log(`[CLEANUP] Clearing timer ${timer} and disarming effect in DiscoveryScreen.`);
+        clearTimeout(timer);
+    }
   }, [searchTerm, minRating, maxDistance, userLocation]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const addRestaurantToFavorites = async (restaurantId: string) => {
     if (!user) return;
     const { error } = await supabase
@@ -395,22 +175,6 @@ const DiscoveryScreen: React.FC = () => {
       throw error;
     }
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const handleUpdateRating = async (dishId: string, newRating: number) => {
     if (!user) {
       alert("Please log in to rate dishes.");
@@ -418,56 +182,22 @@ const DiscoveryScreen: React.FC = () => {
     }
     const dishToUpdate = [...filteredAndGrouped].flatMap(g => g.dishes).find(d => d.id === dishId);
     if (!dishToUpdate) return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     try {
       const isFavorite = favoriteRestaurantIds.has(dishToUpdate.restaurant.id);
       if (!isFavorite) {
         await addRestaurantToFavorites(dishToUpdate.restaurant.id);
         setFavoriteRestaurantIds(prev => new Set(prev).add(dishToUpdate.restaurant.id));
       }
-
-
-
-
-
-
-
       const success = await updateRatingForDish(dishId, user.id, newRating);
       if (!success) {
         throw new Error("Failed to save rating to the database.");
       }
-
-
-
-
-
-
       setFilteredAndGrouped(prevGroups => prevGroups.map(group => ({
           ...group,
           dishes: group.dishes.map(dish => {
               if (dish.id === dishId) {
                   const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
                   let newRatings: DishRating[] = [...dish.ratings];
-
-
-
-
-
                   if (existingRatingIndex > -1) {
                       if (newRating === 0) {
                           newRatings.splice(existingRatingIndex, 1);
@@ -480,10 +210,6 @@ const DiscoveryScreen: React.FC = () => {
                           created_at: new Date().toISOString(), updated_at: new Date().toISOString(), date_tried: new Date().toISOString(),
                       });
                   }
-
-
-
-
                   const total = newRatings.length;
                   const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
                   return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
@@ -496,10 +222,6 @@ const DiscoveryScreen: React.FC = () => {
       alert("There was a problem saving your rating. Please try again.");
     }
   };
-
-
-
-
   const handleShareDish = (dish: DishWithDetails) => {
     if (!('restaurant' in dish) || !(dish as any).restaurant.name) {
       console.error("Cannot share dish, missing restaurant context:", dish);
@@ -540,10 +262,6 @@ const DiscoveryScreen: React.FC = () => {
       });
     }
   };
-
-
-
-
   const selectStyle: React.CSSProperties = {
     border: `1px solid ${COLORS.gray300}`,
     borderRadius: '8px',
@@ -560,36 +278,20 @@ const DiscoveryScreen: React.FC = () => {
     paddingRight: '2.5rem',
     width: '100%'
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const renderContent = () => {
     const hasSearchTerm = searchTerm.trim().length >= 2;
     const hasActiveFilters = minRating > 0 || maxDistance > -1;
-
-
-
-
     if (isLoading) {
       return <LoadingScreen message="Fetching dishes for you..." />;
     }
-
-
-
-
+    if (error) {
+      return (
+          <div className="text-center py-12">
+              <p style={{ ...FONTS.elegant, color: COLORS.danger, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>{error}</p>
+              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>You can also try refreshing the page.</p>
+          </div>
+      );
+    }
     if (!hasSearchTerm && !hasActiveFilters) {
       return (
         <div className="text-center py-12">
@@ -598,10 +300,6 @@ const DiscoveryScreen: React.FC = () => {
         </div>
       );
     }
-
-
-
-
     if (filteredAndGrouped.length > 0) {
       return filteredAndGrouped.map((group) => (
         <div key={group.restaurant.id}>
@@ -636,22 +334,6 @@ const DiscoveryScreen: React.FC = () => {
       </div>
     );
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
       {/* HEADER SECTION */}
@@ -738,7 +420,6 @@ const DiscoveryScreen: React.FC = () => {
       </div>
       {/* BODY SECTION */}
       <main className="w-full mx-auto p-4" style={{ maxWidth: RESTAURANT_CARD_MAX_WIDTH }}>
-        {error && <p style={{ color: COLORS.danger }}>{error}</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
           {renderContent()}
         </div>
@@ -746,9 +427,4 @@ const DiscoveryScreen: React.FC = () => {
     </div>
   );
 };
-
-
-
-
-
 export default DiscoveryScreen;
