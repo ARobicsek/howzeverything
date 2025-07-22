@@ -296,7 +296,7 @@ const DiscoveryScreen: React.FC = () => {
       return (
         <div className="text-center py-12">
           <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>
-          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Use the search bar or filters above to find dishes.</p>
+          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Use the search bar or filters above to find dishes the community has rated.</p>
         </div>
       );
     }
