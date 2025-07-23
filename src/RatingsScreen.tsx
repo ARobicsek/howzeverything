@@ -9,8 +9,10 @@ import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from '
 import { useLocationService } from './hooks/useLocationService';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
 
+
 const SEARCH_BAR_WIDTH = '450px';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
+
 
 const StarRating: React.FC<{
   rating: number;
@@ -22,6 +24,7 @@ const StarRating: React.FC<{
     personal: { filled: COLORS.accent, empty: COLORS.ratingEmpty },
     community: { filled: '#101010', empty: COLORS.ratingEmpty },
   };
+
 
   return (
     <div className="flex items-center gap-0.5">
@@ -42,6 +45,7 @@ const StarRating: React.FC<{
   );
 };
 
+
 // A dish card that now includes distance.
 const RatedDishCard: React.FC<{
   item: DishSearchResultWithRestaurant & { distanceFormatted: string | null };
@@ -49,9 +53,11 @@ const RatedDishCard: React.FC<{
 }> = ({ item, myRating }) => {
   const navigate = useNavigate();
 
+
   const handleNavigate = () => {
     navigate(`/restaurants/${item.restaurant.id}?dish=${item.id}`);
   };
+
 
   return (
     <div
@@ -89,12 +95,12 @@ const RatedDishCard: React.FC<{
           <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[1] }}>
             {myRating && (
               <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-                <span style={{ ...TYPOGRAPHY.sm, color: COLORS.textSecondary, width: '70px' }}>You:</span>
+                <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>You:</span>
                 <StarRating rating={myRating.rating} variant="personal" size="sm" />
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-              <span style={{ ...TYPOGRAPHY.sm, color: COLORS.textSecondary, width: '70px' }}>Average:</span>
+              <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Average:</span>
               <StarRating rating={item.average_rating} variant="community" size="sm" />
               <span style={{ ...TYPOGRAPHY.sm, color: COLORS.text, fontWeight: '500' }}>{item.average_rating.toFixed(1)}</span>
             </div>
@@ -110,6 +116,7 @@ const RatedDishCard: React.FC<{
   );
 };
 
+
 const RatingsScreen: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,15 +131,19 @@ const RatingsScreen: React.FC = () => {
     initialCheckComplete,
   } = useLocationService();
 
+
   useEffect(() => {
     // This effect handles showing the permission modal automatically ONCE per session.
     // It waits until the initial check is complete to avoid a race condition.
     if (!initialCheckComplete) return;
 
+
     if (!user || locationStatus === 'granted' || locationStatus === 'requesting') return;
+
 
     const hasInteracted = sessionStorage.getItem(LOCATION_INTERACTION_KEY);
     if (hasInteracted) return;
+
 
     if (locationStatus === 'denied') {
       openPermissionModal();
@@ -142,6 +153,7 @@ const RatingsScreen: React.FC = () => {
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
     }
   }, [locationStatus, user, openPermissionModal, requestLocation, initialCheckComplete]);
+
 
   const loadRatedDishes = useCallback(async () => {
     if (!user) return;
@@ -158,12 +170,15 @@ const RatingsScreen: React.FC = () => {
     }
   }, [user]);
 
+
   useEffect(() => {
     loadRatedDishes();
   }, [loadRatedDishes]);
 
+
   const processedDishes = useMemo(() => {
     if (!rawRatedDishes.length) return [];
+
 
     const withDistance = rawRatedDishes.map(dish => {
         let distance: number | null = null;
@@ -177,14 +192,17 @@ const RatingsScreen: React.FC = () => {
         };
     });
 
+
     withDistance.sort((a, b) => {
         if (a.distance === null) return 1;
         if (b.distance === null) return -1;
         return a.distance - b.distance;
     });
 
+
     return withDistance;
   }, [rawRatedDishes, userLocation]);
+
 
   const filteredDishes = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -198,6 +216,7 @@ const RatingsScreen: React.FC = () => {
     });
     return fuse.search(searchTerm.trim()).map((result) => result.item);
   }, [processedDishes, searchTerm]);
+
 
   return (
     <div>
@@ -265,6 +284,7 @@ const RatingsScreen: React.FC = () => {
         </div>
       </div>
 
+
       {/* BODY SECTION */}
       <div style={{
         maxWidth: '768px',
@@ -299,5 +319,6 @@ const RatingsScreen: React.FC = () => {
     </div>
   );
 };
+
 
 export default RatingsScreen;
