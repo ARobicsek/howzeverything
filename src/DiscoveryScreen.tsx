@@ -361,7 +361,7 @@ const DiscoveryScreen: React.FC = () => {
               Discover dishes
           </h1>
           <div className="w-full" style={{ maxWidth: SEARCH_BAR_WIDTH, position: 'relative' }}>
-            <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Dish name, e.g. pizza, apple pie" style={STYLES.input} />
+            <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g. pasta, dessert, Mexican" style={STYLES.input} />
             {searchTerm.trim().length > 0 && (
               <button
                 onClick={handleResetFilters}
