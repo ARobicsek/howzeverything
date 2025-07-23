@@ -1,15 +1,15 @@
-// supabase/functions/dish-search/index.ts
+// supabase/functions/dish-search/index.ts  
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms } from '../_shared/search-logic.ts';
+import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
-// CORS headers for browser access
+// CORS headers for browser access  
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// --- TYPE DEFINITIONS ---
+// --- TYPE DEFINITIONS ---  
 interface DishSearchResultWithRestaurant {
   id: string;
   restaurant_id: string;
@@ -48,7 +48,7 @@ serve(async (req) => {
     const processRawDishes = (rawData: any[]) => {
       return (rawData || []).map((d: any) => {
         if (!d || !d.restaurants || !d.id) return null;
-       
+         
         const { dish_ratings, dish_photos, dish_comments, restaurants, ...dishData } = d;
 
         const ratings = dish_ratings || [];
@@ -75,7 +75,7 @@ serve(async (req) => {
         };
       }).filter(Boolean);
     };
-   
+     
     let query = supabaseAdminClient
       .from('restaurant_dishes')
       .select(`
@@ -91,19 +91,46 @@ serve(async (req) => {
     const term = searchTerm?.trim();
     if (term && term.length > 1) {
       const allSearchTerms = new Set<string>();
+      const exclusionTerms = new Set<string>();
+      
       const isCategory = checkCategorySearch(term);
-      const synonymTerms = getAllRelatedTerms(term);
+      
+      // Check if we need context-aware filtering for "roll"
+      const needsContextFiltering = term.toLowerCase() === 'roll' || term.toLowerCase() === 'rolls' || term.toLowerCase() === 'bakery';
+      
+      // Get related terms with context awareness
+      const synonymTerms = getAllRelatedTerms(term, needsContextFiltering || term.toLowerCase() === 'bakery');
       synonymTerms.forEach(t => allSearchTerms.add(t));
+      
       if (isCategory) {
         const categoryTerms = getCategoryTerms(term);
         categoryTerms.forEach(t => allSearchTerms.add(t));
       }
+      
+      // Get exclusion terms if needed
+      if (needsContextFiltering || isCategory) {
+        const excludeTerms = getExclusionTerms(term, allSearchTerms);
+        excludeTerms.forEach(t => exclusionTerms.add(t));
+      }
+      
       const finalSearchTerms = Array.from(allSearchTerms).slice(0, 100);
+      
       if (finalSearchTerms.length > 0) {
+        // Build the OR filter for inclusion terms
         const orFilter = finalSearchTerms
-            .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
-            .join(',');
+          .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
+          .join(',');
+        
+        // Apply the OR filter
         query = query.or(orFilter);
+        
+        // If we have exclusion terms, add NOT filters
+        if (exclusionTerms.size > 0) {
+          // Chain NOT filters for each exclusion term
+          Array.from(exclusionTerms).forEach(excludeTerm => {
+            query = query.not('name', 'ilike', `%${excludeTerm}%`);
+          });
+        }
       }
     }
 
@@ -115,7 +142,7 @@ serve(async (req) => {
 
     const { data, error } = await query;
     if (error) throw error;
-   
+     
     const results = processRawDishes(data || []);
 
     return new Response(JSON.stringify(results), {
