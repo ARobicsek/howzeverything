@@ -1,5 +1,6 @@
 // supabase/functions/_shared/search-logic.ts
 
+
 // --- DICTIONARIES ---  
 export const FOOD_CATEGORIES = {
   'beverages': {
@@ -34,6 +35,7 @@ export const FOOD_CATEGORIES = {
   }
 };
 
+
 // Context disambiguation rules
 export const CONTEXT_DISAMBIGUATION = {
   'roll': {
@@ -44,6 +46,7 @@ export const CONTEXT_DISAMBIGUATION = {
     excludeTerms: ['california', 'dragon', 'rainbow', 'spider', 'philadelphia', 'spicy tuna', 'maki', 'sushi']
   }
 };
+
 
 export const FOOD_SYNONYMS: { [key: string]: string[] } = {
   // Beverages (added as synonym)
@@ -211,6 +214,7 @@ export const FOOD_SYNONYMS: { [key: string]: string[] } = {
   '4': ['for', 'four']
 };
 
+
 export const CUISINE_FAMILIES = {
   'italian': ['alfredo', 'antipasto', 'bolognese', 'bruschetta', 'calzone', 'cannoli', 'cappuccino', 'carbonara', 'caesar salad', 'caprese salad', 'chicken parmigiana', 'espresso', 'fettuccine alfredo', 'focaccia', 'gelato', 'gnocchi', 'lasagna', 'marinara', 'margherita pizza', 'minestrone', 'osso buco', 'panettone', 'panini', 'pasta', 'pepperoni pizza', 'pesto', 'pizza', 'ravioli', 'risotto', 'spaghetti', 'stromboli', 'tiramisu', 'veal marsala'],
   'mexican': ['al pastor', 'burrito', 'carne asada', 'carnitas', 'chiles rellenos', 'chimichangas', 'chips and salsa', 'churros', 'elote', 'enchilada', 'fajitas', 'fish tacos', 'flautas', 'guacamole', 'margarita', 'menudo', 'mole', 'nachos', 'pozole', 'quesadilla', 'salsa', 'taco', 'tamale', 'tostadas', 'tres leches cake'],
@@ -230,6 +234,7 @@ export const CUISINE_FAMILIES = {
   'vietnamese': ['banh mi', 'banh xeo', 'bun bo hue', 'cao lau', 'che', 'com tam', 'grilled pork', 'lemongrass chicken', 'pho', 'spring rolls', 'summer rolls', 'vermicelli bowl', 'vietnamese coffee', 'vietnamese iced coffee', 'vietnamese pancakes']
 };
 
+
 // Modified MEAL_TIMES to be more specific about bakery vs non-bakery items
 export const MEAL_TIMES = {
   'breakfast': ['acai bowls', 'avocado toast', 'bacon', 'bagel', 'bialy', 'breakfast burrito', 'cereal', 'coffee cake', 'cinnamon roll', 'croissant', 'danish', 'eggs', 'french toast', 'granola', 'hash browns', 'muffin', 'oatmeal', 'pancakes', 'sausage', 'scone', 'smoothie bowl', 'toast', 'waffles', 'yogurt'],
@@ -243,12 +248,15 @@ export const MEAL_TIMES = {
   'salad': ['arugula', 'asian chicken', 'caesar', 'caprese', 'chicken salad', 'cobb', 'garden', 'greek', 'kale', 'mediterranean', 'nicoise', 'quinoa', 'southwest', 'spinach', 'tuna salad', 'waldorf']
 };
 
+
 // --- HELPER FUNCTIONS ---  
 const REVERSE_FOOD_SYNONYMS = new Map<string, string>();
+
 
 function normalizeText(text: string): string {
   return text.toLowerCase().trim().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ');
 }
+
 
 // Pre-compute the reverse lookup map  
 Object.entries(FOOD_SYNONYMS).forEach(([key, synonyms]) => {
@@ -265,52 +273,71 @@ Object.keys(FOOD_SYNONYMS).forEach(key => {
   REVERSE_FOOD_SYNONYMS.set(normalizedKey, normalizedKey);
 });
 
-function generatePlurals(term: string): string[] {
-  const forms = [term];
-  if (term.endsWith('s') || term.endsWith('sh') || term.endsWith('ch')) {
-    forms.push(term + 'es');
-  } else if (term.endsWith('y') && !['a', 'e', 'i', 'o', 'u'].includes(term[term.length - 2])) {
-    forms.push(term.slice(0, -1) + 'ies');
-  } else if (!term.endsWith('s')) {
-    forms.push(term + 's');
+
+// --- THE FIX: This function now handles both singular-to-plural and plural-to-singular ---
+function generateAllForms(term: string): string[] {
+  const forms = new Set<string>([term]);
+
+  // Plural to singular logic
+  if (term.endsWith('ies')) {
+    forms.add(term.slice(0, -3) + 'y');
+  } else if (term.endsWith('shes') || term.endsWith('ches')) {
+    forms.add(term.slice(0, -2));
+  } else if (term.endsWith('s') && term.length > 1 && !term.endsWith('ss')) {
+    forms.add(term.slice(0, -1));
   }
-  return [...new Set(forms)];
+
+  // Singular to plural logic (applied to all potential singular forms)
+  const currentForms = [...forms];
+  currentForms.forEach(form => {
+    if (form.endsWith('s') || form.endsWith('sh') || form.endsWith('ch') || form.endsWith('x') || form.endsWith('z')) {
+      forms.add(form + 'es');
+    } else if (form.endsWith('y') && !['a', 'e', 'i', 'o', 'u'].includes(form[form.length - 2])) {
+      forms.add(form.slice(0, -1) + 'ies');
+    } else if (!form.endsWith('s')) {
+      forms.add(form + 's');
+    }
+  });
+
+  return Array.from(forms);
 }
+
 
 // New helper function to detect context
 function detectSearchContext(term: string): 'bakery' | 'sushi' | 'neutral' {
   const normalizedTerm = normalizeText(term);
-  
+ 
   // Check if the term itself gives us context
   if (normalizedTerm === 'roll' || normalizedTerm === 'rolls') {
     return 'bakery'; // Default standalone "roll" to bakery context
   }
-  
+ 
   // Check for sushi-specific roll names
-  const sushiRolls = ['california roll', 'dragon roll', 'rainbow roll', 'spider roll', 
+  const sushiRolls = ['california roll', 'dragon roll', 'rainbow roll', 'spider roll',
                       'philadelphia roll', 'spicy tuna roll', 'tempura roll', 'alaska roll'];
   if (sushiRolls.some(roll => normalizeText(roll).includes(normalizedTerm) || normalizedTerm.includes(normalizeText(roll)))) {
     return 'sushi';
   }
-  
+ 
   return 'neutral';
 }
+
 
 export function getAllRelatedTerms(term: string, excludeContext?: boolean): string[] {
   const normalizedTerm = normalizeText(term);
   const relatedTerms = new Set<string>([normalizedTerm]);
-  generatePlurals(normalizedTerm).forEach(form => relatedTerms.add(form));
-  
+  generateAllForms(normalizedTerm).forEach(form => relatedTerms.add(form));
+ 
   // Check context for disambiguation
   const context = detectSearchContext(normalizedTerm);
-  
+ 
   // Special handling for "bakery" search - don't include generic "roll"
   if (normalizedTerm === 'bakery') {
     // Don't add generic roll-related synonyms for bakery searches
     // The getCategoryTerms function will add specific bakery rolls
     return Array.from(relatedTerms);
   }
-  
+ 
   // If it's a standalone "roll" search and we want to exclude sushi context
   if (excludeContext && context === 'bakery' && (normalizedTerm === 'roll' || normalizedTerm === 'rolls')) {
     // Don't add sushi-related synonyms
@@ -322,12 +349,12 @@ export function getAllRelatedTerms(term: string, excludeContext?: boolean): stri
     relatedTerms.add('bread roll');
     return Array.from(relatedTerms);
   }
-  
+ 
   // Direct synonym lookup
   if (FOOD_SYNONYMS[normalizedTerm]) {
     FOOD_SYNONYMS[normalizedTerm].forEach(syn => relatedTerms.add(normalizeText(syn)));
   }
-  
+ 
   // Reverse synonym lookup
   const mainTerm = REVERSE_FOOD_SYNONYMS.get(normalizedTerm);
   if (mainTerm) {
@@ -336,36 +363,46 @@ export function getAllRelatedTerms(term: string, excludeContext?: boolean): stri
       FOOD_SYNONYMS[mainTerm].forEach(syn => relatedTerms.add(normalizeText(syn)));
     }
   }
-  
+ 
   return Array.from(relatedTerms);
 }
 
+
 export function checkCategorySearch(term: string): boolean {
   const normalizedTerm = normalizeText(term);
-  const termVariations = generatePlurals(normalizedTerm);
+  // --- THE FIX: Use generateAllForms to check singular and plural versions ---
+  const termVariations = generateAllForms(normalizedTerm);
   for (const variant of termVariations) {
     if (Object.keys(CUISINE_FAMILIES).some(cuisine => normalizeText(cuisine) === variant)) return true;
     if (Object.keys(MEAL_TIMES).some(meal => normalizeText(meal) === variant)) return true;
-    if (Object.keys(FOOD_CATEGORIES).some(cat => normalizeText(cat) === variant)) return true;
+    
+    // --- THE FIX: Check both top-level and sub-level food categories ---
+    for (const topCatKey in FOOD_CATEGORIES) {
+      if (normalizeText(topCatKey) === variant) return true; // Found in top-level (e.g., 'desserts')
+      const subCats = FOOD_CATEGORIES[topCatKey as keyof typeof FOOD_CATEGORIES];
+      if (Object.keys(subCats).some(subCatKey => normalizeText(subCatKey) === variant)) {
+        return true; // Found in sub-level (e.g., 'pastries')
+      }
+    }
   }
   return false;
 }
 
+
 export function getCategoryTerms(category: string): string[] {
   const normalizedCategory = normalizeText(category);
   const terms = new Set<string>();
-  const categoryVariations = generatePlurals(normalizedCategory);
+  // --- THE FIX: Use generateAllForms to check singular and plural versions ---
+  const categoryVariations = generateAllForms(normalizedCategory);
   const addItems = (items: string[]) => items.forEach(item => terms.add(normalizeText(item)));
-  
+ 
   for (const categoryVariant of categoryVariations) {
+    // Check Cuisines
     const cuisineKey = Object.keys(CUISINE_FAMILIES).find(key => normalizeText(key) === categoryVariant) as keyof typeof CUISINE_FAMILIES;
     if (cuisineKey) {
-      // If searching for Japanese cuisine, filter out generic "roll" to avoid bakery items
       if (cuisineKey === 'japanese') {
         CUISINE_FAMILIES[cuisineKey].forEach(item => {
           const normalized = normalizeText(item);
-          // Only add items that are specific rolls (contain "roll" as part of a larger name)
-          // or items that don't contain "roll" at all
           if (!normalized.endsWith('roll') || normalized.split(' ').length > 1) {
             terms.add(normalized);
           }
@@ -375,28 +412,22 @@ export function getCategoryTerms(category: string): string[] {
       }
     }
     
+    // Check Meal Times
     const mealKey = Object.keys(MEAL_TIMES).find(key => normalizeText(key) === categoryVariant) as keyof typeof MEAL_TIMES;
     if (mealKey) addItems(MEAL_TIMES[mealKey]);
-    
+   
+    // --- THE FIX: Check top-level and sub-level food categories ---
     const mainCatKey = Object.keys(FOOD_CATEGORIES).find(key => normalizeText(key) === categoryVariant) as keyof typeof FOOD_CATEGORIES;
     if (mainCatKey) {
-      // Special handling for bakery category
+      // It's a top-level category (e.g., 'desserts'). Add all items from all its sub-categories.
       if (mainCatKey === 'bakery') {
         Object.values(FOOD_CATEGORIES[mainCatKey]).forEach(subItems => {
           (subItems as string[]).forEach(item => {
             const normalized = normalizeText(item);
-            // For bakery, don't add generic "roll" - add specific bakery rolls instead
             if (normalized === 'roll') {
-              terms.add('dinner roll');
-              terms.add('kaiser roll');
-              terms.add('bread roll');
-              terms.add('hamburger roll');
-              terms.add('hot dog roll');
-              terms.add('breakfast roll');
-              terms.add('sandwich roll');
-              terms.add('french roll');
-              terms.add('soft roll');
-              terms.add('hard roll');
+              terms.add('dinner roll'); terms.add('kaiser roll'); terms.add('bread roll');
+              terms.add('hamburger roll'); terms.add('hot dog roll'); terms.add('breakfast roll');
+              terms.add('sandwich roll'); terms.add('french roll'); terms.add('soft roll'); terms.add('hard roll');
             } else {
               terms.add(normalized);
             }
@@ -405,20 +436,32 @@ export function getCategoryTerms(category: string): string[] {
       } else {
         Object.values(FOOD_CATEGORIES[mainCatKey]).forEach(subItems => addItems(subItems as string[]));
       }
+    } else {
+      // It's not a top-level category, check if it's a sub-category (e.g., 'pastries')
+      for (const topCat in FOOD_CATEGORIES) {
+        const subCats = FOOD_CATEGORIES[topCat as keyof typeof FOOD_CATEGORIES];
+        const subCatKey = Object.keys(subCats).find(key => normalizeText(key) === categoryVariant) as keyof typeof subCats;
+        if (subCatKey) {
+          // Found it. Add all items from this specific sub-category.
+          addItems(subCats[subCatKey as keyof typeof subCats]);
+          break; // Found the sub-category, no need to check other top-level cats
+        }
+      }
     }
   }
-  
+ 
   return Array.from(terms);
 }
+
 
 // New function to get exclusion terms based on context
 export function getExclusionTerms(searchTerm: string, expandedTerms?: Set<string>): string[] {
   const normalizedTerm = normalizeText(searchTerm);
   const exclusions = new Set<string>();
-  
+ 
   // If searching for standalone "roll" or "bakery", exclude sushi-specific terms
   if (normalizedTerm === 'roll' || normalizedTerm === 'rolls' || normalizedTerm === 'bakery') {
-    const sushiTerms = ['california', 'dragon', 'rainbow', 'spider', 'philadelphia', 
+    const sushiTerms = ['california', 'dragon', 'rainbow', 'spider', 'philadelphia',
                         'spicy tuna', 'tempura', 'sushi', 'maki', 'nigiri', 'sashimi',
                         'salmon roll', 'tuna roll', 'yellowtail roll', 'eel roll',
                         'shrimp tempura roll', 'crab roll', 'avocado roll',
@@ -429,10 +472,10 @@ export function getExclusionTerms(searchTerm: string, expandedTerms?: Set<string
                         'raw', 'wasabi', 'ginger', 'nori', 'rice paper'];
     sushiTerms.forEach(term => exclusions.add(term));
   }
-  
+ 
   // Also check if "roll" is in the expanded terms (e.g., from bakery category)
   if (expandedTerms && (expandedTerms.has('roll') || expandedTerms.has('rolls')) && normalizedTerm === 'bakery') {
-    const sushiTerms = ['california', 'dragon', 'rainbow', 'spider', 'philadelphia', 
+    const sushiTerms = ['california', 'dragon', 'rainbow', 'spider', 'philadelphia',
                         'spicy tuna', 'tempura', 'sushi', 'maki', 'nigiri', 'sashimi',
                         'salmon roll', 'tuna roll', 'yellowtail roll', 'eel roll',
                         'shrimp tempura roll', 'crab roll', 'avocado roll',
@@ -443,9 +486,9 @@ export function getExclusionTerms(searchTerm: string, expandedTerms?: Set<string
                         'raw', 'wasabi', 'ginger', 'nori', 'rice paper'];
     sushiTerms.forEach(term => exclusions.add(term));
   }
-  
+ 
   // If searching for "japanese", don't exclude anything (we want all Japanese items)
   // The filtering happens in getCategoryTerms for Japanese cuisine
-  
+ 
   return Array.from(exclusions);
 }
