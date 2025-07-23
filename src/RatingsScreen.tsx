@@ -95,7 +95,7 @@ const RatedDishCard: React.FC<{
           <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[1] }}>
             {myRating && (
               <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-                <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>You:</span>
+                <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Me:</span>
                 <StarRating rating={myRating.rating} variant="personal" size="sm" />
               </div>
             )}

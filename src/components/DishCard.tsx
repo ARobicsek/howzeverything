@@ -118,7 +118,7 @@ const RatingSummary: React.FC<{
         fontSize: TYPOGRAPHY.sm.fontSize,
         color: COLORS.textSecondary,
         fontWeight: TYPOGRAPHY.medium
-      }}>You:</span>
+      }}>Me:</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
         <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />
         <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
@@ -170,7 +170,7 @@ const RatingBreakdown: React.FC<{
             color: COLORS.textSecondary,
             fontWeight: TYPOGRAPHY.medium
           }}>
-            Your Rating
+            My Rating
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
