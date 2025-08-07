@@ -10,6 +10,7 @@ interface PhotoModalProps {
   currentUserId: string | null;
   onClose: () => void;
   onDelete: (photoId: string) => Promise<void>;
+  onUpdateCaption: (photoId: string, caption: string) => Promise<void>;
 }
 
 const PhotoModal: React.FC<PhotoModalProps> = ({
@@ -17,12 +18,15 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
   initialIndex,
   currentUserId,
   onClose,
-  onDelete
+  onDelete,
+  onUpdateCaption,
 }) => {
   // Ensure initial currentIndex is always valid
   const validInitialIndex = Math.max(0, Math.min(initialIndex, (photos?.length || 1) - 1));
   const [currentIndex, setCurrentIndex] = useState(validInitialIndex);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingCaption, setIsEditingCaption] = useState(false);
+  const [editedCaption, setEditedCaption] = useState('');
 
   // Early validation
   if (!photos || photos.length === 0) {
@@ -76,6 +80,24 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
       } finally {
         setIsDeleting(false);
       }
+    }
+  };
+
+  const handleEditCaption = () => {
+    setEditedCaption(currentPhoto.caption || '');
+    setIsEditingCaption(true);
+  };
+
+  const handleCancelEditCaption = () => {
+    setIsEditingCaption(false);
+  };
+
+  const handleSaveCaption = async () => {
+    try {
+      await onUpdateCaption(currentPhoto.id, editedCaption);
+      setIsEditingCaption(false);
+    } catch (error) {
+      console.error('Error updating caption:', error);
     }
   };
 
@@ -152,25 +174,39 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             
             {/* Delete button for photo owners */}
             {isOwner && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete();
-                }}
-                disabled={isDeleting}
-                style={{
-                  ...STYLES.deleteButton,
-                  opacity: isDeleting ? 0.5 : 1,
-                  cursor: isDeleting ? 'not-allowed' : 'pointer'
-                }}
-                title="Delete this photo"
-              >
-                {isDeleting ? '...' : (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                  disabled={isDeleting}
+                  style={{
+                    ...STYLES.deleteButton,
+                    opacity: isDeleting ? 0.5 : 1,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer'
+                  }}
+                  title="Delete this photo"
+                >
+                  {isDeleting ? '...' : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditCaption();
+                  }}
+                  style={{...STYLES.editButton}}
+                  title="Edit caption"
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                   </svg>
-                )}
-              </button>
+                </button>
+              </>
             )}
           </div>
 
@@ -299,23 +335,38 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
         </div>
 
         {/* Photo info */}
-        {(currentPhoto.caption || currentPhoto.photographer_name) && (
+        {(currentPhoto.caption || currentPhoto.photographer_name || isEditingCaption) && (
           <div style={{
             padding: SPACING[5],
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             borderTop: `1px solid ${COLORS.gray700}`
           }}>
             {/* Caption */}
-            {currentPhoto.caption && (
-              <p style={{
-                ...FONTS.body,
-                fontSize: TYPOGRAPHY.base.fontSize,
-                color: COLORS.white,
-                margin: 0,
-                marginBottom: currentPhoto.photographer_name ? SPACING[2] : 0
-              }}>
-                {currentPhoto.caption}
-              </p>
+            {isEditingCaption ? (
+              <div>
+                <textarea
+                  value={editedCaption}
+                  onChange={(e) => setEditedCaption(e.target.value)}
+                  style={{...STYLES.input, width: '100%', color: COLORS.white, backgroundColor: 'rgba(255,255,255,0.1)'}}
+                  placeholder="Enter a caption..."
+                />
+                <div style={{display: 'flex', justifyContent: 'flex-end', gap: SPACING[2], marginTop: SPACING[2]}}>
+                  <button onClick={handleCancelEditCaption} style={{...STYLES.secondaryButton}}>Cancel</button>
+                  <button onClick={handleSaveCaption} style={{...STYLES.primaryButton}}>Save</button>
+                </div>
+              </div>
+            ) : (
+              currentPhoto.caption && (
+                <p style={{
+                  ...FONTS.body,
+                  fontSize: TYPOGRAPHY.base.fontSize,
+                  color: COLORS.white,
+                  margin: 0,
+                  marginBottom: currentPhoto.photographer_name ? SPACING[2] : 0
+                }}>
+                  {currentPhoto.caption}
+                </p>
+              )
             )}
 
             {/* Photo metadata */}

@@ -186,7 +186,7 @@ const MenuScreen: React.FC = () => {
   const {
     dishes, isLoading: isLoadingDishes, error: dishesError, currentUserId, setError,
     addDish, deleteDish, updateDishRating, updateDishName, searchDishes,
-    addComment, updateComment, deleteComment, addPhoto, deletePhoto, findSimilarDishesForDuplicate
+    addComment, updateComment, deleteComment, addPhoto, deletePhoto, updatePhotoCaption, findSimilarDishesForDuplicate
   } = useDishes(restaurantId || '', sortBy);
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
@@ -409,6 +409,16 @@ const MenuScreen: React.FC = () => {
     }
   };
 
+  const handleUpdatePhotoCaption = async (photoId: string, caption: string) => {
+    try {
+      await updatePhotoCaption(photoId, caption);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? `Failed to update photo caption: ${err.message}` : 'Failed to update photo caption: An unknown error occurred.';
+      setError(message);
+      throw new Error(message);
+    }
+  };
+
 
   const handleUpdateComment = async (commentId: string, _dishId: string, newText: string) => {
     try {
@@ -615,12 +625,12 @@ const MenuScreen: React.FC = () => {
           {!showAddForm && hasDishes && (<div style={{ marginLeft: SPACING[1], marginRight: SPACING[1], marginBottom: SPACING[5] }}><ConsolidatedSearchAndAdd searchTerm={searchTerm} onSearchChange={handleSearchChange} onReset={handleResetSearch} onShowAddForm={handleShowAddForm} /></div>)}
           {!showAddForm ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-              {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />))}</>) : (<div style={{ textAlign: 'center', padding: SPACING[6], backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}` }}><p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, margin: 0 }}>No dishes found matching "{searchTerm}"</p></div>))}
+              {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />))}</>) : (<div style={{ textAlign: 'center', padding: SPACING[6], backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}` }}><p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, margin: 0 }}>No dishes found matching "{searchTerm}"</p></div>))}
               {searchTerm.length === 0 && (
                 hasDishes ? (
                   <>
                     {dishes.map((dish) => (
-                      <DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />
+                      <DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />
                     ))}
                   </>
                 ) : (

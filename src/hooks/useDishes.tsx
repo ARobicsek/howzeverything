@@ -680,6 +680,40 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       throw err instanceof Error ? err : new Error('Failed to delete photo');
     }
   };
+
+  const updatePhotoCaption = async (photoId: string, caption: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const allPhotos = dishes.flatMap(dish => dish.photos);
+      const photo = allPhotos.find(p => p.id === photoId);
+      if (!photo) throw new Error('Photo not found');
+
+      if (photo.user_id !== user.id) {
+        throw new Error('You can only edit your own photo captions');
+      }
+
+      const { error } = await supabase
+        .from('dish_photos')
+        .update({ caption: caption, updated_at: new Date().toISOString() })
+        .eq('id', photoId);
+
+      if (error) throw error;
+
+      setDishes(prevDishes => {
+        return prevDishes.map(dish => ({
+          ...dish,
+          photos: dish.photos.map(p =>
+            p.id === photoId ? { ...p, caption: caption, updated_at: new Date().toISOString() } : p
+          )
+        }));
+      });
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Failed to update photo caption');
+    }
+  };
+
   const refetch = async () => {
     if (!restaurantId) return;
     setIsLoading(true);
@@ -700,6 +734,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     updateComment,
     addPhoto,
     deletePhoto,
+    updatePhotoCaption,
     refetch,
     searchDishes,
     findSimilarDishesForDuplicate,
