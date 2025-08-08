@@ -20,6 +20,7 @@ interface DishCardProps {
   onDeleteComment: (dishId: string, commentId: string) => Promise<void>;
   onAddPhoto: (dishId: string, file: File, caption?: string) => Promise<void>;
   onDeletePhoto: (dishId: string, photoId: string) => Promise<void>;
+  onUpdatePhotoCaption: (photoId: string, caption: string) => Promise<void>;
   onShare: (dish: DishWithDetails) => void;
   isSubmittingComment: boolean;
   isExpanded: boolean;
@@ -575,6 +576,7 @@ const DishCard: React.FC<DishCardProps> = ({
   onDeleteComment,
   onAddPhoto,
   onDeletePhoto,
+  onUpdatePhotoCaption,
   onShare,
   isSubmittingComment,
   isExpanded,
@@ -1020,6 +1022,7 @@ const DishCard: React.FC<DishCardProps> = ({
             setSelectedPhotoModal(null);
           }}
           onDelete={handleDeletePhoto}
+          onUpdateCaption={onUpdatePhotoCaption}
         />
       )}
     </>
