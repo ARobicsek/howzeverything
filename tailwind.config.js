@@ -39,6 +39,8 @@ export default {
         sans: FONTS.primary.fontFamily.split(','),
         heading: FONTS.heading.fontFamily.split(','),
         body: FONTS.body.fontFamily.split(','),
+        elegant: FONTS.elegant.fontFamily.split(','),
+        pinyon: FONTS.pinyon.fontFamily.split(','),
       },
       spacing: SPACING,
       borderRadius: BORDERS.radius,

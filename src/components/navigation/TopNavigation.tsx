@@ -45,7 +45,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
           <img
             src="/HowzEverything.png"
             alt="HowzEverything Logo"
-            className="h-16 w-auto"
+            className="h-12 w-auto"
           />
         </Link>
       </div>
