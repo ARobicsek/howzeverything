@@ -1,4 +1,104 @@
 @tailwind base;
+
+@theme {
+  --color-primary: #2563EB;
+  --color-primaryHover: #1D4ED8;
+  --color-primaryLight: #DBEAFE;
+  --color-accent: #642e32;
+  --color-gray50: #F9FAFB;
+  --color-gray100: #F3F4F6;
+  --color-gray200: #E5E7EB;
+  --color-gray300: #D1D5DB;
+  --color-gray400: #9CA3AF;
+  --color-gray500: #6B7280;
+  --color-gray600: #586780;
+  --color-gray700: #374151;
+  --color-gray900: #111827;
+  --color-blue50: #EFF6FF;
+  --color-blue100: #DBEAFE;
+  --color-blue200: #BFDBFE;
+  --color-blue600: #2563EB;
+  --color-blue700: #1D4ED8;
+  --color-blue800: #1E40AF;
+  --color-green100: #DCFCE7;
+  --color-green700: #15803D;
+  --color-red50: #FEF2F2;
+  --color-red200: #FECACA;
+  --color-red700: #B91C1C;
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-ratingGold: #F59E0B;
+  --color-ratingGoldLight: #FEF3C7;
+  --color-ratingEmpty: #E5E7EB;
+  --color-danger: #EF4444;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-navBar: #FFFFFF;
+  --color-navBarDark: #101010;
+  --color-navBarBorder: #E5E7EB;
+  --color-text: #374151;
+  --color-textSecondary: #6B7280;
+  --color-textWhite: #FFFFFF;
+  --color-background: #F9FAFB;
+  --color-cardBg: #FFFFFF;
+  --color-inputBg: #FFFFFF;
+  --color-star: #2563EB;
+  --color-starEmpty: #E5E7EB;
+  --color-starCommunity: #F59E0B;
+  --color-starCommunityEmpty: #E5E7EB;
+  --color-secondary: #6B7280;
+  --color-iconPrimary: #374151;
+  --color-iconBackground: #FFFFFF;
+  --color-error: #EF4444;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-textPrimary: #374151;
+
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-containerPadding: 1rem;
+  --spacing-sectionGap: 1.5rem;
+  --spacing-cardPadding: 1.25rem;
+
+  --font-family-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --font-size-xs: 0.75rem;
+  --line-height-xs: 1rem;
+  --font-size-sm: 0.875rem;
+  --line-height-sm: 1.25rem;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5rem;
+  --font-size-lg: 1.125rem;
+  --line-height-lg: 1.75rem;
+  --font-size-xl: 1.25rem;
+  --line-height-xl: 1.75rem;
+  --font-size-2xl: 1.5rem;
+  --line-height-2xl: 2rem;
+  --font-size-3xl: 1.875rem;
+  --line-height-3xl: 2.25rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --border-radius-small: 6px;
+  --border-radius-medium: 8px;
+  --border-radius-large: 12px;
+  --border-radius-full: 9999px;
+
+  --shadow-small: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.8), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
 @tailwind components;
 @tailwind utilities;
 
