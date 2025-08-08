@@ -1,314 +1,138 @@
-// src/components/user/UserForm.tsx  
-import React, { useEffect, useState } from 'react'
-import { COLORS, FONTS } from '../../constants'
-import { useAuth } from '../../hooks/useAuth'
+// src/components/user/UserForm.tsx
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 
-
-interface UserFormProps {  
-  onSuccess?: () => void  
-  onCancel?: () => void  
+interface UserFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
+const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
+  const { profile, updateProfile, loading, error, clearError } = useAuth();
+  const [formData, setFormData] = useState({ full_name: '', avatar_url: '' });
+  const [validationError, setValidationError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {  
-  const { profile, updateProfile, loading, error, clearError } = useAuth()  
-  const [formData, setFormData] = useState({  
-    full_name: '',  
-    avatar_url: ''  
-  })  
-  const [validationError, setValidationError] = useState('')  
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-
-  // Initialize form with current profile data  
-  useEffect(() => {  
-    if (profile) {  
-      setFormData({  
-        full_name: profile.full_name || '',  
-        avatar_url: profile.avatar_url || ''  
-      })  
-    }  
-  }, [profile])
-
-
-  const validateForm = (): boolean => {  
-    setValidationError('')  
-    clearError()
-
-
-    if (!formData.full_name.trim()) {  
-      setValidationError('Full name is required')  
-      return false  
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        avatar_url: profile.avatar_url || '',
+      });
     }
+  }, [profile]);
 
-
-    if (formData.full_name.trim().length < 2) {  
-      setValidationError('Full name must be at least 2 characters')  
-      return false  
+  const validateForm = (): boolean => {
+    setValidationError('');
+    clearError();
+    if (!formData.full_name.trim() || formData.full_name.trim().length < 2) {
+      setValidationError('Full name must be at least 2 characters');
+      return false;
     }
-
-
-    // Basic URL validation for avatar  
-    if (formData.avatar_url && !isValidUrl(formData.avatar_url)) {  
-      setValidationError('Please enter a valid URL for the avatar image')  
-      return false  
+    if (formData.avatar_url && !isValidUrl(formData.avatar_url)) {
+      setValidationError('Please enter a valid URL for the avatar image');
+      return false;
     }
+    return true;
+  };
 
+  const isValidUrl = (string: string): boolean => {
+    try {
+      new URL(string);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-    return true  
-  }
+  const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setIsSubmitting(true);
+    try {
+      const success = await updateProfile({
+        full_name: formData.full_name.trim(),
+        avatar_url: formData.avatar_url.trim() || null,
+      });
+      if (success && onSuccess) onSuccess();
+    } catch (err) {
+      console.error('Profile update error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-  const isValidUrl = (string: string): boolean => {  
-    try {  
-      new URL(string)  
-      return true  
-    } catch {  
-      return false  
-    }  
-  }
+  const displayError = validationError || error;
 
-
-  const handleInputChange = (field: keyof typeof formData) => (  
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>  
-  ) => {  
-    setFormData(prev => ({  
-      ...prev,  
-      [field]: e.target.value  
-    }))  
-  }
-
-
-  const handleSubmit = async (e: React.FormEvent) => {  
-    e.preventDefault()  
-     
-    if (!validateForm()) return
-
-
-    setIsSubmitting(true)  
-     
-    try {  
-      const success = await updateProfile({  
-        full_name: formData.full_name.trim(),  
-        avatar_url: formData.avatar_url.trim() || null  
-      })
-
-
-      if (success) {  
-        console.log('Profile updated successfully')  
-        if (onSuccess) {  
-          onSuccess()  
-        }  
-      }  
-    } catch (err) {  
-      console.error('Profile update error:', err)  
-    } finally {  
-      setIsSubmitting(false)  
-    }  
-  }
-
-
-  const displayError = validationError || error
-
-
-  return (  
-    <div style={{  
-      position: 'fixed',  
-      top: 0,  
-      left: 0,  
-      right: 0,  
-      bottom: 0,  
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',  
-      display: 'flex',  
-      alignItems: 'center',  
-      justifyContent: 'center',  
-      padding: '20px',  
-      zIndex: 1000  
-    }}>  
-      <div style={{  
-        backgroundColor: 'white',  
-        borderRadius: '12px',  
-        padding: '32px',  
-        width: '100%',  
-        maxWidth: '500px',  
-        maxHeight: '90vh',  
-        overflowY: 'auto',  
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'  
-      }}>  
-        {/* Header */}  
-        <div style={{ marginBottom: '24px', textAlign: 'center' }}>  
-          <h2 style={{  
-            ...FONTS.elegant,  
-            fontSize: '24px',  
-            fontWeight: '600',  
-            color: COLORS.text,  
-            margin: '0 0 8px 0'  
-          }}>  
-            Edit Profile  
-          </h2>  
-          <p style={{  
-            ...FONTS.elegant,  
-            fontSize: '14px',  
-            color: COLORS.text, 
-            margin: 0  
-          }}>  
-            Update your profile information  
-          </p>  
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-[1000]">
+      <div className="bg-white rounded-lg p-8 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="mb-6 text-center">
+          <h2 className="font-elegant text-2xl font-semibold text-text mb-2">Edit Profile</h2>
+          <p className="font-elegant text-sm text-text">Update your profile information</p>
         </div>
 
-
-        {/* Error Display */}  
-        {displayError && (  
-          <div style={{  
-            backgroundColor: '#FEF2F2',  
-            border: '1px solid #FECACA',  
-            borderRadius: '8px',  
-            padding: '12px',  
-            marginBottom: '20px'  
-          }}>  
-            <p style={{  
-              ...FONTS.elegant,  
-              fontSize: '14px',  
-              color: COLORS.danger,  
-              margin: 0  
-            }}>  
-              {displayError}  
-            </p>  
-          </div>  
+        {displayError && (
+          <div className="bg-red-100 border border-red-200 rounded-md p-3 mb-5">
+            <p className="font-elegant text-sm text-danger m-0">{displayError}</p>
+          </div>
         )}
 
-
-        {/* Form */}  
-        <form onSubmit={handleSubmit}>  
-          {/* Full Name */}  
-          <div style={{ marginBottom: '16px' }}>  
-            <label style={{  
-              ...FONTS.elegant,  
-              fontSize: '14px',  
-              fontWeight: '500',  
-              color: COLORS.text,  
-              display: 'block',  
-              marginBottom: '6px'  
-            }}>  
-              Full Name *  
-            </label>  
-            <input  
-              type="text"  
-              value={formData.full_name}  
-              onChange={handleInputChange('full_name')}  
-              placeholder="Enter your full name"  
-              style={{  
-                ...FONTS.elegant,  
-                width: '100%',  
-                padding: '12px',  
-                border: '1px solid #D1D5DB',  
-                borderRadius: '8px',  
-                fontSize: '16px',  
-                backgroundColor: 'white',  
-                boxSizing: 'border-box', // Corrected from 'border-sizing'
-                WebkitAppearance: 'none'  
-              }}  
-              disabled={loading || isSubmitting}  
-              required  
-            />  
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="font-elegant text-sm font-medium text-text block mb-1.5">Full Name *</label>
+            <input
+              type="text"
+              value={formData.full_name}
+              onChange={handleInputChange('full_name')}
+              placeholder="Enter your full name"
+              className="font-elegant w-full p-3 border border-gray-300 rounded-md text-base bg-white box-border appearance-none disabled:opacity-50"
+              disabled={loading || isSubmitting}
+              required
+            />
           </div>
 
-
-          {/* Avatar URL */}  
-          <div style={{ marginBottom: '24px' }}>  
-            <label style={{  
-              ...FONTS.elegant,  
-              fontSize: '14px',  
-              fontWeight: '500',  
-              color: COLORS.text,  
-              display: 'block',  
-              marginBottom: '6px'  
-            }}>  
-              Avatar Image URL  
-            </label>  
-            <input  
-              type="url"  
-              value={formData.avatar_url}  
-              onChange={handleInputChange('avatar_url')}  
-              placeholder="https://example.com/your-photo.jpg"  
-              style={{  
-                ...FONTS.elegant,  
-                width: '100%',  
-                padding: '12px',  
-                border: '1px solid #D1D5DB',  
-                borderRadius: '8px',  
-                fontSize: '16px',  
-                backgroundColor: 'white',  
-                boxSizing: 'border-box', // Corrected from 'border-sizing'
-                WebkitAppearance: 'none'  
-              }}  
-              disabled={loading || isSubmitting}  
-            />  
-            <p style={{  
-              ...FONTS.elegant,  
-              fontSize: '12px',  
-              color: COLORS.text, 
-              margin: '4px 0 0 0'  
-            }}>  
-              Enter a URL to an image for your profile picture  
-            </p>  
+          <div className="mb-6">
+            <label className="font-elegant text-sm font-medium text-text block mb-1.5">Avatar Image URL</label>
+            <input
+              type="url"
+              value={formData.avatar_url}
+              onChange={handleInputChange('avatar_url')}
+              placeholder="https://example.com/your-photo.jpg"
+              className="font-elegant w-full p-3 border border-gray-300 rounded-md text-base bg-white box-border appearance-none disabled:opacity-50"
+              disabled={loading || isSubmitting}
+            />
+            <p className="font-elegant text-xs text-text m-1">Enter a URL to an image for your profile picture</p>
           </div>
 
-
-          {/* Action Buttons */}  
-          <div style={{  
-            display: 'flex',  
-            gap: '12px',  
-            flexDirection: 'column'  
-          }}>  
-            <button  
-              type="submit"  
-              disabled={loading || isSubmitting}  
-              style={{  
-                ...FONTS.elegant,  
-                height: '50px',  
-                backgroundColor: (loading || isSubmitting) ? COLORS.gray300 : COLORS.primary, 
-                color: 'white',  
-                border: 'none',  
-                borderRadius: '8px',  
-                fontSize: '16px',  
-                fontWeight: '600',  
-                cursor: (loading || isSubmitting) ? 'not-allowed' : 'pointer',  
-                WebkitAppearance: 'none',  
-                WebkitTapHighlightColor: 'transparent'  
-              }}  
-            >  
-              {isSubmitting ? 'Saving...' : 'Save Changes'}  
+          <div className="flex flex-col gap-3">
+            <button
+              type="submit"
+              disabled={loading || isSubmitting}
+              className="font-elegant h-12 text-white border-none rounded-md text-base font-semibold cursor-pointer appearance-none tap-highlight-transparent disabled:bg-gray-300 disabled:cursor-not-allowed bg-primary hover:bg-primary-dark transition-colors"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
 
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={loading || isSubmitting}
+                className="font-elegant h-11 bg-transparent text-text border border-gray-300 rounded-md text-sm cursor-pointer appearance-none tap-highlight-transparent hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
-            {onCancel && (  
-              <button  
-                type="button"  
-                onClick={onCancel}  
-                disabled={loading || isSubmitting}  
-                style={{  
-                  ...FONTS.elegant,  
-                  height: '44px',  
-                  backgroundColor: 'transparent',  
-                  color: COLORS.text, 
-                  border: '1px solid #D1D5DB',  
-                  borderRadius: '8px',  
-                  fontSize: '14px',  
-                  cursor: (loading || isSubmitting) ? 'not-allowed' : 'pointer',  
-                  WebkitAppearance: 'none',  
-                  WebkitTapHighlightColor: 'transparent'  
-                }}  
-              >  
-                Cancel  
-              </button>  
-            )}  
-          </div>  
-        </form>  
-      </div>  
-    </div>  
-  )  
-}
-
-
-export default UserForm
+export default UserForm;

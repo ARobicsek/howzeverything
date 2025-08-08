@@ -1,18 +1,15 @@
 // src/components/restaurant/EditRestaurantForm.tsx
 import React, { useCallback, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
-import { useRestaurants } from '../../hooks/useRestaurants'; // Import the hook
+import { useRestaurants } from '../../hooks/useRestaurants';
 import type { AddressFormData } from '../../types/address';
 import type { Restaurant } from '../../types/restaurant';
 import AddressInput from '../shared/AddressInput';
-
 
 interface EditRestaurantFormProps {
   restaurant: Restaurant;
   onSuccess: () => void;
   onCancel: () => void;
 }
-
 
 const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onSuccess, onCancel }) => {
   const [name, setName] = useState(restaurant.name);
@@ -27,11 +24,9 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
   const [isSaving, setIsSaving] = useState(false);
   const { updateRestaurant } = useRestaurants({ initialFetch: false });
 
-
   const handleAddressChange = useCallback((data: AddressFormData) => {
     setAddressData(data);
   }, []);
-
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,11 +44,9 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
         country: addressData.country,
       });
 
-
       if (success) {
         onSuccess();
       } else {
-        // Handle error case, e.g., show an alert
         alert("Failed to save changes. Please try again.");
       }
     } catch (error) {
@@ -64,33 +57,32 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
     }
   };
 
-
   return (
-    <div style={STYLES.modalOverlay} onClick={onCancel}>
-      <div style={{ ...STYLES.modal, maxWidth: '500px', border: `1px solid ${COLORS.border}` }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ ...TYPOGRAPHY.h3, color: COLORS.textPrimary, marginTop: 0, marginBottom: SPACING[5] }}>
+    <div className="fixed inset-0 bg-black/60 z-modal flex items-center justify-center p-4" onClick={onCancel}>
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full border border-border animate-slide-in" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-xl font-heading text-textPrimary mt-0 mb-5">
           Edit Restaurant
         </h3>
         <form onSubmit={handleSave}>
-          <div style={{ marginBottom: SPACING[4] }}>
-            <label style={{...FONTS.body, display: 'block', fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, marginBottom: SPACING[2]}}>Name</label>
+          <div className="mb-4">
+            <label className="font-body block font-medium text-textSecondary mb-2">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={STYLES.input}
+              className="w-full p-3 border-2 border-gray-200 rounded-md bg-white text-text"
               disabled={isSaving}
               autoFocus
             />
           </div>
-          <div style={{ marginBottom: SPACING[6] }}>
+          <div className="mb-6">
             <AddressInput initialData={addressData} onAddressChange={handleAddressChange} />
           </div>
-          <div style={{ display: 'flex', gap: SPACING[3], justifyContent: 'flex-end' }}>
-            <button type="button" onClick={onCancel} disabled={isSaving} style={{...STYLES.secondaryButton, flex: 1}}>
+          <div className="flex gap-3 justify-end">
+            <button type="button" onClick={onCancel} disabled={isSaving} className="flex-1 px-4 py-3 rounded-md border-2 border-gray-300 text-text bg-white hover:bg-gray-100 transition-colors disabled:opacity-50">
               Cancel
             </button>
-            <button type="submit" disabled={!name.trim() || isSaving} style={{...STYLES.primaryButton, flex: 1}}>
+            <button type="submit" disabled={!name.trim() || isSaving} className="flex-1 px-4 py-3 rounded-md border-none text-white bg-primary hover:bg-primary-dark transition-colors disabled:opacity-50">
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
@@ -99,6 +91,5 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
     </div>
   );
 };
-
 
 export default EditRestaurantForm;

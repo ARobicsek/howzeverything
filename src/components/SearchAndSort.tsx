@@ -1,9 +1,5 @@
 // src/components/SearchAndSort.tsx
 import React from 'react';
-import { COLORS, FONTS } from '../constants';
-
-
-
 
 interface SearchAndSortProps {
   searchTerm: string;
@@ -12,9 +8,6 @@ interface SearchAndSortProps {
   onSortChange: (sort: 'name' | 'rating' | 'date') => void;
   disabled?: boolean;
 }
-
-
-
 
 const SearchAndSort: React.FC<SearchAndSortProps> = ({
   searchTerm,
@@ -30,15 +23,11 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Search dishes..."
-        className={`px-4 py-2 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full ${disabled ? 'opacity-60' : 'text-gray-800'}`}
-        style={{
-          background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
-          fontSize: '1rem',
-          ...FONTS.elegant,
-          color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
-          cursor: disabled ? 'not-allowed' : 'auto',
-          border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
-        }}
+        className={`w-full px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-white/50 text-base font-elegant border-2
+          ${disabled
+            ? 'bg-gray-300 text-text opacity-60 cursor-not-allowed border-gray-200'
+            : 'bg-white text-text border-gray-200'
+          }`}
         disabled={disabled}
       />
       <div className="flex gap-2 justify-center">
@@ -46,13 +35,13 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
           <button
             key={option}
             onClick={() => onSortChange(option)}
-            className={`px-3 py-1 rounded-lg text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-white ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            style={{
-              background: sortBy === option ? 'white' : 'transparent',
-              color: sortBy === option ? COLORS.text : COLORS.text, // Changed COLORS.textDark
-              border: sortBy === option ? 'none' : `1px solid ${COLORS.text}30`,
-              ...FONTS.elegant
-            }}
+            className={`px-3 py-1 rounded-lg text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-white font-elegant
+              ${sortBy === option
+                ? 'bg-white text-text border-none'
+                : 'bg-transparent text-text border border-text/20'
+              }
+              ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`
+            }
             disabled={disabled}
           >
             {option.charAt(0).toUpperCase() + option.slice(1)}
@@ -62,8 +51,5 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
     </div>
   </div>
 );
-
-
-
 
 export default SearchAndSort;

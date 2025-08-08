@@ -1,6 +1,5 @@
 // src/components/location/LocationPermissionModal.tsx
 import React from 'react';
-import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useLocationService } from '../../hooks/useLocationService';
 
 interface LocationPermissionModalProps {
@@ -34,24 +33,18 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
   const message = getInstructions();
 
   return (
-    <div style={STYLES.modalOverlay} onClick={onClose}>
-      <div style={{ ...STYLES.modal, maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ ...TYPOGRAPHY.h3, marginTop: 0, color: COLORS.textPrimary }}>
+    <div className="fixed inset-0 bg-black/60 z-modal flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg p-6 max-w-md w-full animate-slide-in" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-xl font-heading mt-0 text-textPrimary">
           HowzEverything is much more fun if location services are enabled.
         </h3>
-        <p style={{ ...TYPOGRAPHY.body, whiteSpace: 'pre-wrap', color: COLORS.textSecondary, marginTop: SPACING[4] }}>
+        <p className="font-body whitespace-pre-wrap text-textSecondary mt-4">
           {message}
         </p>
-        <div style={{ marginTop: SPACING[6], display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            style={{
-              ...STYLES.primaryButton,
-              minWidth: '120px',
-              backgroundColor: COLORS.accent,
-              color: COLORS.white,
-              border: `1px solid ${COLORS.text}`,
-            }}
+            className="min-w-[120px] px-6 py-3 rounded-lg bg-accent text-white border border-text transition-colors hover:bg-accent-dark"
           >
             OK
           </button>

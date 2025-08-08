@@ -1,7 +1,6 @@
 // src/components/navigation/TopNavigation.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SPACING, STYLES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 import LocationAwareButton from '../location/LocationAwareButton';
 
@@ -22,28 +21,16 @@ const Avatar: React.FC = () => {
   };
 
   const initials = getInitials(profile?.full_name);
+  const avatarBgStyle = profile?.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : {};
 
   return (
-    <Link to="/profile" style={{ textDecoration: 'none' }}>
-      <div style={{
-        width: '30px',
-        height: '30px',
-        borderRadius: '50%',
-        backgroundColor: profile?.avatar_url ? 'transparent' : '#642e32',
-        backgroundImage: profile?.avatar_url ? `url(${profile.avatar_url})` : 'none',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        border: `1px solid ${COLORS.white}`,
-        boxShadow: STYLES.shadowSmall,
-        color: COLORS.white,
-        fontFamily: '"Pinyon Script", cursive',
-        fontSize: '1.6rem',
-        lineHeight: 1,
-      }}>
+    <Link to="/profile" className="no-underline">
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border border-white shadow-sm text-white font-pinyon text-2xl leading-none bg-cover bg-center ${
+          profile?.avatar_url ? 'bg-transparent' : 'bg-accent'
+        }`}
+        style={avatarBgStyle}
+      >
         {!profile?.avatar_url && <span>{initials.length > 1 ? initials.charAt(0) : initials}</span>}
       </div>
     </Link>
@@ -52,39 +39,26 @@ const Avatar: React.FC = () => {
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
   return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '60px',
-      backgroundColor: COLORS.navBarDark,
-      border: 'none',
-      zIndex: STYLES.zHeader,
-      padding: `0 ${SPACING[4]}`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    }}>
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+    <header className="fixed top-0 left-0 right-0 h-16 bg-navBarDark z-header px-4 flex items-center justify-between">
+      <div className="flex-1 flex justify-start">
         <Link to="/home">
           <img
             src="/HowzEverything.png"
             alt="HowzEverything Logo"
-            style={{ height: '60px', width: 'auto' }}
+            className="h-16 w-auto"
           />
         </Link>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        {/* Empty space in the center */}
+      <div className="flex-1 flex justify-center">
+        {/* Empty space */}
       </div>
 
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'end', alignItems: 'center', gap: SPACING[4] }}>
+      <div className="flex-1 flex justify-end items-center gap-4">
         <LocationAwareButton />
         <Avatar />
-        <button onClick={onToggleMenu} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: SPACING[2] }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color={COLORS.white}>
+        <button onClick={onToggleMenu} className="bg-transparent border-none cursor-pointer p-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-white">
             <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
           </svg>
         </button>
