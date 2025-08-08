@@ -1,3 +1,5 @@
+import { COLORS, FONTS, SPACING, BORDERS, SHADOWS, TYPOGRAPHY } from './src/constants';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -7,6 +9,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        ...COLORS,
         amber: {
           50: '#fffbeb',
           100: '#fef3c7',
@@ -31,6 +34,25 @@ export default {
           800: '#292524',
           900: '#1c1917',
         }
+      },
+      fontFamily: {
+        sans: FONTS.primary.fontFamily.split(','),
+        heading: FONTS.heading.fontFamily.split(','),
+        body: FONTS.body.fontFamily.split(','),
+        elegant: FONTS.elegant.fontFamily.split(','),
+        pinyon: FONTS.pinyon.fontFamily.split(','),
+      },
+      spacing: SPACING,
+      borderRadius: BORDERS.radius,
+      boxShadow: SHADOWS,
+      fontSize: {
+        'xs': TYPOGRAPHY.xs,
+        'sm': TYPOGRAPHY.sm,
+        'base': TYPOGRAPHY.base,
+        'lg': TYPOGRAPHY.lg,
+        'xl': TYPOGRAPHY.xl,
+        '2xl': TYPOGRAPHY['2xl'],
+        '3xl': TYPOGRAPHY['3xl'],
       }
     },
   },
