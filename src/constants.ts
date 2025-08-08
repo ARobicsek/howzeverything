@@ -278,19 +278,6 @@ export const STYLES = {
     justifyContent: 'center',
     transition: 'all 0.2s ease',
   } as React.CSSProperties, // Added casting
-  editButton: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: COLORS.primary,
-    color: COLORS.white,
-    border: '2px solid ' + COLORS.black,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s ease',
-  } as React.CSSProperties,
   card: {
     backgroundColor: COLORS.white,
     borderRadius: '12px',

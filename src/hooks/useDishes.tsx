@@ -694,12 +694,21 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         throw new Error('You can only edit your own photo captions');
       }
 
-      const { error } = await supabase
+      const { data: updatedData, error } = await supabase
         .from('dish_photos')
         .update({ caption: caption, updated_at: new Date().toISOString() })
-        .eq('id', photoId);
+        .eq('id', photoId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating photo caption:", error);
+        throw new Error(`Failed to update caption: ${error.message}`);
+      }
+
+      if (!updatedData || updatedData.length === 0) {
+        console.error("No data returned after update, likely a RLS policy issue.");
+        throw new Error("You may not have permission to edit this photo, or the photo does not exist.");
+      }
 
       setDishes(prevDishes => {
         return prevDishes.map(dish => ({

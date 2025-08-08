@@ -199,7 +199,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                     e.stopPropagation();
                     handleEditCaption();
                   }}
-                  style={{...STYLES.editButton}}
+                  style={{...STYLES.deleteButton}}
                   title="Edit caption"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
