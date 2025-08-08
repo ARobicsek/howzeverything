@@ -3,6 +3,7 @@ import Fuse from 'fuse.js';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
+import { StarRating } from './components/shared/StarRating';
 import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
@@ -12,38 +13,6 @@ import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocati
 
 const SEARCH_BAR_WIDTH = '450px';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
-
-
-const StarRating: React.FC<{
-  rating: number;
-  variant?: 'personal' | 'community';
-  size?: 'sm' | 'md' | 'lg';
-}> = ({ rating, variant = 'personal', size = 'md' }) => {
-  const sizeMap = { sm: '1rem', md: '1.25rem', lg: '1.5rem' };
-  const colorMap = {
-    personal: { filled: COLORS.accent, empty: COLORS.ratingEmpty },
-    community: { filled: '#101010', empty: COLORS.ratingEmpty },
-  };
-
-
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <span
-          key={star}
-          style={{
-            color: star <= rating ? colorMap[variant].filled : colorMap[variant].empty,
-            fontSize: sizeMap[size],
-            lineHeight: '1',
-          }}
-          aria-hidden="true"
-        >
-          ★
-        </span>
-      ))}
-    </div>
-  );
-};
 
 
 // A dish card that now includes distance.
@@ -289,7 +258,7 @@ const RatingsScreen: React.FC = () => {
       <div style={{
         maxWidth: '768px',
         margin: `${SPACING[6]} auto 0`,
-        padding: `0 ${SPACING[4]} ${SPACING[12]}`,
+        padding: `0 ${SPACING[4]} ${SPACING[12]} `,
       }}>
         {isLoading ? (
           <LoadingScreen message="Loading your ratings..." />
