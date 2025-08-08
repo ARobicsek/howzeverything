@@ -1,5 +1,6 @@
-// src/components/SupabaseDebugTest.tsx
+﻿// src/components/SupabaseDebugTest.tsx
 import React, { useState } from 'react';
+import { COLORS, FONTS, STYLES } from '../constants';
 
 const SupabaseDebugTest: React.FC = () => {
   const [name, setName] = useState('starbucks');
@@ -18,6 +19,7 @@ const SupabaseDebugTest: React.FC = () => {
     setError(null);
     setResults(null);
 
+    // Hardcoded user location for bias testing (Seattle)
     const userLat = 47.5398144;
     const userLon = -122.2541312;
 
@@ -31,7 +33,7 @@ const SupabaseDebugTest: React.FC = () => {
       if (name) params.append('name', name);
       if (street) params.append('street', street);
       if (city) params.append('city', city);
-    } else {
+    } else { // 'combined_text'
       const textQuery = [name, street, city].filter(Boolean).join(' ');
       params.append('text', textQuery);
     }
@@ -47,7 +49,10 @@ const SupabaseDebugTest: React.FC = () => {
     try {
       const response = await fetch(url);
       const data = await response.json();
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+      }
       setResults(data);
     } catch (err: any) {
       setError(err.message);
@@ -56,41 +61,66 @@ const SupabaseDebugTest: React.FC = () => {
     }
   };
 
-  const labelClasses = "font-elegant text-sm font-medium text-text block mb-1";
-  const inputClasses = "font-elegant p-3 rounded-md text-base bg-white/95 text-text box-border border-2 border-gray-200 w-full";
-  const buttonClasses = "mt-4 mr-4 text-sm px-4 py-2.5 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors";
+  const labelStyle: React.CSSProperties = {
+    ...FONTS.elegant,
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: COLORS.text,
+    display: 'block',
+    marginBottom: '4px',
+  };
+
+  const inputStyle: React.CSSProperties = {
+    ...FONTS.elegant,
+    padding: '12px 16px',
+    borderRadius: STYLES.borderRadiusMedium,
+    fontSize: '1rem',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    color: COLORS.text,
+    boxSizing: 'border-box',
+    border: `2px solid ${COLORS.gray200}`,
+    width: '100%',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    ...STYLES.addButton,
+    marginTop: '1rem',
+    marginRight: '1rem',
+    fontSize: '0.9rem',
+    padding: '10px 15px',
+  };
 
   return (
-    <div className="p-8 max-w-3xl mx-auto text-text">
-      <h1 className="font-elegant text-3xl">Geoapify API Testbed</h1>
-      <p className="opacity-80 mb-8">
+    <div style={{ padding: '2rem', maxWidth: '768px', margin: 'auto', color: COLORS.text }}>
+      <h1 style={{ ...FONTS.elegant, fontSize: '2rem' }}>Geoapify API Testbed</h1>
+      <p style={{ opacity: 0.8, marginBottom: '2rem' }}>
         Rapidly test different search strategies against the Geoapify API.
       </p>
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="test-name" className={labelClasses}>Name</label>
-          <input id="test-name" type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputClasses} />
+          <label htmlFor="test-name" style={labelStyle}>Name</label>
+          <input id="test-name" type="text" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
         </div>
         <div>
-          <label htmlFor="test-street" className={labelClasses}>Street</label>
-          <input id="test-street" type="text" value={street} onChange={(e) => setStreet(e.target.value)} className={inputClasses} />
+          <label htmlFor="test-street" style={labelStyle}>Street</label>
+          <input id="test-street" type="text" value={street} onChange={(e) => setStreet(e.target.value)} style={inputStyle} />
         </div>
         <div>
-          <label htmlFor="test-city" className={labelClasses}>City</label>
-          <input id="test-city" type="text" value={city} onChange={(e) => setCity(e.target.value)} className={inputClasses} />
+          <label htmlFor="test-city" style={labelStyle}>City</label>
+          <input id="test-city" type="text" value={city} onChange={(e) => setCity(e.target.value)} style={inputStyle} />
         </div>
-        <div className="flex items-center">
-          <input type="checkbox" id="test-bias" checked={bias} onChange={(e) => setBias(e.target.checked)} className="mr-2.5" />
-          <label htmlFor="test-bias" className="font-elegant">Apply proximity bias (to Seattle)?</label>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <input type="checkbox" id="test-bias" checked={bias} onChange={(e) => setBias(e.target.checked)} style={{ marginRight: '10px' }} />
+          <label htmlFor="test-bias" style={{ ...FONTS.elegant }}>Apply proximity bias (to Seattle)?</label>
         </div>
       </div>
 
       <div>
-        <button onClick={() => runTest('structured')} disabled={isLoading} className={buttonClasses}>
+        <button onClick={() => runTest('structured')} disabled={isLoading} style={buttonStyle}>
           Test (Structured)
         </button>
-        <button onClick={() => runTest('combined_text')} disabled={isLoading} className={buttonClasses}>
+        <button onClick={() => runTest('combined_text')} disabled={isLoading} style={buttonStyle}>
           Test (Combined Text)
         </button>
       </div>
@@ -98,25 +128,40 @@ const SupabaseDebugTest: React.FC = () => {
       {isLoading && <p>Loading...</p>}
 
       {testUrl && (
-        <div className="mt-8">
-          <h2 className="font-elegant text-lg">Request URL:</h2>
-          <pre className="bg-gray-800 text-gray-200 p-4 rounded-md break-words whitespace-pre-wrap text-xs">
+        <div style={{ marginTop: '2rem' }}>
+          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>Request URL:</h2>
+          <pre style={{
+            background: '#222',
+            color: '#eee',
+            padding: '1rem',
+            borderRadius: '8px',
+            wordWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+            fontSize: '0.8rem',
+          }}>
             {testUrl}
           </pre>
         </div>
       )}
 
       {error && (
-        <div className="mt-8 text-danger">
-          <h2 className="font-elegant text-lg">Error:</h2>
-          <pre className="bg-red-900/50 p-4 rounded-md">{error}</pre>
+        <div style={{ marginTop: '2rem', color: COLORS.danger }}>
+          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>Error:</h2>
+          <pre style={{ background: '#400', padding: '1rem', borderRadius: '8px' }}>{error}</pre>
         </div>
       )}
 
       {results && (
-        <div className="mt-8">
-          <h2 className="font-elegant text-lg">API Response:</h2>
-          <pre className="bg-gray-700 text-white p-4 rounded-md max-h-[500px] overflow-y-auto">
+        <div style={{ marginTop: '2rem' }}>
+          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>API Response:</h2>
+          <pre style={{
+            background: '#333',
+            color: '#fff',
+            padding: '1rem',
+            borderRadius: '8px',
+            maxHeight: '500px',
+            overflowY: 'auto',
+          }}>
             {JSON.stringify(results, null, 2)}
           </pre>
         </div>

@@ -1,5 +1,6 @@
 // src/components/CommentForm.tsx
 import React, { useState } from 'react';
+import { COLORS, SPACING, STYLES } from '../constants';
 
 interface CommentFormProps {
   initialText?: string;
@@ -28,10 +29,8 @@ const CommentForm: React.FC<CommentFormProps> = ({
     }
   };
 
-  const isDisabled = !commentText.trim() || isLoading;
-
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
       <textarea
         value={commentText}
         onChange={(e) => setCommentText(e.target.value)}
@@ -39,28 +38,53 @@ const CommentForm: React.FC<CommentFormProps> = ({
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
         rows={4}
-        className={`
-          w-full p-3 border-2 rounded-md transition-all duration-200
-          bg-white text-text resize-y min-h-[100px] mb-4
-          focus:outline-none focus:ring-2
-          ${isFocused ? 'border-accent ring-accent/50' : 'border-gray-200'}
-        `}
+        style={{
+          ...STYLES.input,
+          ...(isFocused ? STYLES.inputFocus : {}),
+          minHeight: '100px',
+          resize: 'vertical',
+          marginBottom: SPACING[4]
+        }}
         disabled={isLoading}
         autoFocus
       />
-      <div className="flex gap-3 justify-end">
+      <div style={{
+        display: 'flex',
+        gap: SPACING[3],
+        justifyContent: 'flex-end'
+      }}>
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="px-6 py-3 rounded-lg border-2 border-primary text-primary bg-white hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            ...STYLES.secondaryButton,
+            opacity: isLoading ? 0.5 : 1,
+            cursor: isLoading ? 'not-allowed' : 'pointer'
+          }}
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={isDisabled}
-          className="px-6 py-3 rounded-lg border-2 border-black text-white bg-primary hover:bg-primaryHover transition-colors disabled:bg-gray-300 disabled:border-gray-300 disabled:cursor-not-allowed"
+          disabled={!commentText.trim() || isLoading}
+          style={{
+            ...STYLES.primaryButton,
+            opacity: (!commentText.trim() || isLoading) ? 0.5 : 1,
+            cursor: (!commentText.trim() || isLoading) ? 'not-allowed' : 'pointer',
+            backgroundColor: (!commentText.trim() || isLoading) ? COLORS.gray300 : COLORS.primary,
+            borderColor: (!commentText.trim() || isLoading) ? COLORS.gray300 : COLORS.black
+          }}
+          onMouseEnter={(e) => {
+            if (commentText.trim() && !isLoading) {
+              e.currentTarget.style.backgroundColor = COLORS.primaryHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (commentText.trim() && !isLoading) {
+              e.currentTarget.style.backgroundColor = COLORS.primary;
+            }
+          }}
         >
           {isLoading ? 'Saving...' : submitButtonText}
         </button>

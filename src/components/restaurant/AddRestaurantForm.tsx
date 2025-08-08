@@ -1,14 +1,21 @@
 // src/components/restaurant/AddRestaurantForm.tsx
 import React, { useState } from 'react';
+import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import type { AddressFormData } from '../../types/address';
 import type { Restaurant } from '../../types/restaurant';
 import AddressInput from '../shared/AddressInput';
+
+
+
 
 interface AddRestaurantFormProps {
   initialName?: string;
   onSave: (data: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'>) => void;
   onCancel: () => void;
 }
+
+
+
 
 const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
   initialName = '',
@@ -26,12 +33,18 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
   });
   const [error, setError] = useState('');
 
+
+
+
   const handleSave = () => {
     if (!name.trim()) {
       setError('Restaurant name is required.');
       return;
     }
     setError('');
+
+
+
 
     const newRestaurantData: Omit<Restaurant, 'id' | 'created_at' | 'updated_at'> = {
       name: name.trim(),
@@ -41,10 +54,11 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
       state: addressData.state || null,
       zip_code: addressData.zip_code || null,
       country: addressData.country || null,
-      latitude: null,
-      longitude: null,
+      latitude: null, // Will be geocoded in the hook
+      longitude: null, // Will be geocoded in the hook
       manually_added: true,
       dateAdded: new Date().toISOString(),
+      // --- FIX: geoapify_place_id should be null, not undefined ---
       geoapify_place_id: null,
       phone: null,
       website_url: null,
@@ -52,16 +66,19 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
       price_tier: null,
       category: null,
       opening_hours: null,
-      created_by: null,
+      created_by: null, // This will be set by the hook/service
     };
     onSave(newRestaurantData);
   };
 
+
+
+
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 space-y-4">
-      {error && <p className="text-danger text-center">{error}</p>}
+      {error && <p style={{ color: COLORS.danger, textAlign: 'center' }}>{error}</p>}
       <div>
-        <label className="text-sm text-textSecondary mb-1 block">
+        <label style={{...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[1], display: 'block'}}>
           Restaurant Name
         </label>
         <input
@@ -69,10 +86,13 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., The French Laundry"
-          className="w-full p-3 border-2 border-gray-200 rounded-md bg-white text-text"
+          style={STYLES.input}
           autoFocus
         />
       </div>
+
+
+
 
       <AddressInput
         initialData={{}}
@@ -80,16 +100,19 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
         onNameExtracted={setName}
       />
 
-      <div className="flex gap-3 mt-4">
+
+
+
+      <div style={{ display: 'flex', gap: SPACING[3], marginTop: SPACING[4] }}>
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-3 rounded-md border-2 border-gray-300 text-text bg-white hover:bg-gray-100 transition-colors"
+          style={{ ...STYLES.secondaryButton, flex: 1, borderColor: COLORS.gray300, color: COLORS.text }}
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 px-4 py-3 rounded-md border-none text-white bg-primary hover:bg-primary-dark transition-colors"
+          style={{ ...STYLES.primaryButton, flex: 1, border: 'none', backgroundColor: COLORS.primary }}
         >
           Save Restaurant
         </button>
@@ -97,5 +120,8 @@ const AddRestaurantForm: React.FC<AddRestaurantFormProps> = ({
     </div>
   );
 };
+
+
+
 
 export default AddRestaurantForm;

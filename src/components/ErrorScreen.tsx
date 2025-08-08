@@ -1,25 +1,61 @@
 // src/components/ErrorScreen.tsx
 import React from 'react';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
 
-interface ErrorScreenProps {
-  error: string;
-  onBack: () => void;
+interface ErrorScreenProps { // Renamed from LoadingScreenProps
+  error: string; // Added error prop
+  onBack: () => void; // Added onBack prop
 }
 
-const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => {
+const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => { // Changed component name to ErrorScreen, destructured props
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-      <div className="flex flex-col items-center gap-4 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-        <div className="text-5xl mb-2">❌</div>
-        <p className="font-heading text-lg text-danger m-0 text-center">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: COLORS.background,
+      padding: SPACING[4]
+    }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: SPACING[4],
+        backgroundColor: COLORS.white, // Added background for better presentation
+        padding: SPACING[6],
+        borderRadius: STYLES.borderRadiusLarge,
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`
+      }}>
+        {/* Error icon or message */}
+        <div style={{ fontSize: '3rem', marginBottom: SPACING[2] }}>❌</div>
+        <p style={{
+          ...FONTS.heading, // Using heading for emphasis
+          fontSize: TYPOGRAPHY.lg.fontSize,
+          color: COLORS.danger, // Use danger color for errors
+          margin: 0,
+          textAlign: 'center'
+        }}>
           Error!
         </p>
-        <p className="font-body text-base text-textSecondary m-0 text-center">
+        <p style={{ // Display the actual error message
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.base.fontSize,
+          color: COLORS.textSecondary,
+          margin: 0,
+          textAlign: 'center'
+        }}>
           {error}
         </p>
         <button
           onClick={onBack}
-          className="mt-4 px-5 py-3 rounded-lg border-2 border-primary text-primary bg-white hover:bg-gray-100 transition-colors"
+          style={{
+            ...STYLES.secondaryButton, // Using a secondary button style
+            marginTop: SPACING[4],
+            padding: `${SPACING[3]} ${SPACING[5]}`
+          }}
         >
           Go Back
         </button>
@@ -28,4 +64,4 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => {
   );
 };
 
-export default ErrorScreen;
+export default ErrorScreen; // Export as ErrorScreen

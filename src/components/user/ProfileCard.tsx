@@ -1,15 +1,22 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
+
 
 interface ProfileCardProps {
   onEditProfile?: () => void;
   showEditButton?: boolean;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ onEditProfile, showEditButton = true }) => {
+
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  onEditProfile,
+  showEditButton = true
+}) => {
   const { user, profile, signOut, loading, error } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
+
 
   const handleSignOut = async () => {
     try {
@@ -22,102 +29,294 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ onEditProfile, showEditButton
     }
   };
 
+
   if (!user || !profile) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-        <p className="font-body text-base text-textSecondary m-0">
+      <div style={{
+        ...STYLES.card,
+        textAlign: 'center',
+        padding: SPACING[6]
+      }}>
+        <p style={{
+          ...FONTS.body,
+          fontSize: TYPOGRAPHY.base.fontSize,
+          color: COLORS.textSecondary,
+          margin: 0
+        }}>
           {loading ? 'Loading profile...' : 'No profile found'}
         </p>
       </div>
     );
   }
 
+
+  // Get user initials for avatar fallback
   const getInitials = (name?: string | null): string => {
     if (!name) return user.email?.charAt(0).toUpperCase() ?? '?';
+
     const names = name.trim().split(' ');
-    if (names.length >= 2) return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    if (names.length >= 2) {
+      return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    }
     return names[0].charAt(0).toUpperCase();
   };
 
+
   const formatDate = (dateString: string): string => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
     } catch {
       return 'Unknown';
     }
   };
 
+
   const initials = getInitials(profile.full_name);
-  const avatarBgStyle = profile.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : {};
+
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
+    <div style={{
+      ...STYLES.card,
+      boxShadow: STYLES.shadowLarge,
+      padding: SPACING[6]
+    }}>
+      {/* Error Display */}
       {error && (
-        <div className="bg-red-100 border border-red-200 rounded-md p-3 mb-5">
-          <p className="font-body text-sm text-danger m-0">{error}</p>
+        <div style={{
+          backgroundColor: '#FEE2E2',
+          border: '1px solid #FECACA',
+          borderRadius: STYLES.borderRadiusMedium,
+          padding: SPACING[3],
+          marginBottom: SPACING[5]
+        }}>
+          <p style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            color: COLORS.danger,
+            margin: 0
+          }}>
+            {error}
+          </p>
         </div>
       )}
 
-      <div className="flex items-center mb-6">
-        <div
-          className={`w-20 h-20 rounded-full flex items-center justify-center mr-5 flex-shrink-0 border-4 border-gray-100 shadow-md bg-cover bg-center ${
-            profile.avatar_url ? 'bg-transparent' : 'bg-accent'
-          }`}
-          style={avatarBgStyle}
-        >
+
+      {/* Profile Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: SPACING[6]
+      }}>
+        {/* Avatar */}
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          backgroundColor: profile.avatar_url ? 'transparent' : COLORS.accent,
+          backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: SPACING[5],
+          flexShrink: 0,
+          border: `3px solid ${COLORS.gray100}`,
+          // --- THIS IS THE FIX ---
+          // Added a shadow to give the avatar depth
+          boxShadow: STYLES.shadowMedium,
+        }}>
           {!profile.avatar_url && (
-            <span className="font-pinyon font-normal text-4xl text-white leading-none">
+            <span style={{
+              fontFamily: '"Pinyon Script", cursive',
+              fontWeight: 400,
+              fontSize: '2.5rem',
+              color: COLORS.white,
+              lineHeight: 1,
+            }}>
               {initials.length > 1 ? initials.charAt(0) : initials}
             </span>
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-heading text-xl text-gray-900 mb-1 break-words">
+
+        {/* Name and Email */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3 style={{
+            ...FONTS.heading,
+            fontSize: TYPOGRAPHY.xl.fontSize,
+            color: COLORS.gray900,
+            margin: `0 0 ${SPACING[1]} 0`,
+            wordBreak: 'break-word'
+          }}>
             {profile.full_name || 'No name set'}
           </h3>
-          <p className="font-body text-sm text-textSecondary m-0 break-words">{user.email}</p>
+          <p style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            color: COLORS.textSecondary,
+            margin: 0,
+            wordBreak: 'break-word'
+          }}>
+            {user.email}
+          </p>
           {profile.is_admin && (
-            <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-md">
+            <span style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.xs.fontSize,
+              fontWeight: TYPOGRAPHY.semibold,
+              color: COLORS.accent,
+              backgroundColor: `${COLORS.accent}2A`,
+              padding: `${SPACING[1]} ${SPACING[3]}`,
+              borderRadius: STYLES.borderRadiusSmall,
+              display: 'inline-block',
+              marginTop: SPACING[2]
+            }}>
               Admin
             </span>
           )}
         </div>
       </div>
 
-      <div className="mb-6 pt-5 border-t border-gray-100">
+
+      {/* Profile Details */}
+      <div style={{
+        marginBottom: SPACING[6],
+        paddingTop: SPACING[5],
+        borderTop: `1px solid ${COLORS.gray100}`
+      }}>
         {profile.bio && (
-          <div className="mb-4">
-            <h4 className="font-body text-sm font-semibold text-textSecondary mb-2 uppercase tracking-wider">Bio</h4>
-            <p className="font-body text-base text-text m-0 leading-relaxed break-words">{profile.bio}</p>
+          <div style={{ marginBottom: SPACING[4] }}>
+            <h4 style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.sm.fontSize,
+              fontWeight: TYPOGRAPHY.semibold,
+              color: COLORS.textSecondary,
+              margin: `0 0 ${SPACING[2]} 0`,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>
+              Bio
+            </h4>
+            <p style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.text,
+              margin: 0,
+              lineHeight: '1.6',
+              wordBreak: 'break-word'
+            }}>
+              {profile.bio}
+            </p>
           </div>
         )}
+
+
         {profile.location && (
-          <div className="mb-4">
-            <h4 className="font-body text-sm font-semibold text-textSecondary mb-2 uppercase tracking-wider">Location</h4>
-            <p className="font-body text-base text-text m-0">{profile.location}</p>
+          <div style={{ marginBottom: SPACING[4] }}>
+            <h4 style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.sm.fontSize,
+              fontWeight: TYPOGRAPHY.semibold,
+              color: COLORS.textSecondary,
+              margin: `0 0 ${SPACING[2]} 0`,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>
+              Location
+            </h4>
+            <p style={{
+              ...FONTS.body,
+              fontSize: TYPOGRAPHY.base.fontSize,
+              color: COLORS.text,
+              margin: 0
+            }}>
+              {profile.location}
+            </p>
           </div>
         )}
+
+
         <div>
-          <h4 className="font-body text-sm font-semibold text-textSecondary mb-2 uppercase tracking-wider">Member Since</h4>
-          <p className="font-body text-base text-text m-0">{formatDate(profile.created_at ?? '')}</p>
+          <h4 style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.sm.fontSize,
+            fontWeight: TYPOGRAPHY.semibold,
+            color: COLORS.textSecondary,
+            margin: `0 0 ${SPACING[2]} 0`,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            Member Since
+          </h4>
+          <p style={{
+            ...FONTS.body,
+            fontSize: TYPOGRAPHY.base.fontSize,
+            color: COLORS.text,
+            margin: 0
+          }}>
+            {formatDate(profile.created_at ?? '')}
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
+
+      {/* Action Buttons */}
+      <div style={{
+        display: 'flex',
+        gap: SPACING[3],
+        flexDirection: 'column'
+      }}>
         {showEditButton && onEditProfile && (
           <button
             onClick={onEditProfile}
             disabled={loading}
-            className="w-full px-4 py-3 rounded-lg border-2 border-black text-white bg-accent transition-colors hover:bg-accent-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              ...STYLES.primaryButton,
+              width: '100%',
+              backgroundColor: COLORS.accent,
+              opacity: loading ? 0.5 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = COLORS.accent;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = COLORS.accent;
+              }
+            }}
           >
             Edit Profile
           </button>
         )}
+
+
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
-          className="w-full px-4 py-3 rounded-lg border-2 border-black text-black bg-white hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            ...STYLES.secondaryButton,
+            width: '100%',
+            color: COLORS.black,
+            borderColor: COLORS.black,
+            opacity: (loading || isSigningOut) ? 0.5 : 1,
+            cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading && !isSigningOut) {
+              e.currentTarget.style.backgroundColor = COLORS.gray100;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = COLORS.white;
+          }}
         >
           {isSigningOut ? 'Signing out...' : 'Sign Out'}
         </button>
@@ -125,5 +324,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ onEditProfile, showEditButton
     </div>
   );
 };
+
 
 export default ProfileCard;

@@ -144,15 +144,18 @@ const AppRoutes: React.FC = () => {
 
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
+        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} isAdmin={isAdmin} />
             <SharedContentHandler />
             <div style={{
-                maxWidth: '1280px',
+                // --- THIS IS THE FIX ---
+                // This value was LAYOUT_CONFIG.APP_CONTAINER.maxWidth ('448px'), which capped the width of everything.
+                // It's now set to a larger value to allow inner content to define its own width.
+                maxWidth: screenConfig.isFullBleed ? 'none' : '1280px',
                 margin: '0 auto',
-                paddingLeft: LAYOUT_CONFIG.APP_CONTAINER.padding,
-                paddingRight: LAYOUT_CONFIG.APP_CONTAINER.padding,
+                paddingLeft: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
+                paddingRight: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
             }}>
                 <div style={{
                     maxWidth: screenConfig.maxWidth,
