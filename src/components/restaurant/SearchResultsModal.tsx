@@ -1,6 +1,6 @@
 // src/components/restaurant/SearchResultsModal.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES } from '../../constants';
+import { COLORS, COMPONENT_STYLES, FONTS, SPACING } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 import type { GeoapifyPlace } from '../../types/restaurantSearch';
@@ -118,7 +118,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
               <label style={{ ...FONTS.elegant, fontSize: '1.1rem', fontWeight: '600', color: COLORS.text }}>Search online</label>
               <div className="flex items-center gap-4">
                   {hasSearchTerm && (<button onClick={handleReset} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary }}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
-                  <button onClick={onClose} style={{...STYLES.iconButton, border: 'none', width: '32px', height: '32px' }}>
+                  <button onClick={onClose} style={{...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px' }}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                   </button>
               </div>
