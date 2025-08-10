@@ -190,7 +190,11 @@ export const LAYOUT_CONFIG = {
 };
 
 export const COLORS = DESIGN_TOKENS.colors;
-export const SPACING = DESIGN_TOKENS.spacing;
+export const SPACING = {
+  ...DESIGN_TOKENS.spacing,
+  containerPadding: '1rem', // 16px
+  sectionGap: '1.5rem', // 24px
+};
 export const TYPOGRAPHY = {
   ...DESIGN_TOKENS.typography,
   h1: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
@@ -304,11 +308,11 @@ export const STYLES = {
     transition: 'all 0.2s ease',
   } as React.CSSProperties,
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: '12px',
-    border: '1px solid ' + COLORS.gray200,
-    padding: SPACING.cardPadding,
-    transition: 'all 0.3s ease',
+    backgroundColor: DESIGN_TOKENS.colors.white,
+    borderRadius: DESIGN_TOKENS.borderRadius.large,
+    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+    padding: DESIGN_TOKENS.spacing[5],
+    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
   } as React.CSSProperties,
   cardHover: {
     borderColor: COLORS.primary,
