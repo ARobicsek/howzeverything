@@ -132,11 +132,41 @@ export const DESIGN_TOKENS = {
 
 // 2. Component Styles
 export const COMPONENT_STYLES = {
-  card: { /* card styles */ },
+  card: {
+    backgroundColor: DESIGN_TOKENS.colors.white,
+    borderRadius: DESIGN_TOKENS.borderRadius.large,
+    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+    padding: DESIGN_TOKENS.spacing[5],
+    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
+  },
   button: { /* button variants */ },
   input: { /* input styles */ },
   modal: { /* modal styles */ },
-  // ... etc
+  logo: {
+    height: '60px',
+    width: 'auto',
+  },
+  navButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: DESIGN_TOKENS.spacing[2],
+  },
+  avatar: {
+    width: '30px',
+    height: '30px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    border: `1px solid ${DESIGN_TOKENS.colors.white}`,
+    boxShadow: DESIGN_TOKENS.shadows.small,
+    color: DESIGN_TOKENS.colors.white,
+    fontFamily: '"Pinyon Script", cursive',
+    fontSize: '1.6rem',
+    lineHeight: 1,
+  }
 };
 
 // 3. Layout Styles
@@ -144,7 +174,20 @@ export const LAYOUT_STYLES = {
   container: { /* container styles */ },
   header: { /* header styles */ },
   navigation: { /* nav styles */ },
-  // ... etc
+  topNavigation: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '60px',
+    backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+    border: 'none',
+    zIndex: DESIGN_TOKENS.zIndex.header,
+    padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  }
 };
 
 // 4. Screen-Specific Styles
@@ -152,6 +195,13 @@ export const SCREEN_STYLES = {
   findRestaurant: { /* screen-specific */ },
   menuScreen: { /* screen-specific */ },
   // ... etc
+};
+
+// 5. Utility Styles
+export const UTILITIES = {
+  textDecorationNone: {
+    textDecoration: 'none',
+  }
 };
 
 // --- LEGACY OR UNCATEGORIZED STYLES ---
