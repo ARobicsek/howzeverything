@@ -201,7 +201,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           {onTogglePin && (
             <button
               onClick={handlePinClick}
-              style={{ ...STYLES.iconButton, width: '32px', height: '32px', border: 'none', backgroundColor: 'transparent', margin: '-6px' }}
+              style={{ ...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px', margin: '-6px' }}
               title={isPinned ? "Unpin restaurant" : "Pin restaurant"} aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isPinned ? DESIGN_TOKENS.colors.accent : "none"} stroke={isPinned ? DESIGN_TOKENS.colors.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -211,7 +211,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           )}
           {canShowMenu && (
             <div style={{ position: 'relative' }}>
-              <button onClick={toggleMenu} style={{ ...STYLES.iconButton, width: '32px', height: '32px', border: 'none', backgroundColor: 'transparent', margin: '-6px' }}>
+              <button onClick={toggleMenu} style={{ ...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px', margin: '-6px' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
