@@ -143,8 +143,10 @@ const AppRoutes: React.FC = () => {
     const screenConfig = getScreenConfig(location.pathname);
 
 
+    const isHomeScreen = location.pathname === '/' || location.pathname === '/home';
+
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
+        <div style={{ minHeight: '100vh', backgroundColor: isHomeScreen ? COLORS.navBarDark : COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} isAdmin={isAdmin} />
             <SharedContentHandler />
