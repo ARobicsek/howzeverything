@@ -139,9 +139,43 @@ export const COMPONENT_STYLES = {
     padding: DESIGN_TOKENS.spacing[5],
     transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
   },
-  button: { /* button variants */ },
+  button: {
+    close: {
+      position: 'absolute',
+      top: DESIGN_TOKENS.spacing[4],
+      right: DESIGN_TOKENS.spacing[4],
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: DESIGN_TOKENS.spacing[2],
+    },
+  },
   input: { /* input styles */ },
-  modal: { /* modal styles */ },
+  modal: {
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      animation: 'fadeIn 0.3s ease',
+    },
+    content: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: 'min(300px, 80vw)',
+      backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+      boxShadow: DESIGN_TOKENS.shadows.large,
+      display: 'flex',
+      flexDirection: 'column',
+      padding: `${DESIGN_TOKENS.spacing[8]} ${DESIGN_TOKENS.spacing[4]}`,
+      animation: 'slideInFromRight 0.3s ease',
+      zIndex: DESIGN_TOKENS.zIndex.modal,
+    },
+  },
   logo: {
     height: '60px',
     width: 'auto',
@@ -166,6 +200,18 @@ export const COMPONENT_STYLES = {
     fontFamily: '"Pinyon Script", cursive',
     fontSize: '1.6rem',
     lineHeight: 1,
+  },
+  navLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: DESIGN_TOKENS.spacing[4],
+    padding: `${DESIGN_TOKENS.spacing[4]} ${DESIGN_TOKENS.spacing[2]}`,
+    textDecoration: 'none',
+    // ...TYPOGRAPHY['2xl'], // This will be handled in the component
+    // color: linkColor, // This will be handled in the component
+    // fontWeight: TYPOGRAPHY.medium, // This will be handled in the component
+    borderRadius: DESIGN_TOKENS.borderRadius.medium,
+    transition: 'background-color 0.2s ease',
   }
 };
 
@@ -173,7 +219,22 @@ export const COMPONENT_STYLES = {
 export const LAYOUT_STYLES = {
   container: { /* container styles */ },
   header: { /* header styles */ },
-  navigation: { /* nav styles */ },
+  navigation: {
+    list: {
+      listStyle: 'none',
+      padding: 0,
+    },
+  },
+  navigationModal: {
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: DESIGN_TOKENS.zIndex.modal - 1,
+    }
+  },
   topNavigation: {
     position: 'fixed',
     top: 0,

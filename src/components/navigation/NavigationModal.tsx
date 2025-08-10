@@ -1,7 +1,7 @@
 // src/components/navigation/NavigationModal.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { LAYOUT_STYLES, COMPONENT_STYLES, DESIGN_TOKENS, TYPOGRAPHY } from '../../constants';
 
 
 interface NavigationModalProps {
@@ -79,44 +79,14 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
 
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: STYLES.zModal - 1,
-      }}
-    >
+    <div style={LAYOUT_STYLES.navigationModal.overlay as React.CSSProperties}>
       <div
         onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          animation: 'fadeIn 0.3s ease',
-        }}
+        style={COMPONENT_STYLES.modal.overlay as React.CSSProperties}
       />
 
 
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: 'min(300px, 80vw)',
-        backgroundColor: COLORS.navBarDark,
-        boxShadow: STYLES.shadowLarge,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: `${SPACING[8]} ${SPACING[4]}`,
-        animation: 'slideInFromRight 0.3s ease',
-        zIndex: STYLES.zModal
-      }}>
+      <div style={LAYOUT_STYLES.navigationModal.content as React.CSSProperties}>
         <style>
           {`
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -125,24 +95,16 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         </style>
         <button
           onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: SPACING[4],
-            right: SPACING[4],
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: SPACING[2]
-          }}
+          style={COMPONENT_STYLES.button.close as React.CSSProperties}
         >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" color={COLORS.white}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" color={DESIGN_TOKENS.colors.white}>
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg>
         </button>
         <nav>
-          <ul style={{ listStyle: 'none', padding: 0, margin: `calc(60px + ${SPACING[4]}) 0 0 0` }}>
+          <ul style={{ ...LAYOUT_STYLES.navigation.list, margin: `calc(60px + ${DESIGN_TOKENS.spacing[4]}) 0 0 0` }}>
             {menuItems.map(item => {
-              const linkColor = item.adminOnly ? COLORS.ratingGold : COLORS.textWhite;
+              const linkColor = item.adminOnly ? DESIGN_TOKENS.colors.ratingGold : DESIGN_TOKENS.colors.textWhite;
 
               const svgProps: React.SVGAttributes<SVGSVGElement> = item.iconStyle === 'stroke'
                 ? { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -155,16 +117,10 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
                     to={item.to}
                     onClick={onClose}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: SPACING[4],
-                      padding: `${SPACING[4]} ${SPACING[2]}`,
-                      textDecoration: 'none',
+                      ...COMPONENT_STYLES.navLink,
                       ...TYPOGRAPHY['2xl'],
                       color: linkColor,
                       fontWeight: TYPOGRAPHY.medium,
-                      borderRadius: STYLES.borderRadiusMedium,
-                      transition: 'background-color 0.2s ease',
                     }}
                     onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; }}
                     onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
