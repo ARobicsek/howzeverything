@@ -86,7 +86,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
       />
 
 
-      <div style={LAYOUT_STYLES.navigationModal.content as React.CSSProperties}>
+      <div style={COMPONENT_STYLES.modal.content as React.CSSProperties}>
         <style>
           {`
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
