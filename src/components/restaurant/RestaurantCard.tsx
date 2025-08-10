@@ -1,6 +1,6 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COMPONENT_STYLES, DESIGN_TOKENS, FONTS, TYPOGRAPHY } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 
@@ -152,50 +152,38 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
 
   const menuButtonStyle: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
-    border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
-    textAlign: 'left', transition: 'background-color 0.2s ease',
+    ...COMPONENT_STYLES.restaurantCard.menuButton,
+    ...FONTS.body,
   };
 
 
-  const statsPaddingRight = canShowMenu ? `calc(32px + ${SPACING[2]})` : '0px';
+  const statsPaddingRight = canShowMenu ? `calc(32px + ${DESIGN_TOKENS.spacing[2]})` : '0px';
 
 
   return (
     <div
       ref={cardRef}
       onClick={handleCardClick}
-      style={{
-        position: 'relative',
-        cursor: 'pointer',
-        borderBottom: `1px solid ${COLORS.gray200}`,
-        padding: `${SPACING[3]} 0`,
-        transition: 'background-color 0.2s ease',
-      }}
-      onMouseEnter={() => { if(cardRef.current) cardRef.current.style.backgroundColor = COLORS.gray50; }}
+      style={COMPONENT_STYLES.restaurantCard.container}
+      onMouseEnter={() => { if(cardRef.current) cardRef.current.style.backgroundColor = DESIGN_TOKENS.colors.gray50; }}
       onMouseLeave={() => { if(cardRef.current) cardRef.current.style.backgroundColor = 'transparent'; }}
     >
       {/* TOP ROW: Name and Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: SPACING[2] }}>
+      <div style={COMPONENT_STYLES.restaurantCard.header}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2
             className="hover:underline"
             style={{
+                ...COMPONENT_STYLES.restaurantCard.title,
                 ...FONTS.elegant,
-                fontWeight: 500,
-                color: COLORS.text,
-                fontSize: '1.1rem',
-                lineHeight: 1.3,
-                margin: 0,
-                wordWrap: 'break-word',
             }}
           >
             {restaurant.name}
           </h2>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], flexShrink: 0 }}>
           {restaurant.distance && (
-            <span style={{ ...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            <span style={{ ...FONTS.elegant, color: DESIGN_TOKENS.colors.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
               {restaurant.distance}
             </span>
           )}
@@ -203,7 +191,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             <div style={{
                 ...FONTS.body,
                 fontSize: '0.65rem', fontWeight: '600', padding: '2px 4px', borderRadius: '4px',
-                color: isFromApi ? COLORS.gray500 : COLORS.primary,
+                color: isFromApi ? DESIGN_TOKENS.colors.gray500 : DESIGN_TOKENS.colors.primary,
                 backgroundColor: isFromApi ? 'rgba(107, 114, 128, 0.1)' : 'rgba(99, 102, 241, 0.1)',
                 border: `1px solid ${isFromApi ? 'rgba(107, 114, 128, 0.2)' : 'rgba(99, 102, 241, 0.3)'}`,
             }}>
@@ -216,7 +204,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               style={{ ...STYLES.iconButton, width: '32px', height: '32px', border: 'none', backgroundColor: 'transparent', margin: '-6px' }}
               title={isPinned ? "Unpin restaurant" : "Pin restaurant"} aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isPinned ? COLORS.accent : "none"} stroke={isPinned ? COLORS.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isPinned ? DESIGN_TOKENS.colors.accent : "none"} stroke={isPinned ? DESIGN_TOKENS.colors.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
@@ -227,11 +215,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ ...STYLES.card, position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: STYLES.zDropdown, width: '180px', padding: SPACING[2], boxShadow: STYLES.shadowLarge, backgroundColor: COLORS.white }}>
+                <div ref={menuRef} style={COMPONENT_STYLES.restaurantCard.actionMenu}>
                     {canEdit && onEdit && <button style={menuButtonStyle} onClick={handleEdit}>Edit</button>}
                     {hasWebsite && <button style={menuButtonStyle} onClick={handleViewWebsite}>View Website</button>}
                     {onShare && <button style={menuButtonStyle} onClick={handleShare}>Share</button>}
-                    {onDelete && <button style={{...menuButtonStyle, color: COLORS.danger}} onClick={handleDelete}>Delete</button>}
+                    {onDelete && <button style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.danger}} onClick={handleDelete}>Delete</button>}
                 </div>
               )}
             </div>
@@ -239,33 +227,28 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         </div>
       </div>
       {/* BOTTOM ROW: Address and Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: SPACING[2], marginTop: SPACING[1] }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: DESIGN_TOKENS.spacing[2], marginTop: DESIGN_TOKENS.spacing[1] }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p
             style={{
-              ...FONTS.body,
-              color: COLORS.textSecondary,
-              fontSize: '0.875rem',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+                ...COMPONENT_STYLES.restaurantCard.address,
+                ...FONTS.body,
             }}
           >
             {displayAddress}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3], flexShrink: 0, paddingRight: statsPaddingRight }}>
+        <div style={{...COMPONENT_STYLES.restaurantCard.stats, paddingRight: statsPaddingRight }}>
           {(restaurant.dishCount ?? 0) > 0 && (
-            <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
-              <span style={{...FONTS.elegant, color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
+            <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[1] }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: DESIGN_TOKENS.colors.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
+              <span style={{...FONTS.elegant, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
             </div>
           )}
           {(restaurant.raterCount ?? 0) > 0 && (
-            <div title={`${restaurant.raterCount} raters`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span style={{...FONTS.elegant, color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
+            <div title={`${restaurant.raterCount} raters`} style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[1] }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: DESIGN_TOKENS.colors.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span style={{...FONTS.elegant, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
             </div>
           )}
         </div>

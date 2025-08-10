@@ -212,6 +212,71 @@ export const COMPONENT_STYLES = {
     // fontWeight: TYPOGRAPHY.medium, // This will be handled in the component
     borderRadius: DESIGN_TOKENS.borderRadius.medium,
     transition: 'background-color 0.2s ease',
+  },
+  restaurantCard: {
+    container: {
+      position: 'relative',
+      cursor: 'pointer',
+      borderBottom: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+      padding: `${DESIGN_TOKENS.spacing[3]} 0`,
+      transition: 'background-color 0.2s ease',
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      gap: DESIGN_TOKENS.spacing[2],
+    },
+    title: {
+      // ...FONTS.elegant, // Will be handled in component
+      fontWeight: 500,
+      color: DESIGN_TOKENS.colors.text,
+      fontSize: '1.1rem',
+      lineHeight: 1.3,
+      margin: 0,
+      wordWrap: 'break-word',
+    },
+    address: {
+      // ...FONTS.body, // Will be handled in component
+      color: DESIGN_TOKENS.colors.textSecondary,
+      fontSize: '0.875rem',
+      margin: 0,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
+    stats: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: DESIGN_TOKENS.spacing[3],
+      flexShrink: 0,
+    },
+    actionMenu: {
+      // ...STYLES.card, // This will be handled in component
+      position: 'absolute',
+      top: '100%',
+      right: 0,
+      marginTop: DESIGN_TOKENS.spacing[1],
+      zIndex: DESIGN_TOKENS.zIndex.dropdown,
+      width: '180px',
+      padding: DESIGN_TOKENS.spacing[2],
+      boxShadow: DESIGN_TOKENS.shadows.large,
+      backgroundColor: DESIGN_TOKENS.colors.white,
+    },
+    menuButton: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: DESIGN_TOKENS.spacing[2],
+      width: '100%',
+      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      // ...FONTS.body, // Will be handled in component
+      fontSize: DESIGN_TOKENS.typography.sm.fontSize,
+      textAlign: 'left',
+      transition: 'background-color 0.2s ease',
+    }
   }
 };
 
