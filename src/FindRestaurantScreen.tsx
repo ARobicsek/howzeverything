@@ -695,9 +695,8 @@ const FindRestaurantScreen: React.FC = () => {
                 isExpanded={expandedSection === 'recents'}
                 onClick={() => handleSectionClick('recents')}
                 isEmpty={areInitialSectionsLoading ? false : recentsWithDistance.length === 0}
-                className="bg-white rounded-lg shadow-sm"
               >
-                <div className="p-4 pt-2 space-y-0">
+                <div className="pt-2 space-y-0">
                   {areInitialSectionsLoading && expandedSection === 'recents' ? <LoadingScreen message="Loading..."/> :
                   recentsWithDistance.map(restaurant => (
                     <RestaurantCard
@@ -719,7 +718,6 @@ const FindRestaurantScreen: React.FC = () => {
                 isExpanded={expandedSection === 'nearby'}
                 onClick={handleNearbyClick}
                 isDisabled={!hasLocationPermission}
-                className="bg-white rounded-lg shadow-sm"
                 headerAccessory={
                   expandedSection === 'nearby' ? (
                     <button
@@ -809,9 +807,8 @@ const FindRestaurantScreen: React.FC = () => {
                 isExpanded={expandedSection === 'pinned'}
                 onClick={() => handleSectionClick('pinned')}
                 isEmpty={areInitialSectionsLoading ? false : pinnedWithDistance.length === 0}
-                className="bg-white rounded-lg shadow-sm"
               >
-                <div className="p-4 pt-2 space-y-0">
+                <div className="pt-2 space-y-0">
                     {areInitialSectionsLoading && expandedSection === 'pinned' ? <LoadingScreen message="Loading..."/> :
                     pinnedWithDistance.map(restaurant => (
                         <RestaurantCard
