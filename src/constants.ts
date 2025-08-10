@@ -447,6 +447,35 @@ export const COMPONENT_STYLES = {
     addCommentModal: {
       title: { ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: DESIGN_TOKENS.colors.gray900, marginBottom: SPACING[4] }
     }
+  },
+  addressInput: {
+    label: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[1], display: 'block' },
+    container: { marginBottom: SPACING[2], position: 'relative' },
+    fullAddressLabel: { ...FONTS.body, display: 'block', fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, marginBottom: SPACING[2] },
+    textarea: { ...STYLES.input, minHeight: '80px', resize: 'vertical' },
+    suggestionsContainer: {
+      position: 'absolute', top: '100%', left: 0, right: 0,
+      background: COLORS.white,
+      border: `1px solid ${COLORS.gray200}`,
+      borderRadius: STYLES.borderRadiusMedium,
+      boxShadow: STYLES.shadowMedium,
+      zIndex: STYLES.zDropdown,
+      maxHeight: '200px',
+      overflowY: 'auto'
+    },
+    suggestionItem: {
+      padding: `${SPACING[2]} ${SPACING[3]}`,
+      cursor: 'pointer',
+      ...FONTS.body
+    },
+    suggestionLoading: { padding: SPACING[2], color: COLORS.textSecondary, ...FONTS.body },
+    messageContainer: { minHeight: '20px', paddingTop: SPACING[1] },
+    parsingMessage: { ...TYPOGRAPHY.caption, color: COLORS.primary },
+    parsedFieldsContainer: { borderTop: `1px solid ${COLORS.border}`, paddingTop: SPACING[3], marginTop: SPACING[2] },
+    parsedFieldsDescription: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginTop: 0, marginBottom: SPACING[3] },
+    fieldGroup: { marginBottom: SPACING[3] },
+    grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3] },
+    gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3], marginTop: SPACING[3] }
   }
 };
 
