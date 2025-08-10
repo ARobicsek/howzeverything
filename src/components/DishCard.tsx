@@ -409,7 +409,7 @@ const CommentsSection: React.FC<{
                           setOpenActionMenuCommentId(openActionMenuCommentId === comment.id ? null : comment.id);
                         }}
                         style={{
-                          ...COMPONENT_STYLES.iconButton,
+                          ...COMPONENT_STYLES.button.icon,
                           width: '32px',
                           height: '32px',
                           backgroundColor: 'transparent',
@@ -873,7 +873,7 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
             <div style={{ position: 'relative', flexShrink: 0 }}>
-              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(prev => !prev); }} style={{ ...COMPONENT_STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? DESIGN_TOKENS.colors.gray100 : 'transparent' }} aria-label="More options">
+              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(prev => !prev); }} style={{ ...COMPONENT_STYLES.button.icon, width: '40px', height: '40px', backgroundColor: isMenuOpen ? DESIGN_TOKENS.colors.gray100 : 'transparent' }} aria-label="More options">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
