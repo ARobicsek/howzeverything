@@ -5,7 +5,7 @@ import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
-import { BORDERS, COLORS, FONTS, LAYOUT_CONFIG, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { BORDERS, COLORS, COMPONENT_STYLES, FONTS, LAYOUT_CONFIG, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
 import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
@@ -539,7 +539,7 @@ const MenuScreen: React.FC = () => {
           marginRight: 'calc(50% - 50vw)',
       }}>
         <div style={{ maxWidth: '768px', margin: '0 auto', padding: `${SPACING[3]} ${LAYOUT_CONFIG.APP_CONTAINER.padding}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <button onClick={() => navigate(-1)} style={STYLES.iconButton} aria-label="Go back">
+            <button onClick={() => navigate(-1)} style={COMPONENT_STYLES.button.icon.default} aria-label="Go back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
             </button>
           <div
@@ -558,18 +558,18 @@ const MenuScreen: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
             <button
               onClick={() => restaurantId && togglePin(restaurantId)}
-              style={{...STYLES.iconButton, border: 'none' }}
+              style={COMPONENT_STYLES.button.icon.transparent}
               aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isPinned ? COLORS.accent : "none"} stroke={isPinned ? COLORS.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
-            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...STYLES.iconButton, backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white, color: showAdvancedSort ? COLORS.white : COLORS.gray700, border: showAdvancedSort ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label="Sort options">
+            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...COMPONENT_STYLES.button.icon.default, backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white, color: showAdvancedSort ? COLORS.white : COLORS.gray700, border: showAdvancedSort ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label="Sort options">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" /></svg>
             </button>
             <div style={{ position: 'relative' }} ref={menuRef}>
-              <button onClick={toggleActionMenu} style={{ ...STYLES.iconButton, backgroundColor: isActionMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
+              <button onClick={toggleActionMenu} style={{ ...COMPONENT_STYLES.button.icon.default, backgroundColor: isActionMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isActionMenuOpen && (
