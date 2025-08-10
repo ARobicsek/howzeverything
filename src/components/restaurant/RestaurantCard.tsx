@@ -1,6 +1,6 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { COMPONENT_STYLES, DESIGN_TOKENS, FONTS, TYPOGRAPHY } from '../../constants';
+import { COMPONENT_STYLES, DESIGN_TOKENS, FONTS, STYLES, TYPOGRAPHY } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 

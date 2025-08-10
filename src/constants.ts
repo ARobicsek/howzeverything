@@ -215,45 +215,42 @@ export const COMPONENT_STYLES = {
   },
   restaurantCard: {
     container: {
-      position: 'relative',
+      position: 'relative' as 'relative',
       cursor: 'pointer',
       borderBottom: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
       padding: `${DESIGN_TOKENS.spacing[3]} 0`,
       transition: 'background-color 0.2s ease',
-    },
+    } as React.CSSProperties,
     header: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'baseline',
       gap: DESIGN_TOKENS.spacing[2],
-    },
+    } as React.CSSProperties,
     title: {
-      // ...FONTS.elegant, // Will be handled in component
       fontWeight: 500,
       color: DESIGN_TOKENS.colors.text,
       fontSize: '1.1rem',
       lineHeight: 1.3,
       margin: 0,
-      wordWrap: 'break-word',
-    },
+      wordWrap: 'break-word' as 'break-word',
+    } as React.CSSProperties,
     address: {
-      // ...FONTS.body, // Will be handled in component
       color: DESIGN_TOKENS.colors.textSecondary,
       fontSize: '0.875rem',
       margin: 0,
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-    },
+    } as React.CSSProperties,
     stats: {
       display: 'flex',
       alignItems: 'center',
       gap: DESIGN_TOKENS.spacing[3],
       flexShrink: 0,
-    },
+    } as React.CSSProperties,
     actionMenu: {
-      // ...STYLES.card, // This will be handled in component
-      position: 'absolute',
+      position: 'absolute' as 'absolute',
       top: '100%',
       right: 0,
       marginTop: DESIGN_TOKENS.spacing[1],
@@ -262,7 +259,7 @@ export const COMPONENT_STYLES = {
       padding: DESIGN_TOKENS.spacing[2],
       boxShadow: DESIGN_TOKENS.shadows.large,
       backgroundColor: DESIGN_TOKENS.colors.white,
-    },
+    } as React.CSSProperties,
     menuButton: {
       display: 'flex',
       alignItems: 'center',
@@ -272,11 +269,10 @@ export const COMPONENT_STYLES = {
       border: 'none',
       background: 'none',
       cursor: 'pointer',
-      // ...FONTS.body, // Will be handled in component
       fontSize: DESIGN_TOKENS.typography.sm.fontSize,
-      textAlign: 'left',
+      textAlign: 'left' as 'left',
       transition: 'background-color 0.2s ease',
-    }
+    } as React.CSSProperties,
   }
 };
 
