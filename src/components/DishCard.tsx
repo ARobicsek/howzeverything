@@ -1,7 +1,7 @@
 // src/components/DishCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+import { COMPONENT_STYLES, DESIGN_TOKENS, FONTS, SPACING, TYPOGRAPHY } from '../constants';
 import type { DishComment, DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 import PhotoCarousel from './PhotoCarousel';

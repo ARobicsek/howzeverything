@@ -273,6 +273,29 @@ export const COMPONENT_STYLES = {
       textAlign: 'left' as 'left',
       transition: 'background-color 0.2s ease',
     } as React.CSSProperties,
+  },
+  dishCard: {
+    collapsed: {
+      cursor: 'pointer' as 'pointer',
+      transition: 'all 0.3s ease',
+    },
+    expanded: {
+      borderColor: DESIGN_TOKENS.colors.accent,
+      boxShadow: DESIGN_TOKENS.shadows.large,
+      cursor: 'default' as 'default',
+    },
+    menuButton: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: DESIGN_TOKENS.spacing[2],
+      width: '100%',
+      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      textAlign: 'left' as 'left',
+      transition: 'background-color 0.2s ease',
+    },
   }
 };
 
