@@ -631,7 +631,7 @@ const FindRestaurantScreen: React.FC = () => {
 
 
   return (
-    <div className="bg-red-500" style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
