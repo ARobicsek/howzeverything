@@ -1,6 +1,5 @@
 // src/components/shared/AccordionSection.tsx
 import React, { ReactNode } from 'react';
-import { COLORS, FONTS, SPACING } from '../../constants';
 
 interface AccordionSectionProps {
   title: string;
@@ -25,31 +24,38 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
 }) => {
   const isGrayedOut = isEmpty || isDisabled;
 
+  const headerClasses = [
+    'w-full', 'flex', 'justify-between', 'items-center',
+    'px-4', 'py-3', 'border-none', 'bg-transparent',
+    'text-left',
+    isGrayedOut ? 'cursor-not-allowed' : 'cursor-pointer',
+    isGrayedOut ? 'opacity-50' : 'opacity-100',
+  ].join(' ');
+
+  const titleClasses = [
+    'm-0', 'text-xl', 'font-medium', 'font-sans', 'tracking-tight',
+    isGrayedOut ? 'text-textSecondary' : 'text-accent',
+  ].join(' ');
+
+  const chevronClasses = [
+    'transform', 'transition-transform', 'duration-300',
+    'text-textSecondary', 'flex-shrink-0', 'mr-12',
+    isExpanded ? 'rotate-180' : 'rotate-0',
+  ].join(' ');
+
+  const contentClasses = [
+    'overflow-y-auto', 'overflow-x-hidden', 'transition-all', 'duration-500', 'ease-in-out',
+    isExpanded && !isGrayedOut ? 'max-h-[60vh]' : 'max-h-0',
+  ].join(' ');
+
   return (
     <div className={className}>
-      <div // MODIFIED from <button> to <div> to allow nesting an interactive element (the refresh button)
+      <div
         onClick={isGrayedOut ? undefined : onClick}
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: `${SPACING[3]} ${SPACING[4]}`,
-          border: 'none',
-          background: 'transparent',
-          cursor: isGrayedOut ? 'not-allowed' : 'pointer',
-          textAlign: 'left',
-          opacity: isGrayedOut ? 0.5 : 1,
-        }}
+        className={headerClasses}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-          <h3 style={{
-            margin: 0,
-            fontSize: '1.25rem',
-            fontWeight: 500,
-            color: isGrayedOut ? COLORS.textSecondary : COLORS.accent,
-            ...FONTS.elegant,
-          }}>
+        <div className="flex items-center gap-2">
+          <h3 className={titleClasses}>
             {title}
           </h3>
           {headerAccessory}
@@ -63,28 +69,12 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{
-            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s ease',
-            color: COLORS.textSecondary,
-            flexShrink: 0, // Prevent icon from shrinking
-            // --- THIS IS THE FIX ---
-            // Adding a right margin pulls the chevron away from the edge.
-            // You can adjust this value (e.g., SPACING[3]) for more space.
-            marginRight: SPACING[12],
-          }}
+          className={chevronClasses}
         >
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </div>
-      <div
-        style={{
-          maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          transition: 'max-height 0.5s ease-in-out',
-        }}
-      >
+      <div className={contentClasses}>
         {children}
       </div>
     </div>
