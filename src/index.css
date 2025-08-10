@@ -4,6 +4,9 @@
 
 @layer base {
   :root {
+    /* --- DIAGNOSTIC TEST --- */
+    --color-red-500: 0 0 255; /* Should make red-500 blue */
+
     --font-family-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
     /* Converted from constants.ts using https://www.rgbto.com/ */
