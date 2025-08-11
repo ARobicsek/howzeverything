@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { Restaurant } from '../../types/restaurant';
 import RestaurantCard from './RestaurantCard';
 
@@ -95,7 +95,7 @@ const DuplicateRestaurantModal: React.FC<DuplicateRestaurantModalProps> = ({
                 background: 'none',
                 border: 'none',
                 color: COLORS.textSecondary,
-                ...FONTS.body,
+                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
                 fontSize: TYPOGRAPHY.sm.fontSize,
                 cursor: 'pointer',
                 padding: SPACING[2],

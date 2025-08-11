@@ -1,6 +1,6 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { COMPONENT_STYLES, DESIGN_TOKENS, FONTS, TYPOGRAPHY } from '../../constants';
+import { COMPONENT_STYLES, DESIGN_TOKENS, FONT_FAMILIES, TYPOGRAPHY } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 
@@ -153,7 +153,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
   const menuButtonStyle: React.CSSProperties = {
     ...COMPONENT_STYLES.restaurantCard.menuButton,
-    ...FONTS.body,
+    fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
   };
 
 
@@ -175,7 +175,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             className="hover:underline"
             style={{
                 ...COMPONENT_STYLES.restaurantCard.title,
-                ...FONTS.elegant,
+                fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
             }}
           >
             {restaurant.name}
@@ -183,13 +183,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], flexShrink: 0 }}>
           {restaurant.distance && (
-            <span style={{ ...FONTS.elegant, color: DESIGN_TOKENS.colors.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            <span style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: DESIGN_TOKENS.colors.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
               {restaurant.distance}
             </span>
           )}
           {isAdmin && (
             <div style={{
-                ...FONTS.body,
+                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
                 fontSize: '0.65rem', fontWeight: '600', padding: '2px 4px', borderRadius: '4px',
                 color: isFromApi ? DESIGN_TOKENS.colors.gray500 : DESIGN_TOKENS.colors.primary,
                 backgroundColor: isFromApi ? 'rgba(107, 114, 128, 0.1)' : 'rgba(99, 102, 241, 0.1)',
@@ -232,7 +232,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           <p
             style={{
                 ...COMPONENT_STYLES.restaurantCard.address,
-                ...FONTS.body,
+                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             }}
           >
             {displayAddress}
@@ -242,13 +242,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           {(restaurant.dishCount ?? 0) > 0 && (
             <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[1] }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: DESIGN_TOKENS.colors.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
-              <span style={{...FONTS.elegant, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
+              <span style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
             </div>
           )}
           {(restaurant.raterCount ?? 0) > 0 && (
             <div title={`${restaurant.raterCount} raters`} style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[1] }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: DESIGN_TOKENS.colors.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span style={{...FONTS.elegant, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
+              <span style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
             </div>
           )}
         </div>

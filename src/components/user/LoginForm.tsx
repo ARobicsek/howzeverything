@@ -1,6 +1,6 @@
 // src/components/user/LoginForm.tsx  
 import React, { useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -190,7 +190,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
         {/* Header */}  
         <div style={{ marginBottom: SPACING[6], textAlign: 'center' }}>  
           <h2 style={{  
-            ...FONTS.heading,  
+            fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em',
             fontSize: TYPOGRAPHY['2xl'].fontSize,  
             color: COLORS.gray900,  
             margin: `0 0 ${SPACING[2]} 0`  
@@ -198,7 +198,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}  
           </h2>  
           <p style={{  
-            ...FONTS.body,  
+            fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             fontSize: TYPOGRAPHY.base.fontSize,  
             color: COLORS.textSecondary,  
             margin: 0  
@@ -220,7 +220,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             marginBottom: SPACING[5]  
           }}>  
             <p style={{  
-              ...FONTS.body,  
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.sm.fontSize,  
               color: COLORS.danger,  
               margin: 0  
@@ -236,7 +236,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           {mode === 'signup' && (  
             <div style={{ marginBottom: SPACING[5] }}>  
               <label style={{  
-                ...FONTS.body,  
+                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
                 fontSize: TYPOGRAPHY.sm.fontSize,  
                 fontWeight: TYPOGRAPHY.medium,  
                 color: COLORS.textSecondary,  
@@ -245,7 +245,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               }}>  
                 Username  
                 <span style={{  
-                  ...FONTS.body,  
+                  fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
                   fontSize: TYPOGRAPHY.xs.fontSize,  
                   fontWeight: TYPOGRAPHY.normal,  
                   color: COLORS.gray400,  
@@ -270,7 +270,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
           <div style={{ marginBottom: SPACING[5] }}>  
             <label style={{  
-              ...FONTS.body,  
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.sm.fontSize,  
               fontWeight: TYPOGRAPHY.medium,  
               color: COLORS.textSecondary,  
@@ -295,7 +295,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
           <div style={{ marginBottom: mode === 'signup' ? SPACING[5] : SPACING[6] }}>  
             <label style={{  
-              ...FONTS.body,  
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.sm.fontSize,  
               fontWeight: TYPOGRAPHY.medium,  
               color: COLORS.textSecondary,  
@@ -343,7 +343,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           {mode === 'signup' && (  
             <div style={{ marginBottom: SPACING[6] }}>  
               <label style={{  
-                ...FONTS.body,  
+                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
                 fontSize: TYPOGRAPHY.sm.fontSize,  
                 fontWeight: TYPOGRAPHY.medium,  
                 color: COLORS.textSecondary,  
@@ -439,7 +439,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               onClick={toggleMode}  
               disabled={loading}  
               style={{  
-                ...FONTS.body,  
+                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
                 background: 'none',  
                 border: 'none',  
                 color: COLORS.accent,  

@@ -1,6 +1,6 @@
 // src/components/SearchAndSort.tsx
 import React from 'react';
-import { COLORS, FONTS } from '../constants';
+import { COLORS, FONT_FAMILIES } from '../constants';
 
 
 
@@ -34,7 +34,7 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
         style={{
           background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
           fontSize: '1rem',
-          ...FONTS.elegant,
+          fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
           color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
           cursor: disabled ? 'not-allowed' : 'auto',
           border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
@@ -51,7 +51,7 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
               background: sortBy === option ? 'white' : 'transparent',
               color: sortBy === option ? COLORS.text : COLORS.text, // Changed COLORS.textDark
               border: sortBy === option ? 'none' : `1px solid ${COLORS.text}30`,
-              ...FONTS.elegant
+              fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em'
             }}
             disabled={disabled}
           >

@@ -5,7 +5,7 @@ import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
-import { BORDERS, COLORS, COMPONENT_STYLES, FONTS, LAYOUT_CONFIG, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { BORDERS, COLORS, COMPONENT_STYLES, FONT_FAMILIES, LAYOUT_CONFIG, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
 import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
@@ -81,7 +81,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
   return (
     <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: STYLES.borderRadiusLarge, padding: SPACING[4] }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[1] }}>
-        <h2 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.text, margin: 0 }}>
+        <h2 style={{ fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.text, margin: 0 }}>
           Find Your Dish
         </h2>
         {hasTyped && (
@@ -93,7 +93,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
       <input type="text" value={searchTerm} onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)} placeholder="Start typing to find a dish..." onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} style={{ ...STYLES.input, ...(isFocused && STYLES.inputFocusBlack) }} autoFocus />
       {hasTyped && (
         <div style={{ marginTop: SPACING[4], textAlign: 'center' }}>
-          <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, color: COLORS.textSecondary, margin: `0 0 ${SPACING[2]} 0` }}>
+          <p style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize, color: COLORS.textSecondary, margin: `0 0 ${SPACING[2]} 0` }}>
             Don't see it below?
           </p>
           <button onClick={onShowAddForm} style={{ ...STYLES.primaryButton, padding: `${SPACING[2]} ${SPACING[4]}`, fontSize: TYPOGRAPHY.sm.fontSize }}>
@@ -122,17 +122,17 @@ const EnhancedAddDishForm: React.FC<{
   };
   return (
     <div style={{ backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, padding: SPACING[6], boxShadow: STYLES.shadowLarge, border: `1px solid ${COLORS.gray200}` }}>
-      <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, marginBottom: SPACING[5] }}>
+      <h3 style={{ fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, marginBottom: SPACING[5] }}>
         Add New Dish
       </h3>
       <div style={{ marginBottom: SPACING[5] }}>
-        <label style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>
+        <label style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>
           Dish Name
         </label>
         <input type="text" value={dishName} onChange={(e) => e.target.value.length <= 100 && setDishName(e.target.value)} placeholder="Enter the dish name as exactly as you can..." style={{ ...STYLES.input, borderWidth: '1px' }} disabled={isSubmitting} />
       </div>
       <div style={{ marginBottom: SPACING[6] }}>
-        <label style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>
+        <label style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, display: 'block', marginBottom: SPACING[2] }}>
           Your Rating (Optional)
         </label>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: SPACING[2] }}>
@@ -143,7 +143,7 @@ const EnhancedAddDishForm: React.FC<{
               </button>
             ))}
           </div>
-          <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.text, marginLeft: SPACING[2], minWidth: '30px' }}>
+          <span style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.text, marginLeft: SPACING[2], minWidth: '30px' }}>
             {rating > 0 ? `${rating}/5` : ''}
           </span>
         </div>
@@ -520,7 +520,7 @@ const MenuScreen: React.FC = () => {
 
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
-    border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
+    border: 'none', background: 'none', cursor: 'pointer', fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize,
     textAlign: 'left', transition: 'background-color 0.2s ease',
   };
 
@@ -546,11 +546,11 @@ const MenuScreen: React.FC = () => {
             onClick={() => setShowFullRestaurantName(true)}
             style={{ flex: 1, textAlign: 'center', margin: `0 ${SPACING[2]}`, overflow: 'hidden', cursor: 'pointer' }}
           >
-            <h1 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={restaurant.name}>
+            <h1 style={{ fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={restaurant.name}>
               {restaurant.name}
             </h1>
             {displayAddress && (
-              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7, fontSize: '0.8rem', lineHeight: '1.3', margin: '2px 0 0 0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={displayAddress}>
+              <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7, fontSize: '0.8rem', lineHeight: '1.3', margin: '2px 0 0 0', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }} title={displayAddress}>
                 {displayAddress}
               </p>
             )}
@@ -637,7 +637,7 @@ const MenuScreen: React.FC = () => {
                   <div style={{ backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, padding: SPACING[8], textAlign: 'center', boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}` }}>
                     <div style={{ color: COLORS.gray400, marginBottom: SPACING[4] }}><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg></div>
                     <h2 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: COLORS.gray900, marginBottom: SPACING[3] }}>No dishes yet</h2>
-                    <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, marginBottom: SPACING[5] }}>Be the first to add a dish to {restaurant.name}!</p>
+                    <p style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, marginBottom: SPACING[5] }}>Be the first to add a dish to {restaurant.name}!</p>
                     <button onClick={handleShowAddForm} style={STYLES.primaryButton} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.primary; }}>Add First Dish</button>
                   </div>
                 )
@@ -664,7 +664,7 @@ const MenuScreen: React.FC = () => {
                   </p>
                   {displayAddress && (
                       <p style={{
-                          ...FONTS.elegant,
+                          fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                           color: COLORS.textSecondary,
                           fontSize: TYPOGRAPHY.base.fontSize,
                           lineHeight: 1.5,

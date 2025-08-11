@@ -1,7 +1,7 @@
 import React from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import ProfileCard from './components/user/ProfileCard';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -33,7 +33,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
       <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: SPACING[4] }}>
         <div style={{ backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusLarge, padding: `${SPACING[12]} ${SPACING[6]}`, boxShadow: STYLES.shadowMedium, border: `1px solid ${COLORS.gray200}`, textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: SPACING[3] }}>👤</div>
-          <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, margin: 0 }}>
+          <p style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.base.fontSize, color: COLORS.textSecondary, margin: 0 }}>
             No user profile loaded. You might be signed out.
           </p>
         </div>

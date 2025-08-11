@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
-import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONT_FAMILIES, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import type { DishRating, DishSearchResultWithRestaurant, DishWithDetails } from './hooks/useDishes';
 import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
@@ -287,16 +287,16 @@ const DiscoveryScreen: React.FC = () => {
     if (error) {
       return (
           <div className="text-center py-12">
-              <p style={{ ...FONTS.elegant, color: COLORS.danger, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>{error}</p>
-              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>You can also try refreshing the page.</p>
+              <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.danger, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>{error}</p>
+              <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7 }}>You can also try refreshing the page.</p>
           </div>
       );
     }
     if (!hasSearchTerm && !hasActiveFilters) {
       return (
         <div className="text-center py-12">
-          <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>
-          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Use the search bar or filters above to find dishes the community has rated.</p>
+          <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>
+          <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7 }}>Use the search bar or filters above to find dishes the community has rated.</p>
         </div>
       );
     }
@@ -304,9 +304,9 @@ const DiscoveryScreen: React.FC = () => {
       return filteredAndGrouped.map((group) => (
         <div key={group.restaurant.id}>
           <div className="mb-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${COLORS.gray200}`, paddingBottom: SPACING[2] }}>
-            <h2 style={{ ...FONTS.elegant, fontSize: '1.125rem', fontWeight: '600', color: COLORS.primary, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
+            <h2 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '1.125rem', fontWeight: '600', color: COLORS.primary, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
             {group.restaurant.distance !== undefined && (
-              <span style={{...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, flexShrink: 0, marginLeft: SPACING[3]}}>
+              <span style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, flexShrink: 0, marginLeft: SPACING[3]}}>
                 {formatDistanceMiles(group.restaurant.distance)}
               </span>
             )}
@@ -329,8 +329,8 @@ const DiscoveryScreen: React.FC = () => {
     }
     return (
       <div className="text-center py-12">
-        <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No Dishes Found</p>
-        <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Try adjusting your search or filters to find more results.</p>
+        <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No Dishes Found</p>
+        <p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7 }}>Try adjusting your search or filters to find more results.</p>
       </div>
     );
   };

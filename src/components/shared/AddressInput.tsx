@@ -1,6 +1,6 @@
 // src/components/shared/AddressInput.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, COMPONENT_STYLES } from '../../constants';
+import { COLORS, SPACING, STYLES, TYPOGRAPHY, COMPONENT_STYLES } from '../../constants';
 import type { AddressFormData } from '../../types/address';
 import { parseAddress } from '../../utils/addressParser';
 import { incrementGeoapifyCount, logGeoapifyCount } from '../../utils/apiCounter';

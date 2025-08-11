@@ -1,6 +1,6 @@
 // src/components/LoadingScreen.tsx
 import React from 'react';
-import { COLORS, FONTS, SPACING, TYPOGRAPHY } from '../constants';
+import { COLORS, FONT_FAMILIES, SPACING, TYPOGRAPHY } from '../constants';
 
 
 // We define the keyframes for our animation here. By injecting this <style>
@@ -52,7 +52,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
        
           {/* Loading text */}
           <p style={{
-            ...FONTS.body,
+            fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             fontSize: TYPOGRAPHY.lg.fontSize,
             color: COLORS.textSecondary,
             margin: 0
