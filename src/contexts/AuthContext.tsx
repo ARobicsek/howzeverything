@@ -3,7 +3,6 @@ import type { PostgrestSingleResponse, Session, User } from '@supabase/supabase-
 import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import {
     supabase,
-    signOut as supabaseSignOut,
     type DatabaseUser
 } from '../supabaseClient';
 interface AuthState {
@@ -202,9 +201,16 @@ function useAuthLogic(): UseAuthReturn {
   const signOut = useCallback(async (): Promise<void> => {
     try {
       setError(null);
-      await supabaseSignOut();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        console.error('🔐 AuthContext: signOut: Error:', signOutError);
+        setError(signOutError.message);
+        throw signOutError;
+      }
     } catch (err: any) {
-      setError(err instanceof Error ? err.message : 'Failed to sign out');
+      if (!(err.name === 'AuthSessionMissingError')) {
+        setError(err instanceof Error ? err.message : 'Failed to sign out');
+      }
       throw err;
     }
   }, []);
