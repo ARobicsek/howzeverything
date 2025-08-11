@@ -200,6 +200,7 @@ function useAuthLogic(): UseAuthReturn {
   }, []);
   const signOut = useCallback(async (): Promise<void> => {
     try {
+      console.log('Current session on signout:', await supabase.auth.getSession());
       setError(null);
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) {
