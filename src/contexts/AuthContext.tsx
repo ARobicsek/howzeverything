@@ -200,8 +200,11 @@ function useAuthLogic(): UseAuthReturn {
   }, []);
   const signOut = useCallback(async (): Promise<void> => {
     try {
-      console.log('Current session on signout:', await supabase.auth.getSession());
       setError(null);
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
+      }
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) {
         console.error('🔐 AuthContext: signOut: Error:', signOutError);
