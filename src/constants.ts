@@ -754,6 +754,8 @@ export const COMPONENT_STYLES = {
     textDecoration: 'none',
     borderRadius: DESIGN_TOKENS.borderRadius.medium,
     transition: 'background-color 0.2s ease',
+    ...TYPOGRAPHY['2xl'],
+    fontWeight: TYPOGRAPHY.medium,
   },
   restaurantCard: {
     container: {
@@ -1386,6 +1388,11 @@ export const LAYOUT_STYLES = {
     list: {
       listStyle: 'none',
       padding: 0,
+    },
+    modalList: {
+      listStyle: 'none',
+      padding: 0,
+      margin: `calc(60px + ${DESIGN_TOKENS.spacing[4]}) 0 0 0`,
     },
   },
   navigationModal: {
