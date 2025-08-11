@@ -235,22 +235,6 @@ export const STYLES = {
     justifyContent: 'center',
     padding: SPACING[4],
   } as React.CSSProperties,
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderWidth: '2px',
-    borderStyle: 'solid',
-    borderColor: COLORS.gray200,
-    borderRadius: DESIGN_TOKENS.borderRadius.medium,
-    padding: '12px 16px',
-    fontSize: TYPOGRAPHY.base.fontSize,
-    fontFamily: FONTS.primary.fontFamily,
-    color: COLORS.text,
-    width: '100%',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-    boxSizing: 'border-box',
-    WebkitAppearance: 'none',
-  } as React.CSSProperties,
   inputFocus: {
     borderColor: COLORS.accent,
     boxShadow: '0 0 0 3px rgba(100, 46, 50, 0.25)',
@@ -317,6 +301,111 @@ export const STYLES = {
   } as React.CSSProperties,
 };
 
+// 3. Layout Styles
+export const LAYOUT_STYLES = {
+  container: { /* container styles */ },
+  header: { /* header styles */ },
+  navigation: {
+    list: {
+      listStyle: 'none',
+      padding: 0,
+    },
+  },
+  navigationModal: {
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: DESIGN_TOKENS.zIndex.modal - 1,
+    }
+  },
+  topNavigation: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '60px',
+    backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+    border: 'none',
+    zIndex: DESIGN_TOKENS.zIndex.header,
+    padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  }
+};
+
+// 4. Screen-Specific Styles
+export const SCREEN_STYLES = {
+  findRestaurant: { /* screen-specific */ },
+  menuScreen: { /* screen-specific */ },
+  // ... etc
+};
+
+// 5. Utility Styles
+export const UTILITIES = {
+  textDecorationNone: {
+    textDecoration: 'none',
+  }
+};
+
+export const RESTAURANT_CARD_MAX_WIDTH = '350px';
+
+export const LAYOUT_CONFIG = {
+  APP_CONTAINER: {
+    maxWidth: '1280px',
+    padding: '1rem',
+    paddingTop: '60px',
+  },
+  SCREEN_MAX_WIDTHS: {
+    menu: 'none',
+    restaurants: '768px',
+    findRestaurant: 'none',
+    ratings: 'none',
+    profile: '370px',
+    discovery: 'none',
+    home: '1280px',
+    about: '768px',
+    admin: '1280px',
+  } as Record<string, string>,
+  COMPONENT_WIDTHS: {
+    dishCard: '100%',
+    restaurantCard: '350px',
+    searchBar: '100%',
+    header: '100%',
+  },
+  CONTENT_PADDING: {
+    mobile: '1rem',
+    tablet: '1.5rem',
+    desktop: '2rem',
+  }
+};
+
+export const IMAGE_COMPRESSION = {
+  MAX_FILE_SIZE_MB: 2.5,
+  MAX_ORIGINAL_SIZE_MB: 50,
+  MAX_WIDTH: 1920,
+  MAX_HEIGHT: 1920,
+  INITIAL_QUALITY: 0.9,
+  MIN_QUALITY: 0.3,
+  QUALITY_STEP: 0.1,
+  OUTPUT_FORMAT: 'image/jpeg',
+  MIME_TYPE: 'image/jpeg',
+  COMPRESSION_TIMEOUT: 15000,
+};
+
+export const SIZES = {
+  xs: '0.5rem',
+  sm: '0.75rem',
+  md: '1rem',
+  lg: '1.25rem',
+  xl: '1.5rem',
+  '2xl': '2rem',
+  '3xl': '3rem',
+  '4xl': '4rem',
+};
 
 // 2. Component Styles
 export const COMPONENT_STYLES = {
@@ -415,7 +504,22 @@ export const COMPONENT_STYLES = {
       },
     },
   },
-  input: { /* input styles */ },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: COLORS.gray200,
+    borderRadius: DESIGN_TOKENS.borderRadius.medium,
+    padding: '12px 16px',
+    fontSize: TYPOGRAPHY.base.fontSize,
+    fontFamily: FONTS.primary.fontFamily,
+    color: COLORS.text,
+    width: '100%',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    boxSizing: 'border-box',
+    WebkitAppearance: 'none',
+  },
   modal: {
     overlay: {
       position: 'absolute',
@@ -665,110 +769,4 @@ export const COMPONENT_STYLES = {
     grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3] },
     gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3], marginTop: SPACING[3] }
   }
-};
-
-// 3. Layout Styles
-export const LAYOUT_STYLES = {
-  container: { /* container styles */ },
-  header: { /* header styles */ },
-  navigation: {
-    list: {
-      listStyle: 'none',
-      padding: 0,
-    },
-  },
-  navigationModal: {
-    overlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: DESIGN_TOKENS.zIndex.modal - 1,
-    }
-  },
-  topNavigation: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '60px',
-    backgroundColor: DESIGN_TOKENS.colors.navBarDark,
-    border: 'none',
-    zIndex: DESIGN_TOKENS.zIndex.header,
-    padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  }
-};
-
-// 4. Screen-Specific Styles
-export const SCREEN_STYLES = {
-  findRestaurant: { /* screen-specific */ },
-  menuScreen: { /* screen-specific */ },
-  // ... etc
-};
-
-// 5. Utility Styles
-export const UTILITIES = {
-  textDecorationNone: {
-    textDecoration: 'none',
-  }
-};
-
-export const RESTAURANT_CARD_MAX_WIDTH = '350px';
-
-export const LAYOUT_CONFIG = {
-  APP_CONTAINER: {
-    maxWidth: '1280px',
-    padding: '1rem',
-    paddingTop: '60px',
-  },
-  SCREEN_MAX_WIDTHS: {
-    menu: 'none',
-    restaurants: '768px',
-    findRestaurant: 'none',
-    ratings: 'none',
-    profile: '370px',
-    discovery: 'none',
-    home: '1280px',
-    about: '768px',
-    admin: '1280px',
-  } as Record<string, string>,
-  COMPONENT_WIDTHS: {
-    dishCard: '100%',
-    restaurantCard: '350px',
-    searchBar: '100%',
-    header: '100%',
-  },
-  CONTENT_PADDING: {
-    mobile: '1rem',
-    tablet: '1.5rem',
-    desktop: '2rem',
-  }
-};
-
-export const IMAGE_COMPRESSION = {
-  MAX_FILE_SIZE_MB: 2.5,
-  MAX_ORIGINAL_SIZE_MB: 50,
-  MAX_WIDTH: 1920,
-  MAX_HEIGHT: 1920,
-  INITIAL_QUALITY: 0.9,
-  MIN_QUALITY: 0.3,
-  QUALITY_STEP: 0.1,
-  OUTPUT_FORMAT: 'image/jpeg',
-  MIME_TYPE: 'image/jpeg',
-  COMPRESSION_TIMEOUT: 15000,
-};
-
-export const SIZES = {
-  xs: '0.5rem',
-  sm: '0.75rem',
-  md: '1rem',
-  lg: '1.25rem',
-  xl: '1.5rem',
-  '2xl': '2rem',
-  '3xl': '3rem',
-  '4xl': '4rem',
 };
