@@ -403,13 +403,13 @@ export const COMPONENT_STYLES = {
     },
     actionsContainer: { display: 'flex', gap: SPACING[3], flexDirection: 'column' as 'column' },
     useExistingButton: {
-      ...STYLES.primaryButton,
+      ...COMPONENT_STYLES.button.primary,
       padding: `${SPACING[3]} ${SPACING[4]}`,
       fontSize: TYPOGRAPHY.base.fontSize,
       fontWeight: TYPOGRAPHY.medium
     },
     createNewButton: {
-      ...STYLES.secondaryButton,
+      ...COMPONENT_STYLES.button.secondary,
       padding: `${SPACING[3]} ${SPACING[4]}`,
       fontSize: TYPOGRAPHY.base.fontSize
     },
@@ -463,7 +463,7 @@ export const COMPONENT_STYLES = {
       justifyContent: 'flex-end'
     },
     okButton: {
-      ...STYLES.primaryButton,
+      ...COMPONENT_STYLES.button.primary,
       minWidth: '120px',
       backgroundColor: DESIGN_TOKENS.colors.accent,
       color: DESIGN_TOKENS.colors.white,
@@ -1416,7 +1416,7 @@ export const SCREEN_STYLES = {
     infoCard: {
       link: { textDecoration: 'none', display: 'block' },
       card: {
-        ...STYLES.card,
+        ...COMPONENT_STYLES.card,
         padding: 0,
         overflow: 'hidden',
         textAlign: 'center' as 'center',
