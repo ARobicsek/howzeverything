@@ -138,6 +138,30 @@ export const FONT_FAMILIES = {
   pinyon: '"Pinyon Script", cursive',
 }
 
+// --- LEGACY OR UNCATEGORIZED STYLES ---
+// These will be migrated or removed in the next steps.
+
+export const COLORS = DESIGN_TOKENS.colors;
+export const SPACING = {
+  ...DESIGN_TOKENS.spacing,
+  containerPadding: '1rem', // 16px
+  sectionGap: '1.5rem', // 24px
+};
+export const TYPOGRAPHY = {
+  ...DESIGN_TOKENS.typography,
+  h1: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
+  h2: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties,
+  h3: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties,
+  body: { fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: '1rem' } as React.CSSProperties,
+  caption: { fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: '0.875rem' } as React.CSSProperties,
+  button: { fontFamily: FONT_FAMILIES.primary, letterSpacing: '-0.01em', fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties,
+};
+export const BORDERS = {
+  radius: DESIGN_TOKENS.borderRadius,
+};
+export const SHADOWS = DESIGN_TOKENS.shadows;
+export const BREAKPOINTS = DESIGN_TOKENS.breakpoints;
+
 
 // 2. Component Styles
 const baseCardStyle = {
@@ -1499,30 +1523,6 @@ export const STYLE_FUNCTIONS = {
     };
   },
 };
-
-// --- LEGACY OR UNCATEGORIZED STYLES ---
-// These will be migrated or removed in the next steps.
-
-export const COLORS = DESIGN_TOKENS.colors;
-export const SPACING = {
-  ...DESIGN_TOKENS.spacing,
-  containerPadding: '1rem', // 16px
-  sectionGap: '1.5rem', // 24px
-};
-export const TYPOGRAPHY = {
-  ...DESIGN_TOKENS.typography,
-  h1: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
-  h2: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties,
-  h3: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties,
-  body: { fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: '1rem' } as React.CSSProperties,
-  caption: { fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: '0.875rem' } as React.CSSProperties,
-  button: { fontFamily: FONT_FAMILIES.primary, letterSpacing: '-0.01em', fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties,
-};
-export const BORDERS = {
-  radius: DESIGN_TOKENS.borderRadius,
-};
-export const SHADOWS = DESIGN_TOKENS.shadows;
-export const BREAKPOINTS = DESIGN_TOKENS.breakpoints;
 
 export const STYLES = {
   // Backward compatibility
