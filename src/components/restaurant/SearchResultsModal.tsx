@@ -1,6 +1,6 @@
 // src/components/restaurant/SearchResultsModal.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { COLORS, COMPONENT_STYLES, FONTS, SPACING } from '../../constants';
+import { COMPONENT_STYLES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 import type { GeoapifyPlace } from '../../types/restaurantSearch';
@@ -101,24 +101,17 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
 
 
   return (
-    <div style={STYLES.modalOverlay} onClick={onClose}>
+    <div style={COMPONENT_STYLES.searchResultsModal.overlay} onClick={onClose}>
       <div
-        style={{ ...STYLES.modal, maxWidth: '600px', width: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', padding: 0 }}
+        style={COMPONENT_STYLES.searchResultsModal.container}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{
-          padding: `${SPACING[4]} ${SPACING[4]} ${SPACING[3]}`,
-          borderBottom: `1px solid ${COLORS.gray200}`,
-          position: 'sticky',
-          top: 0,
-          backgroundColor: COLORS.white,
-          zIndex: 10,
-        }}>
+        <div style={COMPONENT_STYLES.searchResultsModal.header}>
           <div className="flex items-center justify-between mb-2">
-              <label style={{ ...FONTS.elegant, fontSize: '1.1rem', fontWeight: '600', color: COLORS.text }}>Search online</label>
+              <label style={COMPONENT_STYLES.searchResultsModal.headerLabel}>Search online</label>
               <div className="flex items-center gap-4">
-                  {hasSearchTerm && (<button onClick={handleReset} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary }}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
-                  <button onClick={onClose} style={{...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px' }}>
+                  {hasSearchTerm && (<button onClick={handleReset} style={COMPONENT_STYLES.searchResultsModal.resetButton}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
+                  <button onClick={onClose} style={COMPONENT_STYLES.searchResultsModal.closeButton}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                   </button>
               </div>
@@ -129,14 +122,14 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="e.g. Chez Frontenac, Seattle (3+ chars)"
-              style={{ ...STYLES.input, width: '100%', backgroundColor: COLORS.white }}
+              style={COMPONENT_STYLES.searchResultsModal.input}
               autoFocus
           />
         </div>
        
-        <div style={{ flex: 1, overflowY: 'auto', padding: SPACING[4], backgroundColor: COLORS.background }}>
+        <div style={COMPONENT_STYLES.searchResultsModal.resultsContainer}>
           {isSearching && results.length === 0 && (
-            <div style={{ textAlign: 'center', padding: SPACING[6] }}><p style={{...FONTS.body, color: COLORS.textSecondary }}>Searching...</p></div>
+            <div style={COMPONENT_STYLES.searchResultsModal.messageText}><p>Searching...</p></div>
           )}
           {results.length > 0 ? (
             <div className="space-y-2">
@@ -188,22 +181,20 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
             </div>
           ) : (
              !isSearching && hasSearchTerm && (
-              <div style={{ textAlign: 'center', padding: SPACING[6] }}>
-                <p style={{...FONTS.body, color: COLORS.textSecondary, marginBottom: SPACING[4] }}>
+              <div style={COMPONENT_STYLES.searchResultsModal.messageText}>
+                <p>
                   No results found.
                 </p>
               </div>
             )
           )}
-           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center mt-4">
-            <p style={{ ...FONTS.elegant, fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px' }}>
+           <div style={COMPONENT_STYLES.searchResultsModal.manualAddContainer}>
+            <p style={COMPONENT_STYLES.searchResultsModal.manualAddText}>
               Don't see it?
             </p>
             <button
                 onClick={() => onManualAddClick(searchTerm)}
-                style={STYLES.addButton}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}
+                style={COMPONENT_STYLES.searchResultsModal.manualAddButton}
             >
               Add it manually
             </button>
