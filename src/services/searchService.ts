@@ -77,7 +77,7 @@ export class SearchService {
         const combined = [...smartResults, ...textResults];
         rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
       } else {
-        const bias = (userLat && userLon) ? `&bias=proximity:${userLon},${userLon}` : '';
+        const bias = (userLat && userLon) ? `&bias=proximity:${userLon},${userLat}` : '';
         const simpleSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(query)}&type=amenity&limit=20${bias}&apiKey=${apiKey}`;
         incrementGeoapifyCount(); logGeoapifyCount();
         const fuzzyResponse = await fetch(simpleSearchUrl, { signal });
