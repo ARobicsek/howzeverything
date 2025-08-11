@@ -120,7 +120,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(); }}
                   disabled={isDeleting}
-                  style={{ ...COMPONENT_STYLES.button.icon.default, opacity: isDeleting ? 0.5 : 1, cursor: isDeleting ? 'not-allowed' : 'pointer' }}
+                  style={{ ...COMPONENT_STYLES.button.icon.light, opacity: isDeleting ? 0.5 : 1, cursor: isDeleting ? 'not-allowed' : 'pointer' }}
                   title="Delete this photo"
                 >
                   {isDeleting ? '...' : (
@@ -131,7 +131,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleEditCaption(); }}
-                  style={COMPONENT_STYLES.button.icon.default}
+                  style={COMPONENT_STYLES.button.icon.light}
                   title="Edit caption"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -141,7 +141,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
               </>
             )}
           </div>
-          <button onClick={onClose} style={COMPONENT_STYLES.button.icon.default} aria-label="Close">
+          <button onClick={onClose} style={COMPONENT_STYLES.button.icon.light} aria-label="Close">
             ×
           </button>
         </div>
