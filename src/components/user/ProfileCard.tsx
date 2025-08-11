@@ -1,6 +1,6 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, COMPONENT_STYLES, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -276,46 +276,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             onClick={onEditProfile}
             disabled={loading}
             style={{
-              ...STYLES.primaryButton,
+              ...COMPONENT_STYLES.button.profilePrimary,
               width: '100%',
-              backgroundColor: COLORS.accent,
               opacity: loading ? 0.5 : 1,
               cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.backgroundColor = COLORS.accent;
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!loading) {
-                e.currentTarget.style.backgroundColor = COLORS.accent;
-              }
             }}
           >
             Edit Profile
           </button>
         )}
-
-
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
           style={{
-            ...STYLES.secondaryButton,
+            ...COMPONENT_STYLES.button.profileSecondary,
             width: '100%',
-            color: COLORS.black,
-            borderColor: COLORS.black,
             opacity: (loading || isSigningOut) ? 0.5 : 1,
             cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer'
-          }}
-          onMouseEnter={(e) => {
-            if (!loading && !isSigningOut) {
-              e.currentTarget.style.backgroundColor = COLORS.gray100;
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.white;
           }}
         >
           {isSigningOut ? 'Signing out...' : 'Sign Out'}
