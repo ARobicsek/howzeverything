@@ -1,7 +1,7 @@
 // src/components/PhotoModal.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COMPONENT_STYLES } from '../constants';
+import { COMPONENT_STYLES, STYLE_FUNCTIONS } from '../constants';
 import type { DishPhoto } from '../hooks/useDishes';
 
 interface PhotoModalProps {
@@ -120,7 +120,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(); }}
                   disabled={isDeleting}
-                  style={{ ...COMPONENT_STYLES.button.icon.primary, opacity: isDeleting ? 0.5 : 1, cursor: isDeleting ? 'not-allowed' : 'pointer' }}
+                  style={STYLE_FUNCTIONS.getDeleteButtonStyle(isDeleting)}
                   title="Delete this photo"
                 >
                   {isDeleting ? '...' : (
@@ -148,10 +148,10 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
 
         {photos.length > 1 && (
           <>
-            <button onClick={handlePrev} style={{ ...COMPONENT_STYLES.modal.lightbox.navButton, left: '1rem' }} aria-label="Previous photo">
+            <button onClick={handlePrev} style={COMPONENT_STYLES.modal.lightbox.navButtonLeft} aria-label="Previous photo">
               ‹
             </button>
-            <button onClick={handleNext} style={{ ...COMPONENT_STYLES.modal.lightbox.navButton, right: '1rem' }} aria-label="Next photo">
+            <button onClick={handleNext} style={COMPONENT_STYLES.modal.lightbox.navButtonRight} aria-label="Next photo">
               ›
             </button>
           </>
@@ -171,14 +171,14 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                   style={COMPONENT_STYLES.modal.lightbox.captionInput}
                   placeholder="Enter a caption..."
                 />
-                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem'}}>
+                <div style={COMPONENT_STYLES.modal.lightbox.captionActions}>
                   <button onClick={handleCancelEditCaption} style={COMPONENT_STYLES.button.secondary}>Cancel</button>
                   <button onClick={handleSaveCaption} style={COMPONENT_STYLES.button.primary}>Save</button>
                 </div>
               </div>
             ) : (
               currentPhoto.caption && (
-                <p style={{ ...COMPONENT_STYLES.modal.lightbox.caption, marginBottom: currentPhoto.photographer_name ? '0.5rem' : 0 }}>
+                <p style={STYLE_FUNCTIONS.getCaptionStyle(!!currentPhoto.photographer_name)}>
                   {currentPhoto.caption}
                 </p>
               )
