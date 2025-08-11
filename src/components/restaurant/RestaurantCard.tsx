@@ -151,12 +151,6 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
 
 
-  const menuButtonStyle: React.CSSProperties = {
-    ...COMPONENT_STYLES.restaurantCard.menuButton,
-    fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
-  };
-
-
   const statsPaddingRight = canShowMenu ? `calc(32px + ${DESIGN_TOKENS.spacing[2]})` : '0px';
 
 
@@ -170,30 +164,26 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
     >
       {/* TOP ROW: Name and Controls */}
       <div style={COMPONENT_STYLES.restaurantCard.header}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={COMPONENT_STYLES.restaurantCard.titleContainer}>
           <h2
             className="hover:underline"
-            style={{
-                ...COMPONENT_STYLES.restaurantCard.title,
-                fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
-            }}
+            style={COMPONENT_STYLES.restaurantCard.title}
           >
             {restaurant.name}
           </h2>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], flexShrink: 0 }}>
+        <div style={COMPONENT_STYLES.restaurantCard.controlsContainer}>
           {restaurant.distance && (
-            <span style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: DESIGN_TOKENS.colors.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            <span style={COMPONENT_STYLES.restaurantCard.distanceText}>
               {restaurant.distance}
             </span>
           )}
           {isAdmin && (
             <div style={{
-                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
-                fontSize: '0.65rem', fontWeight: '600', padding: '2px 4px', borderRadius: '4px',
-                color: isFromApi ? DESIGN_TOKENS.colors.gray500 : DESIGN_TOKENS.colors.primary,
-                backgroundColor: isFromApi ? 'rgba(107, 114, 128, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-                border: `1px solid ${isFromApi ? 'rgba(107, 114, 128, 0.2)' : 'rgba(99, 102, 241, 0.3)'}`,
+              ...COMPONENT_STYLES.restaurantCard.adminBadge.base,
+              ...(isFromApi
+                ? COMPONENT_STYLES.restaurantCard.adminBadge.api
+                : COMPONENT_STYLES.restaurantCard.adminBadge.db),
             }}>
               {isFromApi ? 'API' : 'DB'}
             </div>
@@ -201,7 +191,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           {onTogglePin && (
             <button
               onClick={handlePinClick}
-              style={{ ...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px', margin: '-6px' }}
+              style={COMPONENT_STYLES.restaurantCard.cardIconButton}
               title={isPinned ? "Unpin restaurant" : "Pin restaurant"} aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isPinned ? DESIGN_TOKENS.colors.accent : "none"} stroke={isPinned ? DESIGN_TOKENS.colors.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -210,16 +200,16 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             </button>
           )}
           {canShowMenu && (
-            <div style={{ position: 'relative' }}>
-              <button onClick={toggleMenu} style={{ ...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px', margin: '-6px' }}>
+            <div style={COMPONENT_STYLES.restaurantCard.actionMenuContainer}>
+              <button onClick={toggleMenu} style={COMPONENT_STYLES.restaurantCard.cardIconButton}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
                 <div ref={menuRef} style={COMPONENT_STYLES.restaurantCard.actionMenu}>
-                    {canEdit && onEdit && <button style={menuButtonStyle} onClick={handleEdit}>Edit</button>}
-                    {hasWebsite && <button style={menuButtonStyle} onClick={handleViewWebsite}>View Website</button>}
-                    {onShare && <button style={menuButtonStyle} onClick={handleShare}>Share</button>}
-                    {onDelete && <button style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.danger}} onClick={handleDelete}>Delete</button>}
+                    {canEdit && onEdit && <button style={COMPONENT_STYLES.restaurantCard.menuButton} onClick={handleEdit}>Edit</button>}
+                    {hasWebsite && <button style={COMPONENT_STYLES.restaurantCard.menuButton} onClick={handleViewWebsite}>View Website</button>}
+                    {onShare && <button style={COMPONENT_STYLES.restaurantCard.menuButton} onClick={handleShare}>Share</button>}
+                    {onDelete && <button style={{...COMPONENT_STYLES.restaurantCard.menuButton, color: DESIGN_TOKENS.colors.danger}} onClick={handleDelete}>Delete</button>}
                 </div>
               )}
             </div>
@@ -227,28 +217,23 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         </div>
       </div>
       {/* BOTTOM ROW: Address and Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: DESIGN_TOKENS.spacing[2], marginTop: DESIGN_TOKENS.spacing[1] }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p
-            style={{
-                ...COMPONENT_STYLES.restaurantCard.address,
-                fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
-            }}
-          >
+      <div style={COMPONENT_STYLES.restaurantCard.bottomRowContainer}>
+        <div style={COMPONENT_STYLES.restaurantCard.addressContainer}>
+          <p style={COMPONENT_STYLES.restaurantCard.address}>
             {displayAddress}
           </p>
         </div>
         <div style={{...COMPONENT_STYLES.restaurantCard.stats, paddingRight: statsPaddingRight }}>
           {(restaurant.dishCount ?? 0) > 0 && (
-            <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[1] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: DESIGN_TOKENS.colors.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
-              <span style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
+            <div title={`${restaurant.dishCount} rated dishes`} style={COMPONENT_STYLES.restaurantCard.statItem}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={COMPONENT_STYLES.restaurantCard.statIcon}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
+              <span style={COMPONENT_STYLES.restaurantCard.statText}>{restaurant.dishCount}</span>
             </div>
           )}
           {(restaurant.raterCount ?? 0) > 0 && (
-            <div title={`${restaurant.raterCount} raters`} style={{ display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[1] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: DESIGN_TOKENS.colors.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
+            <div title={`${restaurant.raterCount} raters`} style={COMPONENT_STYLES.restaurantCard.statItem}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={COMPONENT_STYLES.restaurantCard.statIcon}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span style={COMPONENT_STYLES.restaurantCard.statText}>{restaurant.raterCount}</span>
             </div>
           )}
         </div>
