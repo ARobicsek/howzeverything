@@ -248,8 +248,8 @@ const PortalModal: React.FC<{ isOpen: boolean; onClose: () => void; children: Re
     document.body.appendChild(modalRoot);
   }
   return ReactDOM.createPortal(
-    <div style={COMPONENT_STYLES.modal.overlay as React.CSSProperties} onClick={onClose}>
-      <div style={{ ...COMPONENT_STYLES.modal.content, animation: 'slideIn 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
+    <div style={COMPONENT_STYLES.modal.centered.overlay as React.CSSProperties} onClick={onClose}>
+      <div style={{ ...COMPONENT_STYLES.modal.centered.content, animation: 'slideIn 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>,
