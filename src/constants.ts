@@ -130,7 +130,7 @@ export const DESIGN_TOKENS = {
   }
 };
 
-const FONT_FAMILIES = {
+export const FONT_FAMILIES = {
   primary: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   heading: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   body: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
