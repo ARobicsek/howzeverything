@@ -82,11 +82,11 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
     <div style={LAYOUT_STYLES.navigationModal.overlay as React.CSSProperties}>
       <div
         onClick={onClose}
-        style={COMPONENT_STYLES.modal.overlay as React.CSSProperties}
+        style={COMPONENT_STYLES.modal.sidePanel.overlay as React.CSSProperties}
       />
 
 
-      <div style={COMPONENT_STYLES.modal.content as React.CSSProperties}>
+      <div style={COMPONENT_STYLES.modal.sidePanel.content as React.CSSProperties}>
         <style>
           {`
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
