@@ -81,7 +81,7 @@ const StarRating: React.FC<{
               onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }}
               disabled={readonly}
               className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'}`}
-              style={{ background: 'none', border: 'none', padding: '0', lineHeight: '1' }}
+              style={COMPONENT_STYLES.dishCard.starRating.button}
               aria-label={readonly ? `${rating} of 5 stars` : `Rate ${star} of 5 stars`}
             >
               <Star type={type} filledColor={colorMap[variant].filled} emptyColor={colorMap[variant].empty} size={sizeMap[size]} />
@@ -92,7 +92,7 @@ const StarRating: React.FC<{
       {!readonly && showClearButton && rating > 0 && (
         <button
           onClick={(e) => { e.stopPropagation(); onRatingChange?.(0); }}
-          style={{ ...COMPONENT_STYLES.dishCard.starRating.clearButton, marginLeft: SPACING[1] } as React.CSSProperties}
+          style={COMPONENT_STYLES.dishCard.starRating.clearButton as React.CSSProperties}
           onMouseEnter={(e) => { e.currentTarget.style.color = DESIGN_TOKENS.colors.danger; e.currentTarget.style.transform = 'scale(1.15)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.color = DESIGN_TOKENS.colors.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }}
           aria-label="Clear rating"
@@ -110,14 +110,14 @@ const RatingSummary: React.FC<{ personalRating: number | null; communityAverage:
   <div style={COMPONENT_STYLES.dishCard.ratingSummary.container as React.CSSProperties}>
     <div style={COMPONENT_STYLES.dishCard.ratingSummary.row as React.CSSProperties}>
       <span style={COMPONENT_STYLES.dishCard.ratingSummary.label as React.CSSProperties}>Me:</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+      <div style={COMPONENT_STYLES.dishCard.ratingSummary.ratingLine}>
         <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />
         <span style={COMPONENT_STYLES.dishCard.ratingSummary.value as React.CSSProperties}>{personalRating || '—'}</span>
       </div>
     </div>
     <div style={COMPONENT_STYLES.dishCard.ratingSummary.row as React.CSSProperties}>
       <span style={COMPONENT_STYLES.dishCard.ratingSummary.label as React.CSSProperties}>Average:</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+      <div style={COMPONENT_STYLES.dishCard.ratingSummary.ratingLine}>
         <StarRating rating={communityAverage} readonly variant="community" size="sm" />
         <span style={COMPONENT_STYLES.dishCard.ratingSummary.value as React.CSSProperties}>{communityAverage.toFixed(1)}</span>
       </div>
@@ -189,7 +189,7 @@ const CommentsSection: React.FC<{ comments: DishComment[]; showComments: boolean
               style={{ ...COMPONENT_STYLES.dishCard.commentsSection.commentContainer, cursor: editingComment?.id === comment.id ? 'default' : 'pointer' } as React.CSSProperties}
             >
               {editingComment?.id === comment.id ? (
-                <div style={{ width: '100%' }}>
+                <div style={COMPONENT_STYLES.dishCard.commentsSection.editFormContainer}>
                   <CommentForm initialText={editingComment?.currentText || ''} onSubmit={(text) => onUpdateComment(comment.id, text)} onCancel={onCancelEdit} isLoading={isSubmittingComment} submitButtonText="Update Comment" />
                 </div>
               ) : (
@@ -204,12 +204,12 @@ const CommentsSection: React.FC<{ comments: DishComment[]; showComments: boolean
                   </div>
                   {currentUserId && comment.user_id === currentUserId && (
                     <div style={COMPONENT_STYLES.dishCard.commentsSection.actionMenuContainer as React.CSSProperties}>
-                      <button onClick={(e) => { e.stopPropagation(); setOpenActionMenuCommentId(openActionMenuCommentId === comment.id ? null : comment.id); }} style={{ ...COMPONENT_STYLES.button.icon.transparent, width: '32px', height: '32px' }} aria-label="Comment actions">
+                      <button onClick={(e) => { e.stopPropagation(); setOpenActionMenuCommentId(openActionMenuCommentId === comment.id ? null : comment.id); }} style={COMPONENT_STYLES.dishCard.commentsSection.actionIconButton} aria-label="Comment actions">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4C10.9 4 10 4.9 10 6C10 7.1 10.9 8 12 8ZM12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10ZM12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z"/></svg>
                       </button>
                       {openActionMenuCommentId === comment.id && (
                         <div ref={actionMenuRef} style={COMPONENT_STYLES.dishCard.commentsSection.actionMenu as React.CSSProperties}>
-                          <button onClick={(e) => { e.stopPropagation(); onEditComment(comment); setOpenActionMenuCommentId(null); }} style={{ ...COMPONENT_STYLES.dishCard.commentsSection.actionButton, color: DESIGN_TOKENS.colors.text } as React.CSSProperties} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = DESIGN_TOKENS.colors.gray50; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                          <button onClick={(e) => { e.stopPropagation(); onEditComment(comment); setOpenActionMenuCommentId(null); }} style={COMPONENT_STYLES.dishCard.commentsSection.actionButton} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = DESIGN_TOKENS.colors.gray50; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                             Edit
                           </button>
@@ -249,7 +249,7 @@ const PortalModal: React.FC<{ isOpen: boolean; onClose: () => void; children: Re
   }
   return ReactDOM.createPortal(
     <div style={COMPONENT_STYLES.modal.centered.overlay as React.CSSProperties} onClick={onClose}>
-      <div style={{ ...COMPONENT_STYLES.modal.centered.content, animation: 'slideIn 0.3s ease' }} onClick={(e) => e.stopPropagation()}>
+      <div style={COMPONENT_STYLES.modal.centered.content} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>,
@@ -354,7 +354,7 @@ const DishCard: React.FC<DishCardProps> = ({ dish, currentUserId, onDelete, onUp
             <h3 style={COMPONENT_STYLES.dishCard.collapsed.title as React.CSSProperties}>{dish.name}</h3>
             <RatingSummary personalRating={personalRating} communityAverage={dish.average_rating} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3] }}>
+          <div style={COMPONENT_STYLES.dishCard.collapsed.rightContainer}>
             {safePhotos.length > 0 && (
               <div style={COMPONENT_STYLES.dishCard.collapsed.imageContainer as React.CSSProperties}>
                 <img src={safePhotos[0].url} alt="Dish photo" style={COMPONENT_STYLES.dishCard.collapsed.image as React.CSSProperties} />
@@ -368,8 +368,6 @@ const DishCard: React.FC<DishCardProps> = ({ dish, currentUserId, onDelete, onUp
       </div>
     );
   }
-
-  const menuButtonStyle: React.CSSProperties = { ...COMPONENT_STYLES.dishCard.menuButton, fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize };
 
   return (
     <>
@@ -398,26 +396,26 @@ const DishCard: React.FC<DishCardProps> = ({ dish, currentUserId, onDelete, onUp
               </button>
               {isMenuOpen && (
                 <div ref={menuRef} style={COMPONENT_STYLES.dishCard.expanded.actionMenu as React.CSSProperties}>
-                  <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={COMPONENT_STYLES.dishCard.menuButton} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
                     Share Dish
                   </button>
-                  <button onClick={(e) => handleAction(e, handleDirectPhotoUpload)} style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <button onClick={(e) => handleAction(e, handleDirectPhotoUpload)} style={COMPONENT_STYLES.dishCard.menuButton} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                     Add Photo
                   </button>
-                  <button onClick={(e) => handleAction(e, () => setShowCommentModal(true))} style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <button onClick={(e) => handleAction(e, () => setShowCommentModal(true))} style={COMPONENT_STYLES.dishCard.menuButton} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     Add Comment
                   </button>
                   {canModify && (
                     <>
                       <hr style={COMPONENT_STYLES.dishCard.expanded.hr as React.CSSProperties} />
-                      <button onClick={(e) => handleAction(e, () => { setIsEditingName(true); setEditedDishName(dish.name); })} style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <button onClick={(e) => handleAction(e, () => { setIsEditingName(true); setEditedDishName(dish.name); })} style={COMPONENT_STYLES.dishCard.menuButton} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                         Edit Name
                       </button>
-                      <button onClick={(e) => handleAction(e, handleDeleteDish)} style={{...menuButtonStyle, color: DESIGN_TOKENS.colors.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <button onClick={(e) => handleAction(e, handleDeleteDish)} style={{...COMPONENT_STYLES.dishCard.menuButton, color: DESIGN_TOKENS.colors.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=DESIGN_TOKENS.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
                         Delete Dish
                       </button>

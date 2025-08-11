@@ -574,6 +574,7 @@ export const COMPONENT_STYLES = {
         maxHeight: '90vh',
         overflow: 'auto',
         boxShadow: DESIGN_TOKENS.shadows.large,
+        animation: 'slideIn 0.3s ease',
       }
     },
     lightbox: {
@@ -911,6 +912,12 @@ export const COMPONENT_STYLES = {
       filledContainer: { position: 'absolute', left: 0, top: 0, height: '100%', overflow: 'hidden' }
     },
     starRating: {
+      button: {
+        background: 'none',
+        border: 'none',
+        padding: '0',
+        lineHeight: '1',
+      },
       clearButton: {
         background: 'transparent',
         border: 'none',
@@ -922,13 +929,19 @@ export const COMPONENT_STYLES = {
         alignItems: 'center',
         justifyContent: 'center',
         lineHeight: 1,
+        marginLeft: SPACING[1],
       }
     },
     ratingSummary: {
       container: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: DESIGN_TOKENS.spacing[1] },
       row: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2] },
       label: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: DESIGN_TOKENS.typography.medium },
-      value: { color: DESIGN_TOKENS.colors.text, fontWeight: DESIGN_TOKENS.typography.medium, fontSize: DESIGN_TOKENS.typography.sm.fontSize }
+      value: { color: DESIGN_TOKENS.colors.text, fontWeight: DESIGN_TOKENS.typography.medium, fontSize: DESIGN_TOKENS.typography.sm.fontSize },
+      ratingLine: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: SPACING[1],
+      },
     },
     ratingBreakdown: {
       container: { backgroundColor: DESIGN_TOKENS.colors.gray50, padding: DESIGN_TOKENS.spacing[4], borderRadius: DESIGN_TOKENS.borderRadius.medium, marginTop: DESIGN_TOKENS.spacing[4] },
@@ -948,12 +961,26 @@ export const COMPONENT_STYLES = {
       commentContainer: { backgroundColor: DESIGN_TOKENS.colors.gray50, padding: DESIGN_TOKENS.spacing[4], borderRadius: DESIGN_TOKENS.borderRadius.medium },
       commentBody: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
       commentTextContainer: { flex: 1, minWidth: 0, marginRight: DESIGN_TOKENS.spacing[2] },
-      commentText: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, color: DESIGN_TOKENS.colors.text, margin: 0, wordBreak: 'break-word' },
+      commentText: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, color: DESIGN_TOKENS.colors.text, margin: 0, wordBreak: 'break-word' as 'break-word' },
       commentMeta: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary, margin: 0, marginTop: DESIGN_TOKENS.spacing[1] },
       commentAuthor: { fontWeight: DESIGN_TOKENS.typography.medium },
       actionMenuContainer: { position: 'relative' },
       actionMenu: { position: 'absolute', bottom: '100%', right: 0, marginBottom: DESIGN_TOKENS.spacing[1], backgroundColor: DESIGN_TOKENS.colors.white, borderRadius: DESIGN_TOKENS.borderRadius.medium, boxShadow: DESIGN_TOKENS.shadows.large, border: `1px solid ${DESIGN_TOKENS.colors.gray200}`, overflow: 'hidden', zIndex: DESIGN_TOKENS.zIndex.dropdown, minWidth: '120px' },
-      actionButton: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], width: '100%', padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`, border: 'none', background: 'none', cursor: 'pointer', fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, textAlign: 'left', transition: 'background-color 0.2s ease' }
+      actionButton: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], width: '100%', padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`, border: 'none', background: 'none', cursor: 'pointer', fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, textAlign: 'left', transition: 'background-color 0.2s ease', color: DESIGN_TOKENS.colors.text },
+      editFormContainer: { width: '100%' },
+      actionIconButton: {
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease',
+        color: DESIGN_TOKENS.colors.gray700,
+        backgroundColor: 'transparent',
+        border: 'none',
+      },
     },
     collapsed: {
       cursor: 'pointer' as 'pointer',
@@ -963,7 +990,12 @@ export const COMPONENT_STYLES = {
       title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, marginBottom: DESIGN_TOKENS.spacing[2] },
       imageContainer: { width: '60px', height: '60px', borderRadius: DESIGN_TOKENS.borderRadius.medium, overflow: 'hidden', flexShrink: 0 },
       image: { width: '100%', height: '100%', objectFit: 'cover' },
-      arrow: { color: DESIGN_TOKENS.colors.gray400 }
+      arrow: { color: DESIGN_TOKENS.colors.gray400 },
+      rightContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: SPACING[3],
+      },
     },
     expanded: {
       borderColor: DESIGN_TOKENS.colors.accent,
@@ -972,7 +1004,7 @@ export const COMPONENT_STYLES = {
       headerContainer: { marginBottom: DESIGN_TOKENS.spacing[4] },
       header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: DESIGN_TOKENS.spacing[2] },
       headerTextContainer: { flex: 1, minWidth: 0, paddingRight: DESIGN_TOKENS.spacing[4] },
-      title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, wordBreak: 'break-word' },
+      title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, wordBreak: 'break-word' as 'break-word' },
       date: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary, margin: 0, marginTop: DESIGN_TOKENS.spacing[1] },
       editContainer: { display: 'flex', flexDirection: 'column', gap: DESIGN_TOKENS.spacing[3], width: '100%' },
       editInput: {
@@ -992,42 +1024,6 @@ export const COMPONENT_STYLES = {
         WebkitAppearance: 'none',
        },
       editButtons: { display: 'flex', justifyContent: 'flex-end', gap: DESIGN_TOKENS.spacing[2] },
-      editCancelButton: {
-        backgroundColor: DESIGN_TOKENS.colors.white,
-        color: DESIGN_TOKENS.colors.primary,
-        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
-        borderRadius: '8px',
-        padding: '8px 16px',
-        fontSize: DESIGN_TOKENS.typography.base.fontSize,
-        fontWeight: DESIGN_TOKENS.typography.medium,
-        fontFamily: FONT_FAMILIES.primary,
-        minHeight: '36px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        outline: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-       },
-      editSaveButton: {
-        backgroundColor: DESIGN_TOKENS.colors.primary,
-        color: DESIGN_TOKENS.colors.white,
-        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
-        borderRadius: '8px',
-        padding: '8px 16px',
-        fontSize: DESIGN_TOKENS.typography.base.fontSize,
-        fontWeight: DESIGN_TOKENS.typography.medium,
-        fontFamily: FONT_FAMILIES.primary,
-        minHeight: '36px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        outline: 'none',
-        textDecoration: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-       },
       actionMenuContainer: { position: 'relative', flexShrink: 0 },
       actionMenu: { position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: DESIGN_TOKENS.colors.white, borderRadius: DESIGN_TOKENS.borderRadius.medium, boxShadow: DESIGN_TOKENS.shadows.large, border: `1px solid ${DESIGN_TOKENS.colors.gray200}`, overflow: 'hidden', zIndex: DESIGN_TOKENS.zIndex.dropdown, minWidth: '160px' },
       hr: { border: 0, borderTop: `1px solid ${DESIGN_TOKENS.colors.gray200}`, margin: `${DESIGN_TOKENS.spacing[1]} 0` },
@@ -1045,6 +1041,10 @@ export const COMPONENT_STYLES = {
       cursor: 'pointer',
       textAlign: 'left' as 'left',
       transition: 'background-color 0.2s ease',
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      color: DESIGN_TOKENS.colors.text,
     },
     addCommentModal: {
       title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.xl.fontSize, color: DESIGN_TOKENS.colors.gray900, marginBottom: DESIGN_TOKENS.spacing[4] }
