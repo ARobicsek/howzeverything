@@ -616,6 +616,62 @@ export const COMPONENT_STYLES = {
         gap: '8px',
         flex: 1,
       }
+    },
+    addDish: {
+      starRatingButton: {
+        background: 'none',
+        border: 'none',
+        padding: '0 1px',
+        fontSize: '1.3rem',
+        lineHeight: '1',
+      },
+      toggleButton: {
+        backgroundColor: DESIGN_TOKENS.colors.primary,
+        color: DESIGN_TOKENS.colors.textWhite,
+        border: 'none',
+        borderRadius: '12px',
+        padding: '12px 20px',
+        fontFamily: FONT_FAMILIES.elegant,
+        fontWeight: '500',
+        fontSize: '1rem',
+        width: '100%',
+      },
+      input: {
+        background: 'white',
+        fontSize: '1rem',
+        fontFamily: FONT_FAMILIES.elegant,
+        color: DESIGN_TOKENS.colors.text,
+        maxWidth: 'calc(100% - 16px)',
+        boxSizing: 'border-box',
+      },
+      ratingLabel: {
+        fontFamily: FONT_FAMILIES.elegant,
+        color: DESIGN_TOKENS.colors.text,
+      },
+      submitButton: {
+        color: DESIGN_TOKENS.colors.textWhite,
+        border: 'none',
+        fontFamily: FONT_FAMILIES.elegant,
+        fontWeight: '500',
+        fontSize: '1rem',
+      },
+      cancelButton: {
+        color: DESIGN_TOKENS.colors.primary,
+        backgroundColor: DESIGN_TOKENS.colors.white,
+        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '44px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }
     }
   },
   searchResultsModal: {
