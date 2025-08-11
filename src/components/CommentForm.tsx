@@ -1,6 +1,6 @@
 // src/components/CommentForm.tsx
 import React, { useState } from 'react';
-import { COLORS, SPACING, STYLES } from '../constants';
+import { COMPONENT_STYLES, DESIGN_TOKENS } from '../constants';
 
 interface CommentFormProps {
   initialText?: string;
@@ -29,8 +29,16 @@ const CommentForm: React.FC<CommentFormProps> = ({
     }
   };
 
+  const dynamicSubmitStyle = {
+    ...COMPONENT_STYLES.button.primary,
+    opacity: (!commentText.trim() || isLoading) ? 0.5 : 1,
+    cursor: (!commentText.trim() || isLoading) ? 'not-allowed' : 'pointer',
+    backgroundColor: (!commentText.trim() || isLoading) ? DESIGN_TOKENS.colors.gray300 : DESIGN_TOKENS.colors.primary,
+    borderColor: (!commentText.trim() || isLoading) ? DESIGN_TOKENS.colors.gray300 : DESIGN_TOKENS.colors.primary,
+  };
+
   return (
-    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+    <form onSubmit={handleSubmit} style={COMPONENT_STYLES.forms.commentForm.form}>
       <textarea
         value={commentText}
         onChange={(e) => setCommentText(e.target.value)}
@@ -39,26 +47,19 @@ const CommentForm: React.FC<CommentFormProps> = ({
         placeholder={placeholder}
         rows={4}
         style={{
-          ...STYLES.input,
-          ...(isFocused ? STYLES.inputFocus : {}),
-          minHeight: '100px',
-          resize: 'vertical',
-          marginBottom: SPACING[4]
+          ...COMPONENT_STYLES.forms.commentForm.textarea,
+          ...(isFocused ? { borderColor: DESIGN_TOKENS.colors.accent, boxShadow: '0 0 0 3px rgba(100, 46, 50, 0.25)' } : {}),
         }}
         disabled={isLoading}
         autoFocus
       />
-      <div style={{ 
-        display: 'flex', 
-        gap: SPACING[3], 
-        justifyContent: 'flex-end' 
-      }}>
+      <div style={COMPONENT_STYLES.forms.commentForm.buttonContainer}>
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
           style={{
-            ...STYLES.secondaryButton,
+            ...COMPONENT_STYLES.button.secondary,
             opacity: isLoading ? 0.5 : 1,
             cursor: isLoading ? 'not-allowed' : 'pointer'
           }}
@@ -68,23 +69,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
         <button
           type="submit"
           disabled={!commentText.trim() || isLoading}
-          style={{
-            ...STYLES.primaryButton,
-            opacity: (!commentText.trim() || isLoading) ? 0.5 : 1,
-            cursor: (!commentText.trim() || isLoading) ? 'not-allowed' : 'pointer',
-            backgroundColor: (!commentText.trim() || isLoading) ? COLORS.gray300 : COLORS.primary,
-            borderColor: (!commentText.trim() || isLoading) ? COLORS.gray300 : COLORS.black
-          }}
-          onMouseEnter={(e) => {
-            if (commentText.trim() && !isLoading) {
-              e.currentTarget.style.backgroundColor = COLORS.primaryHover;
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (commentText.trim() && !isLoading) {
-              e.currentTarget.style.backgroundColor = COLORS.primary;
-            }
-          }}
+          style={dynamicSubmitStyle}
         >
           {isLoading ? 'Saving...' : submitButtonText}
         </button>
