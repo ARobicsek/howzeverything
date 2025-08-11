@@ -1376,6 +1376,61 @@ export const LAYOUT_STYLES = {
 export const SCREEN_STYLES = {
   findRestaurant: { /* screen-specific */ },
   menuScreen: { /* screen-specific */ },
+  home: {
+    container: {
+      backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+      marginLeft: 'calc(-50vw + 50%)',
+      marginRight: 'calc(-50vw + 50%)',
+      minHeight: '100vh',
+      boxSizing: 'border-box',
+      paddingBottom: DESIGN_TOKENS.spacing[8],
+    },
+    headerContainer: {
+      maxWidth: '700px',
+      margin: '0 auto',
+      padding: `calc(60px + ${DESIGN_TOKENS.spacing[4]}) ${DESIGN_TOKENS.spacing[4]} ${DESIGN_TOKENS.spacing[6]}`,
+      display: 'flex',
+      flexDirection: 'column' as 'column',
+      alignItems: 'center',
+      textAlign: 'center' as 'center',
+    },
+    headerText: {
+      ...FONTS.body,
+      ...TYPOGRAPHY.lg,
+      color: DESIGN_TOKENS.colors.textWhite,
+      lineHeight: 1.6,
+      margin: 0,
+    },
+    mainContent: {
+      maxWidth: '600px',
+      margin: '0 auto',
+      paddingLeft: DESIGN_TOKENS.spacing[4],
+      paddingRight: DESIGN_TOKENS.spacing[4],
+    },
+    gridContainer: {
+      display: 'grid',
+      gridTemplateColumns: '1fr',
+      gap: DESIGN_TOKENS.spacing[6],
+    },
+    infoCard: {
+      link: { textDecoration: 'none', display: 'block' },
+      card: {
+        ...STYLES.card,
+        padding: 0,
+        overflow: 'hidden',
+        textAlign: 'center' as 'center',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+      },
+      image: { width: '100%', height: 'auto', display: 'block' },
+      content: { padding: DESIGN_TOKENS.spacing[4] },
+      title: {
+        ...FONTS.heading,
+        ...TYPOGRAPHY.h3,
+        color: DESIGN_TOKENS.colors.text,
+        margin: 0,
+      },
+    }
+  }
 };
 
 // 5. Utility Styles
@@ -1408,6 +1463,21 @@ export const STYLE_FUNCTIONS = {
       return { ...baseStyle, ...COMPONENT_STYLES.duplicateDishModal.similarityBadgeBestMatch };
     }
     return baseStyle;
+  },
+  getHomeScreenInfoCardStyle: (isHovering: boolean): React.CSSProperties => {
+    const baseStyle = SCREEN_STYLES.home.infoCard.card;
+    if (isHovering) {
+      return {
+        ...baseStyle,
+        transform: 'scale(1.03)',
+        boxShadow: STYLES.shadowLarge,
+      };
+    }
+    return {
+      ...baseStyle,
+      transform: 'scale(1)',
+      boxShadow: STYLES.shadowMedium,
+    };
   },
 };
 

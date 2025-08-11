@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { SCREEN_STYLES, STYLE_FUNCTIONS } from './constants';
 
 
 const InfoCard: React.FC<{
@@ -11,28 +11,15 @@ const InfoCard: React.FC<{
   const [isHovering, setIsHovering] = React.useState(false);
  
   return (
-    <Link to={to} style={{ textDecoration: 'none', display: 'block' }}>
+    <Link to={to} style={SCREEN_STYLES.home.infoCard.link}>
       <div
-        style={{
-          ...STYLES.card,
-          padding: 0,
-          overflow: 'hidden',
-          textAlign: 'center',
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-          transform: isHovering ? 'scale(1.03)' : 'scale(1)',
-          boxShadow: isHovering ? STYLES.shadowLarge : STYLES.shadowMedium,
-        }}
+        style={STYLE_FUNCTIONS.getHomeScreenInfoCardStyle(isHovering)}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        <img src={imageSrc} alt={title} style={{ width: '100%', height: 'auto', display: 'block' }} />
-        <div style={{ padding: SPACING[4] }}>
-          <h3 style={{
-            ...FONTS.heading,
-            ...TYPOGRAPHY.h3,
-            color: COLORS.text,
-            margin: 0,
-          }}>
+        <img src={imageSrc} alt={title} style={SCREEN_STYLES.home.infoCard.image} />
+        <div style={SCREEN_STYLES.home.infoCard.content}>
+          <h3 style={SCREEN_STYLES.home.infoCard.title}>
             {title}
           </h3>
         </div>
@@ -45,31 +32,10 @@ const InfoCard: React.FC<{
 const HomeScreen: React.FC = () => {
   return (
     // This container is now set to fill the screen's height and has bottom padding.
-    <div style={{
-      backgroundColor: COLORS.navBarDark,
-      marginLeft: 'calc(-50vw + 50%)',
-      marginRight: 'calc(-50vw + 50%)',
-      minHeight: '100vh',
-      boxSizing: 'border-box',
-      paddingBottom: SPACING[8],
-    }}>
+    <div style={SCREEN_STYLES.home.container}>
       {/* HEADER SECTION */}
-      <div style={{
-        maxWidth: '700px',
-        margin: '0 auto',
-        padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-      }}>
-        <p style={{
-          ...FONTS.body,
-          ...TYPOGRAPHY.lg,
-          color: COLORS.textWhite,
-          lineHeight: 1.6,
-          margin: 0,
-        }}>
+      <div style={SCREEN_STYLES.home.headerContainer}>
+        <p style={SCREEN_STYLES.home.headerText}>
           Trying to figure out what to order? HowzEverything lets you embrace your inner food critic. Rate dishes yourself <i>and</i> see what the unwashed masses thought.
           <br />
           <strong>Never order a bad dish twice.</strong>
@@ -78,17 +44,8 @@ const HomeScreen: React.FC = () => {
 
 
       {/* BODY SECTION - Added explicit horizontal padding for card margins. */}
-      <main style={{ 
-          maxWidth: '600px', 
-          margin: '0 auto',
-          paddingLeft: SPACING[4],
-          paddingRight: SPACING[4],
-        }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: SPACING[6],
-        }}>
+      <main style={SCREEN_STYLES.home.mainContent}>
+        <div style={SCREEN_STYLES.home.gridContainer}>
           <InfoCard
             title="Find a Restaurant and Start Dishing"
             imageSrc="/critic_2.png"
