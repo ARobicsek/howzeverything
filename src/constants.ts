@@ -207,6 +207,8 @@ export const COMPONENT_STYLES = {
         color: DESIGN_TOKENS.colors.black,
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         border: 'none',
+        fontSize: '24px',
+        fontWeight: 'bold',
       },
     },
     primary: {
