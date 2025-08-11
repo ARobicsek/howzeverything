@@ -156,7 +156,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
         )}
         <div style={COMPONENT_STYLES.addressInput.messageContainer as React.CSSProperties}>
           {isParsing && <p style={COMPONENT_STYLES.addressInput.parsingMessage as React.CSSProperties}>Parsing...</p>}
-          {parseMessage && <p style={{...TYPOGRAPHY.caption, color: parseMessage.type === 'error' ? COLORS.danger : COLORS.success}}>{parseMessage.text}</p>}
+          {parseMessage && <p style={{...COMPONENT_STYLES.addressInput.parseMessageText, color: parseMessage.type === 'error' ? COLORS.danger : COLORS.success}}>{parseMessage.text}</p>}
         </div>
       </div>
       {showParsedFields && (

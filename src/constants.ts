@@ -1094,7 +1094,8 @@ export const COMPONENT_STYLES = {
     parsedFieldsDescription: { ...DESIGN_TOKENS.typography.caption, color: DESIGN_TOKENS.colors.textSecondary, marginTop: 0, marginBottom: DESIGN_TOKENS.spacing[3] },
     fieldGroup: { marginBottom: DESIGN_TOKENS.spacing[3] },
     grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3] },
-    gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3], marginTop: DESIGN_TOKENS.spacing[3] }
+    gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3], marginTop: DESIGN_TOKENS.spacing[3] },
+    parseMessageText: { ...TYPOGRAPHY.caption },
   },
   forms: {
     addRestaurant: {
