@@ -1,6 +1,6 @@
 // src/components/location/LocationPermissionModal.tsx
 import React from 'react';
-import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COMPONENT_STYLES } from '../../constants';
 import { useLocationService } from '../../hooks/useLocationService';
 
 interface LocationPermissionModalProps {
@@ -34,24 +34,18 @@ const LocationPermissionModal: React.FC<LocationPermissionModalProps> = ({ isOpe
   const message = getInstructions();
 
   return (
-    <div style={STYLES.modalOverlay} onClick={onClose}>
-      <div style={{ ...STYLES.modal, maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ ...TYPOGRAPHY.h3, marginTop: 0, color: COLORS.textPrimary }}>
+    <div style={COMPONENT_STYLES.locationPermissionModal.overlay} onClick={onClose}>
+      <div style={COMPONENT_STYLES.locationPermissionModal.content} onClick={(e) => e.stopPropagation()}>
+        <h3 style={COMPONENT_STYLES.locationPermissionModal.title}>
           HowzEverything is much more fun if location services are enabled.
         </h3>
-        <p style={{ ...TYPOGRAPHY.body, whiteSpace: 'pre-wrap', color: COLORS.textSecondary, marginTop: SPACING[4] }}>
+        <p style={COMPONENT_STYLES.locationPermissionModal.message}>
           {message}
         </p>
-        <div style={{ marginTop: SPACING[6], display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={COMPONENT_STYLES.locationPermissionModal.actionsContainer}>
           <button
             onClick={onClose}
-            style={{
-              ...STYLES.primaryButton,
-              minWidth: '120px',
-              backgroundColor: COLORS.accent,
-              color: COLORS.white,
-              border: `1px solid ${COLORS.text}`,
-            }}
+            style={COMPONENT_STYLES.locationPermissionModal.okButton}
           >
             OK
           </button>

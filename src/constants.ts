@@ -297,6 +297,178 @@ export const COMPONENT_STYLES = {
         justifyContent: 'center',
     },
   },
+  duplicateDishModal: {
+    overlay: {
+      position: 'fixed' as 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: DESIGN_TOKENS.spacing[4]
+    },
+    content: {
+      backgroundColor: DESIGN_TOKENS.colors.white,
+      borderRadius: DESIGN_TOKENS.borderRadius.large,
+      padding: DESIGN_TOKENS.spacing[6],
+      maxWidth: '500px',
+      width: '100%',
+      maxHeight: '80vh',
+      overflowY: 'auto' as 'auto',
+      boxShadow: DESIGN_TOKENS.shadows.large
+    },
+    headerContainer: { marginBottom: DESIGN_TOKENS.spacing[5] },
+    title: {
+      ...FONTS.heading,
+      fontSize: TYPOGRAPHY.xl.fontSize,
+      color: COLORS.gray900,
+      marginBottom: SPACING[2]
+    },
+    description: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.base.fontSize,
+      color: COLORS.textSecondary,
+      margin: 0
+    },
+    listContainer: { marginBottom: DESIGN_TOKENS.spacing[6] },
+    dishItem: {
+      border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+      borderRadius: DESIGN_TOKENS.borderRadius.medium,
+      padding: DESIGN_TOKENS.spacing[4],
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      backgroundColor: DESIGN_TOKENS.colors.gray50,
+    },
+    dishItemBestMatch: {
+      border: `1px solid ${DESIGN_TOKENS.colors.gray300}`,
+      backgroundColor: DESIGN_TOKENS.colors.gray50,
+    },
+    dishItemContent: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+    dishItemDetails: { flex: 1 },
+    dishItemTitle: {
+      ...FONTS.heading,
+      fontSize: TYPOGRAPHY.base.fontSize,
+      color: COLORS.gray900,
+      marginBottom: SPACING[1]
+    },
+    dishItemMetaContainer: { display: 'flex', alignItems: 'center', gap: SPACING[3], marginBottom: SPACING[2] },
+    dishItemRatingContainer: { display: 'flex', alignItems: 'center', gap: SPACING[1] },
+    dishItemRatingIcon: { color: COLORS.ratingGold, fontSize: TYPOGRAPHY.sm.fontSize },
+    dishItemRatingText: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      color: COLORS.text
+    },
+    dishItemRatingCount: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.xs.fontSize,
+      color: COLORS.textSecondary
+    },
+    dishItemSimilarityContainer: { display: 'flex', alignItems: 'center', gap: SPACING[2] },
+    dishItemSimilarityText: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.xs.fontSize,
+      color: COLORS.textSecondary
+    },
+    similarityBadge: {
+      backgroundColor: DESIGN_TOKENS.colors.gray200,
+      color: DESIGN_TOKENS.colors.gray700,
+      padding: `${DESIGN_TOKENS.spacing[1]} ${DESIGN_TOKENS.spacing[2]}`,
+      borderRadius: DESIGN_TOKENS.borderRadius.small,
+      fontSize: DESIGN_TOKENS.typography.xs.fontSize,
+      fontWeight: DESIGN_TOKENS.typography.medium
+    },
+    similarityBadgeBestMatch: {
+      backgroundColor: DESIGN_TOKENS.colors.gray300,
+      color: DESIGN_TOKENS.colors.gray700,
+    },
+    bestMatchBadge: {
+      color: COLORS.primary,
+      fontSize: TYPOGRAPHY.xs.fontSize,
+      fontWeight: TYPOGRAPHY.medium,
+      marginLeft: SPACING[2]
+    },
+    moreDishesText: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      color: COLORS.textSecondary,
+      textAlign: 'center' as 'center',
+      margin: `${SPACING[2]} 0 0 0`,
+      fontStyle: 'italic' as 'italic'
+    },
+    actionsContainer: { display: 'flex', gap: SPACING[3], flexDirection: 'column' as 'column' },
+    useExistingButton: {
+      ...STYLES.primaryButton,
+      padding: `${SPACING[3]} ${SPACING[4]}`,
+      fontSize: TYPOGRAPHY.base.fontSize,
+      fontWeight: TYPOGRAPHY.medium
+    },
+    createNewButton: {
+      ...STYLES.secondaryButton,
+      padding: `${SPACING[3]} ${SPACING[4]}`,
+      fontSize: TYPOGRAPHY.base.fontSize
+    },
+    cancelButton: {
+      background: 'none',
+      border: 'none',
+      color: COLORS.textSecondary,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      cursor: 'pointer',
+      padding: SPACING[2],
+      textDecoration: 'underline'
+    },
+  },
+  locationPermissionModal: {
+    overlay: {
+      position: 'fixed' as 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      zIndex: 2147483647,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: DESIGN_TOKENS.spacing[4],
+    },
+    content: {
+      background: DESIGN_TOKENS.colors.white,
+      borderRadius: '12px',
+      border: '2px solid ' + DESIGN_TOKENS.colors.black,
+      padding: DESIGN_TOKENS.spacing[6],
+      maxWidth: '450px',
+      maxHeight: '90vh',
+      overflow: 'auto',
+    },
+    title: {
+      ...TYPOGRAPHY.h3,
+      marginTop: 0,
+      color: DESIGN_TOKENS.colors.textPrimary
+    },
+    message: {
+      ...TYPOGRAPHY.body,
+      whiteSpace: 'pre-wrap' as 'pre-wrap',
+      color: DESIGN_TOKENS.colors.textSecondary,
+      marginTop: DESIGN_TOKENS.spacing[4]
+    },
+    actionsContainer: {
+      marginTop: DESIGN_TOKENS.spacing[6],
+      display: 'flex',
+      justifyContent: 'flex-end'
+    },
+    okButton: {
+      ...STYLES.primaryButton,
+      minWidth: '120px',
+      backgroundColor: DESIGN_TOKENS.colors.accent,
+      color: DESIGN_TOKENS.colors.white,
+      border: `1px solid ${DESIGN_TOKENS.colors.text}`,
+    }
+  },
   input: {
     backgroundColor: DESIGN_TOKENS.colors.inputBg,
     borderWidth: '2px',
@@ -1223,6 +1395,20 @@ export const STYLE_FUNCTIONS = {
     ...COMPONENT_STYLES.modal.lightbox.caption,
     marginBottom: hasPhotographerName ? DESIGN_TOKENS.spacing[2] : 0,
   }),
+  getDishItemStyle: (isBestMatch: boolean): React.CSSProperties => {
+    const baseStyle = COMPONENT_STYLES.duplicateDishModal.dishItem;
+    if (isBestMatch) {
+      return { ...baseStyle, ...COMPONENT_STYLES.duplicateDishModal.dishItemBestMatch };
+    }
+    return baseStyle;
+  },
+  getSimilarityBadgeStyle: (isBestMatch: boolean): React.CSSProperties => {
+    const baseStyle = COMPONENT_STYLES.duplicateDishModal.similarityBadge;
+    if (isBestMatch) {
+      return { ...baseStyle, ...COMPONENT_STYLES.duplicateDishModal.similarityBadgeBestMatch };
+    }
+    return baseStyle;
+  },
 };
 
 // --- LEGACY OR UNCATEGORIZED STYLES ---
