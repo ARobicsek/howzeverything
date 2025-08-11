@@ -140,14 +140,54 @@ const FONT_FAMILIES = {
 
 
 // 2. Component Styles
+const baseCardStyle = {
+  backgroundColor: DESIGN_TOKENS.colors.white,
+  borderRadius: DESIGN_TOKENS.borderRadius.large,
+  border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+  padding: DESIGN_TOKENS.spacing[5],
+  transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
+};
+
+const baseButtonPrimaryStyle = {
+  backgroundColor: DESIGN_TOKENS.colors.primary,
+  color: DESIGN_TOKENS.colors.white,
+  border: '2px solid ' + DESIGN_TOKENS.colors.primary,
+  borderRadius: '8px',
+  padding: '12px 24px',
+  fontSize: DESIGN_TOKENS.typography.base.fontSize,
+  fontWeight: DESIGN_TOKENS.typography.medium,
+  fontFamily: FONT_FAMILIES.primary,
+  minHeight: '44px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  outline: 'none',
+  textDecoration: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+};
+
+const baseButtonSecondaryStyle = {
+  backgroundColor: DESIGN_TOKENS.colors.white,
+  color: DESIGN_TOKENS.colors.primary,
+  border: '2px solid ' + DESIGN_TOKENS.colors.primary,
+  borderRadius: '8px',
+  padding: '12px 24px',
+  fontSize: DESIGN_TOKENS.typography.base.fontSize,
+  fontWeight: DESIGN_TOKENS.typography.medium,
+  fontFamily: FONT_FAMILIES.primary,
+  minHeight: '44px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  outline: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
 export const COMPONENT_STYLES = {
-  card: {
-    backgroundColor: DESIGN_TOKENS.colors.white,
-    borderRadius: DESIGN_TOKENS.borderRadius.large,
-    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
-    padding: DESIGN_TOKENS.spacing[5],
-    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
-  },
+  card: baseCardStyle,
   button: {
     close: {
       position: 'absolute',
@@ -225,42 +265,8 @@ export const COMPONENT_STYLES = {
         border: 'none',
       },
     },
-    primary: {
-        backgroundColor: DESIGN_TOKENS.colors.primary,
-        color: DESIGN_TOKENS.colors.white,
-        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
-        borderRadius: '8px',
-        padding: '12px 24px',
-        fontSize: DESIGN_TOKENS.typography.base.fontSize,
-        fontWeight: DESIGN_TOKENS.typography.medium,
-        fontFamily: FONT_FAMILIES.primary,
-        minHeight: '44px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        outline: 'none',
-        textDecoration: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-      },
-    secondary: {
-        backgroundColor: DESIGN_TOKENS.colors.white,
-        color: DESIGN_TOKENS.colors.primary,
-        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
-        borderRadius: '8px',
-        padding: '12px 24px',
-        fontSize: DESIGN_TOKENS.typography.base.fontSize,
-        fontWeight: DESIGN_TOKENS.typography.medium,
-        fontFamily: FONT_FAMILIES.primary,
-        minHeight: '44px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        outline: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
+    primary: baseButtonPrimaryStyle,
+    secondary: baseButtonSecondaryStyle,
     profilePrimary: {
       backgroundColor: DESIGN_TOKENS.colors.accent,
       color: DESIGN_TOKENS.colors.white,
@@ -403,13 +409,13 @@ export const COMPONENT_STYLES = {
     },
     actionsContainer: { display: 'flex', gap: SPACING[3], flexDirection: 'column' as 'column' },
     useExistingButton: {
-      ...COMPONENT_STYLES.button.primary,
+      ...baseButtonPrimaryStyle,
       padding: `${SPACING[3]} ${SPACING[4]}`,
       fontSize: TYPOGRAPHY.base.fontSize,
       fontWeight: TYPOGRAPHY.medium
     },
     createNewButton: {
-      ...COMPONENT_STYLES.button.secondary,
+      ...baseButtonSecondaryStyle,
       padding: `${SPACING[3]} ${SPACING[4]}`,
       fontSize: TYPOGRAPHY.base.fontSize
     },
@@ -463,7 +469,7 @@ export const COMPONENT_STYLES = {
       justifyContent: 'flex-end'
     },
     okButton: {
-      ...COMPONENT_STYLES.button.primary,
+      ...baseButtonPrimaryStyle,
       minWidth: '120px',
       backgroundColor: DESIGN_TOKENS.colors.accent,
       color: DESIGN_TOKENS.colors.white,
@@ -1416,7 +1422,7 @@ export const SCREEN_STYLES = {
     infoCard: {
       link: { textDecoration: 'none', display: 'block' },
       card: {
-        ...COMPONENT_STYLES.card,
+        ...baseCardStyle,
         padding: 0,
         overflow: 'hidden',
         textAlign: 'center' as 'center',
