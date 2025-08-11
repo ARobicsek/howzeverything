@@ -843,6 +843,35 @@ export const COMPONENT_STYLES = {
         alignItems: 'center',
         justifyContent: 'center',
       }
+    },
+    commentForm: {
+      form: {
+        width: '100%',
+      },
+      textarea: {
+        backgroundColor: DESIGN_TOKENS.colors.inputBg,
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        borderColor: DESIGN_TOKENS.colors.gray200,
+        borderRadius: DESIGN_TOKENS.borderRadius.medium,
+        padding: '12px 16px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontFamily: FONT_FAMILIES.primary,
+        color: DESIGN_TOKENS.colors.text,
+        width: '100%',
+        outline: 'none',
+        transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
+        boxSizing: 'border-box',
+        WebkitAppearance: 'none',
+        minHeight: '100px',
+        resize: 'vertical',
+        marginBottom: DESIGN_TOKENS.spacing[4],
+      },
+      buttonContainer: {
+        display: 'flex',
+        gap: DESIGN_TOKENS.spacing[3],
+        justifyContent: 'flex-end',
+      }
     }
   },
   searchResultsModal: {
