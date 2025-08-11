@@ -560,6 +560,63 @@ export const COMPONENT_STYLES = {
     fieldGroup: { marginBottom: DESIGN_TOKENS.spacing[3] },
     grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3] },
     gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3], marginTop: DESIGN_TOKENS.spacing[3] }
+  },
+  forms: {
+    addRestaurant: {
+      error: {
+        color: DESIGN_TOKENS.colors.danger,
+        textAlign: 'center' as 'center',
+      },
+      label: {
+        ...DESIGN_TOKENS.typography.caption,
+        color: DESIGN_TOKENS.colors.textSecondary,
+        marginBottom: DESIGN_TOKENS.spacing[1],
+        display: 'block' as 'block',
+      },
+      buttonContainer: {
+        display: 'flex' as 'flex',
+        gap: DESIGN_TOKENS.spacing[3],
+        marginTop: DESIGN_TOKENS.spacing[4],
+      },
+      cancelButton: {
+        backgroundColor: DESIGN_TOKENS.colors.white,
+        color: DESIGN_TOKENS.colors.text,
+        border: `2px solid ${DESIGN_TOKENS.colors.gray300}`,
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '44px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+      },
+      saveButton: {
+        backgroundColor: DESIGN_TOKENS.colors.primary,
+        color: DESIGN_TOKENS.colors.white,
+        border: 'none',
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '44px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        flex: 1,
+      }
+    }
   }
 };
 
