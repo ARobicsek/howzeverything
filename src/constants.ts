@@ -130,6 +130,488 @@ export const DESIGN_TOKENS = {
   }
 };
 
+const FONT_FAMILIES = {
+  primary: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  heading: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  body: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  elegant: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  pinyon: '"Pinyon Script", cursive',
+}
+
+// 2. Component Styles
+export const COMPONENT_STYLES = {
+  card: {
+    backgroundColor: DESIGN_TOKENS.colors.white,
+    borderRadius: DESIGN_TOKENS.borderRadius.large,
+    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+    padding: DESIGN_TOKENS.spacing[5],
+    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
+  },
+  button: {
+    close: {
+      position: 'absolute',
+      top: DESIGN_TOKENS.spacing[4],
+      right: DESIGN_TOKENS.spacing[4],
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: DESIGN_TOKENS.spacing[2],
+    },
+    icon: {
+      base: {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease',
+        color: DESIGN_TOKENS.colors.gray700,
+      },
+      default: {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease',
+        color: DESIGN_TOKENS.colors.gray700,
+        backgroundColor: DESIGN_TOKENS.colors.gray100,
+        border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+      },
+      transparent: {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease',
+        color: DESIGN_TOKENS.colors.gray700,
+        backgroundColor: 'transparent',
+        border: 'none',
+      },
+    },
+    primary: {
+        backgroundColor: DESIGN_TOKENS.colors.primary,
+        color: DESIGN_TOKENS.colors.white,
+        border: '2px solid ' + DESIGN_TOKENS.colors.black,
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '44px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+      },
+    secondary: {
+        backgroundColor: DESIGN_TOKENS.colors.white,
+        color: DESIGN_TOKENS.colors.primary,
+        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '44px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+  },
+  input: {
+    backgroundColor: DESIGN_TOKENS.colors.inputBg,
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: DESIGN_TOKENS.colors.gray200,
+    borderRadius: DESIGN_TOKENS.borderRadius.medium,
+    padding: '12px 16px',
+    fontSize: DESIGN_TOKENS.typography.base.fontSize,
+    fontFamily: FONT_FAMILIES.primary,
+    color: DESIGN_TOKENS.colors.text,
+    width: '100%',
+    outline: 'none',
+    transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
+    boxSizing: 'border-box',
+    WebkitAppearance: 'none',
+  },
+  modal: {
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      animation: 'fadeIn 0.3s ease',
+    },
+    content: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: 'min(300px, 80vw)',
+      backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+      boxShadow: DESIGN_TOKENS.shadows.large,
+      display: 'flex',
+      flexDirection: 'column',
+      padding: `${DESIGN_TOKENS.spacing[8]} ${DESIGN_TOKENS.spacing[4]}`,
+      animation: 'slideInFromRight 0.3s ease',
+      zIndex: DESIGN_TOKENS.zIndex.modal,
+    },
+  },
+  logo: {
+    height: '60px',
+    width: 'auto',
+  },
+  navButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: DESIGN_TOKENS.spacing[2],
+  },
+  avatar: {
+    width: '30px',
+    height: '30px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    border: `1px solid ${DESIGN_TOKENS.colors.white}`,
+    boxShadow: DESIGN_TOKENS.shadows.small,
+    color: DESIGN_TOKENS.colors.white,
+    fontFamily: FONT_FAMILIES.pinyon,
+    fontSize: '1.6rem',
+    lineHeight: 1,
+  },
+  navLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: DESIGN_TOKENS.spacing[4],
+    padding: `${DESIGN_TOKENS.spacing[4]} ${DESIGN_TOKENS.spacing[2]}`,
+    textDecoration: 'none',
+    borderRadius: DESIGN_TOKENS.borderRadius.medium,
+    transition: 'background-color 0.2s ease',
+  },
+  restaurantCard: {
+    container: {
+      position: 'relative' as 'relative',
+      cursor: 'pointer',
+      borderBottom: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+      padding: `${DESIGN_TOKENS.spacing[3]} 0`,
+      transition: 'background-color 0.2s ease',
+    } as React.CSSProperties,
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      gap: DESIGN_TOKENS.spacing[2],
+    } as React.CSSProperties,
+    title: {
+      fontWeight: 500,
+      color: DESIGN_TOKENS.colors.text,
+      fontSize: '1.1rem',
+      lineHeight: 1.3,
+      margin: 0,
+      wordWrap: 'break-word' as 'break-word',
+    } as React.CSSProperties,
+    address: {
+      color: DESIGN_TOKENS.colors.textSecondary,
+      fontSize: '0.875rem',
+      margin: 0,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    } as React.CSSProperties,
+    stats: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: DESIGN_TOKENS.spacing[3],
+      flexShrink: 0,
+    } as React.CSSProperties,
+    actionMenu: {
+      position: 'absolute' as 'absolute',
+      top: '100%',
+      right: 0,
+      marginTop: DESIGN_TOKENS.spacing[1],
+      zIndex: DESIGN_TOKENS.zIndex.dropdown,
+      width: '180px',
+      padding: DESIGN_TOKENS.spacing[2],
+      boxShadow: DESIGN_TOKENS.shadows.large,
+      backgroundColor: DESIGN_TOKENS.colors.white,
+    } as React.CSSProperties,
+    menuButton: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: DESIGN_TOKENS.spacing[2],
+      width: '100%',
+      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      fontSize: DESIGN_TOKENS.typography.sm.fontSize,
+      textAlign: 'left' as 'left',
+      transition: 'background-color 0.2s ease',
+    } as React.CSSProperties,
+  },
+  dishCard: {
+    star: {
+      container: { display: 'inline-block', position: 'relative', lineHeight: '1' },
+      svgBase: { position: 'absolute', left: 0, top: 0 },
+      filledContainer: { position: 'absolute', left: 0, top: 0, height: '100%', overflow: 'hidden' }
+    },
+    starRating: {
+      clearButton: {
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        color: DESIGN_TOKENS.colors.textSecondary,
+        transition: 'color 0.2s ease, transform 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        lineHeight: 1,
+      }
+    },
+    ratingSummary: {
+      container: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: DESIGN_TOKENS.spacing[1] },
+      row: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2] },
+      label: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: DESIGN_TOKENS.typography.medium },
+      value: { color: DESIGN_TOKENS.colors.text, fontWeight: DESIGN_TOKENS.typography.medium, fontSize: DESIGN_TOKENS.typography.sm.fontSize }
+    },
+    ratingBreakdown: {
+      container: { backgroundColor: DESIGN_TOKENS.colors.gray50, padding: DESIGN_TOKENS.spacing[4], borderRadius: DESIGN_TOKENS.borderRadius.medium, marginTop: DESIGN_TOKENS.spacing[4] },
+      flexContainer: { display: 'flex', gap: DESIGN_TOKENS.spacing[8], alignItems: 'flex-start' },
+      column: { flex: 1, minWidth: 0 },
+      titleContainer: { marginBottom: DESIGN_TOKENS.spacing[2] },
+      title: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: DESIGN_TOKENS.typography.medium },
+      ratingContainer: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2] },
+      totalSummary: { marginTop: DESIGN_TOKENS.spacing[1] },
+      totalText: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary }
+    },
+    commentsSection: {
+      container: { marginTop: DESIGN_TOKENS.spacing[6] },
+      toggleButton: { background: 'none', border: 'none', padding: `${DESIGN_TOKENS.spacing[3]} 0`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.base.fontSize, color: DESIGN_TOKENS.colors.text, fontWeight: DESIGN_TOKENS.typography.medium, width: '100%', textAlign: 'left' },
+      toggleIcon: { transition: 'transform 0.2s ease', color: DESIGN_TOKENS.colors.gray400 },
+      listContainer: { marginTop: DESIGN_TOKENS.spacing[3], display: 'flex', flexDirection: 'column', gap: DESIGN_TOKENS.spacing[3] },
+      commentContainer: { backgroundColor: DESIGN_TOKENS.colors.gray50, padding: DESIGN_TOKENS.spacing[4], borderRadius: DESIGN_TOKENS.borderRadius.medium },
+      commentBody: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+      commentTextContainer: { flex: 1, minWidth: 0, marginRight: DESIGN_TOKENS.spacing[2] },
+      commentText: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, color: DESIGN_TOKENS.colors.text, margin: 0, wordBreak: 'break-word' },
+      commentMeta: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary, margin: 0, marginTop: DESIGN_TOKENS.spacing[1] },
+      commentAuthor: { fontWeight: DESIGN_TOKENS.typography.medium },
+      actionMenuContainer: { position: 'relative' },
+      actionMenu: { position: 'absolute', bottom: '100%', right: 0, marginBottom: DESIGN_TOKENS.spacing[1], backgroundColor: DESIGN_TOKENS.colors.white, borderRadius: DESIGN_TOKENS.borderRadius.medium, boxShadow: DESIGN_TOKENS.shadows.large, border: `1px solid ${DESIGN_TOKENS.colors.gray200}`, overflow: 'hidden', zIndex: DESIGN_TOKENS.zIndex.dropdown, minWidth: '120px' },
+      actionButton: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2], width: '100%', padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`, border: 'none', background: 'none', cursor: 'pointer', fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.sm.fontSize, textAlign: 'left', transition: 'background-color 0.2s ease' }
+    },
+    collapsed: {
+      cursor: 'pointer' as 'pointer',
+      transition: 'all 0.3s ease',
+      container: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+      textContainer: { flex: 1, minWidth: 0 },
+      title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, marginBottom: DESIGN_TOKENS.spacing[2] },
+      imageContainer: { width: '60px', height: '60px', borderRadius: DESIGN_TOKENS.borderRadius.medium, overflow: 'hidden', flexShrink: 0 },
+      image: { width: '100%', height: '100%', objectFit: 'cover' },
+      arrow: { color: DESIGN_TOKENS.colors.gray400 }
+    },
+    expanded: {
+      borderColor: DESIGN_TOKENS.colors.accent,
+      boxShadow: DESIGN_TOKENS.shadows.large,
+      cursor: 'default' as 'default',
+      headerContainer: { marginBottom: DESIGN_TOKENS.spacing[4] },
+      header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: DESIGN_TOKENS.spacing[2] },
+      headerTextContainer: { flex: 1, minWidth: 0, paddingRight: DESIGN_TOKENS.spacing[4] },
+      title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, wordBreak: 'break-word' },
+      date: { fontFamily: FONT_FAMILIES.body, fontSize: DESIGN_TOKENS.typography.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary, margin: 0, marginTop: DESIGN_TOKENS.spacing[1] },
+      editContainer: { display: 'flex', flexDirection: 'column', gap: DESIGN_TOKENS.spacing[3], width: '100%' },
+      editInput: {
+        backgroundColor: DESIGN_TOKENS.colors.inputBg,
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        borderColor: DESIGN_TOKENS.colors.gray200,
+        borderRadius: DESIGN_TOKENS.borderRadius.medium,
+        padding: '12px 16px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontFamily: FONT_FAMILIES.primary,
+        color: DESIGN_TOKENS.colors.text,
+        width: '100%',
+        outline: 'none',
+        transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
+        boxSizing: 'border-box',
+        WebkitAppearance: 'none',
+       },
+      editButtons: { display: 'flex', justifyContent: 'flex-end', gap: DESIGN_TOKENS.spacing[2] },
+      editCancelButton: {
+        backgroundColor: DESIGN_TOKENS.colors.white,
+        color: DESIGN_TOKENS.colors.primary,
+        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
+        borderRadius: '8px',
+        padding: '8px 16px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '36px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+       },
+      editSaveButton: {
+        backgroundColor: DESIGN_TOKENS.colors.primary,
+        color: DESIGN_TOKENS.colors.white,
+        border: '2px solid ' + DESIGN_TOKENS.colors.black,
+        borderRadius: '8px',
+        padding: '8px 16px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontWeight: DESIGN_TOKENS.typography.medium,
+        fontFamily: FONT_FAMILIES.primary,
+        minHeight: '36px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        outline: 'none',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+       },
+      actionMenuContainer: { position: 'relative', flexShrink: 0 },
+      actionMenu: { position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: DESIGN_TOKENS.colors.white, borderRadius: DESIGN_TOKENS.borderRadius.medium, boxShadow: DESIGN_TOKENS.shadows.large, border: `1px solid ${DESIGN_TOKENS.colors.gray200}`, overflow: 'hidden', zIndex: DESIGN_TOKENS.zIndex.dropdown, minWidth: '160px' },
+      hr: { border: 0, borderTop: `1px solid ${DESIGN_TOKENS.colors.gray200}`, margin: `${DESIGN_TOKENS.spacing[1]} 0` },
+      photosContainer: { marginTop: DESIGN_TOKENS.spacing[3] },
+      hiddenInput: { display: 'none' }
+    },
+    menuButton: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: DESIGN_TOKENS.spacing[2],
+      width: '100%',
+      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      textAlign: 'left' as 'left',
+      transition: 'background-color 0.2s ease',
+    },
+    addCommentModal: {
+      title: { fontFamily: FONT_FAMILIES.heading, fontSize: DESIGN_TOKENS.typography.xl.fontSize, color: DESIGN_TOKENS.colors.gray900, marginBottom: DESIGN_TOKENS.spacing[4] }
+    }
+  },
+  addressInput: {
+    label: { ...DESIGN_TOKENS.typography.caption, color: DESIGN_TOKENS.colors.textSecondary, marginBottom: DESIGN_TOKENS.spacing[1], display: 'block' },
+    container: { marginBottom: DESIGN_TOKENS.spacing[2], position: 'relative' },
+    fullAddressLabel: { fontFamily: FONT_FAMILIES.body, display: 'block', fontWeight: DESIGN_TOKENS.typography.medium, color: DESIGN_TOKENS.colors.textSecondary, marginBottom: DESIGN_TOKENS.spacing[2] },
+    textarea: {
+        backgroundColor: DESIGN_TOKENS.colors.inputBg,
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        borderColor: DESIGN_TOKENS.colors.gray200,
+        borderRadius: DESIGN_TOKENS.borderRadius.medium,
+        padding: '12px 16px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontFamily: FONT_FAMILIES.primary,
+        color: DESIGN_TOKENS.colors.text,
+        width: '100%',
+        outline: 'none',
+        transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
+        boxSizing: 'border-box',
+        WebkitAppearance: 'none',
+        minHeight: '80px',
+        resize: 'vertical'
+    },
+    suggestionsContainer: {
+      position: 'absolute', top: '100%', left: 0, right: 0,
+      background: DESIGN_TOKENS.colors.white,
+      border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+      borderRadius: DESIGN_TOKENS.borderRadius.medium,
+      boxShadow: DESIGN_TOKENS.shadows.medium,
+      zIndex: DESIGN_TOKENS.zIndex.dropdown,
+      maxHeight: '200px',
+      overflowY: 'auto'
+    },
+    suggestionItem: {
+      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
+      cursor: 'pointer',
+      fontFamily: FONT_FAMILIES.body
+    },
+    suggestionLoading: { padding: DESIGN_TOKENS.spacing[2], color: DESIGN_TOKENS.colors.textSecondary, fontFamily: FONT_FAMILIES.body },
+    messageContainer: { minHeight: '20px', paddingTop: DESIGN_TOKENS.spacing[1] },
+    parsingMessage: { ...DESIGN_TOKENS.typography.caption, color: DESIGN_TOKENS.colors.primary },
+    parsedFieldsContainer: { borderTop: `1px solid ${DESIGN_TOKENS.colors.border}`, paddingTop: DESIGN_TOKENS.spacing[3], marginTop: DESIGN_TOKENS.spacing[2] },
+    parsedFieldsDescription: { ...DESIGN_TOKENS.typography.caption, color: DESIGN_TOKENS.colors.textSecondary, marginTop: 0, marginBottom: DESIGN_TOKENS.spacing[3] },
+    fieldGroup: { marginBottom: DESIGN_TOKENS.spacing[3] },
+    grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3] },
+    gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: DESIGN_TOKENS.spacing[3], marginTop: DESIGN_TOKENS.spacing[3] }
+  }
+};
+
+// 3. Layout Styles
+export const LAYOUT_STYLES = {
+  container: { /* container styles */ },
+  header: { /* header styles */ },
+  navigation: {
+    list: {
+      listStyle: 'none',
+      padding: 0,
+    },
+  },
+  navigationModal: {
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: DESIGN_TOKENS.zIndex.modal - 1,
+    }
+  },
+  topNavigation: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '60px',
+    backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+    border: 'none',
+    zIndex: DESIGN_TOKENS.zIndex.header,
+    padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  }
+};
+
+// 4. Screen-Specific Styles
+export const SCREEN_STYLES = {
+  findRestaurant: { /* screen-specific */ },
+  menuScreen: { /* screen-specific */ },
+};
+
+// 5. Utility Styles
+export const UTILITIES = {
+  textDecorationNone: {
+    textDecoration: 'none',
+  }
+};
+
 // --- LEGACY OR UNCATEGORIZED STYLES ---
 // These will be migrated or removed in the next steps.
 
@@ -141,12 +623,12 @@ export const SPACING = {
 };
 export const TYPOGRAPHY = {
   ...DESIGN_TOKENS.typography,
-  h1: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
-  h2: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties,
-  h3: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties,
-  body: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.5', fontSize: '1rem' } as React.CSSProperties,
-  caption: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.5', fontSize: '0.875rem' } as React.CSSProperties,
-  button: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', letterSpacing: '-0.01em', fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties,
+  h1: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
+  h2: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties,
+  h3: { fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties,
+  body: { fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: '1rem' } as React.CSSProperties,
+  caption: { fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: '0.875rem' } as React.CSSProperties,
+  button: { fontFamily: FONT_FAMILIES.primary, letterSpacing: '-0.01em', fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties,
 };
 export const BORDERS = {
   radius: DESIGN_TOKENS.borderRadius,
@@ -156,20 +638,20 @@ export const BREAKPOINTS = DESIGN_TOKENS.breakpoints;
 
 export const FONTS = {
   primary: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: FONT_FAMILIES.primary,
     letterSpacing: '-0.01em',
   },
   heading: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: FONT_FAMILIES.heading,
     fontWeight: '600',
     letterSpacing: '-0.025em',
   },
   body: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: FONT_FAMILIES.body,
     lineHeight: '1.5',
   },
   elegant: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: FONT_FAMILIES.elegant,
     letterSpacing: '-0.01em',
   }
 };
@@ -301,56 +783,6 @@ export const STYLES = {
   } as React.CSSProperties,
 };
 
-// 3. Layout Styles
-export const LAYOUT_STYLES = {
-  container: { /* container styles */ },
-  header: { /* header styles */ },
-  navigation: {
-    list: {
-      listStyle: 'none',
-      padding: 0,
-    },
-  },
-  navigationModal: {
-    overlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: DESIGN_TOKENS.zIndex.modal - 1,
-    }
-  },
-  topNavigation: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '60px',
-    backgroundColor: DESIGN_TOKENS.colors.navBarDark,
-    border: 'none',
-    zIndex: DESIGN_TOKENS.zIndex.header,
-    padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  }
-};
-
-// 4. Screen-Specific Styles
-export const SCREEN_STYLES = {
-  findRestaurant: { /* screen-specific */ },
-  menuScreen: { /* screen-specific */ },
-  // ... etc
-};
-
-// 5. Utility Styles
-export const UTILITIES = {
-  textDecorationNone: {
-    textDecoration: 'none',
-  }
-};
-
 export const RESTAURANT_CARD_MAX_WIDTH = '350px';
 
 export const LAYOUT_CONFIG = {
@@ -405,368 +837,4 @@ export const SIZES = {
   '2xl': '2rem',
   '3xl': '3rem',
   '4xl': '4rem',
-};
-
-// 2. Component Styles
-export const COMPONENT_STYLES = {
-  card: {
-    backgroundColor: DESIGN_TOKENS.colors.white,
-    borderRadius: DESIGN_TOKENS.borderRadius.large,
-    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
-    padding: DESIGN_TOKENS.spacing[5],
-    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
-  },
-  button: {
-    close: {
-      position: 'absolute',
-      top: DESIGN_TOKENS.spacing[4],
-      right: DESIGN_TOKENS.spacing[4],
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      padding: DESIGN_TOKENS.spacing[2],
-    },
-    icon: {
-      base: {
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.2s ease',
-        color: DESIGN_TOKENS.colors.gray700,
-      },
-      default: {
-        // Combines base styles with default variant styles
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.2s ease',
-        color: DESIGN_TOKENS.colors.gray700,
-        backgroundColor: DESIGN_TOKENS.colors.gray100,
-        border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
-      },
-      transparent: {
-        // Combines base styles with transparent variant styles
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.2s ease',
-        color: DESIGN_TOKENS.colors.gray700,
-        backgroundColor: 'transparent',
-        border: 'none',
-      },
-    primary: {
-        backgroundColor: COLORS.primary,
-        color: COLORS.white,
-        border: '2px solid ' + COLORS.black,
-        borderRadius: '8px',
-        padding: '12px 24px',
-        fontSize: TYPOGRAPHY.base.fontSize,
-        fontWeight: TYPOGRAPHY.medium,
-        fontFamily: FONTS.primary.fontFamily,
-        minHeight: '44px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        outline: 'none',
-        textDecoration: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-      },
-    secondary: {
-        backgroundColor: COLORS.white,
-        color: COLORS.primary,
-        border: '2px solid ' + COLORS.primary,
-        borderRadius: '8px',
-        padding: '12px 24px',
-        fontSize: TYPOGRAPHY.base.fontSize,
-        fontWeight: TYPOGRAPHY.medium,
-        fontFamily: FONTS.primary.fontFamily,
-        minHeight: '44px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        outline: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-    },
-  },
-  input: {
-    backgroundColor: DESIGN_TOKENS.colors.inputBg,
-    borderWidth: '2px',
-    borderStyle: 'solid',
-    borderColor: DESIGN_TOKENS.colors.gray200,
-    borderRadius: DESIGN_TOKENS.borderRadius.medium,
-    padding: '12px 16px',
-    fontSize: DESIGN_TOKENS.typography.base.fontSize,
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    color: DESIGN_TOKENS.colors.text,
-    width: '100%',
-    outline: 'none',
-    transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
-    boxSizing: 'border-box',
-    WebkitAppearance: 'none',
-  },
-  modal: {
-    overlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      animation: 'fadeIn 0.3s ease',
-    },
-    content: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      width: 'min(300px, 80vw)',
-      backgroundColor: DESIGN_TOKENS.colors.navBarDark,
-      boxShadow: DESIGN_TOKENS.shadows.large,
-      display: 'flex',
-      flexDirection: 'column',
-      padding: `${DESIGN_TOKENS.spacing[8]} ${DESIGN_TOKENS.spacing[4]}`,
-      animation: 'slideInFromRight 0.3s ease',
-      zIndex: DESIGN_TOKENS.zIndex.modal,
-    },
-  },
-  logo: {
-    height: '60px',
-    width: 'auto',
-  },
-  navButton: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: DESIGN_TOKENS.spacing[2],
-  },
-  avatar: {
-    width: '30px',
-    height: '30px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    border: `1px solid ${DESIGN_TOKENS.colors.white}`,
-    boxShadow: DESIGN_TOKENS.shadows.small,
-    color: DESIGN_TOKENS.colors.white,
-    fontFamily: '"Pinyon Script", cursive',
-    fontSize: '1.6rem',
-    lineHeight: 1,
-  },
-  navLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: DESIGN_TOKENS.spacing[4],
-    padding: `${DESIGN_TOKENS.spacing[4]} ${DESIGN_TOKENS.spacing[2]}`,
-    textDecoration: 'none',
-    // ...TYPOGRAPHY['2xl'], // This will be handled in the component
-    // color: linkColor, // This will be handled in the component
-    // fontWeight: TYPOGRAPHY.medium, // This will be handled in the component
-    borderRadius: DESIGN_TOKENS.borderRadius.medium,
-    transition: 'background-color 0.2s ease',
-  },
-  restaurantCard: {
-    container: {
-      position: 'relative' as 'relative',
-      cursor: 'pointer',
-      borderBottom: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
-      padding: `${DESIGN_TOKENS.spacing[3]} 0`,
-      transition: 'background-color 0.2s ease',
-    } as React.CSSProperties,
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'baseline',
-      gap: DESIGN_TOKENS.spacing[2],
-    } as React.CSSProperties,
-    title: {
-      fontWeight: 500,
-      color: DESIGN_TOKENS.colors.text,
-      fontSize: '1.1rem',
-      lineHeight: 1.3,
-      margin: 0,
-      wordWrap: 'break-word' as 'break-word',
-    } as React.CSSProperties,
-    address: {
-      color: DESIGN_TOKENS.colors.textSecondary,
-      fontSize: '0.875rem',
-      margin: 0,
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-    } as React.CSSProperties,
-    stats: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: DESIGN_TOKENS.spacing[3],
-      flexShrink: 0,
-    } as React.CSSProperties,
-    actionMenu: {
-      position: 'absolute' as 'absolute',
-      top: '100%',
-      right: 0,
-      marginTop: DESIGN_TOKENS.spacing[1],
-      zIndex: DESIGN_TOKENS.zIndex.dropdown,
-      width: '180px',
-      padding: DESIGN_TOKENS.spacing[2],
-      boxShadow: DESIGN_TOKENS.shadows.large,
-      backgroundColor: DESIGN_TOKENS.colors.white,
-    } as React.CSSProperties,
-    menuButton: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: DESIGN_TOKENS.spacing[2],
-      width: '100%',
-      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
-      border: 'none',
-      background: 'none',
-      cursor: 'pointer',
-      fontSize: DESIGN_TOKENS.typography.sm.fontSize,
-      textAlign: 'left' as 'left',
-      transition: 'background-color 0.2s ease',
-    } as React.CSSProperties,
-  },
-  dishCard: {
-    star: {
-      container: { display: 'inline-block', position: 'relative', lineHeight: '1' },
-      svgBase: { position: 'absolute', left: 0, top: 0 },
-      filledContainer: { position: 'absolute', left: 0, top: 0, height: '100%', overflow: 'hidden' }
-    },
-    starRating: {
-      clearButton: {
-        background: 'transparent',
-        border: 'none',
-        padding: 0,
-        cursor: 'pointer',
-        color: DESIGN_TOKENS.colors.textSecondary,
-        transition: 'color 0.2s ease, transform 0.2s ease',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        lineHeight: 1,
-      }
-    },
-    ratingSummary: {
-      container: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: DESIGN_TOKENS.spacing[1] },
-      row: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2] },
-      label: { ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.medium },
-      value: { color: DESIGN_TOKENS.colors.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }
-    },
-    ratingBreakdown: {
-      container: { backgroundColor: DESIGN_TOKENS.colors.gray50, padding: DESIGN_TOKENS.spacing[4], borderRadius: DESIGN_TOKENS.borderRadius.medium, marginTop: DESIGN_TOKENS.spacing[4] },
-      flexContainer: { display: 'flex', gap: DESIGN_TOKENS.spacing[8], alignItems: 'flex-start' },
-      column: { flex: 1, minWidth: 0 },
-      titleContainer: { marginBottom: DESIGN_TOKENS.spacing[2] },
-      title: { ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, color: DESIGN_TOKENS.colors.textSecondary, fontWeight: TYPOGRAPHY.medium },
-      ratingContainer: { display: 'flex', alignItems: 'center', gap: DESIGN_TOKENS.spacing[2] },
-      totalSummary: { marginTop: DESIGN_TOKENS.spacing[1] },
-      totalText: { ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary }
-    },
-    commentsSection: {
-      container: { marginTop: SPACING[6] },
-      toggleButton: { background: 'none', border: 'none', padding: `${SPACING[3]} 0`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: SPACING[2], ...FONTS.body, fontSize: TYPOGRAPHY.base.fontSize, color: DESIGN_TOKENS.colors.text, fontWeight: TYPOGRAPHY.medium, width: '100%', textAlign: 'left' },
-      toggleIcon: { transition: 'transform 0.2s ease', color: DESIGN_TOKENS.colors.gray400 },
-      listContainer: { marginTop: SPACING[3], display: 'flex', flexDirection: 'column', gap: SPACING[3] },
-      commentContainer: { backgroundColor: DESIGN_TOKENS.colors.gray50, padding: SPACING[4], borderRadius: DESIGN_TOKENS.borderRadius.medium },
-      commentBody: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-      commentTextContainer: { flex: 1, minWidth: 0, marginRight: SPACING[2] },
-      commentText: { ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, color: DESIGN_TOKENS.colors.text, margin: 0, wordBreak: 'break-word' },
-      commentMeta: { ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary, margin: 0, marginTop: SPACING[1] },
-      commentAuthor: { fontWeight: TYPOGRAPHY.medium },
-      actionMenuContainer: { position: 'relative' },
-      actionMenu: { position: 'absolute', bottom: '100%', right: 0, marginBottom: SPACING[1], backgroundColor: DESIGN_TOKENS.colors.white, borderRadius: DESIGN_TOKENS.borderRadius.medium, boxShadow: DESIGN_TOKENS.shadows.large, border: `1px solid ${DESIGN_TOKENS.colors.gray200}`, overflow: 'hidden', zIndex: DESIGN_TOKENS.zIndex.dropdown, minWidth: '120px' },
-      actionButton: { display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`, border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, textAlign: 'left', transition: 'background-color 0.2s ease' }
-    },
-    collapsed: {
-      cursor: 'pointer' as 'pointer',
-      transition: 'all 0.3s ease',
-      container: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-      textContainer: { flex: 1, minWidth: 0 },
-      title: { ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, marginBottom: SPACING[2] },
-      imageContainer: { width: '60px', height: '60px', borderRadius: DESIGN_TOKENS.borderRadius.medium, overflow: 'hidden', flexShrink: 0 },
-      image: { width: '100%', height: '100%', objectFit: 'cover' },
-      arrow: { color: DESIGN_TOKENS.colors.gray400 }
-    },
-    expanded: {
-      borderColor: DESIGN_TOKENS.colors.accent,
-      boxShadow: DESIGN_TOKENS.shadows.large,
-      cursor: 'default' as 'default',
-      headerContainer: { marginBottom: SPACING[4] },
-      header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SPACING[2] },
-      headerTextContainer: { flex: 1, minWidth: 0, paddingRight: SPACING[4] },
-      title: { ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: DESIGN_TOKENS.colors.gray900, margin: 0, wordBreak: 'break-word' },
-      date: { ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: DESIGN_TOKENS.colors.textSecondary, margin: 0, marginTop: SPACING[1] },
-      editContainer: { display: 'flex', flexDirection: 'column', gap: SPACING[3], width: '100%' },
-      editInput: { ...COMPONENT_STYLES.input, width: '100%', boxSizing: 'border-box' },
-      editButtons: { display: 'flex', justifyContent: 'flex-end', gap: SPACING[2] },
-      editCancelButton: { ...COMPONENT_STYLES.secondaryButton, padding: '8px 16px', minHeight: '36px' },
-      editSaveButton: { ...COMPONENT_STYLES.primaryButton, padding: '8px 16px', minHeight: '36px' },
-      actionMenuContainer: { position: 'relative', flexShrink: 0 },
-      actionMenu: { position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: DESIGN_TOKENS.colors.white, borderRadius: DESIGN_TOKENS.borderRadius.medium, boxShadow: DESIGN_TOKENS.shadows.large, border: `1px solid ${DESIGN_TOKENS.colors.gray200}`, overflow: 'hidden', zIndex: DESIGN_TOKENS.zIndex.dropdown, minWidth: '160px' },
-      hr: { border: 0, borderTop: `1px solid ${DESIGN_TOKENS.colors.gray200}`, margin: `${SPACING[1]} 0` },
-      photosContainer: { marginTop: SPACING[3] },
-      hiddenInput: { display: 'none' }
-    },
-    menuButton: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: DESIGN_TOKENS.spacing[2],
-      width: '100%',
-      padding: `${DESIGN_TOKENS.spacing[2]} ${DESIGN_TOKENS.spacing[3]}`,
-      border: 'none',
-      background: 'none',
-      cursor: 'pointer',
-      textAlign: 'left' as 'left',
-      transition: 'background-color 0.2s ease',
-    },
-    addCommentModal: {
-      title: { ...FONTS.heading, fontSize: TYPOGRAPHY.xl.fontSize, color: DESIGN_TOKENS.colors.gray900, marginBottom: SPACING[4] }
-    }
-  },
-  addressInput: {
-    label: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[1], display: 'block' },
-    container: { marginBottom: SPACING[2], position: 'relative' },
-    fullAddressLabel: { ...FONTS.body, display: 'block', fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, marginBottom: SPACING[2] },
-    textarea: { ...COMPONENT_STYLES.input, minHeight: '80px', resize: 'vertical' },
-    suggestionsContainer: {
-      position: 'absolute', top: '100%', left: 0, right: 0,
-      background: COLORS.white,
-      border: `1px solid ${COLORS.gray200}`,
-      borderRadius: STYLES.borderRadiusMedium,
-      boxShadow: STYLES.shadowMedium,
-      zIndex: STYLES.zDropdown,
-      maxHeight: '200px',
-      overflowY: 'auto'
-    },
-    suggestionItem: {
-      padding: `${SPACING[2]} ${SPACING[3]}`,
-      cursor: 'pointer',
-      ...FONTS.body
-    },
-    suggestionLoading: { padding: SPACING[2], color: COLORS.textSecondary, ...FONTS.body },
-    messageContainer: { minHeight: '20px', paddingTop: SPACING[1] },
-    parsingMessage: { ...TYPOGRAPHY.caption, color: COLORS.primary },
-    parsedFieldsContainer: { borderTop: `1px solid ${COLORS.border}`, paddingTop: SPACING[3], marginTop: SPACING[2] },
-    parsedFieldsDescription: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginTop: 0, marginBottom: SPACING[3] },
-    fieldGroup: { marginBottom: SPACING[3] },
-    grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3] },
-    gridWithTopMargin: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[3], marginTop: SPACING[3] }
-  }
 };
