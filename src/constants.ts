@@ -743,6 +743,8 @@ export const COMPONENT_STYLES = {
     fontFamily: FONT_FAMILIES.pinyon,
     fontSize: '1.6rem',
     lineHeight: 1,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
   },
   navLink: {
     display: 'flex',
@@ -1397,18 +1399,37 @@ export const LAYOUT_STYLES = {
     }
   },
   topNavigation: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '60px',
-    backgroundColor: DESIGN_TOKENS.colors.navBarDark,
-    border: 'none',
-    zIndex: DESIGN_TOKENS.zIndex.header,
-    padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    container: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '60px',
+      backgroundColor: DESIGN_TOKENS.colors.navBarDark,
+      border: 'none',
+      zIndex: DESIGN_TOKENS.zIndex.header,
+      padding: `0 ${DESIGN_TOKENS.spacing[4]}`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    leftContainer: {
+      flex: 1,
+      display: 'flex',
+      justifyContent: 'flex-start' as 'flex-start',
+    },
+    centerContainer: {
+      flex: 1,
+      display: 'flex',
+      justifyContent: 'center' as 'center',
+    },
+    rightContainer: {
+      flex: 1,
+      display: 'flex',
+      justifyContent: 'end' as 'end',
+      alignItems: 'center' as 'center',
+      gap: DESIGN_TOKENS.spacing[4],
+    },
   }
 };
 
