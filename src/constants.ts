@@ -199,7 +199,7 @@ export const COMPONENT_STYLES = {
     primary: {
         backgroundColor: DESIGN_TOKENS.colors.primary,
         color: DESIGN_TOKENS.colors.white,
-        border: '2px solid ' + DESIGN_TOKENS.colors.black,
+        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
         borderRadius: '8px',
         padding: '12px 24px',
         fontSize: DESIGN_TOKENS.typography.base.fontSize,
@@ -477,7 +477,7 @@ export const COMPONENT_STYLES = {
       editSaveButton: {
         backgroundColor: DESIGN_TOKENS.colors.primary,
         color: DESIGN_TOKENS.colors.white,
-        border: '2px solid ' + DESIGN_TOKENS.colors.black,
+        border: '2px solid ' + DESIGN_TOKENS.colors.primary,
         borderRadius: '8px',
         padding: '8px 16px',
         fontSize: DESIGN_TOKENS.typography.base.fontSize,
@@ -657,6 +657,12 @@ export const FONTS = {
 };
 
 export const STYLES = {
+  // Backward compatibility
+  input: COMPONENT_STYLES.input,
+  primaryButton: COMPONENT_STYLES.button.primary,
+  secondaryButton: COMPONENT_STYLES.button.secondary,
+
+  // Old styles
   borderRadiusSmall: DESIGN_TOKENS.borderRadius.small,
   borderRadiusMedium: DESIGN_TOKENS.borderRadius.medium,
   borderRadiusLarge: DESIGN_TOKENS.borderRadius.large,
