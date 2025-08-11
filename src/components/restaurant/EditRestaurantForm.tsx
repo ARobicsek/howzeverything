@@ -1,6 +1,6 @@
 // src/components/restaurant/EditRestaurantForm.tsx
 import React, { useCallback, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useRestaurants } from '../../hooks/useRestaurants'; // Import the hook
 import type { AddressFormData } from '../../types/address';
 import type { Restaurant } from '../../types/restaurant';
@@ -73,7 +73,7 @@ const EditRestaurantForm: React.FC<EditRestaurantFormProps> = ({ restaurant, onS
         </h3>
         <form onSubmit={handleSave}>
           <div style={{ marginBottom: SPACING[4] }}>
-            <label style={{...FONTS.body, display: 'block', fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, marginBottom: SPACING[2]}}>Name</label>
+            <label style={{fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', display: 'block', fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, marginBottom: SPACING[2]}}>Name</label>
             <input
               type="text"
               value={name}

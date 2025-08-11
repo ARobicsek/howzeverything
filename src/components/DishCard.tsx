@@ -1,7 +1,7 @@
 // src/components/DishCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COMPONENT_STYLES, DESIGN_TOKENS, FONTS, SPACING, TYPOGRAPHY } from '../constants';
+import { COMPONENT_STYLES, DESIGN_TOKENS, FONT_FAMILIES, SPACING, TYPOGRAPHY } from '../constants';
 import type { DishComment, DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 import PhotoCarousel from './PhotoCarousel';
@@ -369,7 +369,7 @@ const DishCard: React.FC<DishCardProps> = ({ dish, currentUserId, onDelete, onUp
     );
   }
 
-  const menuButtonStyle: React.CSSProperties = { ...COMPONENT_STYLES.dishCard.menuButton, ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize };
+  const menuButtonStyle: React.CSSProperties = { ...COMPONENT_STYLES.dishCard.menuButton, fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize };
 
   return (
     <>

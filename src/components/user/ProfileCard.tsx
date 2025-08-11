@@ -1,6 +1,6 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
-import { COLORS, COMPONENT_STYLES, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, COMPONENT_STYLES, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -38,7 +38,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         padding: SPACING[6]
       }}>
         <p style={{
-          ...FONTS.body,
+          fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
           fontSize: TYPOGRAPHY.base.fontSize,
           color: COLORS.textSecondary,
           margin: 0
@@ -94,7 +94,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           marginBottom: SPACING[5]
         }}>
           <p style={{
-            ...FONTS.body,
+            fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             fontSize: TYPOGRAPHY.sm.fontSize,
             color: COLORS.danger,
             margin: 0
@@ -147,7 +147,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         {/* Name and Email */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{
-            ...FONTS.heading,
+            fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em',
             fontSize: TYPOGRAPHY.xl.fontSize,
             color: COLORS.gray900,
             margin: `0 0 ${SPACING[1]} 0`,
@@ -156,7 +156,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {profile.full_name || 'No name set'}
           </h3>
           <p style={{
-            ...FONTS.body,
+            fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             fontSize: TYPOGRAPHY.sm.fontSize,
             color: COLORS.textSecondary,
             margin: 0,
@@ -166,7 +166,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </p>
           {profile.is_admin && (
             <span style={{
-              ...FONTS.body,
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.xs.fontSize,
               fontWeight: TYPOGRAPHY.semibold,
               color: COLORS.accent,
@@ -192,7 +192,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         {profile.bio && (
           <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
-              ...FONTS.body,
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.sm.fontSize,
               fontWeight: TYPOGRAPHY.semibold,
               color: COLORS.textSecondary,
@@ -203,7 +203,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               Bio
             </h4>
             <p style={{
-              ...FONTS.body,
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.base.fontSize,
               color: COLORS.text,
               margin: 0,
@@ -219,7 +219,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         {profile.location && (
           <div style={{ marginBottom: SPACING[4] }}>
             <h4 style={{
-              ...FONTS.body,
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.sm.fontSize,
               fontWeight: TYPOGRAPHY.semibold,
               color: COLORS.textSecondary,
@@ -230,7 +230,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               Location
             </h4>
             <p style={{
-              ...FONTS.body,
+              fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
               fontSize: TYPOGRAPHY.base.fontSize,
               color: COLORS.text,
               margin: 0
@@ -243,7 +243,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
         <div>
           <h4 style={{
-            ...FONTS.body,
+            fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             fontSize: TYPOGRAPHY.sm.fontSize,
             fontWeight: TYPOGRAPHY.semibold,
             color: COLORS.textSecondary,
@@ -254,7 +254,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             Member Since
           </h4>
           <p style={{
-            ...FONTS.body,
+            fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
             fontSize: TYPOGRAPHY.base.fontSize,
             color: COLORS.text,
             margin: 0

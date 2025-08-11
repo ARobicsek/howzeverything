@@ -1,6 +1,6 @@
 ﻿// src/components/restaurant/RestaurantSearchResults.tsx
 import React from 'react';
-import { COLORS, FONTS } from '../../constants'; // STYLES removed as it's unused
+import { COLORS, FONT_FAMILIES } from '../../constants'; // STYLES removed as it's unused
 
 
 interface GeoapifyPlace {
@@ -44,7 +44,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
   if (results.length === 0) {
     return (
       <div className="text-center py-8">
-        <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>
+        <p style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7}}>
           No restaurants found. Try a different search term.
         </p>
       </div>
@@ -85,14 +85,14 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
   return (
     <div className="space-y-3">
       <div className="text-center mb-4">
-        <p style={{...FONTS.elegant, color: COLORS.text, fontSize: '0.9rem'}}>
+        <p style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '0.9rem'}}>
           Found {results.length} restaurants - tap to add:
         </p>
       </div>
      
       {isLoadingDetails && (
         <div className="text-center py-2 mb-4">
-          <p style={{...FONTS.elegant, color: COLORS.primary, fontSize: '0.9rem'}}>
+          <p style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.primary, fontSize: '0.9rem'}}>
             Getting restaurant details (including website)...
           </p>
         </div>
@@ -111,7 +111,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   border: `1px solid ${COLORS.danger}40`
                 }}
               >
-                <p style={{color: COLORS.danger, ...FONTS.elegant, fontSize: '0.9rem'}}>
+                <p style={{color: COLORS.danger, fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '0.9rem'}}>
                   {errorMessage}
                 </p>
               </div>
@@ -138,7 +138,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   <h3
                     className="font-medium mb-1"
                     style={{
-                      ...FONTS.elegant,
+                      fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                       fontWeight: '500',
                       color: COLORS.text,
                       fontSize: '1rem',
@@ -151,7 +151,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                   <p
                     className="text-sm mb-2"
                     style={{
-                      ...FONTS.elegant,
+                      fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                       color: COLORS.text,
                       opacity: 0.8,
                       fontSize: '0.8rem',
@@ -167,7 +167,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                       style={{
                         background: COLORS.primary + '30',
                         color: COLORS.text,
-                        ...FONTS.elegant,
+                        fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                         fontSize: '0.7rem'
                       }}
                     >
@@ -179,7 +179,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
                       style={{
                         background: COLORS.success + '30',
                         color: COLORS.text,
-                        ...FONTS.elegant,
+                        fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                         fontSize: '0.7rem'
                       }}
                     >
@@ -213,7 +213,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
       })}
      
       <div className="text-center pt-2">
-        <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6, fontSize: '0.7rem'}}>
+        <p style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.6, fontSize: '0.7rem'}}>
           Powered by Geoapify • Data from OpenStreetMap
         </p>
       </div>

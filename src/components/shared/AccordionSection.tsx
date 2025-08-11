@@ -1,6 +1,6 @@
 // src/components/shared/AccordionSection.tsx
 import React, { ReactNode } from 'react';
-import { COLORS, FONTS, SPACING } from '../../constants';
+import { COLORS, FONT_FAMILIES, SPACING } from '../../constants';
 
 interface AccordionSectionProps {
   title: string;
@@ -48,7 +48,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             fontSize: '1.25rem',
             fontWeight: 500,
             color: isGrayedOut ? COLORS.textSecondary : COLORS.accent,
-            ...FONTS.elegant,
+            fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
           }}>
             {title}
           </h3>

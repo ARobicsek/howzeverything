@@ -1,6 +1,6 @@
 // src/components/PhotoUpload.tsx      
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, IMAGE_COMPRESSION, SPACING, STYLES } from '../constants';
+import { COLORS, FONT_FAMILIES, IMAGE_COMPRESSION, SPACING, STYLES } from '../constants';
 
 interface PhotoUploadProps {      
   onUpload: (file: File, caption?: string) => Promise<void>;      
@@ -114,7 +114,7 @@ const UploadProgressAnimation: React.FC<{
         textAlign: 'center'
       }}>
         <p style={{
-          ...FONTS.elegant,
+          fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
           fontSize: '1rem',
           fontWeight: '600',
           color: COLORS.text,
@@ -125,7 +125,7 @@ const UploadProgressAnimation: React.FC<{
         </p>
         {!isIndeterminate && (
           <p style={{
-            ...FONTS.elegant,
+            fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
             fontSize: '0.85rem',
             color: COLORS.textSecondary,
             margin: 0
@@ -424,7 +424,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   return (      
     <div className="w-full">      
       <h3 style={{      
-        ...FONTS.elegant,      
+        fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
         fontSize: '1.2rem',      
         fontWeight: '600',      
         color: COLORS.textWhite, // Updated for modal text color    
@@ -449,7 +449,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               htmlFor="photo-upload"      
               className="inline-block px-12 py-4 border border-black cursor-pointer transition-all duration-300 hover:bg-blue-600"      
               style={{      
-                ...FONTS.elegant,      
+                fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                 backgroundColor: '#3B82F6',      
                 color: COLORS.textWhite,      
                 fontSize: '1rem',      
@@ -461,7 +461,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           )}    
           {/* If skipping file selection, show a loading message while file is being processed */}    
           {skipFileSelection && !selectedFile && (    
-            <div style={{ ...FONTS.elegant, color: COLORS.textWhite }}>    
+            <div style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.textWhite }}>
               Preparing photo upload...    
             </div>    
           )}    
@@ -491,7 +491,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           {/* File size information */}
           {selectedFile && !isUploading && (
             <div style={{
-              ...FONTS.elegant,
+              fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
               fontSize: '0.8rem',
               color: COLORS.textWhite,
               textAlign: 'center',
@@ -518,7 +518,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 <label      
                   htmlFor="photo-caption"      
                   style={{      
-                    ...FONTS.elegant,      
+                    fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                     color: COLORS.textWhite, // Updated for modal text color    
                     fontSize: '0.85rem',      
                     fontWeight: '500'      
@@ -535,7 +535,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   disabled={isUploading}      
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-all bg-white"      
                   style={{      
-                    ...FONTS.elegant,      
+                    fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                     color: COLORS.text, // Keep dark text for input field    
                     fontSize: '0.95rem'      
                   }}      
@@ -549,7 +549,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   disabled={isUploading}      
                   className="flex-1 py-2 px-4 border border-black transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"      
                   style={{      
-                    ...FONTS.elegant,      
+                    fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                     backgroundColor: isUploading ? COLORS.gray300 : '#3B82F6', // Blue background    
                     color: COLORS.textWhite, // White text    
                     fontSize: '0.95rem',      
@@ -565,7 +565,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   disabled={isUploading}      
                   className="px-4 py-2 border border-black hover:bg-gray-100 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"      
                   style={{      
-                    ...FONTS.elegant,      
+                    fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                     backgroundColor: 'white', // White background    
                     color: COLORS.text, // Black text    
                     fontSize: '0.95rem',      

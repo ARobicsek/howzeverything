@@ -1,6 +1,6 @@
 // src/components/ErrorScreen.tsx
 import React from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
+import { COLORS, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
 
 interface ErrorScreenProps { // Renamed from LoadingScreenProps
   error: string; // Added error prop
@@ -32,7 +32,7 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => { // Chan
         {/* Error icon or message */}
         <div style={{ fontSize: '3rem', marginBottom: SPACING[2] }}>❌</div>
         <p style={{
-          ...FONTS.heading, // Using heading for emphasis
+          fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', // Using heading for emphasis
           fontSize: TYPOGRAPHY.lg.fontSize,
           color: COLORS.danger, // Use danger color for errors
           margin: 0,
@@ -41,7 +41,7 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => { // Chan
           Error!
         </p>
         <p style={{ // Display the actual error message
-          ...FONTS.body,
+          fontFamily: FONT_FAMILIES.body, lineHeight: '1.5',
           fontSize: TYPOGRAPHY.base.fontSize,
           color: COLORS.textSecondary,
           margin: 0,

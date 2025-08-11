@@ -1,6 +1,6 @@
 ﻿// src/components/SupabaseDebugTest.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS, STYLES } from '../constants';
+import { COLORS, FONT_FAMILIES, STYLES } from '../constants';
 
 const SupabaseDebugTest: React.FC = () => {
   const [name, setName] = useState('starbucks');
@@ -62,7 +62,7 @@ const SupabaseDebugTest: React.FC = () => {
   };
 
   const labelStyle: React.CSSProperties = {
-    ...FONTS.elegant,
+    fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
     fontSize: '0.875rem',
     fontWeight: 500,
     color: COLORS.text,
@@ -71,7 +71,7 @@ const SupabaseDebugTest: React.FC = () => {
   };
 
   const inputStyle: React.CSSProperties = {
-    ...FONTS.elegant,
+    fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
     padding: '12px 16px',
     borderRadius: STYLES.borderRadiusMedium,
     fontSize: '1rem',
@@ -92,7 +92,7 @@ const SupabaseDebugTest: React.FC = () => {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '768px', margin: 'auto', color: COLORS.text }}>
-      <h1 style={{ ...FONTS.elegant, fontSize: '2rem' }}>Geoapify API Testbed</h1>
+      <h1 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '2rem' }}>Geoapify API Testbed</h1>
       <p style={{ opacity: 0.8, marginBottom: '2rem' }}>
         Rapidly test different search strategies against the Geoapify API.
       </p>
@@ -112,7 +112,7 @@ const SupabaseDebugTest: React.FC = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <input type="checkbox" id="test-bias" checked={bias} onChange={(e) => setBias(e.target.checked)} style={{ marginRight: '10px' }} />
-          <label htmlFor="test-bias" style={{ ...FONTS.elegant }}>Apply proximity bias (to Seattle)?</label>
+          <label htmlFor="test-bias" style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em' }}>Apply proximity bias (to Seattle)?</label>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ const SupabaseDebugTest: React.FC = () => {
 
       {testUrl && (
         <div style={{ marginTop: '2rem' }}>
-          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>Request URL:</h2>
+          <h2 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '1.2rem' }}>Request URL:</h2>
           <pre style={{
             background: '#222',
             color: '#eee',
@@ -146,14 +146,14 @@ const SupabaseDebugTest: React.FC = () => {
 
       {error && (
         <div style={{ marginTop: '2rem', color: COLORS.danger }}>
-          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>Error:</h2>
+          <h2 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '1.2rem' }}>Error:</h2>
           <pre style={{ background: '#400', padding: '1rem', borderRadius: '8px' }}>{error}</pre>
         </div>
       )}
 
       {results && (
         <div style={{ marginTop: '2rem' }}>
-          <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>API Response:</h2>
+          <h2 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '1.2rem' }}>API Response:</h2>
           <pre style={{
             background: '#333',
             color: '#fff',

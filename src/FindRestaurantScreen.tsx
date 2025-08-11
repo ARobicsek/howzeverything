@@ -7,7 +7,7 @@ import DuplicateRestaurantModal from './components/restaurant/DuplicateRestauran
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import SearchResultsModal from './components/restaurant/SearchResultsModal';
 import AccordionSection from './components/shared/AccordionSection';
-import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONT_FAMILIES, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useLocationService } from './hooks/useLocationService';
 import { useNearbyRestaurants } from './hooks/useNearbyRestaurants';
@@ -677,7 +677,7 @@ const FindRestaurantScreen: React.FC = () => {
           {showAddForm ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500' }}>Add New Restaurant</h2>
+                  <h2 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500' }}>Add New Restaurant</h2>
                 </div>
                 <AddRestaurantForm
                   onSave={handleSaveNewRestaurant}
@@ -760,7 +760,7 @@ const FindRestaurantScreen: React.FC = () => {
                 <div className="p-4">
                     {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
                   <div className="flex items-center" style={{ marginBottom: '1rem' }}>
-                    <label style={{ ...FONTS.elegant, color: COLORS.accent, fontSize: '1rem', fontWeight: 500, marginLeft: '16px', marginRight: '12px' }}>
+                    <label style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.accent, fontSize: '1rem', fontWeight: 500, marginLeft: '16px', marginRight: '12px' }}>
                         Distance:
                     </label>
                     <select

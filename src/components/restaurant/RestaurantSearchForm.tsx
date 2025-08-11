@@ -1,6 +1,6 @@
 // src/components/restaurant/RestaurantSearchForm.tsx
 import React, { useEffect, useState } from 'react';
-import { COLORS, FONTS } from '../../constants';
+import { COLORS, FONT_FAMILIES } from '../../constants';
 
 
 
@@ -68,7 +68,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
       <div className="space-y-3">
         {/* Header with conditional Reset Button */}
         <div className="flex justify-between items-center">
-          <h3 style={{...FONTS.elegant, color: COLORS.text, fontSize: '1rem', fontWeight: 500}}>
+          <h3 style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '1rem', fontWeight: 500}}>
             Search Restaurants Online
           </h3>
           {/* Only show Clear & Reset button when user has typed something */}
@@ -77,7 +77,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
               onClick={handleReset}
               className="px-3 py-1 rounded-lg text-xs transition-colors focus:outline-none hover:opacity-90"
               style={{
-                ...FONTS.elegant,
+                fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
                 color: 'white', // WHITE TEXT
                 background: COLORS.danger, // RED BACKGROUND
                 border: 'none',
@@ -98,7 +98,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
         <div>
           <label
             className="block text-sm mb-2"
-            style={{...FONTS.elegant, color: COLORS.text}}
+            style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text}}
           >
             Search for restaurants:
           </label>
@@ -111,7 +111,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
             style={{
               background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
               fontSize: '1rem',
-              ...FONTS.elegant,
+              fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
               color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
               cursor: disabled ? 'not-allowed' : 'auto',
               border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
@@ -120,7 +120,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
           />
           <p
             className="text-xs mt-1"
-            style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6}}
+            style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.6}}
           >
             {query.length < 3 ?
               `Type at least 3 characters to search (${query.length}/3)` :
@@ -132,7 +132,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
         <div>
           <label
             className="block text-sm mb-2"
-            style={{...FONTS.elegant, color: COLORS.text}}
+            style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text}}
           >
             Location:
           </label>
@@ -145,7 +145,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
             style={{
               background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
               fontSize: '1rem',
-              ...FONTS.elegant,
+              fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em',
               color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
               cursor: disabled ? 'not-allowed' : 'auto',
               border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
@@ -154,7 +154,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
           />
           <p
             className="text-xs mt-1"
-            style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6}}
+            style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.6}}
           >
             Location cached to save API calls - change only when needed
           </p>
@@ -165,7 +165,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
 
         {isSearching && (
           <div className="text-center py-2">
-            <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.7}}>
+            <p style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7}}>
               Searching for restaurants...
             </p>
           </div>
@@ -176,7 +176,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
 
         {/* API Usage Indicator */}
         <div className="text-center">
-          <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.5, fontSize: '0.7rem'}}>
+          <p style={{fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.5, fontSize: '0.7rem'}}>
             ⚡ Optimized search - fewer API calls, better results
           </p>
         </div>

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONT_FAMILIES, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
 import { useLocationService } from './hooks/useLocationService';
@@ -49,14 +49,14 @@ const RatedDishCard: React.FC<{
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ flex: 1, minWidth: 0, paddingRight: SPACING[3] }}>
-          <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: `0 0 ${SPACING[1]} 0` }}>
+          <h3 style={{ fontFamily: FONT_FAMILIES.heading, fontWeight: '600', letterSpacing: '-0.025em', fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: `0 0 ${SPACING[1]} 0` }}>
             {item.name}
           </h3>
-          <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, color: COLORS.textSecondary, margin: `0 0 ${SPACING[3]} 0`, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: SPACING[1] }}>
+          <p style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize, color: COLORS.textSecondary, margin: `0 0 ${SPACING[3]} 0`, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: SPACING[1] }}>
             <span>at</span>
             <Link to={`/restaurants/${item.restaurant.id}`} onClick={(e) => e.stopPropagation()} style={{ color: COLORS.primary, fontWeight: '500' }}>{item.restaurant.name}</Link>
             {item.distanceFormatted && (
-                <span style={{ ...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, marginLeft: SPACING[1] }}>
+                <span style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, marginLeft: SPACING[1] }}>
                     • {item.distanceFormatted}
                 </span>
             )}
@@ -64,12 +64,12 @@ const RatedDishCard: React.FC<{
           <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[1] }}>
             {myRating && (
               <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-                <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Me:</span>
+                <span style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Me:</span>
                 <StarRating rating={myRating.rating} variant="personal" size="sm" />
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-              <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Average:</span>
+              <span style={{ fontFamily: FONT_FAMILIES.body, lineHeight: '1.5', fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Average:</span>
               <StarRating rating={item.average_rating} variant="community" size="sm" />
               <span style={{ ...TYPOGRAPHY.sm, color: COLORS.text, fontWeight: '500' }}>{item.average_rating.toFixed(1)}</span>
             </div>
