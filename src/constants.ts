@@ -330,13 +330,16 @@ export const COMPONENT_STYLES = {
     },
     headerContainer: { marginBottom: DESIGN_TOKENS.spacing[5] },
     title: {
-      ...FONTS.heading,
+      fontFamily: FONT_FAMILIES.heading,
+      fontWeight: '600',
+      letterSpacing: '-0.025em',
       fontSize: TYPOGRAPHY.xl.fontSize,
       color: COLORS.gray900,
       marginBottom: SPACING[2]
     },
     description: {
-      ...FONTS.body,
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
       fontSize: TYPOGRAPHY.base.fontSize,
       color: COLORS.textSecondary,
       margin: 0
@@ -357,7 +360,9 @@ export const COMPONENT_STYLES = {
     dishItemContent: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
     dishItemDetails: { flex: 1 },
     dishItemTitle: {
-      ...FONTS.heading,
+      fontFamily: FONT_FAMILIES.heading,
+      fontWeight: '600',
+      letterSpacing: '-0.025em',
       fontSize: TYPOGRAPHY.base.fontSize,
       color: COLORS.gray900,
       marginBottom: SPACING[1]
@@ -366,18 +371,21 @@ export const COMPONENT_STYLES = {
     dishItemRatingContainer: { display: 'flex', alignItems: 'center', gap: SPACING[1] },
     dishItemRatingIcon: { color: COLORS.ratingGold, fontSize: TYPOGRAPHY.sm.fontSize },
     dishItemRatingText: {
-      ...FONTS.body,
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
       fontSize: TYPOGRAPHY.sm.fontSize,
       color: COLORS.text
     },
     dishItemRatingCount: {
-      ...FONTS.body,
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
       fontSize: TYPOGRAPHY.xs.fontSize,
       color: COLORS.textSecondary
     },
     dishItemSimilarityContainer: { display: 'flex', alignItems: 'center', gap: SPACING[2] },
     dishItemSimilarityText: {
-      ...FONTS.body,
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
       fontSize: TYPOGRAPHY.xs.fontSize,
       color: COLORS.textSecondary
     },
@@ -400,7 +408,8 @@ export const COMPONENT_STYLES = {
       marginLeft: SPACING[2]
     },
     moreDishesText: {
-      ...FONTS.body,
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
       fontSize: TYPOGRAPHY.sm.fontSize,
       color: COLORS.textSecondary,
       textAlign: 'center' as 'center',
@@ -1402,7 +1411,8 @@ export const SCREEN_STYLES = {
       textAlign: 'center' as 'center',
     },
     headerText: {
-      ...FONTS.body,
+      fontFamily: FONT_FAMILIES.body,
+      lineHeight: '1.5',
       ...TYPOGRAPHY.lg,
       color: DESIGN_TOKENS.colors.textWhite,
       lineHeight: 1.6,
@@ -1431,7 +1441,9 @@ export const SCREEN_STYLES = {
       image: { width: '100%', height: 'auto', display: 'block' },
       content: { padding: DESIGN_TOKENS.spacing[4] },
       title: {
-        ...FONTS.heading,
+        fontFamily: FONT_FAMILIES.heading,
+        fontWeight: '600',
+        letterSpacing: '-0.025em',
         ...TYPOGRAPHY.h3,
         color: DESIGN_TOKENS.colors.text,
         margin: 0,
@@ -1511,26 +1523,6 @@ export const BORDERS = {
 };
 export const SHADOWS = DESIGN_TOKENS.shadows;
 export const BREAKPOINTS = DESIGN_TOKENS.breakpoints;
-
-export const FONTS = {
-  primary: {
-    fontFamily: FONT_FAMILIES.primary,
-    letterSpacing: '-0.01em',
-  },
-  heading: {
-    fontFamily: FONT_FAMILIES.heading,
-    fontWeight: '600',
-    letterSpacing: '-0.025em',
-  },
-  body: {
-    fontFamily: FONT_FAMILIES.body,
-    lineHeight: '1.5',
-  },
-  elegant: {
-    fontFamily: FONT_FAMILIES.elegant,
-    letterSpacing: '-0.01em',
-  }
-};
 
 export const STYLES = {
   // Backward compatibility
@@ -1618,7 +1610,7 @@ export const STYLES = {
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    fontFamily: FONTS.primary.fontFamily,
+    fontFamily: FONT_FAMILIES.primary,
   } as React.CSSProperties,
   formButton: {
     borderRadius: '8px',
@@ -1629,7 +1621,7 @@ export const STYLES = {
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     color: COLORS.white,
-    fontFamily: FONTS.primary.fontFamily,
+    fontFamily: FONT_FAMILIES.primary,
   } as React.CSSProperties,
   sortButtonDefault: {
     backgroundColor: COLORS.white,
@@ -1641,7 +1633,7 @@ export const STYLES = {
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    fontFamily: FONTS.primary.fontFamily,
+    fontFamily: FONT_FAMILIES.primary,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1657,7 +1649,7 @@ export const STYLES = {
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    fontFamily: FONTS.primary.fontFamily,
+    fontFamily: FONT_FAMILIES.primary,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
