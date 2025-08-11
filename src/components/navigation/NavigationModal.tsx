@@ -87,12 +87,6 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
 
 
       <div style={COMPONENT_STYLES.modal.sidePanel.content as React.CSSProperties}>
-        <style>
-          {`
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes slideInFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-          `}
-        </style>
         <button
           onClick={onClose}
           style={COMPONENT_STYLES.button.close as React.CSSProperties}
@@ -102,7 +96,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
           </svg>
         </button>
         <nav>
-          <ul style={{ ...LAYOUT_STYLES.navigation.list, margin: `calc(60px + ${DESIGN_TOKENS.spacing[4]}) 0 0 0` }}>
+          <ul style={LAYOUT_STYLES.navigation.modalList}>
             {menuItems.map(item => {
               const linkColor = item.adminOnly ? DESIGN_TOKENS.colors.ratingGold : DESIGN_TOKENS.colors.textWhite;
 
@@ -118,9 +112,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
                     onClick={onClose}
                     style={{
                       ...COMPONENT_STYLES.navLink,
-                      ...TYPOGRAPHY['2xl'],
                       color: linkColor,
-                      fontWeight: TYPOGRAPHY.medium,
                     }}
                     onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; }}
                     onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
