@@ -130,6 +130,194 @@ export const DESIGN_TOKENS = {
   }
 };
 
+// --- LEGACY OR UNCATEGORIZED STYLES ---
+// These will be migrated or removed in the next steps.
+
+export const COLORS = DESIGN_TOKENS.colors;
+export const SPACING = {
+  ...DESIGN_TOKENS.spacing,
+  containerPadding: '1rem', // 16px
+  sectionGap: '1.5rem', // 24px
+};
+export const TYPOGRAPHY = {
+  ...DESIGN_TOKENS.typography,
+  h1: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
+  h2: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties,
+  h3: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties,
+  body: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.5', fontSize: '1rem' } as React.CSSProperties,
+  caption: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.5', fontSize: '0.875rem' } as React.CSSProperties,
+  button: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', letterSpacing: '-0.01em', fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties,
+};
+export const BORDERS = {
+  radius: DESIGN_TOKENS.borderRadius,
+};
+export const SHADOWS = DESIGN_TOKENS.shadows;
+export const BREAKPOINTS = DESIGN_TOKENS.breakpoints;
+
+export const FONTS = {
+  primary: {
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    letterSpacing: '-0.01em',
+  },
+  heading: {
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontWeight: '600',
+    letterSpacing: '-0.025em',
+  },
+  body: {
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    lineHeight: '1.5',
+  },
+  elegant: {
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    letterSpacing: '-0.01em',
+  }
+};
+
+export const STYLES = {
+  borderRadiusSmall: DESIGN_TOKENS.borderRadius.small,
+  borderRadiusMedium: DESIGN_TOKENS.borderRadius.medium,
+  borderRadiusLarge: DESIGN_TOKENS.borderRadius.large,
+  borderRadiusFull: DESIGN_TOKENS.borderRadius.full,
+  shadowSmall: DESIGN_TOKENS.shadows.small,
+  shadowMedium: DESIGN_TOKENS.shadows.medium,
+  shadowLarge: DESIGN_TOKENS.shadows.large,
+  zDefault: DESIGN_TOKENS.zIndex.default,
+  zDropdown: DESIGN_TOKENS.zIndex.dropdown,
+  zHeader: DESIGN_TOKENS.zIndex.header,
+  zModal: DESIGN_TOKENS.zIndex.modal,
+  animationFast: DESIGN_TOKENS.transitions.fast,
+  animationNormal: DESIGN_TOKENS.transitions.normal,
+  animationSlow: DESIGN_TOKENS.transitions.slow,
+  deleteButton: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: COLORS.primary,
+    color: COLORS.white,
+    border: '2px solid ' + COLORS.black,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+  } as React.CSSProperties,
+  card: {
+    backgroundColor: DESIGN_TOKENS.colors.white,
+    borderRadius: DESIGN_TOKENS.borderRadius.large,
+    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
+    padding: DESIGN_TOKENS.spacing[5],
+    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
+  } as React.CSSProperties,
+  cardHover: {
+    borderColor: COLORS.primary,
+    boxShadow: '0 2px 8px ' + COLORS.shadowLight,
+  } as React.CSSProperties,
+  modal: {
+    background: COLORS.white,
+    borderRadius: '12px',
+    border: '2px solid ' + COLORS.black,
+    padding: SPACING[6],
+    maxWidth: '90vw',
+    maxHeight: '90vh',
+    overflow: 'auto',
+  } as React.CSSProperties,
+  modalOverlay: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.overlay,
+    zIndex: 2147483647,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING[4],
+  } as React.CSSProperties,
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: COLORS.gray200,
+    borderRadius: DESIGN_TOKENS.borderRadius.medium,
+    padding: '12px 16px',
+    fontSize: TYPOGRAPHY.base.fontSize,
+    fontFamily: FONTS.primary.fontFamily,
+    color: COLORS.text,
+    width: '100%',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    boxSizing: 'border-box',
+    WebkitAppearance: 'none',
+  } as React.CSSProperties,
+  inputFocus: {
+    borderColor: COLORS.accent,
+    boxShadow: '0 0 0 3px rgba(100, 46, 50, 0.25)',
+  } as React.CSSProperties,
+  inputFocusBlack: {
+    borderColor: COLORS.black,
+  } as React.CSSProperties,
+  mainContentPadding: '80px',
+  headerHeight: '60px',
+  addButton: {
+    backgroundColor: COLORS.primary,
+    color: COLORS.white,
+    border: '2px solid ' + COLORS.black,
+    borderRadius: '8px',
+    padding: '8px 16px',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: FONTS.primary.fontFamily,
+  } as React.CSSProperties,
+  formButton: {
+    borderRadius: '8px',
+    padding: '12px 24px',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    color: COLORS.white,
+    fontFamily: FONTS.primary.fontFamily,
+  } as React.CSSProperties,
+  sortButtonDefault: {
+    backgroundColor: COLORS.white,
+    color: COLORS.gray700,
+    border: '1px solid ' + COLORS.gray200,
+    borderRadius: '8px',
+    padding: '8px 12px',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: FONTS.primary.fontFamily,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+  } as React.CSSProperties,
+  sortButtonActive: {
+    backgroundColor: COLORS.primary,
+    color: COLORS.white,
+    border: '1px solid ' + COLORS.primary,
+    borderRadius: '8px',
+    padding: '8px 12px',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: FONTS.primary.fontFamily,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+  } as React.CSSProperties,
+};
+
+
 // 2. Component Styles
 export const COMPONENT_STYLES = {
   card: {
@@ -529,9 +717,6 @@ export const UTILITIES = {
   }
 };
 
-// --- LEGACY OR UNCATEGORIZED STYLES ---
-// These will be migrated or removed in the next steps.
-
 export const RESTAURANT_CARD_MAX_WIDTH = '350px';
 
 export const LAYOUT_CONFIG = {
@@ -564,47 +749,6 @@ export const LAYOUT_CONFIG = {
   }
 };
 
-export const COLORS = DESIGN_TOKENS.colors;
-export const SPACING = {
-  ...DESIGN_TOKENS.spacing,
-  containerPadding: '1rem', // 16px
-  sectionGap: '1.5rem', // 24px
-};
-export const TYPOGRAPHY = {
-  ...DESIGN_TOKENS.typography,
-  h1: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.875rem', lineHeight: '2.25rem' } as React.CSSProperties,
-  h2: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.5rem', lineHeight: '2rem' } as React.CSSProperties,
-  h3: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: '600', letterSpacing: '-0.025em', fontSize: '1.25rem', lineHeight: '1.75rem' } as React.CSSProperties,
-  body: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.5', fontSize: '1rem' } as React.CSSProperties,
-  caption: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.5', fontSize: '0.875rem' } as React.CSSProperties,
-  button: { fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', letterSpacing: '-0.01em', fontSize: '1rem', fontWeight: '600', lineHeight: '1.5rem' } as React.CSSProperties,
-};
-export const BORDERS = {
-  radius: DESIGN_TOKENS.borderRadius,
-};
-export const SHADOWS = DESIGN_TOKENS.shadows;
-export const BREAKPOINTS = DESIGN_TOKENS.breakpoints;
-
-export const FONTS = {
-  primary: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    letterSpacing: '-0.01em',
-  },
-  heading: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontWeight: '600',
-    letterSpacing: '-0.025em',
-  },
-  body: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    lineHeight: '1.5',
-  },
-  elegant: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    letterSpacing: '-0.01em',
-  }
-};
-
 export const IMAGE_COMPRESSION = {
   MAX_FILE_SIZE_MB: 2.5,
   MAX_ORIGINAL_SIZE_MB: 50,
@@ -616,149 +760,6 @@ export const IMAGE_COMPRESSION = {
   OUTPUT_FORMAT: 'image/jpeg',
   MIME_TYPE: 'image/jpeg',
   COMPRESSION_TIMEOUT: 15000,
-};
-
-export const STYLES = {
-  borderRadiusSmall: DESIGN_TOKENS.borderRadius.small,
-  borderRadiusMedium: DESIGN_TOKENS.borderRadius.medium,
-  borderRadiusLarge: DESIGN_TOKENS.borderRadius.large,
-  borderRadiusFull: DESIGN_TOKENS.borderRadius.full,
-  shadowSmall: DESIGN_TOKENS.shadows.small,
-  shadowMedium: DESIGN_TOKENS.shadows.medium,
-  shadowLarge: DESIGN_TOKENS.shadows.large,
-  zDefault: DESIGN_TOKENS.zIndex.default,
-  zDropdown: DESIGN_TOKENS.zIndex.dropdown,
-  zHeader: DESIGN_TOKENS.zIndex.header,
-  zModal: DESIGN_TOKENS.zIndex.modal,
-  animationFast: DESIGN_TOKENS.transitions.fast,
-  animationNormal: DESIGN_TOKENS.transitions.normal,
-  animationSlow: DESIGN_TOKENS.transitions.slow,
-  deleteButton: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: COLORS.primary,
-    color: COLORS.white,
-    border: '2px solid ' + COLORS.black,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s ease',
-  } as React.CSSProperties,
-  card: {
-    backgroundColor: DESIGN_TOKENS.colors.white,
-    borderRadius: DESIGN_TOKENS.borderRadius.large,
-    border: `1px solid ${DESIGN_TOKENS.colors.gray200}`,
-    padding: DESIGN_TOKENS.spacing[5],
-    transition: `all ${DESIGN_TOKENS.transitions.slow} ease`,
-  } as React.CSSProperties,
-  cardHover: {
-    borderColor: COLORS.primary,
-    boxShadow: '0 2px 8px ' + COLORS.shadowLight,
-  } as React.CSSProperties,
-  modal: {
-    background: COLORS.white,
-    borderRadius: '12px',
-    border: '2px solid ' + COLORS.black,
-    padding: SPACING[6],
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-    overflow: 'auto',
-  } as React.CSSProperties,
-  modalOverlay: {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: COLORS.overlay,
-    zIndex: 2147483647,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING[4],
-  } as React.CSSProperties,
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderWidth: '2px',
-    borderStyle: 'solid',
-    borderColor: COLORS.gray200,
-    borderRadius: DESIGN_TOKENS.borderRadius.medium,
-    padding: '12px 16px',
-    fontSize: TYPOGRAPHY.base.fontSize,
-    fontFamily: FONTS.primary.fontFamily,
-    color: COLORS.text,
-    width: '100%',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-    boxSizing: 'border-box',
-    WebkitAppearance: 'none',
-  } as React.CSSProperties,
-  inputFocus: {
-    borderColor: COLORS.accent,
-    boxShadow: '0 0 0 3px rgba(100, 46, 50, 0.25)',
-  } as React.CSSProperties,
-  inputFocusBlack: {
-    borderColor: COLORS.black,
-  } as React.CSSProperties,
-  mainContentPadding: '80px',
-  headerHeight: '60px',
-  addButton: {
-    backgroundColor: COLORS.primary,
-    color: COLORS.white,
-    border: '2px solid ' + COLORS.black,
-    borderRadius: '8px',
-    padding: '8px 16px',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    fontFamily: FONTS.primary.fontFamily,
-  } as React.CSSProperties,
-  formButton: {
-    borderRadius: '8px',
-    padding: '12px 24px',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    color: COLORS.white,
-    fontFamily: FONTS.primary.fontFamily,
-  } as React.CSSProperties,
-  sortButtonDefault: {
-    backgroundColor: COLORS.white,
-    color: COLORS.gray700,
-    border: '1px solid ' + COLORS.gray200,
-    borderRadius: '8px',
-    padding: '8px 12px',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    fontFamily: FONTS.primary.fontFamily,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-  } as React.CSSProperties,
-  sortButtonActive: {
-    backgroundColor: COLORS.primary,
-    color: COLORS.white,
-    border: '1px solid ' + COLORS.primary,
-    borderRadius: '8px',
-    padding: '8px 12px',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    fontFamily: FONTS.primary.fontFamily,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
-  } as React.CSSProperties,
 };
 
 export const SIZES = {
