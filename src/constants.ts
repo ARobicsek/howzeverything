@@ -653,7 +653,7 @@ export const COMPONENT_STYLES = {
       zIndex: 10,
     },
     headerLabel: {
-      ...FONT_FAMILIES.elegant,
+      fontFamily: FONT_FAMILIES.elegant,
       fontSize: '1.1rem',
       fontWeight: '600',
       color: DESIGN_TOKENS.colors.text,
@@ -701,7 +701,7 @@ export const COMPONENT_STYLES = {
       backgroundColor: DESIGN_TOKENS.colors.background,
     },
     messageText: {
-      ...FONT_FAMILIES.body,
+      fontFamily: FONT_FAMILIES.body,
       color: DESIGN_TOKENS.colors.textSecondary,
       textAlign: 'center' as 'center',
       padding: DESIGN_TOKENS.spacing[6],
@@ -716,7 +716,7 @@ export const COMPONENT_STYLES = {
       marginTop: DESIGN_TOKENS.spacing[4],
     },
     manualAddText: {
-      ...FONT_FAMILIES.elegant,
+      fontFamily: FONT_FAMILIES.elegant,
       fontSize: '0.95rem',
       color: DESIGN_TOKENS.colors.text,
       marginBottom: '12px',
