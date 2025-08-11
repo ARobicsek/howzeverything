@@ -168,7 +168,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
                 <textarea
                   value={editedCaption}
                   onChange={(e) => setEditedCaption(e.target.value)}
-                  style={{...COMPONENT_STYLES.input, width: '100%', backgroundColor: 'rgba(255,255,255,0.1)'}}
+                  style={COMPONENT_STYLES.modal.lightbox.captionInput}
                   placeholder="Enter a caption..."
                 />
                 <div style={{display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem'}}>

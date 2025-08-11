@@ -426,6 +426,22 @@ export const COMPONENT_STYLES = {
         fontFamily: FONT_FAMILIES.body,
         fontSize: DESIGN_TOKENS.typography.sm.fontSize,
         color: DESIGN_TOKENS.colors.gray400
+      },
+      captionInput: {
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        borderColor: DESIGN_TOKENS.colors.gray200,
+        borderRadius: DESIGN_TOKENS.borderRadius.medium,
+        padding: '12px 16px',
+        fontSize: DESIGN_TOKENS.typography.base.fontSize,
+        fontFamily: FONT_FAMILIES.primary,
+        color: DESIGN_TOKENS.colors.white,
+        width: '100%',
+        outline: 'none',
+        transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
+        boxSizing: 'border-box',
+        WebkitAppearance: 'none',
       }
     }
   },
