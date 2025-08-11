@@ -27,8 +27,6 @@ const Avatar: React.FC = () => {
     ...COMPONENT_STYLES.avatar,
     backgroundColor: profile?.avatar_url ? 'transparent' : DESIGN_TOKENS.colors.accent,
     backgroundImage: profile?.avatar_url ? `url(${profile.avatar_url})` : 'none',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
   };
 
   return (
@@ -42,8 +40,8 @@ const Avatar: React.FC = () => {
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
   return (
-    <header style={LAYOUT_STYLES.topNavigation as React.CSSProperties}>
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+    <header style={LAYOUT_STYLES.topNavigation.container as React.CSSProperties}>
+      <div style={LAYOUT_STYLES.topNavigation.leftContainer}>
         <Link to="/home">
           <img
             src="/HowzEverything.png"
@@ -53,11 +51,11 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
         </Link>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+      <div style={LAYOUT_STYLES.topNavigation.centerContainer}>
         {/* Empty space in the center */}
       </div>
 
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'end', alignItems: 'center', gap: DESIGN_TOKENS.spacing[4] }}>
+      <div style={LAYOUT_STYLES.topNavigation.rightContainer}>
         <LocationAwareButton />
         <Avatar />
         <button onClick={onToggleMenu} style={COMPONENT_STYLES.navButton}>
