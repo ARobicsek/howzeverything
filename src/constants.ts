@@ -380,7 +380,7 @@ export const COMPONENT_STYLES = {
         fontWeight: DESIGN_TOKENS.typography.medium,
         color: DESIGN_TOKENS.colors.black
       },
-      navButton: {
+      navButtonLeft: {
         position: 'absolute',
         top: '50%',
         transform: 'translateY(-50%)',
@@ -396,7 +396,27 @@ export const COMPONENT_STYLES = {
         justifyContent: 'center',
         fontSize: '24px',
         color: DESIGN_TOKENS.colors.black,
-        transition: 'all 0.2s ease'
+        transition: 'all 0.2s ease',
+        left: DESIGN_TOKENS.spacing[4],
+      },
+      navButtonRight: {
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 10,
+        width: '48px',
+        height: '48px',
+        borderRadius: '50%',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        color: DESIGN_TOKENS.colors.black,
+        transition: 'all 0.2s ease',
+        right: DESIGN_TOKENS.spacing[4],
       },
       imageContainer: {
         display: 'flex',
@@ -442,6 +462,12 @@ export const COMPONENT_STYLES = {
         transition: `all ${DESIGN_TOKENS.transitions.normal} ease`,
         boxSizing: 'border-box',
         WebkitAppearance: 'none',
+      },
+      captionActions: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '0.5rem',
+        marginTop: '0.5rem'
       }
     }
   },
@@ -1149,6 +1175,18 @@ export const UTILITIES = {
   textDecorationNone: {
     textDecoration: 'none',
   }
+};
+
+export const STYLE_FUNCTIONS = {
+  getDeleteButtonStyle: (isDeleting: boolean): React.CSSProperties => ({
+    ...COMPONENT_STYLES.button.icon.primary,
+    opacity: isDeleting ? 0.5 : 1,
+    cursor: isDeleting ? 'not-allowed' : 'pointer',
+  }),
+  getCaptionStyle: (hasPhotographerName: boolean): React.CSSProperties => ({
+    ...COMPONENT_STYLES.modal.lightbox.caption,
+    marginBottom: hasPhotographerName ? DESIGN_TOKENS.spacing[2] : 0,
+  }),
 };
 
 // --- LEGACY OR UNCATEGORIZED STYLES ---
