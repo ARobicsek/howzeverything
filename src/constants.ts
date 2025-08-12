@@ -1532,6 +1532,256 @@ export const LAYOUT_STYLES = {
 
 // 4. Screen-Specific Styles
 export const SCREEN_STYLES = {
+  restaurant: {
+    container: {
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column' as 'column',
+      backgroundColor: COLORS.background,
+      paddingBottom: SPACING[8],
+    },
+    main: {
+      flex: 1,
+      maxWidth: RESTAURANT_CARD_MAX_WIDTH,
+      width: '100%',
+      margin: '0 auto',
+    },
+    content: {
+      padding: `${SPACING[4]} ${SPACING.containerPadding}`,
+    },
+    header: {
+      container: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: SPACING[4],
+      },
+      title: {
+        ...TYPOGRAPHY.h1,
+        color: COLORS.text,
+        margin: 0,
+      },
+      image: {
+        height: '95px',
+      },
+    },
+    errorBanner: {
+      color: COLORS.danger,
+      fontFamily: FONT_FAMILIES.elegant,
+      letterSpacing: '-0.01em',
+    },
+    locationBanner: {
+      container: {
+        marginBottom: SPACING[4],
+      },
+      text: {
+        fontFamily: FONT_FAMILIES.primary,
+        letterSpacing: '-0.01em',
+        fontSize: '15px',
+        lineHeight: '1.5',
+        color: COLORS.gray700,
+        margin: 0,
+      },
+      button: {
+        color: COLORS.primary,
+        fontWeight: '600',
+        textDecoration: 'none',
+        background: 'none',
+        border: 'none',
+        padding: '0',
+        cursor: 'pointer',
+        borderBottom: `1px solid ${COLORS.primary}`,
+      },
+      devInfo: {
+        fontSize: '11px',
+        color: COLORS.gray500,
+        marginTop: '4px',
+        fontFamily: 'monospace',
+      },
+    },
+    fetchingLocationBanner: {
+      color: COLORS.text,
+      fontFamily: FONT_FAMILIES.elegant,
+      letterSpacing: '-0.01em',
+    },
+    sortButton: {
+      marginLeft: '4px',
+      fontSize: '12px',
+    },
+    initialEmptyState: {
+      container: {
+        textAlign: 'center' as 'center',
+        paddingTop: '48px',
+        paddingBottom: '48px',
+      },
+      text: {
+        fontFamily: FONT_FAMILIES.elegant,
+        letterSpacing: '-0.01em',
+        color: COLORS.text,
+        fontSize: '18px',
+        fontWeight: '500',
+        marginBottom: '8px',
+      },
+    },
+    searchContainer: {
+      marginBottom: SPACING[6],
+    },
+    searchInput: {
+      label: {
+        fontFamily: FONT_FAMILIES.elegant,
+        letterSpacing: '-0.01em',
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        color: COLORS.text,
+      },
+      clearButton: {
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        color: COLORS.textSecondary,
+        transition: 'color 0.2s ease, transform 0.2s ease',
+      },
+      infoText: {
+        fontFamily: FONT_FAMILIES.elegant,
+        letterSpacing: '-0.01em',
+        fontSize: '14px',
+        color: COLORS.text,
+        opacity: 0.8,
+        marginTop: '8px',
+        marginBottom: 0,
+      },
+      infoTextHighlight: {
+        marginTop: '4px',
+      },
+    },
+    results: {
+      container: {
+        display: 'flex',
+        flexDirection: 'column' as 'column',
+        gap: SPACING[2],
+      },
+      sectionHeader: {
+        fontFamily: FONT_FAMILIES.elegant,
+        letterSpacing: '-0.01em',
+        color: COLORS.text,
+        fontSize: '18px',
+        fontWeight: '500',
+        margin: 0,
+        paddingBottom: SPACING[2],
+      },
+      onlineResultItem: {
+        title: {
+          fontFamily: FONT_FAMILIES.elegant,
+          letterSpacing: '-0.01em',
+          fontSize: '16px',
+          fontWeight: '500',
+          color: COLORS.text,
+          margin: '0 0 4px 0',
+        },
+        address: {
+          fontFamily: FONT_FAMILIES.elegant,
+          letterSpacing: '-0.01em',
+          fontSize: '14px',
+          color: COLORS.text,
+          opacity: 0.8,
+          margin: 0,
+          lineHeight: '1.4',
+        },
+        addButton: {
+          ...STYLES.addButton,
+          padding: '8px 16px',
+          fontSize: '14px',
+        },
+        error: {
+          fontFamily: FONT_FAMILIES.elegant,
+          letterSpacing: '-0.01em',
+          fontSize: '12px',
+          color: COLORS.danger,
+          margin: 0,
+        },
+      },
+      addRestaurantFooter: {
+        text: {
+          fontFamily: FONT_FAMILIES.elegant,
+          letterSpacing: '-0.01em',
+          fontSize: '0.95rem',
+          color: COLORS.text,
+          marginBottom: '12px',
+        },
+      },
+      noResults: {
+        container: {
+          textAlign: 'center' as 'center',
+          paddingTop: '48px',
+          paddingBottom: '48px',
+        },
+        title: {
+          fontFamily: FONT_FAMILIES.elegant,
+          letterSpacing: '-0.01em',
+          color: COLORS.text,
+          fontSize: '18px',
+          fontWeight: '500',
+          marginBottom: '8px',
+        },
+        text: {
+          fontFamily: FONT_FAMILIES.elegant,
+          letterSpacing: '-0.01em',
+          color: COLORS.text,
+          opacity: 0.7,
+          marginBottom: '16px',
+        },
+      },
+    },
+    resultsContainer: {
+      display: 'flex',
+      flexDirection: 'column' as 'column',
+      gap: SPACING[2],
+    },
+    addForm: {
+      header: {
+        fontFamily: FONT_FAMILIES.elegant,
+        letterSpacing: '-0.01em',
+        color: COLORS.text,
+        fontSize: '18px',
+        fontWeight: '500',
+      },
+    },
+    searchingIndicator: {
+      container: {
+        marginTop: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        border: `1px solid rgba(255, 255, 255, 0.2)`,
+        animation: 'pulse 2s ease-in-out infinite',
+      },
+      iconContainer: {
+        width: '16px',
+        height: '16px',
+        borderRadius: '50%',
+        backgroundColor: COLORS.primary,
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      icon: {
+        opacity: 0.9,
+        transition: 'transform 0.2s ease',
+      },
+      text: {
+        fontFamily: FONT_FAMILIES.elegant,
+        fontSize: '14px',
+        color: COLORS.text,
+        fontWeight: '500',
+        letterSpacing: '0.5px',
+      },
+    },
+  },
   findRestaurant: { /* screen-specific */ },
   menuScreen: { /* screen-specific */ },
   home: {

@@ -121,20 +121,20 @@ const LocationPermissionBanner: React.FC<{
     }
   };
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4" style={{ marginBottom: SPACING[4] }}>
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4" style={SCREEN_STYLES.restaurant.locationBanner.container}>
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
         </div>
         <div className="flex-1">
-          <p style={{ fontFamily: FONT_FAMILIES.primary, letterSpacing: '-0.01em', fontSize: '15px', lineHeight: '1.5', color: COLORS.gray700, margin: 0 }}>
+          <p style={SCREEN_STYLES.restaurant.locationBanner.text}>
             Your experience will be better with location services{' '}
-            <button onClick={handleClick} disabled={isRequestingLocationPermission && !isPermissionBlocked} className="inline-flex items-center gap-1 transition-all duration-200 focus:outline-none" style={{ color: COLORS.primary, fontWeight: '600', textDecoration: 'none', background: 'none', border: 'none', padding: '0', cursor: (isRequestingLocationPermission && !isPermissionBlocked) ? 'default' : 'pointer', borderBottom: `1px solid ${COLORS.primary}`, opacity: (isRequestingLocationPermission && !isPermissionBlocked) ? 0.6 : 1 }} onMouseEnter={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primaryHover; e.currentTarget.style.color = COLORS.primaryHover; } }} onMouseLeave={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}>
+            <button onClick={handleClick} disabled={isRequestingLocationPermission && !isPermissionBlocked} className="inline-flex items-center gap-1 transition-all duration-200 focus:outline-none" style={{...SCREEN_STYLES.restaurant.locationBanner.button, cursor: (isRequestingLocationPermission && !isPermissionBlocked) ? 'default' : 'pointer', opacity: (isRequestingLocationPermission && !isPermissionBlocked) ? 0.6 : 1 }} onMouseEnter={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primaryHover; e.currentTarget.style.color = COLORS.primaryHover; } }} onMouseLeave={(e) => { if (!isRequestingLocationPermission || isPermissionBlocked) { e.currentTarget.style.borderBottomColor = COLORS.primary; e.currentTarget.style.color = COLORS.primary; } }}>
               {isRequestingLocationPermission && !isPermissionBlocked ? ( <><span>requesting...</span><div className="animate-spin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div></> ) : ( <><span>{isPermissionBlocked ? 'blocked - tap for help' : 'turned on'}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg></> )}
             </button>
           </p>
           {process.env.NODE_ENV === 'development' && (
-            <div style={{ fontSize: '11px', color: COLORS.gray500, marginTop: '4px', fontFamily: 'monospace' }}>
+            <div style={SCREEN_STYLES.restaurant.locationBanner.devInfo}>
               Detected: {deviceInfo.os} - {deviceInfo.browser}
             </div>
           )}
@@ -170,13 +170,13 @@ const SearchingIndicator: React.FC = () => {
   const dots = '•'.repeat(dotCount).padEnd(3, ' ');
   const pulseOpacity = 0.3 + (Math.sin(pulsePhase * Math.PI / 2) * 0.4);
   return (
-    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: `1px solid rgba(255, 255, 0.2)`, animation: 'pulse 2s ease-in-out infinite' }}>
-      <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: COLORS.primary, opacity: pulseOpacity, transform: `scale(${0.8 + pulseOpacity * 0.4})`, transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style={{ opacity: 0.9, transform: `rotate(${pulsePhase * 90}deg)`, transition: 'transform 0.2s ease' }}>
+    <div style={SCREEN_STYLES.restaurant.searchingIndicator.container}>
+      <div style={{...SCREEN_STYLES.restaurant.searchingIndicator.iconContainer, opacity: pulseOpacity, transform: `scale(${0.8 + pulseOpacity * 0.4})`}}>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="white" style={{...SCREEN_STYLES.restaurant.searchingIndicator.icon, transform: `rotate(${pulsePhase * 90}deg)`}}>
           <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
         </svg>
       </div>
-      <span style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '14px', color: COLORS.text, fontWeight: '500', letterSpacing: '0.5px' }}>
+      <span style={SCREEN_STYLES.restaurant.searchingIndicator.text}>
         Searching the web{dots}
       </span>
     </div>
@@ -522,16 +522,16 @@ const RestaurantScreen: React.FC = () => {
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
  
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
-      <main style={{ flex: 1, maxWidth: RESTAURANT_CARD_MAX_WIDTH, width: '100%', margin: '0 auto' }}>
-        <div className="space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
-            <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.text, margin: 0 }}>My Restaurants</h1>
-            <img src="/victorian_restaurant2.png" alt="A Victorian-style restaurant illustration" style={{ height: '95px' }} />
+    <div style={SCREEN_STYLES.restaurant.container}>
+      <main style={SCREEN_STYLES.restaurant.main}>
+        <div className="space-y-4" style={SCREEN_STYLES.restaurant.content}>
+          <div style={SCREEN_STYLES.restaurant.header.container}>
+            <h1 style={SCREEN_STYLES.restaurant.header.title}>My Restaurants</h1>
+            <img src="/victorian_restaurant2.png" alt="A Victorian-style restaurant illustration" style={SCREEN_STYLES.restaurant.header.image} />
           </div>
-          {error && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em' }}>{error}</p></div>)}
+          {error && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={SCREEN_STYLES.restaurant.errorBanner}>{error}</p></div>)}
           {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isPermissionBlocked} />)}
-          {fetchingLocation && (<div className="bg-white/10 p-3 rounded-lg text-center"><p style={{ color: COLORS.text, fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em' }}>Getting your current location for better search results...</p></div>)}
+          {fetchingLocation && (<div className="bg-white/10 p-3 rounded-lg text-center"><p style={SCREEN_STYLES.restaurant.fetchingLocationBanner}>Getting your current location for better search results...</p></div>)}
           {showAdvancedSort && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
               <div className="flex gap-2 flex-wrap">
@@ -544,38 +544,38 @@ const RestaurantScreen: React.FC = () => {
                     const hasLocation = userLat !== null && userLon !== null;
                     const buttonColor = !hasLocation ? COLORS.gray400 : (isActive ? COLORS.white : COLORS.gray700);
                     const distanceButtonStyle = { ...buttonStyle, color: buttonColor, opacity: !hasLocation && !isActive ? 0.6 : 1 };
-                    return (<button key={option.value} onClick={buttonClick} className="transition-colors duration-200 hover:opacity-90" style={distanceButtonStyle} title={!hasLocation ? "Enable location to sort by distance" : "Sort by distance"}>{option.label} {arrow}{!hasLocation && !isActive && (<span style={{ marginLeft: '4px', fontSize: '12px' }}>📍</span>)}</button>);
+                    return (<button key={option.value} onClick={buttonClick} className="transition-colors duration-200 hover:opacity-90" style={distanceButtonStyle} title={!hasLocation ? "Enable location to sort by distance" : "Sort by distance"}>{option.label} {arrow}{!hasLocation && !isActive && (<span style={SCREEN_STYLES.restaurant.sortButton}>📍</span>)}</button>);
                   }
                   return (<button key={option.value} onClick={buttonClick} className="transition-colors duration-200 hover:opacity-90" style={buttonStyle}>{option.label} {arrow}</button>);
                 })}
               </div>
             </div>
           )}
-          {showInitialEmptyState && (<div className="text-center py-12"><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No restaurants yet</p><button onClick={handleAddFirstRestaurantFlow} style={STYLES.addButton} onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover} onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary}>Add your first restaurant</button></div>)}
+          {showInitialEmptyState && (<div style={SCREEN_STYLES.restaurant.initialEmptyState.container}><p style={SCREEN_STYLES.restaurant.initialEmptyState.text}>No restaurants yet</p><button onClick={handleAddFirstRestaurantFlow} style={STYLES.addButton} onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover} onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary}>Add your first restaurant</button></div>)}
           {showSearchAndResults && (
             <div className="space-y-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SPACING[6] }}>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={SCREEN_STYLES.restaurant.searchContainer}>
                 <>
                   <div className="flex items-center justify-between mb-2">
-                    <label style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '1.1rem', fontWeight: '600', color: COLORS.text }}>{hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}</label>
+                    <label style={SCREEN_STYLES.restaurant.searchInput.label}>{hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}</label>
                     <div className="flex items-center gap-4">
-                      {hasSearchTerm && (<button onClick={handleResetSearch} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textSecondary, transition: 'color 0.2s ease, transform 0.2s ease', }} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
+                      {hasSearchTerm && (<button onClick={handleResetSearch} style={SCREEN_STYLES.restaurant.searchInput.clearButton} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg></button>)}
                     </div>
                   </div>
                   <input id="restaurant-search-input" type="text" value={searchTerm} onChange={(e) => handleSearchChange(e.target.value)} placeholder="Restaurant name +/- city" className="w-full max-w-full outline-none" style={{ ...STYLES.input, ...(isFocused && STYLES.inputFocusBlack), }} onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} autoFocus={!hasSearchTerm} />
-                  {hasSearchTerm && (<div style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '14px', color: COLORS.text, opacity: 0.8, marginTop: '8px', marginBottom: 0 }}>{hasRestaurants && (<div>{filteredAndSortedRestaurants.length > 0 ? `Found ${filteredAndSortedRestaurants.length} in your restaurants` : 'No matching restaurants found in your personal list'}</div>)}{isSearching && <SearchingIndicator />}{!isSearching && searchResults.length > 0 && (<div style={{ marginTop: '4px' }}>✨ Found {searchResults.length === 1 ? 'one result' : `${searchResults.length} results`}</div>)}</div>)}
+                  {hasSearchTerm && (<div style={SCREEN_STYLES.restaurant.searchInput.infoText}>{hasRestaurants && (<div>{filteredAndSortedRestaurants.length > 0 ? `Found ${filteredAndSortedRestaurants.length} in your restaurants` : 'No matching restaurants found in your personal list'}</div>)}{isSearching && <SearchingIndicator />}{!isSearching && searchResults.length > 0 && (<div style={SCREEN_STYLES.restaurant.searchInput.infoTextHighlight}>✨ Found {searchResults.length === 1 ? 'one result' : `${searchResults.length} results`}</div>)}</div>)}
                 </>
               </div>
               {hasSearchTerm ? (
                 <div className="space-y-2">
-                  {hasLocalResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>Your restaurants:</h3></div>{filteredAndSortedRestaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))}</div>)}
-                  {hasOnlineResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>{hasLocalResults ? 'Found online:' : 'Online results:'}</h3></div>{searchError && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em' }}>{searchError}</p></div>)}{searchResults.map((result) => (<div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4"><div className="flex justify-between items-start"><div className="flex-1 mr-4"><h4 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '16px', fontWeight: '500', color: COLORS.text, margin: '0 0 4px 0' }}>{result.properties.name}</h4><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '14px', color: COLORS.text, opacity: 0.8, margin: 0, lineHeight: '1.4' }}>{result.properties.formatted}</p></div><button onClick={() => handleImportRestaurant(result)} disabled={addingRestaurantId === result.place_id} style={{ ...STYLES.addButton, padding: '8px 16px', fontSize: '14px', opacity: addingRestaurantId === result.place_id ? 0.6 : 1 }} onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}>{addingRestaurantId === result.place_id ? 'Adding...' : 'Add'}</button></div>{restaurantErrors.has(result.place_id) && (<div className="mt-2 p-2 bg-red-500/20 rounded"><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '12px', color: COLORS.danger, margin: 0 }}>{restaurantErrors.get(result.place_id)}</p></div>)}</div>))}</div>)}
-                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center"><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', fontSize: '0.95rem', color: COLORS.text, marginBottom: '12px' }}>Can't find it?</p><button onClick={handleShowAddForm} className="px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105" style={STYLES.addButton} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}>Add New Restaurant</button></div>
-                  {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (<div className="text-center py-12"><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No restaurants found for "{searchTerm}"</p><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, opacity: 0.7, marginBottom: '16px' }}>Try a different search term or add this restaurant.</p></div>)}
+                  {hasLocalResults && (<div style={SCREEN_STYLES.restaurant.resultsContainer}><div className="text-center"><h3 style={SCREEN_STYLES.restaurant.results.sectionHeader}>Your restaurants:</h3></div>{filteredAndSortedRestaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))}</div>)}
+                  {hasOnlineResults && (<div style={SCREEN_STYLES.restaurant.resultsContainer}><div className="text-center"><h3 style={SCREEN_STYLES.restaurant.results.sectionHeader}>{hasLocalResults ? 'Found online:' : 'Online results:'}</h3></div>{searchError && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={SCREEN_STYLES.restaurant.results.onlineResultItem.error}>{searchError}</p></div>)}{searchResults.map((result) => (<div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4"><div className="flex justify-between items-start"><div className="flex-1 mr-4"><h4 style={SCREEN_STYLES.restaurant.results.onlineResultItem.title}>{result.properties.name}</h4><p style={SCREEN_STYLES.restaurant.results.onlineResultItem.address}>{result.properties.formatted}</p></div><button onClick={() => handleImportRestaurant(result)} disabled={addingRestaurantId === result.place_id} style={{...SCREEN_STYLES.restaurant.results.onlineResultItem.addButton, opacity: addingRestaurantId === result.place_id ? 0.6 : 1 }} onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}>{addingRestaurantId === result.place_id ? 'Adding...' : 'Add'}</button></div>{restaurantErrors.has(result.place_id) && (<div className="mt-2 p-2 bg-red-500/20 rounded"><p style={SCREEN_STYLES.restaurant.results.onlineResultItem.error}>{restaurantErrors.get(result.place_id)}</p></div>)}</div>))}</div>)}
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center"><p style={SCREEN_STYLES.restaurant.results.addRestaurantFooter.text}>Can't find it?</p><button onClick={handleShowAddForm} className="px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105" style={STYLES.addButton} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = COLORS.primary; }}>Add New Restaurant</button></div>
+                  {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (<div style={SCREEN_STYLES.restaurant.results.noResults.container}><p style={SCREEN_STYLES.restaurant.results.noResults.title}>No restaurants found for "{searchTerm}"</p><p style={SCREEN_STYLES.restaurant.results.noResults.text}>Try a different search term or add this restaurant.</p></div>)}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-                  {hasRestaurants ? (restaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))) : (<div className="text-center py-12"><p style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start by searching for your first restaurant!</p></div>)}
+                <div style={SCREEN_STYLES.restaurant.resultsContainer}>
+                  {hasRestaurants ? (restaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))) : (<div style={SCREEN_STYLES.restaurant.initialEmptyState.container}><p style={SCREEN_STYLES.restaurant.initialEmptyState.text}>Start by searching for your first restaurant!</p></div>)}
                 </div>
               )}
             </div>
@@ -584,7 +584,7 @@ const RestaurantScreen: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <button onClick={() => { setShowAddForm(false); }} className="p-2 rounded-full hover:opacity-80 transition-opacity focus:outline-none" style={STYLES.iconButton}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></button>
-                <h2 style={{ fontFamily: FONT_FAMILIES.elegant, letterSpacing: '-0.01em', color: COLORS.text, fontSize: '18px', fontWeight: '500' }}>Add New Restaurant</h2>
+                <h2 style={SCREEN_STYLES.restaurant.addForm.header}>Add New Restaurant</h2>
                 <div className="w-10" />
               </div>
               <AddRestaurantForm initialName={searchTerm} onSave={handleAddRestaurant} onCancel={() => setShowAddForm(false)} />
