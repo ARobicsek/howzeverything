@@ -6,6 +6,244 @@ import { THEMES, ColorPalette } from './styles/themes';
 export type StyleObject = React.CSSProperties;
 export type NamedStyles<T> = { [key: string]: T };
 
+// --- CONCRETE STYLE TYPES ---
+
+// For COMPONENT_STYLES
+interface LoginFormStyles {
+  container: StyleObject;
+  headerContainer: StyleObject;
+  headerTitle: StyleObject;
+  headerSubtitle: StyleObject;
+  errorContainer: StyleObject;
+  errorText: StyleObject;
+  formFieldContainer: StyleObject;
+  label: StyleObject;
+  usernameHint: StyleObject;
+  passwordInputContainer: StyleObject;
+  passwordToggleButton: StyleObject;
+  loadingSpinnerContainer: StyleObject;
+  loadingSpinner: StyleObject;
+  modeToggleContainer: StyleObject;
+}
+
+interface ProfileCardStyles {
+  container: StyleObject;
+  noProfileContainer: StyleObject;
+  noProfileText: StyleObject;
+  errorContainer: StyleObject;
+  errorText: StyleObject;
+  headerContainer: StyleObject;
+  avatarContainer: StyleObject;
+  avatarInitials: StyleObject;
+  nameAndEmailContainer: StyleObject;
+  name: StyleObject;
+  email: StyleObject;
+  adminBadge: StyleObject;
+  detailsContainer: StyleObject;
+  bioContainer: StyleObject;
+  sectionHeader: StyleObject;
+  bioText: StyleObject;
+  locationText: StyleObject;
+  actionButtonsContainer: StyleObject;
+}
+
+interface UserFormStyles {
+  overlay: StyleObject;
+  content: StyleObject;
+  headerContainer: StyleObject;
+  headerTitle: StyleObject;
+  headerSubtitle: StyleObject;
+  errorContainer: StyleObject;
+  errorText: StyleObject;
+  formFieldContainer: StyleObject;
+  formFieldContainerLargeMargin: StyleObject;
+  label: StyleObject;
+  input: StyleObject;
+  avatarUrlHint: StyleObject;
+  actionButtonsContainer: StyleObject;
+  submitButton: StyleObject;
+  cancelButton: StyleObject;
+}
+
+// For SCREEN_STYLES
+interface AppScreenStyles {
+    authFlowContainer: StyleObject;
+    authFlowInnerContainer: StyleObject;
+    authFlowLogoContainer: StyleObject;
+    authFlowLogo: StyleObject;
+    authFlowFormContainer: StyleObject;
+    authFlowFormTitle: StyleObject;
+}
+
+interface MenuScreenStyles {
+    container: StyleObject;
+    stickyHeader: StyleObject;
+    headerContainer: StyleObject;
+    restaurantNameContainer: StyleObject;
+    restaurantName: StyleObject;
+    address: StyleObject;
+    headerButtonsContainer: StyleObject;
+    pinButton: StyleObject;
+    actionMenu: NamedStyles<StyleObject>;
+    main: StyleObject;
+    mainInnerContainer: StyleObject;
+    error: NamedStyles<StyleObject>;
+    advancedSort: NamedStyles<StyleObject>;
+    searchWrapper: StyleObject;
+    dishList: NamedStyles<StyleObject>;
+    emptyState: NamedStyles<StyleObject>;
+    addFormContainer: StyleObject;
+    fullNameModal: NamedStyles<StyleObject>;
+    duplicateWarningModal: NamedStyles<StyleObject>;
+    search: NamedStyles<StyleObject>;
+    addDishForm: NamedStyles<StyleObject>;
+}
+
+interface FindRestaurantScreenStyles {
+    container: StyleObject;
+    spinAnimation: string;
+    header: StyleObject;
+    headerInner: StyleObject;
+    headerImage: StyleObject;
+    headerTitle: StyleObject;
+    searchBarContainer: StyleObject;
+    searchBar: StyleObject;
+    mainContent: StyleObject;
+    mainContentInner: StyleObject;
+    addRestaurantTitle: StyleObject;
+    refreshButton: StyleObject;
+    distanceLabel: StyleObject;
+    distanceSelect: StyleObject;
+    distanceFilterContainer: StyleObject;
+}
+
+interface DiscoveryScreenStyles {
+    container: StyleObject;
+    header: StyleObject;
+    headerInner: StyleObject;
+    headerImage: StyleObject;
+    headerTitle: StyleObject;
+    searchBarContainer: StyleObject;
+    resetButton: StyleObject;
+    filtersContainer: StyleObject;
+    filterContainer: StyleObject;
+    select: StyleObject;
+    main: StyleObject;
+    contentContainer: StyleObject;
+    messageText: StyleObject;
+    messageSubText: StyleObject;
+    errorText: StyleObject;
+    restaurantHeader: StyleObject;
+    restaurantName: StyleObject;
+    restaurantDistance: StyleObject;
+    dishesContainer: StyleObject;
+}
+
+interface RatingsScreenStyles {
+    header: StyleObject;
+    headerInner: StyleObject;
+    headerImage: StyleObject;
+    headerTitle: StyleObject;
+    searchBarContainer: StyleObject;
+    searchInput: StyleObject;
+    resetButton: StyleObject;
+    body: StyleObject;
+    errorContainer: StyleObject;
+    dishesContainer: StyleObject;
+    emptyStateContainer: StyleObject;
+    emptyStateLink: StyleObject;
+    card: StyleObject;
+    cardInner: StyleObject;
+    cardContent: StyleObject;
+    cardTitle: StyleObject;
+    cardSubtitle: StyleObject;
+    cardRestaurantLink: StyleObject;
+    cardDistance: StyleObject;
+    cardRatingsContainer: StyleObject;
+    cardRatingRow: StyleObject;
+    cardRatingLabel: StyleObject;
+    cardRatingValue: StyleObject;
+    cardPhotoContainer: StyleObject;
+    cardPhoto: StyleObject;
+}
+
+interface ProfileScreenStyles {
+    container: StyleObject;
+    noUserContainer: StyleObject;
+    noUserIcon: StyleObject;
+    noUserText: StyleObject;
+}
+
+interface AdminScreenStyles {
+    container: StyleObject;
+    title: StyleObject;
+    tabsContainer: StyleObject;
+    tabButton: StyleObject;
+    errorContainer: StyleObject;
+    section: StyleObject;
+    sectionHeader: StyleObject;
+    sectionTitle: StyleObject;
+    formGrid: StyleObject;
+    button: StyleObject;
+    resetButton: StyleObject;
+    clearSearchButton: StyleObject;
+    itemCard: StyleObject;
+    itemCardTitle: StyleObject;
+    itemCardSubtitle: StyleObject;
+    itemCardActions: StyleObject;
+    link: StyleObject;
+    tableHeader: StyleObject;
+    tableCell: StyleObject;
+    paginationContainer: StyleObject;
+    paginationButton: StyleObject;
+    paginationText: StyleObject;
+    accessDeniedContainer: StyleObject;
+    accessDeniedTitle: StyleObject;
+    accessDeniedText: StyleObject;
+    backButton: StyleObject;
+    titleWithMargin: StyleObject;
+    h2WithMargin: StyleObject;
+    flexEnd: StyleObject;
+    flexGapCenter: StyleObject;
+    fullWidthPrimaryButton: StyleObject;
+    relativeContainer: StyleObject;
+    manuallyAddedBadge: StyleObject;
+    itemCardSubtitleWithMargin: StyleObject;
+    flexBetweenWrap: StyleObject;
+    gridTwoColumn: StyleObject;
+    hiddenCommentBadge: StyleObject;
+    analyticsDateFilterContainer: StyleObject;
+    analyticsDateLabel: StyleObject;
+    analyticsDateInput: StyleObject;
+    analyticsTableContainer: StyleObject;
+    analyticsTable: StyleObject;
+    analyticsTableHeaderRow: StyleObject;
+    analyticsTableRow: StyleObject;
+    analyticsTableCellCentered: StyleObject;
+    analyticsTableCellName: StyleObject;
+    analyticsEmptyStateContainer: StyleObject;
+    analyticsEmptyStateSubtext: StyleObject;
+}
+
+interface AboutScreenStyles {
+    header: StyleObject;
+    headerInner: StyleObject;
+    headerImage: StyleObject;
+    headerTitle: StyleObject;
+    headerSubtitle: StyleObject;
+    body: StyleObject;
+    bodyInner: StyleObject;
+    sectionTitle: StyleObject;
+    sectionTitleSpaced: StyleObject;
+    list: StyleObject;
+    listItem: StyleObject;
+    communityBox: StyleObject;
+    communityTitle: StyleObject;
+    communityText: StyleObject;
+    communityLink: StyleObject;
+}
+
+
 // --- NEW: Layout Controller for Restaurant Cards ---
 export const RESTAURANT_CARD_MAX_WIDTH = '350px';
 
@@ -113,7 +351,7 @@ export const STYLE_FUNCTIONS = {
     cursor: loading ? 'not-allowed' : 'pointer',
     textDecoration: 'none',
     padding: `${SPACING[2]} ${SPACING[3]}`,
-    borderRadius: STYLES.borderRadiusMedium,
+    borderRadius: BORDERS.radius.medium,
     transition: 'background-color 0.2s ease',
     outline: 'none',
   }),
@@ -268,26 +506,36 @@ export const UTILITIES: NamedStyles<StyleObject> = {
   },
 };
 
-export const STYLES: Record<string, StyleObject | string | number> = {
-  // Border Radius
-  borderRadiusSmall: _borderRadiusSmall,
-  borderRadiusMedium: _borderRadiusMedium,
-  borderRadiusLarge: _borderRadiusLarge,
-  borderRadiusFull: _borderRadiusFull,
-  // Shadows
-  shadowSmall: _shadowSmall,
-  shadowMedium: _shadowMedium,
-  shadowLarge: _shadowLarge,
-  // Z-index values
-  zDefault: 1,
-  zDropdown: 100,
-  zHeader: 10,
-  zModal: 2147483647, // Maximum z-index for guaranteed visibility
-  // Animation
-  animationFast: '150ms',
-  animationNormal: '200ms',
-  animationSlow: '300ms',
-  // Component Styles
+export const BORDERS = {
+  radius: {
+    small: _borderRadiusSmall,
+    medium: _borderRadiusMedium,
+    large: _borderRadiusLarge,
+    full: _borderRadiusFull,
+  },
+};
+
+export const SHADOWS = {
+  small: _shadowSmall,
+  medium: _shadowMedium,
+  large: _shadowLarge,
+};
+
+export const Z_INDICES = {
+  default: 1,
+  dropdown: 100,
+  header: 10,
+  modal: 2147483647,
+};
+
+export const ANIMATIONS = {
+  fast: '150ms',
+  normal: '200ms',
+  slow: '300ms',
+};
+
+// This object now only contains reusable StyleObjects
+export const STYLES: NamedStyles<StyleObject> = {
   primaryButton: {
     backgroundColor: COLORS.primary,
     color: COLORS.white,
@@ -299,7 +547,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     fontFamily: FONTS.primary.fontFamily,
     minHeight: '44px', // Touch target
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
     outline: 'none',
     textDecoration: 'none',
     ...UTILITIES.flexCenter,
@@ -317,7 +565,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     fontFamily: FONTS.primary.fontFamily,
     minHeight: '44px',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
     outline: 'none',
     ...UTILITIES.flexCenter,
     display: 'inline-flex',
@@ -331,14 +579,14 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     border: '2px solid ' + COLORS.black,
     cursor: 'pointer',
     ...UTILITIES.flexCenter,
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: '12px',
+    borderRadius: BORDERS.radius.large,
     border: '1px solid ' + COLORS.gray200,
     padding: SPACING.cardPadding,
-    transition: 'all 0.3s ease',
+    transition: `all ${ANIMATIONS.slow} ease`,
   },
   cardHover: {
     borderColor: COLORS.primary,
@@ -346,7 +594,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
   },
   modal: {
     background: COLORS.white,
-    borderRadius: '12px',
+    borderRadius: BORDERS.radius.large,
     border: '2px solid ' + COLORS.black,
     padding: SPACING[6],
     maxWidth: '90vw',
@@ -360,24 +608,23 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     right: 0,
     bottom: 0,
     backgroundColor: COLORS.overlay,
-    zIndex: 2147483647,
+    zIndex: Z_INDICES.modal,
     ...UTILITIES.flexCenter,
     padding: SPACING[4],
   },
   input: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    // MODIFIED: Use longhand properties to avoid conflicts with conditional overrides
     borderWidth: '2px',
     borderStyle: 'solid',
     borderColor: COLORS.gray200,
-    borderRadius: _borderRadiusMedium,
+    borderRadius: BORDERS.radius.medium,
     padding: '12px 16px',
     fontSize: TYPOGRAPHY.base.fontSize,
     fontFamily: FONTS.primary.fontFamily,
     color: COLORS.text,
     width: '100%',
     outline: 'none',
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
     boxSizing: 'border-box',
     WebkitAppearance: 'none',
   },
@@ -385,16 +632,16 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     borderColor: COLORS.accent,
     boxShadow: '0 0 0 3px rgba(100, 46, 50, 0.25)',
   },
-  // NEW: Style for the black border on active/focused inputs
   inputFocusBlack: {
     borderColor: COLORS.black,
-    // Note: Padding is adjusted to '11px 15px' in components when this is active
-    // to compensate for the thicker border and prevent layout shift.
-    // However, the component logic has been simplified to just override borderColor.
   },
   // Legacy styles for compatibility
-  mainContentPadding: '80px',
-  headerHeight: '60px',
+  mainContentPadding: {
+    padding: '80px',
+  },
+  headerHeight: {
+    height: '60px',
+  },
   addButton: {
     backgroundColor: COLORS.primary,
     color: COLORS.white,
@@ -404,7 +651,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     fontSize: '0.9rem',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
     fontFamily: FONTS.primary.fontFamily,
   },
   iconButton: {
@@ -416,7 +663,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     height: '40px',
     cursor: 'pointer',
     ...UTILITIES.flexCenter,
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
   },
   formButton: {
     borderRadius: '8px',
@@ -425,7 +672,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     fontWeight: '500',
     border: 'none',
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    transition: `all ${ANIMATIONS.slow} ease`,
     color: COLORS.white,
     fontFamily: FONTS.primary.fontFamily,
   },
@@ -438,7 +685,7 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     fontSize: '0.875rem',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
     fontFamily: FONTS.primary.fontFamily,
     ...UTILITIES.flexCenter,
     gap: '4px',
@@ -452,27 +699,11 @@ export const STYLES: Record<string, StyleObject | string | number> = {
     fontSize: '0.875rem',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: `all ${ANIMATIONS.normal} ease`,
     fontFamily: FONTS.primary.fontFamily,
     ...UTILITIES.flexCenter,
     gap: '4px',
   },
-};
-
-// NEW: Export BORDERS and SHADOWS, mapping to STYLES for consistency
-export const BORDERS = {
-  radius: {
-    small: STYLES.borderRadiusSmall as string,
-    medium: STYLES.borderRadiusMedium as string,
-    large: STYLES.borderRadiusLarge as string,
-    full: STYLES.borderRadiusFull as string,
-  },
-};
-
-export const SHADOWS = {
-  small: STYLES.shadowSmall as string,
-  medium: STYLES.shadowMedium as string,
-  large: STYLES.shadowLarge as string,
 };
 
 // Legacy SIZES for compatibility
@@ -497,10 +728,14 @@ export const BREAKPOINTS: Record<string, string> = {
 };
 
 // 2. Component Styles
-export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
+export const COMPONENT_STYLES: {
+  loginForm: LoginFormStyles;
+  profileCard: ProfileCardStyles;
+  userForm: UserFormStyles;
+} = {
   loginForm: {
     container: {
-      ...STYLES.modal,
+      ...(STYLES.modal as StyleObject),
       maxWidth: '400px',
       width: '100%',
       padding: SPACING[8],
@@ -524,7 +759,7 @@ export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
     errorContainer: {
       backgroundColor: '#FEE2E2',
       border: `1px solid #FECACA`,
-      borderRadius: STYLES.borderRadiusMedium as string,
+      borderRadius: BORDERS.radius.medium,
       padding: SPACING[3],
       marginBottom: SPACING[5],
     },
@@ -592,8 +827,8 @@ export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
   },
   profileCard: {
     container: {
-      ...STYLES.card as StyleObject,
-      boxShadow: STYLES.shadowLarge as string,
+      ...STYLES.card,
+      boxShadow: SHADOWS.large,
       padding: SPACING[6],
     },
     noProfileContainer: {
@@ -610,7 +845,7 @@ export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
     errorContainer: {
       backgroundColor: '#FEE2E2',
       border: '1px solid #FECACA',
-      borderRadius: STYLES.borderRadiusMedium as string,
+      borderRadius: BORDERS.radius.medium,
       padding: SPACING[3],
       marginBottom: SPACING[5],
     },
@@ -637,7 +872,7 @@ export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
       marginRight: SPACING[5],
       flexShrink: 0,
       border: `3px solid ${COLORS.gray100}`,
-      boxShadow: STYLES.shadowMedium as string,
+      boxShadow: SHADOWS.medium,
     },
     avatarInitials: {
       fontFamily: '"Pinyon Script", cursive',
@@ -671,7 +906,7 @@ export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
       color: COLORS.accent,
       backgroundColor: `${COLORS.accent}2A`,
       padding: `${SPACING[1]} ${SPACING[3]}`,
-      borderRadius: STYLES.borderRadiusSmall as string,
+      borderRadius: BORDERS.radius.small,
       display: 'inline-block',
       marginTop: SPACING[2],
     },
@@ -828,7 +1063,16 @@ export const COMPONENT_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
 };
 
 // 4. Screen-Specific Styles
-export const SCREEN_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
+export const SCREEN_STYLES: {
+  app: AppScreenStyles;
+  menu: MenuScreenStyles;
+  findRestaurant: FindRestaurantScreenStyles;
+  discovery: DiscoveryScreenStyles;
+  ratings: RatingsScreenStyles;
+  profile: ProfileScreenStyles;
+  admin: AdminScreenStyles;
+  about: AboutScreenStyles;
+} = {
   app: {
     authFlowContainer: {
       minHeight: '100vh',
@@ -884,8 +1128,8 @@ export const SCREEN_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
       borderBottom: `1px solid ${COLORS.gray200}`,
       position: 'sticky',
       top: '59px', // This assumes a fixed top navigation height
-      zIndex: 10,
-      boxShadow: STYLES.shadowSmall as string,
+      zIndex: Z_INDICES.header,
+      boxShadow: SHADOWS.small,
       width: '100vw',
     },
     headerContainer: {
@@ -923,7 +1167,7 @@ export const SCREEN_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
       gap: SPACING[2],
     },
     pinButton: {
-      ...STYLES.iconButton as StyleObject,
+      ...STYLES.iconButton,
       border: 'none',
     },
     actionMenu: {
@@ -935,11 +1179,11 @@ export const SCREEN_STYLES: NamedStyles<NamedStyles<StyleObject>> = {
         top: 'calc(100% + 4px)',
         right: 0,
         backgroundColor: COLORS.white,
-        borderRadius: STYLES.borderRadiusMedium as string,
-        boxShadow: STYLES.shadowLarge as string,
+        borderRadius: BORDERS.radius.medium,
+        boxShadow: SHADOWS.large,
         border: `1px solid ${COLORS.gray200}`,
         overflow: 'hidden',
-        zIndex: STYLES.zDropdown as number,
+        zIndex: Z_INDICES.dropdown,
         minWidth: '160px',
       },
       menuItem: {

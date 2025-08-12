@@ -55,13 +55,13 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
       <div
         style={{
           backgroundColor: COLORS.white,
-          borderRadius: STYLES.borderRadiusLarge,
+          borderRadius: BORDERS.radius.large,
           padding: SPACING[6],
           maxWidth: '500px',
           width: '100%',
           maxHeight: '80vh',
           overflowY: 'auto',
-          boxShadow: STYLES.shadowLarge
+          boxShadow: SHADOWS.large
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -95,7 +95,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
               style={{
                 backgroundColor: index === 0 ? COLORS.gray50 : COLORS.gray50,
                 border: `1px solid ${index === 0 ? COLORS.gray300 : COLORS.gray200}`,
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 padding: SPACING[4],
                 marginBottom: index < Math.min(similarDishes.length - 1, 2) ? SPACING[3] : 0,
                 cursor: 'pointer',
@@ -154,7 +154,7 @@ const DuplicateDishModal: React.FC<DuplicateDishModalProps> = ({
                       backgroundColor: index === 0 ? COLORS.gray300 : COLORS.gray200,
                       color: index === 0 ? COLORS.gray700 : COLORS.gray700,
                       padding: `${SPACING[1]} ${SPACING[2]}`,
-                      borderRadius: STYLES.borderRadiusSmall,
+                      borderRadius: BORDERS.radius.small,
                       fontSize: TYPOGRAPHY.xs.fontSize,
                       fontWeight: TYPOGRAPHY.medium
                     }}>

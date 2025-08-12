@@ -35,7 +35,7 @@ const UploadProgressAnimation: React.FC<{
       gap: SPACING[3],
       padding: SPACING[4],
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      borderRadius: STYLES.borderRadiusMedium,
+      borderRadius: BORDERS.radius.medium,
       backdropFilter: 'blur(8px)',
       border: `1px solid ${COLORS.gray200}`
     }}>
@@ -497,7 +497,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               textAlign: 'center',
               padding: SPACING[2],
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: STYLES.borderRadiusMedium
+              borderRadius: BORDERS.radius.medium
             }}>
               Original size: {formatFileSize(selectedFile.size)} → Will be compressed to ~{formatFileSize(IMAGE_COMPRESSION.MAX_FILE_SIZE_MB * 1024 * 1024)} max
             </div>

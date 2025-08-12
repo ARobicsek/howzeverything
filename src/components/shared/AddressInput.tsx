@@ -320,8 +320,8 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
             position: 'absolute', top: '100%', left: 0, right: 0,
             background: COLORS.white,
             border: `1px solid ${COLORS.gray200}`,
-            borderRadius: STYLES.borderRadiusMedium,
-            boxShadow: STYLES.shadowMedium,
+            borderRadius: BORDERS.radius.medium,
+            boxShadow: SHADOWS.medium,
             zIndex: STYLES.zDropdown,
             maxHeight: '200px',
             overflowY: 'auto'

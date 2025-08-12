@@ -158,7 +158,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           <h2
             className="hover:underline"
             style={{
-                ...FONTS.elegant,
+                ...(FONTS.elegant || {}),
                 fontWeight: 500,
                 color: COLORS.text,
                 fontSize: '1.1rem',
@@ -172,7 +172,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], flexShrink: 0 }}>
           {restaurant.distance && (
-            <span style={{ ...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            <span style={{ ...(FONTS.elegant || {}), color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
               {restaurant.distance}
             </span>
           )}
@@ -204,7 +204,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ ...STYLES.card, position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: STYLES.zDropdown, width: '180px', padding: SPACING[2], boxShadow: STYLES.shadowLarge, backgroundColor: COLORS.white }}>
+                <div ref={menuRef} style={{ ...STYLES.card, position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: STYLES.zDropdown, width: '180px', padding: SPACING[2], boxShadow: SHADOWS.large, backgroundColor: COLORS.white }}>
                     {canEdit && onEdit && <button style={menuButtonStyle} onClick={handleEdit}>Edit</button>}
                     {hasWebsite && <button style={menuButtonStyle} onClick={handleViewWebsite}>View Website</button>}
                     {onShare && <button style={menuButtonStyle} onClick={handleShare}>Share</button>}
@@ -221,7 +221,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           <p
             style={{
               ...FONTS.body,
-              ...UTILITIES.truncate,
+              ...(UTILITIES.truncate || {}),
               color: COLORS.textSecondary,
               fontSize: '0.875rem',
               margin: 0,
@@ -234,13 +234,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           {(restaurant.dishCount ?? 0) > 0 && (
             <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
-              <span style={{...FONTS.elegant, color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
+              <span style={{...(FONTS.elegant || {}), color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
             </div>
           )}
           {(restaurant.raterCount ?? 0) > 0 && (
             <div title={`${restaurant.raterCount} raters`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span style={{...FONTS.elegant, color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
+              <span style={{...(FONTS.elegant || {}), color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
             </div>
           )}
         </div>

@@ -110,7 +110,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         bottom: 0,
         width: 'min(300px, 80vw)',
         backgroundColor: COLORS.navBarDark,
-        boxShadow: STYLES.shadowLarge,
+        boxShadow: SHADOWS.large,
         display: 'flex',
         flexDirection: 'column',
         padding: `${SPACING[8]} ${SPACING[4]}`,
@@ -163,7 +163,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
                       ...TYPOGRAPHY['2xl'],
                       color: linkColor,
                       fontWeight: TYPOGRAPHY.medium,
-                      borderRadius: STYLES.borderRadiusMedium,
+                      borderRadius: BORDERS.radius.medium,
                       transition: 'background-color 0.2s ease',
                     }}
                     onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; }}

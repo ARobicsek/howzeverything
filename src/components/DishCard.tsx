@@ -199,7 +199,7 @@ const RatingBreakdown: React.FC<{
   <div style={{
     backgroundColor: COLORS.gray50,
     padding: SPACING[4],
-    borderRadius: STYLES.borderRadiusMedium,
+    borderRadius: BORDERS.radius.medium,
     marginTop: SPACING[4]
   }}>
     <div style={{ display: 'flex', gap: SPACING[8], alignItems: 'flex-start' }}>
@@ -360,7 +360,7 @@ const CommentsSection: React.FC<{
               style={{
                 backgroundColor: COLORS.gray50,
                 padding: SPACING[4],
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 cursor: editingComment?.id === comment.id ? 'default' : 'pointer',
               }}
             >
@@ -430,8 +430,8 @@ const CommentsSection: React.FC<{
                             right: 0,
                             marginBottom: SPACING[1],
                             backgroundColor: COLORS.white,
-                            borderRadius: STYLES.borderRadiusMedium,
-                            boxShadow: STYLES.shadowLarge,
+                            borderRadius: BORDERS.radius.medium,
+                            boxShadow: SHADOWS.large,
                             border: `1px solid ${COLORS.gray200}`,
                             overflow: 'hidden',
                             zIndex: STYLES.zDropdown,
@@ -744,7 +744,7 @@ const DishCard: React.FC<DishCardProps> = ({
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           borderColor: isHovering ? COLORS.accent : COLORS.gray200,
-          boxShadow: isHovering ? STYLES.shadowMedium : STYLES.shadowSmall,
+          boxShadow: isHovering ? SHADOWS.medium : SHADOWS.small,
         }}
         onClick={onToggleExpand}
         onMouseEnter={() => setIsHovering(true)}
@@ -771,7 +771,7 @@ const DishCard: React.FC<DishCardProps> = ({
               <div style={{
                 width: '60px',
                 height: '60px',
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 overflow: 'hidden',
                 flexShrink: 0
               }}>
@@ -826,7 +826,7 @@ const DishCard: React.FC<DishCardProps> = ({
         style={{
           ...STYLES.card,
           borderColor: COLORS.accent,
-          boxShadow: STYLES.shadowLarge,
+          boxShadow: SHADOWS.large,
           cursor: 'default',
         }}
         onClick={handleCardClick}
@@ -889,7 +889,7 @@ const DishCard: React.FC<DishCardProps> = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusMedium, boxShadow: STYLES.shadowLarge, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: STYLES.zDropdown, minWidth: '160px', }}>
+                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.large, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: Z_INDICES.dropdown, minWidth: '160px', }}>
                   <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
                     Share Dish

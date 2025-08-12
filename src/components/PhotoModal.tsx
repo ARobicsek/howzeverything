@@ -138,7 +138,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: COLORS.black,
-          borderRadius: STYLES.borderRadiusLarge,
+          borderRadius: BORDERS.radius.large,
           overflow: 'hidden',
           animation: 'slideIn 0.3s ease'
         }}
@@ -161,7 +161,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             {photos.length > 1 && (
               <div style={{
                 padding: `${SPACING[2]} ${SPACING[3]}`,
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 ...FONTS.body,
                 fontSize: TYPOGRAPHY.sm.fontSize,
@@ -329,7 +329,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
               maxWidth: '100%',
               maxHeight: '70vh',
               objectFit: 'contain',
-              borderRadius: STYLES.borderRadiusMedium
+              borderRadius: BORDERS.radius.medium
             }}
           />
         </div>

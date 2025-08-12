@@ -38,7 +38,7 @@ const Avatar: React.FC = () => {
         justifyContent: 'center',
         flexShrink: 0,
         border: `1px solid ${COLORS.white}`,
-        boxShadow: STYLES.shadowSmall,
+        boxShadow: SHADOWS.small,
         color: COLORS.white,
         fontFamily: '"Pinyon Script", cursive',
         fontSize: '1.6rem',
