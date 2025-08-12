@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import DuplicateDishModal from './components/DuplicateDishModal';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
 import AddressInput from './components/shared/AddressInput';
-import { BORDERS, COLORS, SHADOWS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { BORDERS, COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { DishSearchResult, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
@@ -91,35 +91,35 @@ const PaginationControls: React.FC<{
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (totalPages <= 1) return null;
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: SPACING[2], marginTop: SPACING[4], flexWrap: 'wrap' }}>
+        <div style={SCREEN_STYLES.admin.paginationContainer}>
             <button
                 onClick={() => onPageChange(1)}
                 disabled={currentPage === 1 || loading}
-                style={{...TYPOGRAPHY.button, ...STYLES.sortButtonDefault, cursor: (currentPage === 1 || loading) ? 'not-allowed' : 'pointer'}}
+                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === 1 || loading) ? 'not-allowed' : 'pointer'}}
             >
                 First
             </button>
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1 || loading}
-                style={{...TYPOGRAPHY.button, ...STYLES.sortButtonDefault, cursor: (currentPage === 1 || loading) ? 'not-allowed' : 'pointer'}}
+                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === 1 || loading) ? 'not-allowed' : 'pointer'}}
             >
                 Previous
             </button>
-            <span style={{...TYPOGRAPHY.body, padding: `0 ${SPACING[2]}`}}>
+            <span style={SCREEN_STYLES.admin.paginationText}>
                 Page {currentPage} of {totalPages}
             </span>
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || loading}
-                style={{...TYPOGRAPHY.button, ...STYLES.sortButtonDefault, cursor: (currentPage === totalPages || loading) ? 'not-allowed' : 'pointer'}}
+                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === totalPages || loading) ? 'not-allowed' : 'pointer'}}
             >
                 Next
             </button>
             <button
                 onClick={() => onPageChange(totalPages)}
                 disabled={currentPage === totalPages || loading}
-                style={{...TYPOGRAPHY.button, ...STYLES.sortButtonDefault, cursor: (currentPage === totalPages || loading) ? 'not-allowed' : 'pointer'}}
+                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === totalPages || loading) ? 'not-allowed' : 'pointer'}}
             >
                 Last
             </button>
@@ -801,19 +801,12 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
 
   if (!isAdmin) {
     return (
-      <div style={{ padding: SPACING[4], textAlign: 'center' }}>
-        <h2 style={{ ...TYPOGRAPHY.h2, color: COLORS.error }}>Access Denied</h2>
-        <p style={{ ...TYPOGRAPHY.body, marginTop: SPACING[2] }}>You do not have permission to access this page.</p>
+      <div style={SCREEN_STYLES.admin.accessDeniedContainer}>
+        <h2 style={SCREEN_STYLES.admin.accessDeniedTitle}>Access Denied</h2>
+        <p style={SCREEN_STYLES.admin.accessDeniedText}>You do not have permission to access this page.</p>
       </div>
     );
   }
-  const tableHeaderStyle: React.CSSProperties = {
-    ...TYPOGRAPHY.caption,
-    fontWeight: TYPOGRAPHY.semibold,
-    padding: SPACING[3],
-    textAlign: 'left',
-    borderBottom: `2px solid ${COLORS.border}`
-  };
   const SortableHeader: React.FC<{
     title: string;
     sortKey: keyof UserActivity;
@@ -822,25 +815,15 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     const isSorting = analyticsSort.key === sortKey;
     const directionIcon = analyticsSort.direction === 'asc' ? ' ▲' : ' ▼';
     return (
-        <th style={{...tableHeaderStyle, cursor: 'pointer', whiteSpace: 'nowrap', textAlign: align}} onClick={() => handleAnalyticsSort(sortKey)}>
+        <th style={{...SCREEN_STYLES.admin.tableHeader, cursor: 'pointer', whiteSpace: 'nowrap', textAlign: align}} onClick={() => handleAnalyticsSort(sortKey)}>
             {title}{isSorting && directionIcon}
         </th>
     );
   };
-  const tableCellStyle: React.CSSProperties = {
-    ...TYPOGRAPHY.body,
-    padding: SPACING[3],
-  };
-  const linkStyle: React.CSSProperties = {
-    color: COLORS.primary,
-    textDecoration: 'underline',
-    cursor: 'pointer'
-  };
-
   // --- NEW: Render "Dishes for Restaurant" view if a restaurant is selected ---
   if (viewingDishesForRestaurant) {
     return (
-        <div style={{ padding: SPACING[4], maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={SCREEN_STYLES.admin.container}>
             <button
                 onClick={() => setViewingDishesForRestaurant(null)}
                 style={{ ...STYLES.secondaryButton, marginBottom: SPACING[4], display: 'inline-flex', alignItems: 'center', gap: SPACING[2] }}
@@ -850,12 +833,12 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             </button>
             <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Dishes for {viewingDishesForRestaurant.name}</h1>
 
-            {error && <div style={{...TYPOGRAPHY.body, color: COLORS.error, background: `${COLORS.error}10`, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[4], cursor: 'pointer' }} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
+            {error && <div style={SCREEN_STYLES.admin.errorContainer} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
             
             {showAddDishFormForRestaurant ? (
-                <div style={{ background: COLORS.surface, padding: SPACING[6], borderRadius: BORDERS.radius.large, marginBottom: SPACING[6], boxShadow: SHADOWS.small }}>
-                    <h2 style={{ ...TYPOGRAPHY.h2, margin: 0, marginBottom: SPACING[4] }}>Add New Dish</h2>
-                    <div style={{ display: 'grid', gap: SPACING[4] }}>
+                <div style={SCREEN_STYLES.admin.section}>
+                    <h2 style={SCREEN_STYLES.admin.sectionTitle}>Add New Dish</h2>
+                    <div style={SCREEN_STYLES.admin.formGrid}>
                         <input
                             type="text"
                             placeholder="New Dish Name *"
@@ -864,7 +847,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                             style={STYLES.input}
                         />
                          <div style={{ display: 'flex', gap: SPACING[2], justifyContent: 'flex-end' }}>
-                             <button onClick={() => setShowAddDishFormForRestaurant(false)} style={{...TYPOGRAPHY.button, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, padding: `${SPACING[2]} ${SPACING[4]}` }}>Cancel</button>
+                             <button onClick={() => setShowAddDishFormForRestaurant(false)} style={{...SCREEN_STYLES.admin.button, background: COLORS.border, color: COLORS.textPrimary }}>Cancel</button>
                              <button
                                  onClick={() => handleAttemptAddDish(viewingDishesForRestaurant.id, (newDish) => {
                                      const newAdminDish: AdminDish = { ...newDish, restaurant_name: viewingDishesForRestaurant.name };
@@ -872,7 +855,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                                      setShowAddDishFormForRestaurant(false);
                                  })}
                                  disabled={loading}
-                                 style={{ ...TYPOGRAPHY.button, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, padding: `${SPACING[2]} ${SPACING[4]}` }}
+                                 style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}
                              >
                                  Add
                              </button>
@@ -890,23 +873,23 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             {loadingRestaurantSpecificDishes ? (
                 <p style={TYPOGRAPHY.body}>Loading dishes...</p>
             ) : (
-                <div style={{ display: 'grid', gap: SPACING[4] }}>
+                <div style={SCREEN_STYLES.admin.formGrid}>
                     {restaurantSpecificDishes.length > 0 ? restaurantSpecificDishes.map((dish) => (
-                        <div key={dish.id} style={{ background: COLORS.surface, padding: SPACING[4], borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.small }}>
+                        <div key={dish.id} style={SCREEN_STYLES.admin.itemCard}>
                         {editingDishId === dish.id ? (
-                            <div style={{ display: 'grid', gap: SPACING[2] }}>
+                            <div style={SCREEN_STYLES.admin.formGrid}>
                                 <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} style={STYLES.input}/>
-                                <div style={{ display: 'flex', gap: SPACING[2] }}>
-                                    <button onClick={() => updateDishInRestaurantView(dish.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Save</button>
-                                    <button onClick={() => setEditingDishId(null)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Cancel</button>
+                                <div style={SCREEN_STYLES.admin.itemCardActions}>
+                                    <button onClick={() => updateDishInRestaurantView(dish.id)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Save</button>
+                                    <button onClick={() => setEditingDishId(null)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.border, color: COLORS.textPrimary }}>Cancel</button>
                                 </div>
                             </div>
                         ) : (
                             <div>
-                                <h3 style={{ ...TYPOGRAPHY.h3, marginBottom: SPACING[2] }}>{dish.name}</h3>
-                                <div style={{ display: 'flex', gap: SPACING[2] }}>
-                                    <button onClick={() => startEditDish(dish)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Edit</button>
-                                    <button onClick={() => deleteDishFromRestaurantView(dish.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.error, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Delete</button>
+                                <h3 style={SCREEN_STYLES.admin.itemCardTitle}>{dish.name}</h3>
+                                <div style={SCREEN_STYLES.admin.itemCardActions}>
+                                    <button onClick={() => startEditDish(dish)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Edit</button>
+                                    <button onClick={() => deleteDishFromRestaurantView(dish.id)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
                                 </div>
                             </div>
                         )}
@@ -921,30 +904,30 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   }
 
   return (
-    <div style={{ padding: SPACING[4], maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Admin Panel</h1>
-      <div style={{ display: 'flex', gap: SPACING[2], marginBottom: SPACING[6], borderBottom: `2px solid ${COLORS.border}`, paddingBottom: SPACING[2], flexWrap: 'wrap' }}>
-        <button onClick={() => setActiveTab('restaurants')} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: activeTab === 'restaurants' ? COLORS.primary : 'transparent', color: activeTab === 'restaurants' ? COLORS.white : COLORS.textPrimary, border: 'none', borderRadius: `${BORDERS.radius.medium} ${BORDERS.radius.medium} 0 0`, cursor: 'pointer' }}>Restaurants</button>
-        <button onClick={() => setActiveTab('dishes')} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: activeTab === 'dishes' ? COLORS.primary : 'transparent', color: activeTab === 'dishes' ? COLORS.white : COLORS.textPrimary, border: 'none', borderRadius: `${BORDERS.radius.medium} ${BORDERS.radius.medium} 0 0`, cursor: 'pointer' }}>Dishes</button>
-        <button onClick={() => setActiveTab('comments')} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: activeTab === 'comments' ? COLORS.primary : 'transparent', color: activeTab === 'comments' ? COLORS.white : COLORS.textPrimary, border: 'none', borderRadius: `${BORDERS.radius.medium} ${BORDERS.radius.medium} 0 0`, cursor: 'pointer' }}>Comments</button>
-        <button onClick={() => setActiveTab('analytics')} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: activeTab === 'analytics' ? COLORS.primary : 'transparent', color: activeTab === 'analytics' ? COLORS.white : COLORS.textPrimary, border: 'none', borderRadius: `${BORDERS.radius.medium} ${BORDERS.radius.medium} 0 0`, cursor: 'pointer' }}>Analytics</button>
+    <div style={SCREEN_STYLES.admin.container}>
+      <h1 style={SCREEN_STYLES.admin.title}>Admin Panel</h1>
+      <div style={SCREEN_STYLES.admin.tabsContainer}>
+        <button onClick={() => setActiveTab('restaurants')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'restaurants' ? COLORS.primary : 'transparent', color: activeTab === 'restaurants' ? COLORS.white : COLORS.textPrimary }}>Restaurants</button>
+        <button onClick={() => setActiveTab('dishes')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'dishes' ? COLORS.primary : 'transparent', color: activeTab === 'dishes' ? COLORS.white : COLORS.textPrimary }}>Dishes</button>
+        <button onClick={() => setActiveTab('comments')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'comments' ? COLORS.primary : 'transparent', color: activeTab === 'comments' ? COLORS.white : COLORS.textPrimary }}>Comments</button>
+        <button onClick={() => setActiveTab('analytics')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'analytics' ? COLORS.primary : 'transparent', color: activeTab === 'analytics' ? COLORS.white : COLORS.textPrimary }}>Analytics</button>
       </div>
-      {error && <div style={{...TYPOGRAPHY.body, color: COLORS.error, background: `${COLORS.error}10`, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[4], cursor: 'pointer' }} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
+      {error && <div style={SCREEN_STYLES.admin.errorContainer} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
       {activeTab === 'restaurants' && (
         <div>
-          <div style={{ background: COLORS.surface, padding: SPACING[6], borderRadius: BORDERS.radius.large, marginBottom: SPACING[6], boxShadow: SHADOWS.small }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING[4] }}>
-              <h2 style={{ ...TYPOGRAPHY.h2, margin: 0 }}>Add New Restaurant</h2>
+          <div style={SCREEN_STYLES.admin.section}>
+            <div style={SCREEN_STYLES.admin.sectionHeader}>
+              <h2 style={SCREEN_STYLES.admin.sectionTitle}>Add New Restaurant</h2>
               {(newRestaurantName || newAddressData.fullAddress) && (
-                <button onClick={handleResetNewRestaurantForm} style={{ background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: COLORS.textSecondary, transition: 'color 0.2s ease, transform 0.2s ease' }} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.primary; e.currentTarget.style.transform = 'rotate(-90deg) scale(1.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }} aria-label="Reset form" title="Reset form" >
+                <button onClick={handleResetNewRestaurantForm} style={SCREEN_STYLES.admin.resetButton} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.primary; e.currentTarget.style.transform = 'rotate(-90deg) scale(1.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }} aria-label="Reset form" title="Reset form" >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
                 </button>
               )}
             </div>
-            <div style={{ display: 'grid', gap: SPACING[4] }}>
+            <div style={SCREEN_STYLES.admin.formGrid}>
               <input type="text" placeholder="Restaurant Name *" value={newRestaurantName} onChange={(e) => setNewRestaurantName(e.target.value)} style={STYLES.input} />
               <AddressInput key={addressInputKey} initialData={newAddressData} onAddressChange={handleNewAddressChange} />
-              <button onClick={handleAttemptAddRestaurant} disabled={loading} style={{ ...TYPOGRAPHY.button, padding: SPACING[4], background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.medium, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>Add Restaurant</button>
+              <button onClick={handleAttemptAddRestaurant} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, padding: SPACING[4], background: COLORS.primary, color: COLORS.white, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>Add Restaurant</button>
             </div>
           </div>
           <div style={{ marginBottom: SPACING[4] }}>
@@ -952,7 +935,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             <div style={{ position: 'relative' }}>
               <input type="text" placeholder="Search by name, city, or address..." value={restaurantSearchTerm} onChange={(e) => setRestaurantSearchTerm(e.target.value)} style={STYLES.input} />
               {restaurantSearchTerm && (
-                <button onClick={() => setRestaurantSearchTerm('')} style={{ position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: COLORS.textSecondary }}>
+                <button onClick={() => setRestaurantSearchTerm('')} style={SCREEN_STYLES.admin.clearSearchButton}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </button>
               )}
@@ -961,33 +944,33 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           {loading && activeTab === 'restaurants' && <p style={TYPOGRAPHY.body}>Loading...</p>}
           {!loading && (
             <>
-              <div style={{ display: 'grid', gap: SPACING[4] }}>
+              <div style={SCREEN_STYLES.admin.formGrid}>
                 {restaurants.length > 0 ? restaurants.map((restaurant) => {
                     const createdAt = new Date(restaurant.created_at);
                     const updatedAt = new Date(restaurant.dateAdded || restaurant.created_at);
                     const wasUpdated = updatedAt.getTime() - createdAt.getTime() > 60000;
                     return (
-                      <div key={restaurant.id} style={{ background: COLORS.surface, padding: SPACING[4], borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.small }}>
+                      <div key={restaurant.id} style={SCREEN_STYLES.admin.itemCard}>
                         {editingRestaurantId === restaurant.id && editAddressData ? (
-                          <div style={{ display: 'grid', gap: SPACING[2] }}>
+                          <div style={SCREEN_STYLES.admin.formGrid}>
                             <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} style={STYLES.input} />
                             <AddressInput key={editAddressInputKey} initialData={editAddressData} onAddressChange={handleEditAddressChange} />
-                            <div style={{ display: 'flex', gap: SPACING[2] }}>
-                              <button onClick={() => updateRestaurant(restaurant.id)} style={{...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Save</button>
-                              <button onClick={() => setEditingRestaurantId(null)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Cancel</button>
+                            <div style={SCREEN_STYLES.admin.itemCardActions}>
+                              <button onClick={() => updateRestaurant(restaurant.id)} style={{...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Save</button>
+                              <button onClick={() => setEditingRestaurantId(null)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.border, color: COLORS.textPrimary }}>Cancel</button>
                             </div>
                           </div>
                         ) : (
                           <div>
-                            <h3 style={{ ...TYPOGRAPHY.h3, marginBottom: SPACING[2], cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate(`/restaurants/${restaurant.id}`)}>{restaurant.name} {restaurant.manually_added && <span style={{ ...TYPOGRAPHY.caption, color: COLORS.primary, marginLeft: SPACING[2] }}>(Manually Added)</span>}</h3>
-                            <p style={{ ...TYPOGRAPHY.body, color: COLORS.textSecondary, marginBottom: SPACING[2] }}>{restaurant.full_address || [restaurant.address, restaurant.city, restaurant.state, restaurant.zip_code, restaurant.country].filter(Boolean).join(', ')}</p>
+                            <h3 style={{ ...SCREEN_STYLES.admin.itemCardTitle, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate(`/restaurants/${restaurant.id}`)}>{restaurant.name} {restaurant.manually_added && <span style={{ ...TYPOGRAPHY.caption, color: COLORS.primary, marginLeft: SPACING[2] }}>(Manually Added)</span>}</h3>
+                            <p style={SCREEN_STYLES.admin.itemCardSubtitle}>{restaurant.full_address || [restaurant.address, restaurant.city, restaurant.state, restaurant.zip_code, restaurant.country].filter(Boolean).join(', ')}</p>
                             <p style={{ ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[4], fontSize: '0.75rem' }}>Added: {createdAt.toLocaleDateString()} {wasUpdated && `• Updated: ${updatedAt.toLocaleDateString()}`}</p>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: SPACING[2], flexWrap: 'wrap' }}>
-                                <div style={{ display: 'flex', gap: SPACING[2] }}>
-                                  <button onClick={() => startEditRestaurant(restaurant)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Edit</button>
-                                  <button onClick={() => deleteRestaurant(restaurant.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.error, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Delete</button>
+                                <div style={SCREEN_STYLES.admin.itemCardActions}>
+                                  <button onClick={() => startEditRestaurant(restaurant)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Edit</button>
+                                  <button onClick={() => deleteRestaurant(restaurant.id)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
                                 </div>
-                                <button onClick={() => setViewingDishesForRestaurant(restaurant)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.success, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>See Dishes</button>
+                                <button onClick={() => setViewingDishesForRestaurant(restaurant)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.success, color: COLORS.white }}>See Dishes</button>
                             </div>
                           </div>
                         )}
@@ -1009,7 +992,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 <div style={{ position: 'relative' }}>
                   <input type="text" placeholder="Search by dish name..." value={dishSearchTerm} onChange={(e) => setDishSearchTerm(e.target.value)} style={STYLES.input} />
                   {dishSearchTerm && (
-                    <button onClick={() => setDishSearchTerm('')} style={{ position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: COLORS.textSecondary }}>
+                    <button onClick={() => setDishSearchTerm('')} style={SCREEN_STYLES.admin.clearSearchButton}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                     </button>
                   )}
@@ -1019,24 +1002,24 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 <p style={TYPOGRAPHY.body}>Loading...</p>
             ) : (
                 <>
-                  <div style={{ display: 'grid', gap: SPACING[4] }}>
+                  <div style={SCREEN_STYLES.admin.formGrid}>
                       {dishes.length > 0 ? dishes.map((dish) => (
-                          <div key={dish.id} style={{ background: COLORS.surface, padding: SPACING[4], borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.small }}>
+                          <div key={dish.id} style={SCREEN_STYLES.admin.itemCard}>
                           {editingDishId === dish.id ? (
-                              <div style={{ display: 'grid', gap: SPACING[2] }}>
+                              <div style={SCREEN_STYLES.admin.formGrid}>
                               <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} style={STYLES.input}/>
-                              <div style={{ display: 'flex', gap: SPACING[2] }}>
-                                  <button onClick={() => updateDish(dish.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Save</button>
-                                  <button onClick={() => setEditingDishId(null)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.border, color: COLORS.textPrimary, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Cancel</button>
+                              <div style={SCREEN_STYLES.admin.itemCardActions}>
+                                  <button onClick={() => updateDish(dish.id)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Save</button>
+                                  <button onClick={() => setEditingDishId(null)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.border, color: COLORS.textPrimary }}>Cancel</button>
                               </div>
                               </div>
                           ) : (
                               <div>
-                              <h3 style={{ ...TYPOGRAPHY.h3, marginBottom: SPACING[2] }}>{dish.name}</h3>
-                              <p style={{ ...TYPOGRAPHY.body, color: COLORS.textSecondary, marginBottom: SPACING[2] }}>Restaurant: {dish.restaurant_name || 'Unknown'}</p>
-                              <div style={{ display: 'flex', gap: SPACING[2] }}>
-                                  <button onClick={() => startEditDish(dish)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Edit</button>
-                                  <button onClick={() => deleteDish(dish.id)} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.error, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Delete</button>
+                              <h3 style={SCREEN_STYLES.admin.itemCardTitle}>{dish.name}</h3>
+                              <p style={SCREEN_STYLES.admin.itemCardSubtitle}>Restaurant: {dish.restaurant_name || 'Unknown'}</p>
+                              <div style={SCREEN_STYLES.admin.itemCardActions}>
+                                  <button onClick={() => startEditDish(dish)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Edit</button>
+                                  <button onClick={() => deleteDish(dish.id)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
                               </div>
                               </div>
                           )}
@@ -1056,25 +1039,25 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[4], marginBottom: SPACING[4] }}>
                 <div style={{ position: 'relative' }}>
                     <input type="text" placeholder="Filter by Restaurant Name..." value={commentRestaurantSearch} onChange={(e) => setCommentRestaurantSearch(e.target.value)} style={STYLES.input} />
-                    {commentRestaurantSearch && <button onClick={() => setCommentRestaurantSearch('')} style={{ position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: COLORS.textSecondary }}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>}
+                    {commentRestaurantSearch && <button onClick={() => setCommentRestaurantSearch('')} style={SCREEN_STYLES.admin.clearSearchButton}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>}
                 </div>
                 <div style={{ position: 'relative' }}>
                     <input type="text" placeholder="Filter by Dish Name..." value={commentDishSearch} onChange={(e) => setCommentDishSearch(e.target.value)} style={STYLES.input} />
-                    {commentDishSearch && <button onClick={() => setCommentDishSearch('')} style={{ position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: COLORS.textSecondary }}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>}
+                    {commentDishSearch && <button onClick={() => setCommentDishSearch('')} style={SCREEN_STYLES.admin.clearSearchButton}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>}
                 </div>
             </div>
             {loading ? ( <p style={TYPOGRAPHY.body}>Loading...</p>) : (
                 <>
-                <div style={{ display: 'grid', gap: SPACING[4] }}>
+                <div style={SCREEN_STYLES.admin.formGrid}>
                     {comments.map((comment) => (
-                    <div key={comment.id} style={{ background: comment.is_hidden ? COLORS.gray100 : COLORS.surface, padding: SPACING[4], borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.small, opacity: comment.is_hidden ? 0.7 : 1 }}>
+                    <div key={comment.id} style={{ ...SCREEN_STYLES.admin.itemCard, background: comment.is_hidden ? COLORS.gray100 : COLORS.surface, opacity: comment.is_hidden ? 0.7 : 1 }}>
                         <p style={{ ...TYPOGRAPHY.body, marginBottom: SPACING[2] }}>"{comment.comment}"</p>
-                        <p style={{ ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[2] }}>
-                            By: {comment.username || 'Unknown'} | Dish: <span style={linkStyle} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}?dish=${comment.dish_id}`)}>{comment.dish_name || 'Unknown'}</span> | Restaurant: <span style={linkStyle} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}`)}>{comment.restaurant_name || 'Unknown'}</span>
+                        <p style={SCREEN_STYLES.admin.itemCardSubtitle}>
+                            By: {comment.username || 'Unknown'} | Dish: <span style={SCREEN_STYLES.admin.link} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}?dish=${comment.dish_id}`)}>{comment.dish_name || 'Unknown'}</span> | Restaurant: <span style={SCREEN_STYLES.admin.link} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}`)}>{comment.restaurant_name || 'Unknown'}</span>
                         </p>
                         <div style={{display: 'flex', gap: SPACING[2], alignItems: 'center'}}>
-                            <button onClick={() => deleteComment(comment.id)} disabled={loading} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: COLORS.error, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>Delete</button>
-                            <button onClick={() => toggleCommentVisibility(comment.id, comment.is_hidden)} disabled={loading} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[2]} ${SPACING[4]}`, background: comment.is_hidden ? COLORS.success : COLORS.warning, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.small, cursor: 'pointer' }}>
+                            <button onClick={() => deleteComment(comment.id)} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
+                            <button onClick={() => toggleCommentVisibility(comment.id, comment.is_hidden)} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, background: comment.is_hidden ? COLORS.success : COLORS.warning, color: COLORS.white }}>
                                 {comment.is_hidden ? 'Unhide' : 'Hide'}
                             </button>
                             {comment.is_hidden && <span style={{...TYPOGRAPHY.caption, color: COLORS.error, fontWeight: 'bold'}}>HIDDEN</span>}
@@ -1099,11 +1082,11 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                       <label htmlFor="end-date" style={{...TYPOGRAPHY.caption, display: 'block', marginBottom: SPACING[1]}}>End Date</label>
                       <input id="end-date" type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} style={{...STYLES.input, width: 'auto'}} />
                   </div>
-                  <button onClick={fetchAnalyticsData} disabled={isAnalyticsLoading} style={{ ...TYPOGRAPHY.button, padding: `${SPACING[3]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, border: 'none', borderRadius: BORDERS.radius.medium, cursor: isAnalyticsLoading ? 'not-allowed' : 'pointer', alignSelf: 'flex-end', opacity: isAnalyticsLoading ? 0.6 : 1 }}>
+                  <button onClick={fetchAnalyticsData} disabled={isAnalyticsLoading} style={{ ...SCREEN_STYLES.admin.button, padding: `${SPACING[3]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, cursor: isAnalyticsLoading ? 'not-allowed' : 'pointer', alignSelf: 'flex-end', opacity: isAnalyticsLoading ? 0.6 : 1 }}>
                       {isAnalyticsLoading ? 'Loading...' : 'Fetch Activity'}
                   </button>
               </div>
-              {analyticsError && <div style={{...TYPOGRAPHY.body, color: COLORS.error, background: `${COLORS.error}10`, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[4]}}>{analyticsError}</div>}
+              {analyticsError && <div style={SCREEN_STYLES.admin.errorContainer}>{analyticsError}</div>}
               {isAnalyticsLoading && <p>Loading analytics data...</p>}
               {!isAnalyticsLoading && sortedAnalyticsData.length > 0 && (
                   <div style={{ overflowX: 'auto', background: COLORS.surface, borderRadius: BORDERS.radius.medium, padding: SPACING[2] }}>
@@ -1122,13 +1105,13 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                           <tbody>
                               {sortedAnalyticsData.map(user => (
                                   <tr key={user.userId} style={{ borderBottom: `1px solid ${COLORS.border}` }}>
-                                      <td style={{...tableCellStyle, fontWeight: TYPOGRAPHY.medium}}>{user.fullName || <span style={{color: COLORS.textSecondary}}>N/A</span>}</td>
-                                      <td style={tableCellStyle}>{user.email}</td>
-                                      <td style={{...tableCellStyle, textAlign: 'center'}}>{user.restaurantsViewed}</td>
-                                      <td style={{...tableCellStyle, textAlign: 'center'}}>{user.restaurantsAdded}</td>
-                                      <td style={{...tableCellStyle, textAlign: 'center'}}>{user.dishesRated}</td>
-                                      <td style={{...tableCellStyle, textAlign: 'center'}}>{user.dishesCommented}</td>
-                                      <td style={{...tableCellStyle, textAlign: 'center'}}>{user.dishesAdded}</td>
+                                      <td style={{...SCREEN_STYLES.admin.tableCell, fontWeight: TYPOGRAPHY.medium}}>{user.fullName || <span style={{color: COLORS.textSecondary}}>N/A</span>}</td>
+                                      <td style={SCREEN_STYLES.admin.tableCell}>{user.email}</td>
+                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.restaurantsViewed}</td>
+                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.restaurantsAdded}</td>
+                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.dishesRated}</td>
+                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.dishesCommented}</td>
+                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.dishesAdded}</td>
                                   </tr>
                               ))}
                           </tbody>

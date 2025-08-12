@@ -463,7 +463,7 @@ export const SCREEN_STYLES = {
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: COLORS.background,
-    },
+    } as React.CSSProperties,
     // Sticky Header
     stickyHeader: {
       backgroundColor: COLORS.white,
@@ -475,7 +475,7 @@ export const SCREEN_STYLES = {
       width: '100vw',
       marginLeft: 'calc(50% - 50vw)',
       marginRight: 'calc(50% - 50vw)',
-    },
+    } as React.CSSProperties,
     headerContainer: {
       maxWidth: '768px',
       margin: '0 auto',
@@ -483,14 +483,14 @@ export const SCREEN_STYLES = {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-    },
+    } as React.CSSProperties,
     restaurantNameContainer: {
       flex: 1,
       textAlign: 'center',
       margin: `0 ${SPACING[2]}`,
       overflow: 'hidden',
       cursor: 'pointer',
-    },
+    } as React.CSSProperties,
     restaurantName: {
       ...FONTS.heading,
       fontSize: TYPOGRAPHY.xl.fontSize,
@@ -499,7 +499,7 @@ export const SCREEN_STYLES = {
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
-    },
+    } as React.CSSProperties,
     address: {
       ...FONTS.elegant,
       color: COLORS.text,
@@ -510,20 +510,20 @@ export const SCREEN_STYLES = {
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
-    },
+    } as React.CSSProperties,
     headerButtonsContainer: {
       display: 'flex',
       alignItems: 'center',
       gap: SPACING[2],
-    },
+    } as React.CSSProperties,
     pinButton: {
       ...STYLES.iconButton,
       border: 'none',
-    },
+    } as React.CSSProperties,
     actionMenu: {
       container: {
         position: 'relative',
-      },
+      } as React.CSSProperties,
       dropdown: {
         position: 'absolute',
         top: 'calc(100% + 4px)',
@@ -535,7 +535,7 @@ export const SCREEN_STYLES = {
         overflow: 'hidden',
         zIndex: STYLES.zDropdown,
         minWidth: '160px',
-      },
+      } as React.CSSProperties,
       menuItem: {
         display: 'flex',
         alignItems: 'center',
@@ -550,10 +550,10 @@ export const SCREEN_STYLES = {
         textAlign: 'left',
         transition: 'background-color 0.2s ease',
         color: COLORS.text,
-      },
+      } as React.CSSProperties,
       menuItemDanger: {
         color: COLORS.danger,
-      },
+      } as React.CSSProperties,
     },
     // Main Content Area
     main: {
@@ -562,12 +562,12 @@ export const SCREEN_STYLES = {
       width: '100%',
       margin: '0 auto',
       paddingTop: SPACING[4],
-    },
+    } as React.CSSProperties,
     mainInnerContainer: {
       display: 'flex',
       flexDirection: 'column',
       padding: `0 ${SPACING[1]}`,
-    },
+    } as React.CSSProperties,
     // Error Message
     error: {
       container: {
@@ -577,12 +577,12 @@ export const SCREEN_STYLES = {
         padding: SPACING[4],
         textAlign: 'center',
         marginBottom: SPACING[4],
-      },
+      } as React.CSSProperties,
       text: {
         ...FONTS.body,
         color: COLORS.danger,
         margin: 0,
-      },
+      } as React.CSSProperties,
     },
     // Advanced Sort Section
     advancedSort: {
@@ -593,29 +593,29 @@ export const SCREEN_STYLES = {
         boxShadow: STYLES.shadowMedium,
         border: `1px solid ${COLORS.gray200}`,
         marginBottom: SPACING[4],
-      },
+      } as React.CSSProperties,
       innerContainer: {
         display: 'flex',
         gap: SPACING[2],
         flexWrap: 'wrap',
-      },
+      } as React.CSSProperties,
       arrow: {
         marginLeft: SPACING[1],
-      },
+      } as React.CSSProperties,
     },
     // Search Component Wrapper
     searchWrapper: {
       marginLeft: SPACING[1],
       marginRight: SPACING[1],
       marginBottom: SPACING[5],
-    },
+    } as React.CSSProperties,
     // Dish List
     dishList: {
       container: {
         display: 'flex',
         flexDirection: 'column',
         gap: SPACING[2],
-      },
+      } as React.CSSProperties,
       noResultsContainer: {
         textAlign: 'center',
         padding: SPACING[6],
@@ -623,13 +623,13 @@ export const SCREEN_STYLES = {
         borderRadius: STYLES.borderRadiusLarge,
         boxShadow: STYLES.shadowMedium,
         border: `1px solid ${COLORS.gray200}`,
-      },
+      } as React.CSSProperties,
       noResultsText: {
         ...FONTS.body,
         fontSize: TYPOGRAPHY.base.fontSize,
         color: COLORS.textSecondary,
         margin: 0,
-      },
+      } as React.CSSProperties,
     },
     // Empty State (No Dishes)
     emptyState: {
@@ -640,35 +640,35 @@ export const SCREEN_STYLES = {
         textAlign: 'center',
         boxShadow: STYLES.shadowMedium,
         border: `1px solid ${COLORS.gray200}`,
-      },
+      } as React.CSSProperties,
       icon: {
         color: COLORS.gray400,
         marginBottom: SPACING[4],
-      },
+      } as React.CSSProperties,
       title: {
         ...FONTS.heading,
         fontSize: TYPOGRAPHY.xl.fontSize,
         color: COLORS.gray900,
         marginBottom: SPACING[3],
-      },
+      } as React.CSSProperties,
       text: {
         ...FONTS.body,
         fontSize: TYPOGRAPHY.base.fontSize,
         color: COLORS.textSecondary,
         marginBottom: SPACING[5],
-      },
+      } as React.CSSProperties,
     },
     // Add Form Container
     addFormContainer: {
       marginTop: SPACING[4],
-    },
+    } as React.CSSProperties,
     // Full Name Modal
     fullNameModal: {
       content: {
         ...STYLES.modal,
         maxWidth: '500px',
         textAlign: 'center',
-      },
+      } as React.CSSProperties,
       name: {
         ...FONTS.elegant,
         color: COLORS.text,
@@ -676,7 +676,7 @@ export const SCREEN_STYLES = {
         fontWeight: 500,
         lineHeight: 1.4,
         wordBreak: 'break-word',
-      },
+      } as React.CSSProperties,
       address: {
         ...FONTS.elegant,
         color: COLORS.textSecondary,
@@ -684,11 +684,11 @@ export const SCREEN_STYLES = {
         lineHeight: 1.5,
         marginBottom: SPACING[6],
         wordBreak: 'break-word',
-      },
+      } as React.CSSProperties,
       closeButton: {
         ...STYLES.secondaryButton,
         width: '100%',
-      },
+      } as React.CSSProperties,
     },
     // --- Sub-components defined in MenuScreen ---
     // Duplicate Dish Warning Modal
@@ -697,18 +697,18 @@ export const SCREEN_STYLES = {
         ...STYLES.modal,
         maxWidth: '500px',
         border: `1px solid ${COLORS.border}`,
-      },
+      } as React.CSSProperties,
       title: {
         ...TYPOGRAPHY.h3,
         color: COLORS.textPrimary,
         marginTop: 0,
         marginBottom: SPACING[2],
-      },
+      } as React.CSSProperties,
       text: {
         ...TYPOGRAPHY.body,
         color: COLORS.textSecondary,
         marginBottom: SPACING[4],
-      },
+      } as React.CSSProperties,
       list: {
         listStyle: 'none',
         padding: 0,
@@ -717,28 +717,28 @@ export const SCREEN_STYLES = {
         overflowY: 'auto',
         border: `1px solid ${COLORS.border}`,
         borderRadius: BORDERS.radius.medium,
-      },
+      } as React.CSSProperties,
       listItem: {
         padding: `${SPACING[2]} ${SPACING[3]}`,
         cursor: 'pointer',
         color: COLORS.primary,
         fontWeight: TYPOGRAPHY.semibold,
         transition: 'background-color 0.2s ease',
-      },
+      } as React.CSSProperties,
       buttonContainer: {
         display: 'flex',
         gap: SPACING[3],
-      },
+      } as React.CSSProperties,
       cancelButton: {
         ...STYLES.secondaryButton,
         flex: 1,
         border: `1px solid ${COLORS.gray300}`,
         color: COLORS.text,
-      },
+      } as React.CSSProperties,
       confirmButton: {
         ...STYLES.primaryButton,
         flex: 1,
-      },
+      } as React.CSSProperties,
     },
     // Consolidated Search and Add Form
     search: {
@@ -748,19 +748,19 @@ export const SCREEN_STYLES = {
         WebkitBackdropFilter: 'blur(4px)',
         borderRadius: STYLES.borderRadiusLarge,
         padding: SPACING[4],
-      },
+      } as React.CSSProperties,
       header: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: SPACING[1],
-      },
+      } as React.CSSProperties,
       title: {
         ...FONTS.heading,
         fontSize: TYPOGRAPHY.lg.fontSize,
         color: COLORS.text,
         margin: 0,
-      },
+      } as React.CSSProperties,
       resetButton: {
         background: 'transparent',
         border: 'none',
@@ -768,22 +768,22 @@ export const SCREEN_STYLES = {
         cursor: 'pointer',
         color: COLORS.textSecondary,
         transition: 'color 0.2s ease, transform 0.2s ease',
-      },
+      } as React.CSSProperties,
       addDishContainer: {
         marginTop: SPACING[4],
         textAlign: 'center',
-      },
+      } as React.CSSProperties,
       addDishText: {
         ...FONTS.body,
         fontSize: TYPOGRAPHY.sm.fontSize,
         color: COLORS.textSecondary,
         margin: `0 0 ${SPACING[2]} 0`,
-      },
+      } as React.CSSProperties,
       addDishButton: {
         ...STYLES.primaryButton,
         padding: `${SPACING[2]} ${SPACING[4]}`,
         fontSize: TYPOGRAPHY.sm.fontSize,
-      },
+      } as React.CSSProperties,
     },
     // Enhanced Add Dish Form
     addDishForm: {
@@ -793,16 +793,16 @@ export const SCREEN_STYLES = {
         padding: SPACING[6],
         boxShadow: STYLES.shadowLarge,
         border: `1px solid ${COLORS.gray200}`,
-      },
+      } as React.CSSProperties,
       title: {
         ...FONTS.heading,
         fontSize: TYPOGRAPHY.xl.fontSize,
         color: COLORS.gray900,
         marginBottom: SPACING[5],
-      },
+      } as React.CSSProperties,
       inputContainer: {
         marginBottom: SPACING[5],
-      },
+      } as React.CSSProperties,
       label: {
         ...FONTS.body,
         fontSize: TYPOGRAPHY.sm.fontSize,
@@ -810,51 +810,665 @@ export const SCREEN_STYLES = {
         color: COLORS.textSecondary,
         display: 'block',
         marginBottom: SPACING[2],
-      },
+      } as React.CSSProperties,
       input: {
         ...STYLES.input,
         borderWidth: '1px',
-      },
+      } as React.CSSProperties,
       ratingContainer: {
         marginBottom: SPACING[6],
-      },
+      } as React.CSSProperties,
       starButtonContainer: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: SPACING[2],
-      },
+      } as React.CSSProperties,
       starButtonsInnerContainer: {
         display: 'flex',
         gap: SPACING[1],
-      },
+      } as React.CSSProperties,
       starButton: {
         background: 'none',
         border: 'none',
         padding: SPACING[1],
         fontSize: '1.5rem',
         transition: 'all 0.2s ease',
-      },
+      } as React.CSSProperties,
       ratingText: {
         ...FONTS.body,
         fontSize: TYPOGRAPHY.base.fontSize,
         color: COLORS.text,
         marginLeft: SPACING[2],
         minWidth: '30px',
-      },
+      } as React.CSSProperties,
       buttonContainer: {
         display: 'flex',
         gap: SPACING[3],
-      },
+      } as React.CSSProperties,
       submitButton: {
         ...STYLES.primaryButton,
         flex: 1,
-      },
+      } as React.CSSProperties,
       cancelButton: {
         ...STYLES.secondaryButton,
         flex: 1,
-      },
+      } as React.CSSProperties,
     },
+  },
+  findRestaurant: {
+    container: {
+      backgroundColor: COLORS.background,
+      minHeight: '100vh',
+    } as React.CSSProperties,
+    spinAnimation: `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `,
+    header: {
+      backgroundColor: COLORS.navBarDark,
+      marginLeft: 'calc(-50vw + 50%)',
+      marginRight: 'calc(-50vw + 50%)',
+      marginBottom: SPACING[6],
+    } as React.CSSProperties,
+    headerInner: {
+      paddingTop: `calc(60px + ${SPACING[4]})`,
+      paddingBottom: SPACING[6],
+    } as React.CSSProperties,
+    headerImage: {
+      width: '180px',
+      marginTop: SPACING[4],
+      marginBottom: SPACING[4],
+      border: `2px solid ${COLORS.white}`,
+      borderRadius: STYLES.borderRadiusMedium,
+      height: 'auto',
+      objectFit: 'contain',
+    } as React.CSSProperties,
+    headerTitle: {
+      ...TYPOGRAPHY.h1,
+      color: COLORS.textWhite,
+      marginBottom: SPACING[6],
+    } as React.CSSProperties,
+    searchBarContainer: {
+      maxWidth: '350px',
+    } as React.CSSProperties,
+    searchBar: {
+      ...STYLES.input,
+      cursor: 'pointer',
+      color: COLORS.textSecondary,
+      display: 'flex',
+      alignItems: 'center',
+      gap: SPACING[2],
+    } as React.CSSProperties,
+    mainContent: {
+      overflow: 'hidden',
+    } as React.CSSProperties,
+    mainContentInner: {
+      maxWidth: RESTAURANT_CARD_MAX_WIDTH,
+    } as React.CSSProperties,
+    addRestaurantTitle: {
+      ...FONTS.elegant,
+      color: COLORS.text,
+      fontSize: '18px',
+      fontWeight: 500,
+    } as React.CSSProperties,
+    refreshButton: {
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+    } as React.CSSProperties,
+    distanceLabel: {
+      ...FONTS.elegant,
+      color: COLORS.accent,
+      fontSize: '1rem',
+      fontWeight: 500,
+      marginLeft: '16px',
+      marginRight: '12px',
+    } as React.CSSProperties,
+    distanceSelect: {
+      border: `1px solid ${COLORS.gray300}`,
+      borderRadius: '8px',
+      padding: '0.25rem 0.5rem',
+      fontSize: '0.875rem',
+      backgroundColor: COLORS.white,
+      cursor: 'pointer',
+      appearance: 'none',
+      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+      backgroundPosition: 'right 0.5rem center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: '1.25em 1.25em',
+      paddingRight: '2rem',
+    } as React.CSSProperties,
+  },
+  discovery: {
+    container: {
+      backgroundColor: COLORS.background,
+      minHeight: '100vh',
+    } as React.CSSProperties,
+    header: {
+      backgroundColor: COLORS.navBarDark,
+      marginLeft: 'calc(-50vw + 50%)',
+      marginRight: 'calc(-50vw + 50%)',
+      marginBottom: SPACING[6],
+    } as React.CSSProperties,
+    headerInner: {
+      paddingTop: `calc(60px + ${SPACING[4]})`,
+      paddingBottom: SPACING[6],
+    } as React.CSSProperties,
+    headerImage: {
+      width: '180px',
+      marginTop: SPACING[4],
+      marginBottom: SPACING[4],
+      border: `2px solid ${COLORS.white}`,
+      borderRadius: STYLES.borderRadiusMedium,
+      height: 'auto',
+      objectFit: 'contain',
+    } as React.CSSProperties,
+    headerTitle: {
+      ...TYPOGRAPHY.h1,
+      color: COLORS.textWhite,
+      marginBottom: SPACING[6],
+    } as React.CSSProperties,
+    searchBarContainer: {
+      maxWidth: '350px',
+      position: 'relative',
+    } as React.CSSProperties,
+    resetButton: {
+      position: 'absolute',
+      top: '-30px',
+      right: '-5px',
+      background: 'transparent',
+      border: 'none',
+      padding: 0,
+      cursor: 'pointer',
+      color: COLORS.white,
+      opacity: 0.7,
+      transition: 'all 0.2s ease',
+    } as React.CSSProperties,
+    filtersContainer: {
+      display: 'flex',
+      gap: SPACING[3],
+      marginTop: SPACING[4],
+      width: '100%',
+      maxWidth: '350px',
+    } as React.CSSProperties,
+    filterContainer: {
+      flex: 1,
+    } as React.CSSProperties,
+    select: {
+      border: `1px solid ${COLORS.gray300}`,
+      borderRadius: '8px',
+      padding: '0.5rem 0.75rem',
+      fontSize: '0.875rem',
+      backgroundColor: COLORS.white,
+      color: COLORS.text,
+      cursor: 'pointer',
+      appearance: 'none',
+      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+      backgroundPosition: 'right 0.5rem center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: '1.25em 1.25em',
+      paddingRight: '2.5rem',
+      width: '100%',
+    } as React.CSSProperties,
+    main: {
+      maxWidth: RESTAURANT_CARD_MAX_WIDTH,
+    } as React.CSSProperties,
+    contentContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: SPACING[4],
+    } as React.CSSProperties,
+    messageText: {
+      ...FONTS.elegant,
+      color: COLORS.text,
+      fontSize: '18px',
+      fontWeight: '500',
+      marginBottom: '8px',
+    } as React.CSSProperties,
+    messageSubText: {
+      ...FONTS.elegant,
+      color: COLORS.text,
+      opacity: 0.7,
+    } as React.CSSProperties,
+    errorText: {
+      ...FONTS.elegant,
+      color: COLORS.danger,
+      fontSize: '18px',
+      fontWeight: '500',
+      marginBottom: '8px',
+    } as React.CSSProperties,
+    restaurantHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottom: `1px solid ${COLORS.gray200}`,
+      paddingBottom: SPACING[2],
+    } as React.CSSProperties,
+    restaurantName: {
+      ...FONTS.elegant,
+      fontSize: '1.125rem',
+      fontWeight: '600',
+      color: COLORS.primary,
+      margin: 0,
+      cursor: 'pointer',
+    } as React.CSSProperties,
+    restaurantDistance: {
+      ...FONTS.elegant,
+      color: COLORS.accent,
+      fontWeight: TYPOGRAPHY.semibold,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      flexShrink: 0,
+      marginLeft: SPACING[3],
+    } as React.CSSProperties,
+    dishesContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: SPACING[2],
+    } as React.CSSProperties,
+  },
+  ratings: {
+    header: {
+      backgroundColor: COLORS.navBarDark,
+      marginLeft: 'calc(-50vw + 50%)',
+      marginRight: 'calc(-50vw + 50%)',
+    } as React.CSSProperties,
+    headerInner: {
+      maxWidth: '700px',
+      margin: '0 auto',
+      padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+    } as React.CSSProperties,
+    headerImage: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain',
+      marginBottom: SPACING[4],
+      border: `2px solid ${COLORS.white}`,
+      borderRadius: STYLES.borderRadiusMedium,
+    } as React.CSSProperties,
+    headerTitle: {
+      ...TYPOGRAPHY.h1,
+      color: COLORS.textWhite,
+      marginBottom: SPACING[4],
+    } as React.CSSProperties,
+    searchBarContainer: {
+      maxWidth: '450px',
+      position: 'relative',
+    } as React.CSSProperties,
+    searchInput: {
+      ...STYLES.input,
+      textAlign: 'center',
+    } as React.CSSProperties,
+    resetButton: {
+      position: 'absolute',
+      top: '-30px',
+      right: '-5px',
+      background: 'transparent',
+      border: 'none',
+      padding: 0,
+      cursor: 'pointer',
+      color: COLORS.white,
+      opacity: 0.7,
+      transition: 'all 0.2s ease',
+    } as React.CSSProperties,
+    body: {
+      maxWidth: '768px',
+      margin: `${SPACING[6]} auto 0`,
+      padding: `0 ${SPACING[4]} ${SPACING[12]} `,
+    } as React.CSSProperties,
+    errorContainer: {
+      textAlign: 'center',
+      color: COLORS.danger,
+    } as React.CSSProperties,
+    dishesContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: SPACING[4],
+    } as React.CSSProperties,
+    emptyStateContainer: {
+      textAlign: 'center',
+      color: COLORS.textSecondary,
+      padding: SPACING[8],
+    } as React.CSSProperties,
+    emptyStateLink: {
+      ...STYLES.primaryButton,
+      marginTop: SPACING[4],
+    } as React.CSSProperties,
+    card: {
+      ...STYLES.card,
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+    } as React.CSSProperties,
+    cardInner: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    } as React.CSSProperties,
+    cardContent: {
+      flex: 1,
+      minWidth: 0,
+      paddingRight: SPACING[3],
+    } as React.CSSProperties,
+    cardTitle: {
+      ...FONTS.heading,
+      fontSize: TYPOGRAPHY.lg.fontSize,
+      color: COLORS.gray900,
+      margin: `0 0 ${SPACING[1]} 0`,
+    } as React.CSSProperties,
+    cardSubtitle: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      color: COLORS.textSecondary,
+      margin: `0 0 ${SPACING[3]} 0`,
+      display: 'flex',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: SPACING[1],
+    } as React.CSSProperties,
+    cardRestaurantLink: {
+      color: COLORS.primary,
+      fontWeight: '500',
+    } as React.CSSProperties,
+    cardDistance: {
+      ...FONTS.elegant,
+      color: COLORS.accent,
+      fontWeight: TYPOGRAPHY.semibold,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      marginLeft: SPACING[1],
+    } as React.CSSProperties,
+    cardRatingsContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: SPACING[1],
+    } as React.CSSProperties,
+    cardRatingRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: SPACING[2],
+    } as React.CSSProperties,
+    cardRatingLabel: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.sm.fontSize,
+      fontWeight: TYPOGRAPHY.medium,
+      color: COLORS.textSecondary,
+      width: '70px',
+    } as React.CSSProperties,
+    cardRatingValue: {
+      ...TYPOGRAPHY.sm,
+      color: COLORS.text,
+      fontWeight: '500',
+    } as React.CSSProperties,
+    cardPhotoContainer: {
+      width: '80px',
+      height: '80px',
+      borderRadius: STYLES.borderRadiusMedium,
+      overflow: 'hidden',
+      flexShrink: 0,
+    } as React.CSSProperties,
+    cardPhoto: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+    } as React.CSSProperties,
+  },
+  profile: {
+    container: {
+      minHeight: '100vh',
+      backgroundColor: COLORS.background,
+      paddingTop: SPACING[4],
+    } as React.CSSProperties,
+    noUserContainer: {
+      backgroundColor: COLORS.white,
+      borderRadius: STYLES.borderRadiusLarge,
+      padding: `${SPACING[12]} ${SPACING[6]}`,
+      boxShadow: STYLES.shadowMedium,
+      border: `1px solid ${COLORS.gray200}`,
+      textAlign: 'center',
+    } as React.CSSProperties,
+    noUserIcon: {
+      fontSize: '3rem',
+      marginBottom: SPACING[3],
+    } as React.CSSProperties,
+    noUserText: {
+      ...FONTS.body,
+      fontSize: TYPOGRAPHY.base.fontSize,
+      color: COLORS.textSecondary,
+      margin: 0,
+    } as React.CSSProperties,
+  },
+  admin: {
+    container: {
+      padding: SPACING[4],
+      maxWidth: '1200px',
+      margin: '0 auto',
+    } as React.CSSProperties,
+    title: {
+      ...TYPOGRAPHY.h1,
+      marginBottom: SPACING[6],
+    } as React.CSSProperties,
+    tabsContainer: {
+      display: 'flex',
+      gap: SPACING[2],
+      marginBottom: SPACING[6],
+      borderBottom: `2px solid ${COLORS.border}`,
+      paddingBottom: SPACING[2],
+      flexWrap: 'wrap',
+    } as React.CSSProperties,
+    tabButton: {
+      ...TYPOGRAPHY.button,
+      padding: `${SPACING[2]} ${SPACING[4]}`,
+      border: 'none',
+      borderRadius: `${BORDERS.radius.medium} ${BORDERS.radius.medium} 0 0`,
+      cursor: 'pointer',
+    } as React.CSSProperties,
+    errorContainer: {
+      ...TYPOGRAPHY.body,
+      color: COLORS.error,
+      background: `${COLORS.error}10`,
+      padding: SPACING[4],
+      borderRadius: BORDERS.radius.medium,
+      marginBottom: SPACING[4],
+      cursor: 'pointer',
+    } as React.CSSProperties,
+    section: {
+      background: COLORS.surface,
+      padding: SPACING[6],
+      borderRadius: BORDERS.radius.large,
+      marginBottom: SPACING[6],
+      boxShadow: SHADOWS.small,
+    } as React.CSSProperties,
+    sectionHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: SPACING[4],
+    } as React.CSSProperties,
+    sectionTitle: {
+      ...TYPOGRAPHY.h2,
+      margin: 0,
+    } as React.CSSProperties,
+    formGrid: {
+      display: 'grid',
+      gap: SPACING[4],
+    } as React.CSSProperties,
+    button: {
+      ...TYPOGRAPHY.button,
+      padding: `${SPACING[2]} ${SPACING[4]}`,
+      border: 'none',
+      borderRadius: BORDERS.radius.small,
+      cursor: 'pointer',
+    } as React.CSSProperties,
+    resetButton: {
+      background: 'transparent',
+      border: 'none',
+      padding: '4px',
+      cursor: 'pointer',
+      color: COLORS.textSecondary,
+      transition: 'color 0.2s ease, transform 0.2s ease',
+    } as React.CSSProperties,
+    clearSearchButton: {
+      position: 'absolute',
+      top: '50%',
+      right: '12px',
+      transform: 'translateY(-50%)',
+      background: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      color: COLORS.textSecondary,
+    } as React.CSSProperties,
+    itemCard: {
+      background: COLORS.surface,
+      padding: SPACING[4],
+      borderRadius: BORDERS.radius.medium,
+      boxShadow: SHADOWS.small,
+    } as React.CSSProperties,
+    itemCardTitle: {
+      ...TYPOGRAPHY.h3,
+      marginBottom: SPACING[2],
+    } as React.CSSProperties,
+    itemCardSubtitle: {
+      ...TYPOGRAPHY.body,
+      color: COLORS.textSecondary,
+      marginBottom: SPACING[2],
+    } as React.CSSProperties,
+    itemCardActions: {
+      display: 'flex',
+      gap: SPACING[2],
+    } as React.CSSProperties,
+    link: {
+      color: COLORS.primary,
+      textDecoration: 'underline',
+      cursor: 'pointer',
+    } as React.CSSProperties,
+    tableHeader: {
+      ...TYPOGRAPHY.caption,
+      fontWeight: TYPOGRAPHY.semibold,
+      padding: SPACING[3],
+      textAlign: 'left',
+      borderBottom: `2px solid ${COLORS.border}`,
+    } as React.CSSProperties,
+    tableCell: {
+      ...TYPOGRAPHY.body,
+      padding: SPACING[3],
+    } as React.CSSProperties,
+    paginationContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: SPACING[2],
+      marginTop: SPACING[4],
+      flexWrap: 'wrap',
+    } as React.CSSProperties,
+    paginationButton: {
+      ...TYPOGRAPHY.button,
+      ...STYLES.sortButtonDefault,
+    } as React.CSSProperties,
+    paginationText: {
+      ...TYPOGRAPHY.body,
+      padding: `0 ${SPACING[2]}`,
+    } as React.CSSProperties,
+    accessDeniedContainer: {
+      padding: SPACING[4],
+      textAlign: 'center',
+    } as React.CSSProperties,
+    accessDeniedTitle: {
+      ...TYPOGRAPHY.h2,
+      color: COLORS.error,
+    } as React.CSSProperties,
+    accessDeniedText: {
+      ...TYPOGRAPHY.body,
+      marginTop: SPACING[2],
+    } as React.CSSProperties,
+  },
+  about: {
+    header: {
+      backgroundColor: COLORS.navBarDark,
+      marginLeft: 'calc(-50vw + 50%)',
+      marginRight: 'calc(-50vw + 50%)',
+    } as React.CSSProperties,
+    headerInner: {
+      maxWidth: '700px',
+      margin: '0 auto',
+      padding: `calc(60px + ${SPACING[4]}) ${SPACING[8]} ${SPACING[6]}`,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+    } as React.CSSProperties,
+    headerImage: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain',
+      marginBottom: SPACING[4],
+      border: `2px solid ${COLORS.white}`,
+      borderRadius: STYLES.borderRadiusMedium,
+    } as React.CSSProperties,
+    headerTitle: {
+      ...TYPOGRAPHY.h1,
+      color: COLORS.textWhite,
+      marginBottom: SPACING[4],
+    } as React.CSSProperties,
+    headerSubtitle: {
+      ...TYPOGRAPHY.body,
+      color: COLORS.textWhite,
+      lineHeight: 1.7,
+    } as React.CSSProperties,
+    body: {
+      maxWidth: '700px',
+      margin: `${SPACING[8]} auto 0`,
+      padding: `0 ${SPACING[4]} ${SPACING[12]}`,
+      color: COLORS.text,
+    } as React.CSSProperties,
+    bodyInner: {
+      ...TYPOGRAPHY.body,
+      lineHeight: 1.7,
+    } as React.CSSProperties,
+    sectionTitle: {
+      ...TYPOGRAPHY.h2,
+      marginTop: 0,
+      marginBottom: SPACING[3],
+    } as React.CSSProperties,
+    sectionTitleSpaced: {
+      ...TYPOGRAPHY.h2,
+      marginTop: SPACING[8],
+      marginBottom: SPACING[3],
+    } as React.CSSProperties,
+    list: {
+      paddingLeft: SPACING[5],
+      listStyle: 'decimal',
+    } as React.CSSProperties,
+    listItem: {
+      marginBottom: SPACING[3],
+    } as React.CSSProperties,
+    communityBox: {
+      marginTop: SPACING[10],
+      padding: SPACING[6],
+      backgroundColor: '#cac2af',
+      borderRadius: STYLES.borderRadiusLarge,
+      textAlign: 'center',
+    } as React.CSSProperties,
+    communityTitle: {
+      ...TYPOGRAPHY.h3,
+      marginTop: 0,
+      marginBottom: SPACING[3],
+      color: COLORS.accent,
+    } as React.CSSProperties,
+    communityText: {
+      margin: `0 0 ${SPACING[4]} 0`,
+    } as React.CSSProperties,
+    communityLink: {
+      ...STYLES.primaryButton,
+      backgroundColor: COLORS.accent,
+    } as React.CSSProperties,
   }
 };
 

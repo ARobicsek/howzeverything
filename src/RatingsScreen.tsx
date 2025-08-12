@@ -4,14 +4,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, SCREEN_STYLES, STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
 import { useLocationService } from './hooks/useLocationService';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
 
 
-const SEARCH_BAR_WIDTH = '450px';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
 
 
@@ -31,11 +30,7 @@ const RatedDishCard: React.FC<{
   return (
     <div
       onClick={handleNavigate}
-      style={{
-        ...STYLES.card,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-      }}
+      style={SCREEN_STYLES.ratings.card}
       onMouseEnter={(e) => {
         const target = e.currentTarget;
         target.style.borderColor = COLORS.accent;
@@ -47,37 +42,37 @@ const RatedDishCard: React.FC<{
         target.style.boxShadow = STYLES.shadowSmall;
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ flex: 1, minWidth: 0, paddingRight: SPACING[3] }}>
-          <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: `0 0 ${SPACING[1]} 0` }}>
+      <div style={SCREEN_STYLES.ratings.cardInner}>
+        <div style={SCREEN_STYLES.ratings.cardContent}>
+          <h3 style={SCREEN_STYLES.ratings.cardTitle}>
             {item.name}
           </h3>
-          <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, color: COLORS.textSecondary, margin: `0 0 ${SPACING[3]} 0`, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: SPACING[1] }}>
+          <p style={SCREEN_STYLES.ratings.cardSubtitle}>
             <span>at</span>
-            <Link to={`/restaurants/${item.restaurant.id}`} onClick={(e) => e.stopPropagation()} style={{ color: COLORS.primary, fontWeight: '500' }}>{item.restaurant.name}</Link>
+            <Link to={`/restaurants/${item.restaurant.id}`} onClick={(e) => e.stopPropagation()} style={SCREEN_STYLES.ratings.cardRestaurantLink}>{item.restaurant.name}</Link>
             {item.distanceFormatted && (
-                <span style={{ ...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, marginLeft: SPACING[1] }}>
+                <span style={SCREEN_STYLES.ratings.cardDistance}>
                     • {item.distanceFormatted}
                 </span>
             )}
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[1] }}>
+          <div style={SCREEN_STYLES.ratings.cardRatingsContainer}>
             {myRating && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-                <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Me:</span>
+              <div style={SCREEN_STYLES.ratings.cardRatingRow}>
+                <span style={SCREEN_STYLES.ratings.cardRatingLabel}>Me:</span>
                 <StarRating rating={myRating.rating} variant="personal" size="sm" />
               </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-              <span style={{ ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize, fontWeight: TYPOGRAPHY.medium, color: COLORS.textSecondary, width: '70px' }}>Average:</span>
+            <div style={SCREEN_STYLES.ratings.cardRatingRow}>
+              <span style={SCREEN_STYLES.ratings.cardRatingLabel}>Average:</span>
               <StarRating rating={item.average_rating} variant="community" size="sm" />
-              <span style={{ ...TYPOGRAPHY.sm, color: COLORS.text, fontWeight: '500' }}>{item.average_rating.toFixed(1)}</span>
+              <span style={SCREEN_STYLES.ratings.cardRatingValue}>{item.average_rating.toFixed(1)}</span>
             </div>
           </div>
         </div>
         {item.photos && item.photos.length > 0 && (
-          <div style={{ width: '80px', height: '80px', borderRadius: STYLES.borderRadiusMedium, overflow: 'hidden', flexShrink: 0 }}>
-            <img src={item.photos[0].url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={SCREEN_STYLES.ratings.cardPhotoContainer}>
+            <img src={item.photos[0].url} alt={item.name} style={SCREEN_STYLES.ratings.cardPhoto} />
           </div>
         )}
       </div>
@@ -190,58 +185,28 @@ const RatingsScreen: React.FC = () => {
   return (
     <div>
       {/* HEADER SECTION */}
-      <div style={{
-        backgroundColor: COLORS.navBarDark,
-        marginLeft: 'calc(-50vw + 50%)',
-        marginRight: 'calc(-50vw + 50%)',
-      }}>
-        <div style={{
-          maxWidth: '700px',
-          margin: '0 auto',
-          padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-        }}>
+      <div style={SCREEN_STYLES.ratings.header}>
+        <div style={SCREEN_STYLES.ratings.headerInner}>
           <img
             src="/my_ratings.png"
             alt="Person rating food"
-            style={{
-              width: '180px',
-              height: 'auto',
-              objectFit: 'contain',
-              marginBottom: SPACING[4],
-              border: `2px solid ${COLORS.white}`,
-              borderRadius: STYLES.borderRadiusMedium,
-            }}
+            style={SCREEN_STYLES.ratings.headerImage}
           />
-          <h1 style={{ ...TYPOGRAPHY.h1, color: COLORS.textWhite, marginBottom: SPACING[4] }}>
+          <h1 style={SCREEN_STYLES.ratings.headerTitle}>
             My Ratings
           </h1>
-          <div className="w-full" style={{ maxWidth: SEARCH_BAR_WIDTH, position: 'relative' }}>
+          <div className="w-full" style={SCREEN_STYLES.ratings.searchBarContainer}>
              <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="e.g. pizza, Chez Frontenac"
-              style={{ ...STYLES.input, textAlign: 'center' }}
+              style={SCREEN_STYLES.ratings.searchInput}
             />
             {searchTerm.trim().length > 0 && (
               <button
                 onClick={() => setSearchTerm('')}
-                style={{
-                    position: 'absolute',
-                    top: '-30px',
-                    right: '-5px',
-                    background: 'transparent',
-                    border: 'none',
-                    padding: 0,
-                    cursor: 'pointer',
-                    color: COLORS.white,
-                    opacity: 0.7,
-                    transition: 'all 0.2s ease',
-                }}
+                style={SCREEN_STYLES.ratings.resetButton}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'scale(1)'; }}
                 aria-label="Reset search" title="Reset search"
@@ -255,30 +220,26 @@ const RatingsScreen: React.FC = () => {
 
 
       {/* BODY SECTION */}
-      <div style={{
-        maxWidth: '768px',
-        margin: `${SPACING[6]} auto 0`,
-        padding: `0 ${SPACING[4]} ${SPACING[12]} `,
-      }}>
+      <div style={SCREEN_STYLES.ratings.body}>
         {isLoading ? (
           <LoadingScreen message="Loading your ratings..." />
         ) : error ? (
-          <div style={{ textAlign: 'center', color: COLORS.danger }}>
+          <div style={SCREEN_STYLES.ratings.errorContainer}>
             <p>{error}</p>
             <button onClick={loadRatedDishes} style={STYLES.primaryButton}>Try Again</button>
           </div>
         ) : filteredDishes.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
+          <div style={SCREEN_STYLES.ratings.dishesContainer}>
             {filteredDishes.map((item) => {
               const myRating = item.ratings.find((r) => r.user_id === user?.id);
               return <RatedDishCard key={item.id} item={item} myRating={myRating} />;
             })}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', color: COLORS.textSecondary, padding: SPACING[8] }}>
+          <div style={SCREEN_STYLES.ratings.emptyStateContainer}>
             <p>{searchTerm ? `No matches found for "${searchTerm}".` : "You haven't rated any dishes yet."}</p>
             {!searchTerm && (
-              <Link to="/find-restaurant" style={{ ...STYLES.primaryButton, marginTop: SPACING[4] }}>
+              <Link to="/find-restaurant" style={SCREEN_STYLES.ratings.emptyStateLink}>
                 Find a Restaurant to Rate
               </Link>
             )}
