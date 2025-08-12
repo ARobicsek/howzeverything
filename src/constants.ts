@@ -1295,6 +1295,9 @@ export const COMPONENT_STYLES = {
       fieldContainer: {
         marginBottom: '16px',
       },
+      avatarFieldContainer: {
+        marginBottom: '24px',
+      },
       label: {
         fontFamily: FONT_FAMILIES.elegant,
         fontSize: '14px',
