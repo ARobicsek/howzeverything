@@ -46,7 +46,7 @@ const DiscoveryScreen: React.FC = () => {
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
-  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const searchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   const effectRunCount = useRef(0);
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
@@ -154,19 +154,21 @@ const DiscoveryScreen: React.FC = () => {
           console.timeEnd(`DiscoveryScreen-search-${searchId}`);
       }
     };
-    if (searchDebounceTimer) {
-        clearTimeout(searchDebounceTimer);
+    if (searchDebounceTimer.current) {
+        clearTimeout(searchDebounceTimer.current);
     }
-    const timer = setTimeout(() => {
+    searchDebounceTimer.current = setTimeout(() => {
         runSearch();
     }, 300);
-    setSearchDebounceTimer(timer);
+
     return () => {
         isActive = false;
-        console.log(`[CLEANUP] Clearing timer ${timer} and disarming effect in DiscoveryScreen.`);
-        clearTimeout(timer);
+        if (searchDebounceTimer.current) {
+            console.log(`[CLEANUP] Clearing timer ${searchDebounceTimer.current} and disarming effect in DiscoveryScreen.`);
+            clearTimeout(searchDebounceTimer.current);
+        }
     }
-  }, [searchTerm, minRating, maxDistance, userLocation, searchDebounceTimer]);
+  }, [searchTerm, minRating, maxDistance, userLocation]);
   const addRestaurantToFavorites = async (restaurantId: string) => {
     if (!user) return;
     const { error } = await supabase
