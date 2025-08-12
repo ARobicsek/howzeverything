@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import DuplicateDishModal from './components/DuplicateDishModal';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
 import AddressInput from './components/shared/AddressInput';
-import { BORDERS, COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
+import { COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { DishSearchResult, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
@@ -18,6 +18,33 @@ interface AdminDish {
   name: string;
   restaurant_name?: string;
   created_at: string | null;
+}
+interface RawAdminDish {
+    id: string;
+    name: string;
+    created_at: string;
+    restaurants?: {
+        name: string;
+    };
+}
+interface RawComment {
+    id: string;
+    comment_text: string;
+    created_at: string;
+    dish_id: string | null;
+    restaurant_dishes?: {
+        name: string;
+        restaurant_id: string;
+        restaurants?: {
+            name: string;
+        };
+    };
+    user_id: string;
+    users?: {
+        full_name: string | null;
+        email: string | null;
+    };
+    is_hidden: boolean;
 }
 interface Comment {
   id: string;
@@ -243,7 +270,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               setRestaurants(data || []);
               setRestaurantTotal(count || 0);
           } else if (activeTab === 'dishes') {
-              const formattedDishes = data?.map((d: any) => ({
+              const formattedDishes = data?.map((d: RawAdminDish) => ({
                   id: d.id,
                   name: d.name,
                   created_at: d.created_at,
@@ -252,7 +279,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               setDishes(formattedDishes);
               setDishTotal(count || 0);
           } else if (activeTab === 'comments') {
-              const formattedComments = data?.map((c: any) => ({
+              const formattedComments = data?.map((c: RawComment) => ({
                   id: c.id,
                   comment: c.comment_text,
                   created_at: c.created_at,
@@ -268,9 +295,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               setCommentTotal(count || 0);
           }
 
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error loading admin data:', err);
-        setError(`Failed to load data: ${err.message}`);
+        setError(`Failed to load data: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         setLoading(false);
         console.timeEnd(`AdminScreen-loadData-${activeTab}`);
@@ -311,8 +338,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 
                 const dishesWithRestaurant = data.map(d => ({ ...d, restaurant_name: viewingDishesForRestaurant.name }));
                 setRestaurantSpecificDishes(dishesWithRestaurant);
-            } catch (err: any) {
-                setError(`Failed to load dishes for ${viewingDishesForRestaurant.name}: ${err.message}`);
+            } catch (err) {
+                setError(`Failed to load dishes for ${viewingDishesForRestaurant.name}: ${err instanceof Error ? err.message : String(err)}`);
                 setRestaurantSpecificDishes([]);
             } finally {
                 setLoadingRestaurantSpecificDishes(false);
@@ -353,9 +380,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       // Trigger a refetch by changing a dependency of the main useEffect
       setActiveTab('restaurants');
       setRestaurantPage(1);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error adding restaurant:', err);
-      setError(`Failed to add restaurant: ${err.message}`);
+      setError(`Failed to add restaurant: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -409,9 +436,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       } else {
         await createNewRestaurant(restaurantData);
       }
-    } catch (err: any) {
+    } catch (err) {
         console.error("Error during add restaurant attempt:", err);
-        setError(`An unexpected error occurred while checking for duplicates: ${err.message}`);
+        setError(`An unexpected error occurred while checking for duplicates: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
   const startEditRestaurant = (restaurant: Restaurant) => {
@@ -462,9 +489,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       setEditingRestaurantId(null);
       setEditAddressData(null);
       setRestaurantPage(restaurantPage); // Trigger refetch
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating restaurant:', err);
-      setError(`Failed to update restaurant: ${err.message}`);
+      setError(`Failed to update restaurant: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -477,9 +504,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       const { error } = await supabase.rpc('delete_restaurant_and_children', { p_restaurant_id: id });
       if (error) throw error;
       setRestaurantPage(1); // Force refetch from page 1
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting restaurant:', err);
-      if (err.message && (err.message.includes('404') || err.message.includes('does not exist'))) {
+      if (err instanceof Error && (err.message.includes('404') || err.message.includes('does not exist'))) {
         setError("Database Error: The 'delete_restaurant_and_children' function is missing. Please contact support.");
       } else {
         setError('Failed to delete restaurant. It may have related data that prevents deletion.');
@@ -500,9 +527,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       if (error) throw error;
       setEditingDishId(null);
       setDishPage(dishPage); // Trigger refetch
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating dish:', err);
-      setError(`Failed to update dish: ${err.message}`);
+      setError(`Failed to update dish: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -532,9 +559,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         } else {
             alert('Dish added successfully!');
         }
-    } catch (err: any) {
+    } catch (err) {
         console.error('Error adding dish:', err);
-        setError(`Failed to add dish: ${err.message}`);
+        setError(`Failed to add dish: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
         setLoading(false);
     }
@@ -586,9 +613,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       } else {
           await createNewDish(name, restaurantId, successCallback);
       }
-    } catch (err: any) {
+    } catch (err) {
         console.error("Error during add dish attempt:", err);
-        setError(`An unexpected error occurred while checking for duplicate dishes: ${err.message}`);
+        setError(`An unexpected error occurred while checking for duplicate dishes: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
   // MODIFIED: Optimistic delete for "All Dishes" tab
@@ -606,9 +633,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     try {
       const { error } = await supabase.from('restaurant_dishes').delete().eq('id', id);
       if (error) throw error;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting dish:', err);
-      setError(`Failed to delete dish. Reverting changes. Error: ${err.message}`);
+      setError(`Failed to delete dish. Reverting changes. Error: ${err instanceof Error ? err.message : String(err)}`);
       // Revert UI on failure
       setDishes(originalDishes);
       setDishTotal(originalTotal);
@@ -622,9 +649,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       const { error } = await supabase.from('dish_comments').delete().eq('id', id);
       if (error) throw error;
       setCommentPage(commentPage); // Force refetch
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting comment:', err);
-      setError(`Failed to delete comment: ${err.message}`);
+      setError(`Failed to delete comment: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -648,9 +675,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 c.id === commentId ? { ...c, is_hidden: !isHidden } : c
             )
         );
-    } catch (err: any) {
+    } catch (err) {
         console.error('Error updating comment visibility:', err);
-        setError(`Failed to update comment: ${err.message}`);
+        setError(`Failed to update comment: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
         setLoading(false);
     }
@@ -758,8 +785,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             }
         });
         setRawAnalyticsData(Array.from(userActivityMap.values()));
-    } catch(err: any) {
-        setAnalyticsError(`Failed to load analytics: ${err.message}`);
+    } catch(err) {
+        setAnalyticsError(`Failed to load analytics: ${err instanceof Error ? err.message : String(err)}`);
         console.error(err);
     } finally {
         setIsAnalyticsLoading(false);
@@ -777,9 +804,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         d.id === id ? { ...d, name: editName.trim() } : d
       ));
       setEditingDishId(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating dish:', err);
-      setError(`Failed to update dish: ${err.message}`);
+      setError(`Failed to update dish: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -792,9 +819,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     try {
       const { error } = await supabase.from('restaurant_dishes').delete().eq('id', id);
       if (error) throw error;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting dish:', err);
-      setError(`Failed to delete dish. Reverting changes. Error: ${err.message}`);
+      setError(`Failed to delete dish. Reverting changes. Error: ${err instanceof Error ? err.message : String(err)}`);
       setRestaurantSpecificDishes(originalDishes);
     }
   };

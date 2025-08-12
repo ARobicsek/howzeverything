@@ -1322,6 +1322,9 @@ export const SCREEN_STYLES = {
       backgroundSize: '1.25em 1.25em',
       paddingRight: '2rem',
     } as React.CSSProperties,
+    distanceFilterContainer: {
+        marginBottom: SPACING[4],
+    } as React.CSSProperties,
   },
   discovery: {
     container: {

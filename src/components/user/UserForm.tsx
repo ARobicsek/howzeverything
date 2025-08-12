@@ -1,6 +1,6 @@
 // src/components/user/UserForm.tsx  
 import React, { useEffect, useState } from 'react'
-import { COLORS, COMPONENT_STYLES, FONTS } from '../../constants'
+import { COLORS, COMPONENT_STYLES } from '../../constants'
 import { useAuth } from '../../hooks/useAuth'
 
 

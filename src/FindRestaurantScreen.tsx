@@ -29,6 +29,12 @@ import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocati
 
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
 
+interface RestaurantStats {
+  restaurant_id: string;
+  dish_count: number;
+  rater_count: number;
+}
+
 const FindRestaurantScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -135,7 +141,7 @@ const FindRestaurantScreen: React.FC = () => {
       }
 
       if (stats) {
-        const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
+        const statsMap = new Map(stats.map((s: RestaurantStats) => [s.restaurant_id, s]));
         setRecentRestaurants(prev => prev.map(r => {
           const rStats = statsMap.get(r.id);
           return rStats ? { ...r, dishCount: rStats.dish_count ?? 0, raterCount: rStats.rater_count ?? 0 } : r;
@@ -500,7 +506,7 @@ const FindRestaurantScreen: React.FC = () => {
               >
                 <div className="p-4">
                     {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
-                  <div className="flex items-center" style={{ marginBottom: '1rem' }}>
+                  <div className="flex items-center" style={SCREEN_STYLES.findRestaurant.distanceFilterContainer}>
                     <label style={SCREEN_STYLES.findRestaurant.distanceLabel}>
                         Distance:
                     </label>

@@ -530,7 +530,7 @@ const RestaurantScreen: React.FC = () => {
             <img src="/victorian_restaurant2.png" alt="A Victorian-style restaurant illustration" style={{ height: '95px' }} />
           </div>
           {error && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: COLORS.danger, ...FONTS.elegant }}>{error}</p></div>)}
-          {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isPermissionBlocked} />)}
+          {shouldShowLocationBanner && !fetchingLocation && (<LocationPermissionBanner onRequestPermission={requestLocationPermission} isRequestingLocationPermission={isRequestingLocationPermission} isPermissionBlocked={isLocationPermissionBlocked} />)}
           {fetchingLocation && (<div className="bg-white/10 p-3 rounded-lg text-center"><p style={{ color: COLORS.text, ...FONTS.elegant }}>Getting your current location for better search results...</p></div>)}
           {showAdvancedSort && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">

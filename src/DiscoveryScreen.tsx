@@ -12,6 +12,9 @@ import { useRestaurants } from './hooks/useRestaurants';
 import { supabase } from './supabaseClient';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
+function isDishWithRestaurant(dish: DishWithDetails): dish is DishSearchResultWithRestaurant {
+    return 'restaurant' in dish && dish.restaurant !== null && typeof dish.restaurant === 'object';
+}
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -139,7 +142,7 @@ const DiscoveryScreen: React.FC = () => {
           if (isActive) {
             setFilteredAndGrouped(sortedGroups);
           }
-      } catch (e: any) {
+      } catch (e) {
           if (isActive) {
             setError('Could not load dishes. Please try again later.');
           }
@@ -163,7 +166,7 @@ const DiscoveryScreen: React.FC = () => {
         console.log(`[CLEANUP] Clearing timer ${timer} and disarming effect in DiscoveryScreen.`);
         clearTimeout(timer);
     }
-  }, [searchTerm, minRating, maxDistance, userLocation]);
+  }, [searchTerm, minRating, maxDistance, userLocation, searchDebounceTimer]);
   const addRestaurantToFavorites = async (restaurantId: string) => {
     if (!user) return;
     const { error } = await supabase
@@ -196,7 +199,7 @@ const DiscoveryScreen: React.FC = () => {
           dishes: group.dishes.map(dish => {
               if (dish.id === dishId) {
                   const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
-                  let newRatings: DishRating[] = [...dish.ratings];
+                  const newRatings: DishRating[] = [...dish.ratings];
                   if (existingRatingIndex > -1) {
                       if (newRating === 0) {
                           newRatings.splice(existingRatingIndex, 1);
@@ -222,15 +225,14 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
   const handleShareDish = (dish: DishWithDetails) => {
-    if (!('restaurant' in dish) || !(dish as any).restaurant.name) {
+    if (!isDishWithRestaurant(dish) || !dish.restaurant.name) {
       console.error("Cannot share dish, missing restaurant context:", dish);
       alert("Could not share this dish, information is missing.");
       return;
     }
-    const dishWithRestaurant = dish as DishSearchResultWithRestaurant;
+    const dishWithRestaurant = dish;
     const restaurantId = dishWithRestaurant.restaurant?.id ||
-                        dishWithRestaurant.restaurant_id ||
-                        (dishWithRestaurant as any).restaurantId;
+                        dishWithRestaurant.restaurant_id;
     console.log('Sharing dish - Debug info:', {
       dishId: dishWithRestaurant.id,
       dishName: dishWithRestaurant.name,

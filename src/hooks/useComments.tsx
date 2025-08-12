@@ -1,6 +1,7 @@
 // src/hooks/useComments.tsx
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from './useAuth';
 
 interface DishComment { 
   id: string; 
@@ -10,16 +11,17 @@ interface DishComment {
 }
 
 export const useComments = () => {
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addComment = async (dishId: string, commentText: string) => {
-    if (!commentText.trim()) return null;
+    if (!commentText.trim() || !user) return null;
     
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase
         .from('dish_comments')
-        .insert({ dish_id: dishId, comment_text: commentText.trim() })
+        .insert({ dish_id: dishId, comment_text: commentText.trim(), user_id: user.id })
         .select()
         .single();
 

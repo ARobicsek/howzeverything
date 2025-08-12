@@ -1,7 +1,7 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Location, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, FONTS, LAYOUT_CONFIG, SCREEN_STYLES } from './constants';
+import { COLORS, LAYOUT_CONFIG, SCREEN_STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
 // Screens
 import AboutScreen from './AboutScreen';
