@@ -1,4 +1,82 @@
-export const THEMES = {
+// src/styles/themes.ts
+
+export type ColorPalette = {
+  // Primary Colors
+  primary: string;
+  primaryHover: string;
+  primaryLight: string;
+  accent: string;
+  // Neutral Grays
+  gray50: string;
+  gray100: string;
+  gray200: string;
+  gray300: string;
+  gray400: string;
+  gray500: string;
+  gray600: string;
+  gray700: string;
+  gray900: string;
+  // Blue variants
+  blue50: string;
+  blue100: string;
+  blue200: string;
+  blue600: string;
+  blue700: string;
+  blue800: string;
+  // Green variants
+  green100: string;
+  green700: string;
+  // Red variants
+  red50: string;
+  red200: string;
+  red700: string;
+  // Base Colors
+  white: string;
+  black: string;
+  // Shadow & Overlay
+  shadowLight: string;
+  shadowMedium: string;
+  overlay: string;
+  // Rating Colors
+  ratingGold: string;
+  ratingGoldLight: string;
+  ratingEmpty: string;
+  // Action Colors
+  danger: string;
+  success: string;
+  warning: string;
+  // Navigation
+  navBar: string;
+  navBarDark: string;
+  navBarBorder: string;
+  // Text Colors
+  text: string;
+  textSecondary: string;
+  textWhite: string;
+  // Background Colors
+  background: string;
+  cardBg: string;
+  inputBg: string;
+  // Legacy mappings
+  star: string;
+  starEmpty: string;
+  starCommunity: string;
+  starCommunityEmpty: string;
+  secondary: string;
+  iconPrimary: string;
+  iconBackground: string;
+  // Aliases
+  error: string;
+  surface: string;
+  border: string;
+  textPrimary: string;
+};
+
+export type Themes = {
+  [key: string]: ColorPalette;
+};
+
+export const THEMES: Themes = {
   default: {
     // Primary Colors
     primary: '#2563EB', // Main accent, buttons, links
