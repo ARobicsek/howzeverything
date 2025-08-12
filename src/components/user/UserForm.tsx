@@ -163,7 +163,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
           </div>
 
 
-          <div style={{ ...COMPONENT_STYLES.forms.userForm.fieldContainer, marginBottom: '24px' }}>
+          <div style={COMPONENT_STYLES.forms.userForm.avatarFieldContainer}>
             <label style={COMPONENT_STYLES.forms.userForm.label}>
               Avatar Image URL  
             </label>  
