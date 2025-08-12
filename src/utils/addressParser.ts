@@ -33,8 +33,8 @@ function parseWithManualSubtraction(
 
 
     // 2. Check the last part for a state/province.
-    if (parts.length > 0 && patterns && (patterns as any).state) {
-      const statePattern = (patterns as any).state;
+    if (parts.length > 0 && patterns && patterns.state) {
+      const statePattern = patterns.state;
       const lastPart = parts[parts.length - 1];
       const stateMatch = lastPart.match(statePattern);
 
@@ -49,7 +49,7 @@ function parseWithManualSubtraction(
 
     // 3. Check the new last part for postal code. It might be combined with the city.
     if (parts.length > 0 && patterns && patterns.postalCode) {
-      let cityAndZipPart = parts[parts.length - 1];
+      const cityAndZipPart = parts[parts.length - 1];
       const postalMatch = cityAndZipPart.match(patterns.postalCode);
       if (postalMatch && postalMatch[0]) {
         postalCode = postalMatch[0];
@@ -92,7 +92,7 @@ function parseWithManualSubtraction(
       data: resultData,
       error: isSuccess ? undefined : 'Partially parsed. Please complete the address fields.'
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('International address parsing failed:', e);
     return {
       success: false,

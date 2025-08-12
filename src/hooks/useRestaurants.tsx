@@ -303,7 +303,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     clearSearchResults();
     searchService.current.clearCache();
     searchService.current.abort();
-  }, []);
+  }, [clearSearchResults]);
 
 
   return {

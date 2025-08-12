@@ -38,7 +38,7 @@ export class SearchService {
       const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
       if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') throw new Error('API key is missing or not set properly');
 
-      let rawApiFeatures: any[] = [];
+      let rawApiFeatures: unknown[] = [];
       const queryAnalysis = analyzeQuery(query);
 
       // --- ADDED: Log the output of the query analysis ---
@@ -139,7 +139,7 @@ export class SearchService {
       const combinedResults = [...dbMatches, ...uniqueApiPlaces];
       this.cache.set(cacheKey, combinedResults);
       return combinedResults;
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.name === 'AbortError') {
         console.log('Search aborted');
         return [];
@@ -172,7 +172,7 @@ export class SearchService {
 
       const feature = data.features[0];
       return { place_id: feature.properties.place_id, properties: { ...feature.properties } };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Error fetching details for ${placeId}:`, err);
       throw err;
     }

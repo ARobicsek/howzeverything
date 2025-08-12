@@ -238,7 +238,7 @@ const MenuScreen: React.FC = () => {
       }
       // If dishes.length === 0, we'll wait for them to load in the next render
     }
-  }, [location.search, dishes, isLoadingDishes, navigate]);
+  }, [location.search, location.pathname, dishes, isLoadingDishes, navigate]);
 
 
   // Additional debugging useEffect - ADD this as a new useEffect after the dish parameter one
@@ -296,7 +296,7 @@ const MenuScreen: React.FC = () => {
 
   const searchResults = useMemo(() => {
     return searchDishes(searchTerm);
-  }, [dishes, searchTerm, searchDishes]);
+  }, [searchTerm, searchDishes]);
 
 
   const hasOtherUserContributions = useMemo(() => {
@@ -515,7 +515,7 @@ const MenuScreen: React.FC = () => {
   if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen message="Loading menu..."/>;
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={() => navigate('/restaurants')} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={() => navigate('/restaurants')} />;
-  const displayAddress = [restaurant.address, (restaurant as any).city].filter(Boolean).join(', ');
+  const displayAddress = [restaurant.address, restaurant.city].filter(Boolean).join(', ');
 
 
   return (

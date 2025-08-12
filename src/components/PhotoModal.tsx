@@ -28,6 +28,34 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
   const [isEditingCaption, setIsEditingCaption] = useState(false);
   const [editedCaption, setEditedCaption] = useState('');
 
+  useEffect(() => {
+    const validIndex = Math.max(0, Math.min(initialIndex, (photos?.length || 1) - 1));
+    setCurrentIndex(validIndex);
+  }, [initialIndex, photos?.length]);
+
+  const handleNext = useCallback(() => {
+    if (photos) {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);
+    }
+  }, [photos]);
+
+  const handlePrev = useCallback(() => {
+    if (photos) {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);
+    }
+  }, [photos]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'ArrowRight') handleNext();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrev, handleNext, onClose]);
+
   // Early validation
   if (!photos || photos.length === 0) {
     setTimeout(() => onClose(), 0);
@@ -45,30 +73,6 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
 
   // Check if current user owns the photo
   const isOwner = currentPhoto.user_id === currentUserId;
-
-  useEffect(() => {
-    const validIndex = Math.max(0, Math.min(initialIndex, photos.length - 1));
-    setCurrentIndex(validIndex);
-  }, [initialIndex, photos.length]);
-
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);
-  }, [photos.length]);
-
-  const handlePrev = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);
-  }, [photos.length]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'ArrowRight') handleNext();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrev, handleNext, onClose]);
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this photo?')) {

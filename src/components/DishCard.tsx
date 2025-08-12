@@ -90,7 +90,12 @@ const StarRating: React.FC<{
           return (
             <button
               key={star}
-              onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (!readonly && onRatingChange) {
+                  onRatingChange(star);
+                }
+              }}
               disabled={readonly}
               className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'}`}
               style={{
@@ -582,11 +587,6 @@ const DishCard: React.FC<DishCardProps> = ({
   isExpanded,
   onToggleExpand
 }) => {
-  if (!dish) {
-    return null;
-  }
-
-
   const [showComments, setShowComments] = useState(false);
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -594,20 +594,13 @@ const DishCard: React.FC<DishCardProps> = ({
   const [selectedPhotoModal, setSelectedPhotoModal] = useState<{ photo: DishPhoto; index: number } | null>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedDishName, setEditedDishName] = useState(dish.name);
+  const [editedDishName, setEditedDishName] = useState(dish?.name || '');
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-
-
-  // --- FIX 2: Create safe local variables to prevent crashes ---
-  const safeRatings = dish.ratings || [];
-  const safePhotos = dish.photos || [];
-  const safeComments = dish.comments || [];
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -622,6 +615,15 @@ const DishCard: React.FC<DishCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  if (!dish) {
+    return null;
+  }
+
+  // --- FIX 2: Create safe local variables to prevent crashes ---
+  const safeRatings = dish.ratings || [];
+  const safePhotos = dish.photos || [];
+  const safeComments = dish.comments || [];
 
 
   const personalRating = getUserPersonalRating(safeRatings, currentUserId);

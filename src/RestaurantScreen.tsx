@@ -9,6 +9,7 @@ import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY }
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
 import type { Restaurant } from './types/restaurant';
+import type { GeoapifyPlace } from './types/restaurantSearch';
 
 
 
@@ -389,7 +390,7 @@ const RestaurantScreen: React.FC = () => {
     return restaurantsWithScores
       .filter(restaurant => restaurant.similarityScore > similarityThreshold)
       .sort((a, b) => b.similarityScore - a.similarityScore)
-      .map(({ similarityScore, ...restaurant }) => restaurant);
+      .map(({ similarityScore: _unusedScore, ...restaurant }) => restaurant);
   }, [restaurants, searchTerm, searchResults.length]);
  
   const requestLocationPermission = useCallback(async () => {
@@ -405,8 +406,10 @@ const RestaurantScreen: React.FC = () => {
       saveLocationToStorage(latitude, longitude);
       setShouldShowLocationBanner(false);
       setIsLocationPermissionBlocked(false);
-    } catch (error: any) {
-      if (error.code === error.PERMISSION_DENIED) { setIsLocationPermissionBlocked(true); }
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && 'PERMISSION_DENIED' in error && error.code === error.PERMISSION_DENIED) { 
+        setIsLocationPermissionBlocked(true); 
+      }
     } finally {
       setIsRequestingLocationPermission(false);
     }
@@ -417,9 +420,9 @@ const RestaurantScreen: React.FC = () => {
     setSortBy(prev => ({ criterion: 'distance', direction: prev.criterion === 'distance' && prev.direction === 'asc' ? 'desc' : 'asc' }));
   }, [userLat, userLon, requestLocationPermission]);
  
-  const handleNavigateToMenu = (restaurantId: string) => {
+  const handleNavigateToMenu = useCallback((restaurantId: string) => {
     navigate(`/restaurants/${restaurantId}`);
-  };
+  }, [navigate]);
 
 
 
@@ -452,7 +455,7 @@ const RestaurantScreen: React.FC = () => {
     await deleteRestaurant(restaurantId);
   }, [deleteRestaurant]);
  
-  const handleImportRestaurant = useCallback(async (geoapifyPlace: any) => {
+  const handleImportRestaurant = useCallback(async (geoapifyPlace: GeoapifyPlace) => {
     setAddingRestaurantId(geoapifyPlace.place_id);
     const result = await importRestaurant(geoapifyPlace);
     if (typeof result === 'string') {
@@ -461,7 +464,7 @@ const RestaurantScreen: React.FC = () => {
       handleNavigateToMenu(result);
     }
     setAddingRestaurantId(null);
-  }, [importRestaurant, clearSearchResults, navigate]);
+  }, [importRestaurant, clearSearchResults, handleNavigateToMenu]);
  
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);

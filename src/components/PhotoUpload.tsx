@@ -372,19 +372,20 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         }
       }, 1000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle compression, timeout or other errors
       setUploadProgress(0);
       
-      if (error.message.includes('compression') || error.message.includes('Canvas')) {
+      if (error instanceof Error && (error.message.includes('compression') || error.message.includes('Canvas'))) {
         setUploadStatus('Compression failed');
         alert('Failed to compress image: ' + error.message);
-      } else if (error.message.includes('timeout')) {
+      } else if (error instanceof Error && error.message.includes('timeout')) {
         setUploadStatus('Upload failed - connection timeout');
         alert('Upload timed out. The compressed image should upload faster - please try again.');
       } else {
         setUploadStatus('Upload failed');
-        alert('Upload failed: ' + (error.message || 'Unknown error'));
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        alert('Upload failed: ' + errorMessage);
       }
     }
   };
