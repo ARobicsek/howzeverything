@@ -41,6 +41,107 @@ export const LAYOUT_CONFIG = {
   }
 };
 
+export const STYLE_FUNCTIONS = {
+  getPaginationButtonStyle: (disabled: boolean) => ({
+    ...SCREEN_STYLES.admin.paginationButton,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+  }),
+  getTabButtonStyle: (isActive: boolean) => ({
+    ...SCREEN_STYLES.admin.tabButton,
+    backgroundColor: isActive ? COLORS.primary : 'transparent',
+    color: isActive ? COLORS.white : COLORS.textPrimary,
+  }),
+  getAddRestaurantButtonStyle: (loading: boolean) => ({
+    ...SCREEN_STYLES.admin.button,
+    padding: SPACING[4],
+    backgroundColor: COLORS.primary,
+    color: COLORS.white,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    opacity: loading ? 0.6 : 1,
+  }),
+  getCommentItemStyle: (isHidden: boolean) => ({
+    ...SCREEN_STYLES.admin.itemCard,
+    backgroundColor: isHidden ? COLORS.gray100 : COLORS.surface,
+    opacity: isHidden ? 0.7 : 1,
+  }),
+  getToggleCommentVisibilityButtonStyle: (isHidden: boolean) => ({
+    ...SCREEN_STYLES.admin.button,
+    backgroundColor: isHidden ? COLORS.success : COLORS.warning,
+    color: COLORS.white,
+  }),
+  getFetchAnalyticsButtonStyle: (loading: boolean) => ({
+    ...SCREEN_STYLES.admin.button,
+    padding: `${SPACING[3]} ${SPACING[4]}`,
+    backgroundColor: COLORS.primary,
+    color: COLORS.white,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    alignSelf: 'flex-end',
+    opacity: loading ? 0.6 : 1,
+  }),
+  getSortableHeaderStyle: (align: 'left' | 'center' | 'right') => ({
+    ...SCREEN_STYLES.admin.tableHeader,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    textAlign: align,
+  }),
+  getPasswordToggleButtonStyle: (loading: boolean) => ({
+    ...COMPONENT_STYLES.loginForm.passwordToggleButton,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    opacity: loading ? 0.5 : 1,
+  }),
+  getSubmitButtonStyle: (loading: boolean) => ({
+    ...STYLES.primaryButton,
+    width: '100%',
+    minHeight: '50px',
+    marginBottom: SPACING[4],
+    opacity: loading ? 0.5 : 1,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    backgroundColor: loading ? COLORS.gray300 : COLORS.accent,
+    borderColor: loading ? COLORS.gray300 : COLORS.black,
+  }),
+  getModeToggleButtonStyle: (loading: boolean) => ({
+    ...FONTS.body,
+    background: 'none',
+    border: 'none',
+    color: COLORS.accent,
+    fontSize: TYPOGRAPHY.sm.fontSize,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    textDecoration: 'none',
+    padding: `${SPACING[2]} ${SPACING[3]}`,
+    borderRadius: STYLES.borderRadiusMedium,
+    transition: 'background-color 0.2s ease',
+    outline: 'none',
+  }),
+  getCancelButtonStyle: (loading: boolean) => ({
+    ...STYLES.secondaryButton,
+    width: '100%',
+    color: COLORS.black,
+    borderColor: COLORS.black,
+    opacity: loading ? 0.5 : 1,
+    cursor: loading ? 'not-allowed' : 'pointer',
+  }),
+  getAvatarContainerStyle: (avatarUrl?: string | null) => ({
+    ...COMPONENT_STYLES.profileCard.avatarContainer,
+    backgroundColor: avatarUrl ? 'transparent' : COLORS.accent,
+    backgroundImage: avatarUrl ? `url(${avatarUrl})` : 'none',
+  }),
+  getEditProfileButtonStyle: (loading: boolean) => ({
+    ...STYLES.primaryButton,
+    width: '100%',
+    backgroundColor: COLORS.accent,
+    opacity: loading ? 0.5 : 1,
+    cursor: loading ? 'not-allowed' : 'pointer',
+  }),
+  getSignOutButtonStyle: (loading: boolean, isSigningOut: boolean) => ({
+    ...STYLES.secondaryButton,
+    width: '100%',
+    color: COLORS.black,
+    borderColor: COLORS.black,
+    opacity: (loading || isSigningOut) ? 0.5 : 1,
+    cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer',
+  }),
+};
+
 
 export const COLORS = {
   // Primary Colors

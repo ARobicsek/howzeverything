@@ -1,6 +1,6 @@
 // src/components/user/LoginForm.tsx  
 import React, { useState } from 'react';
-import { COLORS, COMPONENT_STYLES, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, COMPONENT_STYLES, FONTS, SPACING, STYLES, TYPOGRAPHY, STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -124,11 +124,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
 
   // Style for password input container
-  const passwordToggleButtonStyle: React.CSSProperties = {
-    ...COMPONENT_STYLES.loginForm.passwordToggleButton,
-    cursor: loading ? 'not-allowed' : 'pointer',
-    opacity: loading ? 0.5 : 1,
-  };
 
 
   // Eye icon SVG component
@@ -251,7 +246,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
-                style={passwordToggleButtonStyle}
+                style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
                 onMouseEnter={(e) => {
                   if (!loading) {
                     e.currentTarget.style.color = COLORS.gray500;
@@ -292,7 +287,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={loading}
-                  style={passwordToggleButtonStyle}
+                  style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
                   onMouseEnter={(e) => {
                     if (!loading) {
                       e.currentTarget.style.color = COLORS.gray500;
@@ -314,16 +309,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           <button  
             type="submit"  
             disabled={loading}  
-            style={{  
-              ...STYLES.primaryButton,  
-              width: '100%',  
-              minHeight: '50px',  
-              marginBottom: SPACING[4],  
-              opacity: loading ? 0.5 : 1,  
-              cursor: loading ? 'not-allowed' : 'pointer',  
-              backgroundColor: loading ? COLORS.gray300 : COLORS.accent,  
-              borderColor: loading ? COLORS.gray300 : COLORS.black  
-            }}  
+            style={STYLE_FUNCTIONS.getSubmitButtonStyle(loading)}
             onMouseEnter={(e) => {  
               if (!loading) {  
                 e.currentTarget.style.backgroundColor = COLORS.accent;  
@@ -352,19 +338,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               type="button"  
               onClick={toggleMode}  
               disabled={loading}  
-              style={{  
-                ...FONTS.body,  
-                background: 'none',  
-                border: 'none',  
-                color: COLORS.accent,  
-                fontSize: TYPOGRAPHY.sm.fontSize,  
-                cursor: loading ? 'not-allowed' : 'pointer',  
-                textDecoration: 'none',  
-                padding: `${SPACING[2]} ${SPACING[3]}`,  
-                borderRadius: STYLES.borderRadiusMedium,  
-                transition: 'background-color 0.2s ease',  
-                outline: 'none'  
-              }}  
+              style={STYLE_FUNCTIONS.getModeToggleButtonStyle(loading)}
               onMouseEnter={(e) => {  
                 if (!loading) {  
                   e.currentTarget.style.backgroundColor = `${COLORS.accent}2A`;
@@ -387,14 +361,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               type="button"  
               onClick={onCancel}  
               disabled={loading}  
-              style={{  
-                ...STYLES.secondaryButton,  
-                width: '100%',  
-                color: COLORS.black,
-                borderColor: COLORS.black,
-                opacity: loading ? 0.5 : 1,  
-                cursor: loading ? 'not-allowed' : 'pointer'  
-              }}  
+              style={STYLE_FUNCTIONS.getCancelButtonStyle(loading)}
               onMouseEnter={(e) => {
                 if (!loading) {
                   e.currentTarget.style.backgroundColor = COLORS.gray100;

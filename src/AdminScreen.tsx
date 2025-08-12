@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import DuplicateDishModal from './components/DuplicateDishModal';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
 import AddressInput from './components/shared/AddressInput';
-import { COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY, STYLE_FUNCTIONS } from './constants';
 import { DishSearchResult, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
@@ -122,14 +122,14 @@ const PaginationControls: React.FC<{
             <button
                 onClick={() => onPageChange(1)}
                 disabled={currentPage === 1 || loading}
-                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === 1 || loading) ? 'not-allowed' : 'pointer'}}
+                style={STYLE_FUNCTIONS.getPaginationButtonStyle(currentPage === 1 || loading)}
             >
                 First
             </button>
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1 || loading}
-                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === 1 || loading) ? 'not-allowed' : 'pointer'}}
+                style={STYLE_FUNCTIONS.getPaginationButtonStyle(currentPage === 1 || loading)}
             >
                 Previous
             </button>
@@ -139,14 +139,14 @@ const PaginationControls: React.FC<{
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || loading}
-                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === totalPages || loading) ? 'not-allowed' : 'pointer'}}
+                style={STYLE_FUNCTIONS.getPaginationButtonStyle(currentPage === totalPages || loading)}
             >
                 Next
             </button>
             <button
                 onClick={() => onPageChange(totalPages)}
                 disabled={currentPage === totalPages || loading}
-                style={{...SCREEN_STYLES.admin.paginationButton, cursor: (currentPage === totalPages || loading) ? 'not-allowed' : 'pointer'}}
+                style={STYLE_FUNCTIONS.getPaginationButtonStyle(currentPage === totalPages || loading)}
             >
                 Last
             </button>
@@ -842,7 +842,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     const isSorting = analyticsSort.key === sortKey;
     const directionIcon = analyticsSort.direction === 'asc' ? ' ▲' : ' ▼';
     return (
-        <th style={{...SCREEN_STYLES.admin.tableHeader, cursor: 'pointer', whiteSpace: 'nowrap', textAlign: align}} onClick={() => handleAnalyticsSort(sortKey)}>
+        <th style={STYLE_FUNCTIONS.getSortableHeaderStyle(align)} onClick={() => handleAnalyticsSort(sortKey)}>
             {title}{isSorting && directionIcon}
         </th>
     );
@@ -934,10 +934,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     <div style={SCREEN_STYLES.admin.container}>
       <h1 style={SCREEN_STYLES.admin.title}>Admin Panel</h1>
       <div style={SCREEN_STYLES.admin.tabsContainer}>
-        <button onClick={() => setActiveTab('restaurants')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'restaurants' ? COLORS.primary : 'transparent', color: activeTab === 'restaurants' ? COLORS.white : COLORS.textPrimary }}>Restaurants</button>
-        <button onClick={() => setActiveTab('dishes')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'dishes' ? COLORS.primary : 'transparent', color: activeTab === 'dishes' ? COLORS.white : COLORS.textPrimary }}>Dishes</button>
-        <button onClick={() => setActiveTab('comments')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'comments' ? COLORS.primary : 'transparent', color: activeTab === 'comments' ? COLORS.white : COLORS.textPrimary }}>Comments</button>
-        <button onClick={() => setActiveTab('analytics')} style={{ ...SCREEN_STYLES.admin.tabButton, background: activeTab === 'analytics' ? COLORS.primary : 'transparent', color: activeTab === 'analytics' ? COLORS.white : COLORS.textPrimary }}>Analytics</button>
+        <button onClick={() => setActiveTab('restaurants')} style={STYLE_FUNCTIONS.getTabButtonStyle(activeTab === 'restaurants')}>Restaurants</button>
+        <button onClick={() => setActiveTab('dishes')} style={STYLE_FUNCTIONS.getTabButtonStyle(activeTab === 'dishes')}>Dishes</button>
+        <button onClick={() => setActiveTab('comments')} style={STYLE_FUNCTIONS.getTabButtonStyle(activeTab === 'comments')}>Comments</button>
+        <button onClick={() => setActiveTab('analytics')} style={STYLE_FUNCTIONS.getTabButtonStyle(activeTab === 'analytics')}>Analytics</button>
       </div>
       {error && <div style={SCREEN_STYLES.admin.errorContainer} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
       {activeTab === 'restaurants' && (
@@ -954,7 +954,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             <div style={SCREEN_STYLES.admin.formGrid}>
               <input type="text" placeholder="Restaurant Name *" value={newRestaurantName} onChange={(e) => setNewRestaurantName(e.target.value)} style={STYLES.input} />
               <AddressInput key={addressInputKey} initialData={newAddressData} onAddressChange={handleNewAddressChange} />
-              <button onClick={handleAttemptAddRestaurant} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, padding: SPACING[4], background: COLORS.primary, color: COLORS.white, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>Add Restaurant</button>
+              <button onClick={handleAttemptAddRestaurant} disabled={loading} style={STYLE_FUNCTIONS.getAddRestaurantButtonStyle(loading)}>Add Restaurant</button>
             </div>
           </div>
           <div style={{ marginBottom: SPACING[4] }}>
@@ -1077,14 +1077,14 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 <>
                 <div style={SCREEN_STYLES.admin.formGrid}>
                     {comments.map((comment) => (
-                    <div key={comment.id} style={{ ...SCREEN_STYLES.admin.itemCard, background: comment.is_hidden ? COLORS.gray100 : COLORS.surface, opacity: comment.is_hidden ? 0.7 : 1 }}>
+                    <div key={comment.id} style={STYLE_FUNCTIONS.getCommentItemStyle(comment.is_hidden)}>
                         <p style={{ ...TYPOGRAPHY.body, marginBottom: SPACING[2] }}>"{comment.comment}"</p>
                         <p style={SCREEN_STYLES.admin.itemCardSubtitle}>
                             By: {comment.username || 'Unknown'} | Dish: <span style={SCREEN_STYLES.admin.link} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}?dish=${comment.dish_id}`)}>{comment.dish_name || 'Unknown'}</span> | Restaurant: <span style={SCREEN_STYLES.admin.link} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}`)}>{comment.restaurant_name || 'Unknown'}</span>
                         </p>
                         <div style={SCREEN_STYLES.admin.flexGapCenter}>
                             <button onClick={() => deleteComment(comment.id)} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
-                            <button onClick={() => toggleCommentVisibility(comment.id, comment.is_hidden)} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, background: comment.is_hidden ? COLORS.success : COLORS.warning, color: COLORS.white }}>
+                            <button onClick={() => toggleCommentVisibility(comment.id, comment.is_hidden)} disabled={loading} style={STYLE_FUNCTIONS.getToggleCommentVisibilityButtonStyle(comment.is_hidden)}>
                                 {comment.is_hidden ? 'Unhide' : 'Hide'}
                             </button>
                             {comment.is_hidden && <span style={SCREEN_STYLES.admin.hiddenCommentBadge}>HIDDEN</span>}
@@ -1109,7 +1109,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                       <label htmlFor="end-date" style={SCREEN_STYLES.admin.analyticsDateLabel}>End Date</label>
                       <input id="end-date" type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} style={SCREEN_STYLES.admin.analyticsDateInput} />
                   </div>
-                  <button onClick={fetchAnalyticsData} disabled={isAnalyticsLoading} style={{ ...SCREEN_STYLES.admin.button, padding: `${SPACING[3]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, cursor: isAnalyticsLoading ? 'not-allowed' : 'pointer', alignSelf: 'flex-end', opacity: isAnalyticsLoading ? 0.6 : 1 }}>
+                  <button onClick={fetchAnalyticsData} disabled={isAnalyticsLoading} style={STYLE_FUNCTIONS.getFetchAnalyticsButtonStyle(isAnalyticsLoading)}>
                       {isAnalyticsLoading ? 'Loading...' : 'Fetch Activity'}
                   </button>
               </div>

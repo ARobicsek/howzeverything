@@ -1,6 +1,6 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
-import { COLORS, COMPONENT_STYLES, STYLES } from '../../constants';
+import { COLORS, COMPONENT_STYLES, STYLES, STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -84,11 +84,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {/* Profile Header */}
       <div style={COMPONENT_STYLES.profileCard.headerContainer}>
         {/* Avatar */}
-        <div style={{
-          ...COMPONENT_STYLES.profileCard.avatarContainer,
-          backgroundColor: profile.avatar_url ? 'transparent' : COLORS.accent,
-          backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none',
-        }}>
+        <div style={STYLE_FUNCTIONS.getAvatarContainerStyle(profile.avatar_url)}>
           {!profile.avatar_url && (
             <span style={COMPONENT_STYLES.profileCard.avatarInitials}>
               {initials.length > 1 ? initials.charAt(0) : initials}
@@ -157,13 +153,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <button
             onClick={onEditProfile}
             disabled={loading}
-            style={{
-              ...STYLES.primaryButton,
-              width: '100%',
-              backgroundColor: COLORS.accent,
-              opacity: loading ? 0.5 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
+            style={STYLE_FUNCTIONS.getEditProfileButtonStyle(loading)}
             onMouseEnter={(e) => {
               if (!loading) {
                 e.currentTarget.style.backgroundColor = COLORS.accent;
@@ -183,14 +173,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
-          style={{
-            ...STYLES.secondaryButton,
-            width: '100%',
-            color: COLORS.black,
-            borderColor: COLORS.black,
-            opacity: (loading || isSigningOut) ? 0.5 : 1,
-            cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer'
-          }}
+          style={STYLE_FUNCTIONS.getSignOutButtonStyle(loading, isSigningOut)}
           onMouseEnter={(e) => {
             if (!loading && !isSigningOut) {
               e.currentTarget.style.backgroundColor = COLORS.gray100;
