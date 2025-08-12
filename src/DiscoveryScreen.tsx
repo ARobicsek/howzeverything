@@ -354,7 +354,7 @@ const DiscoveryScreen: React.FC = () => {
               </select>
             </div>
             <div
-                style={{ ...SCREEN_STYLES.discovery.filterContainer, opacity: !hasLocationPermission ? 0.6 : 1, cursor: !hasLocationPermission ? 'pointer' : 'default', position: 'relative' }}
+                style={{ ...SCREEN_STYLES.discovery.filterContainer, opacity: !hasLocationPermission ? 0.6 : 1, cursor: !hasLocationPermission ? 'pointer' : 'default' }}
                 onClick={!hasLocationPermission ? requestLocation : undefined}
                 title={!hasLocationPermission ? 'Enable location services to filter by distance' : ''}
             >

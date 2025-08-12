@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import DuplicateDishModal from './components/DuplicateDishModal';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
 import AddressInput from './components/shared/AddressInput';
-import { BORDERS, COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { BORDERS, COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
 import { DishSearchResult, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
@@ -826,12 +826,12 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
         <div style={SCREEN_STYLES.admin.container}>
             <button
                 onClick={() => setViewingDishesForRestaurant(null)}
-                style={{ ...STYLES.secondaryButton, marginBottom: SPACING[4], display: 'inline-flex', alignItems: 'center', gap: SPACING[2] }}
+                style={SCREEN_STYLES.admin.backButton}
             >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
                 Back to All Restaurants
             </button>
-            <h1 style={{ ...TYPOGRAPHY.h1, marginBottom: SPACING[6] }}>Dishes for {viewingDishesForRestaurant.name}</h1>
+            <h1 style={SCREEN_STYLES.admin.titleWithMargin}>Dishes for {viewingDishesForRestaurant.name}</h1>
 
             {error && <div style={SCREEN_STYLES.admin.errorContainer} onClick={() => setError(null)}><strong>Error:</strong> {error} (click to dismiss)</div>}
             
@@ -846,7 +846,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                             onChange={(e) => setNewDishName(e.target.value)}
                             style={STYLES.input}
                         />
-                         <div style={{ display: 'flex', gap: SPACING[2], justifyContent: 'flex-end' }}>
+                         <div style={SCREEN_STYLES.admin.flexEnd}>
                              <button onClick={() => setShowAddDishFormForRestaurant(false)} style={{...SCREEN_STYLES.admin.button, background: COLORS.border, color: COLORS.textPrimary }}>Cancel</button>
                              <button
                                  onClick={() => handleAttemptAddDish(viewingDishesForRestaurant.id, (newDish) => {
@@ -864,12 +864,12 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                 </div>
             ) : (
                 <div style={{ marginBottom: SPACING[6] }}>
-                    <button onClick={() => setShowAddDishFormForRestaurant(true)} style={{...STYLES.primaryButton, width: '100%', padding: SPACING[4]}}>Add New Dish</button>
+                    <button onClick={() => setShowAddDishFormForRestaurant(true)} style={SCREEN_STYLES.admin.fullWidthPrimaryButton}>Add New Dish</button>
                 </div>
             )}
 
 
-            <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>Existing Dishes ({restaurantSpecificDishes.length})</h2>
+            <h2 style={SCREEN_STYLES.admin.h2WithMargin}>Existing Dishes ({restaurantSpecificDishes.length})</h2>
             {loadingRestaurantSpecificDishes ? (
                 <p style={TYPOGRAPHY.body}>Loading dishes...</p>
             ) : (
@@ -931,8 +931,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
             </div>
           </div>
           <div style={{ marginBottom: SPACING[4] }}>
-            <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>Existing Restaurants ({!loading ? restaurantTotal : '...'})</h2>
-            <div style={{ position: 'relative' }}>
+            <h2 style={SCREEN_STYLES.admin.h2WithMargin}>Existing Restaurants ({!loading ? restaurantTotal : '...'})</h2>
+            <div style={SCREEN_STYLES.admin.relativeContainer}>
               <input type="text" placeholder="Search by name, city, or address..." value={restaurantSearchTerm} onChange={(e) => setRestaurantSearchTerm(e.target.value)} style={STYLES.input} />
               {restaurantSearchTerm && (
                 <button onClick={() => setRestaurantSearchTerm('')} style={SCREEN_STYLES.admin.clearSearchButton}>
@@ -962,10 +962,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                           </div>
                         ) : (
                           <div>
-                            <h3 style={{ ...SCREEN_STYLES.admin.itemCardTitle, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate(`/restaurants/${restaurant.id}`)}>{restaurant.name} {restaurant.manually_added && <span style={{ ...TYPOGRAPHY.caption, color: COLORS.primary, marginLeft: SPACING[2] }}>(Manually Added)</span>}</h3>
+                            <h3 style={{ ...SCREEN_STYLES.admin.itemCardTitle, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate(`/restaurants/${restaurant.id}`)}>{restaurant.name} {restaurant.manually_added && <span style={SCREEN_STYLES.admin.manuallyAddedBadge}>(Manually Added)</span>}</h3>
                             <p style={SCREEN_STYLES.admin.itemCardSubtitle}>{restaurant.full_address || [restaurant.address, restaurant.city, restaurant.state, restaurant.zip_code, restaurant.country].filter(Boolean).join(', ')}</p>
-                            <p style={{ ...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginBottom: SPACING[4], fontSize: '0.75rem' }}>Added: {createdAt.toLocaleDateString()} {wasUpdated && `• Updated: ${updatedAt.toLocaleDateString()}`}</p>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: SPACING[2], flexWrap: 'wrap' }}>
+                            <p style={SCREEN_STYLES.admin.itemCardSubtitleWithMargin}>Added: {createdAt.toLocaleDateString()} {wasUpdated && `• Updated: ${updatedAt.toLocaleDateString()}`}</p>
+                            <div style={SCREEN_STYLES.admin.flexBetweenWrap}>
                                 <div style={SCREEN_STYLES.admin.itemCardActions}>
                                   <button onClick={() => startEditRestaurant(restaurant)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.primary, color: COLORS.white }}>Edit</button>
                                   <button onClick={() => deleteRestaurant(restaurant.id)} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
@@ -988,8 +988,8 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       {activeTab === 'dishes' && (
         <div>
             <div style={{ marginBottom: SPACING[4] }}>
-                <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>All Dishes ({!loading ? dishTotal : '...'})</h2>
-                <div style={{ position: 'relative' }}>
+                <h2 style={SCREEN_STYLES.admin.h2WithMargin}>All Dishes ({!loading ? dishTotal : '...'})</h2>
+                <div style={SCREEN_STYLES.admin.relativeContainer}>
                   <input type="text" placeholder="Search by dish name..." value={dishSearchTerm} onChange={(e) => setDishSearchTerm(e.target.value)} style={STYLES.input} />
                   {dishSearchTerm && (
                     <button onClick={() => setDishSearchTerm('')} style={SCREEN_STYLES.admin.clearSearchButton}>
@@ -1035,13 +1035,13 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       )}
       {activeTab === 'comments' && (
         <>
-            <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>All Comments ({!loading ? commentTotal : '...'})</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING[4], marginBottom: SPACING[4] }}>
-                <div style={{ position: 'relative' }}>
+            <h2 style={SCREEN_STYLES.admin.h2WithMargin}>All Comments ({!loading ? commentTotal : '...'})</h2>
+            <div style={SCREEN_STYLES.admin.gridTwoColumn}>
+                <div style={SCREEN_STYLES.admin.relativeContainer}>
                     <input type="text" placeholder="Filter by Restaurant Name..." value={commentRestaurantSearch} onChange={(e) => setCommentRestaurantSearch(e.target.value)} style={STYLES.input} />
                     {commentRestaurantSearch && <button onClick={() => setCommentRestaurantSearch('')} style={SCREEN_STYLES.admin.clearSearchButton}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>}
                 </div>
-                <div style={{ position: 'relative' }}>
+                <div style={SCREEN_STYLES.admin.relativeContainer}>
                     <input type="text" placeholder="Filter by Dish Name..." value={commentDishSearch} onChange={(e) => setCommentDishSearch(e.target.value)} style={STYLES.input} />
                     {commentDishSearch && <button onClick={() => setCommentDishSearch('')} style={SCREEN_STYLES.admin.clearSearchButton}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41l5.59 5.59L5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>}
                 </div>
@@ -1055,12 +1055,12 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                         <p style={SCREEN_STYLES.admin.itemCardSubtitle}>
                             By: {comment.username || 'Unknown'} | Dish: <span style={SCREEN_STYLES.admin.link} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}?dish=${comment.dish_id}`)}>{comment.dish_name || 'Unknown'}</span> | Restaurant: <span style={SCREEN_STYLES.admin.link} onClick={() => comment.restaurant_id && navigate(`/restaurants/${comment.restaurant_id}`)}>{comment.restaurant_name || 'Unknown'}</span>
                         </p>
-                        <div style={{display: 'flex', gap: SPACING[2], alignItems: 'center'}}>
+                        <div style={SCREEN_STYLES.admin.flexGapCenter}>
                             <button onClick={() => deleteComment(comment.id)} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, background: COLORS.error, color: COLORS.white }}>Delete</button>
                             <button onClick={() => toggleCommentVisibility(comment.id, comment.is_hidden)} disabled={loading} style={{ ...SCREEN_STYLES.admin.button, background: comment.is_hidden ? COLORS.success : COLORS.warning, color: COLORS.white }}>
                                 {comment.is_hidden ? 'Unhide' : 'Hide'}
                             </button>
-                            {comment.is_hidden && <span style={{...TYPOGRAPHY.caption, color: COLORS.error, fontWeight: 'bold'}}>HIDDEN</span>}
+                            {comment.is_hidden && <span style={SCREEN_STYLES.admin.hiddenCommentBadge}>HIDDEN</span>}
                         </div>
                     </div>
                     ))}
@@ -1072,15 +1072,15 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
       )}
       {activeTab === 'analytics' && (
           <div>
-              <h2 style={{ ...TYPOGRAPHY.h2, marginBottom: SPACING[4] }}>User Activity Analytics</h2>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACING[4], alignItems: 'center', background: COLORS.surface, padding: SPACING[4], borderRadius: BORDERS.radius.medium, marginBottom: SPACING[6] }}>
+              <h2 style={SCREEN_STYLES.admin.h2WithMargin}>User Activity Analytics</h2>
+              <div style={SCREEN_STYLES.admin.analyticsDateFilterContainer}>
                   <div>
-                      <label htmlFor="start-date" style={{...TYPOGRAPHY.caption, display: 'block', marginBottom: SPACING[1]}}>Start Date</label>
-                      <input id="start-date" type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} style={{...STYLES.input, width: 'auto'}} />
+                      <label htmlFor="start-date" style={SCREEN_STYLES.admin.analyticsDateLabel}>Start Date</label>
+                      <input id="start-date" type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} style={SCREEN_STYLES.admin.analyticsDateInput} />
                   </div>
                   <div>
-                      <label htmlFor="end-date" style={{...TYPOGRAPHY.caption, display: 'block', marginBottom: SPACING[1]}}>End Date</label>
-                      <input id="end-date" type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} style={{...STYLES.input, width: 'auto'}} />
+                      <label htmlFor="end-date" style={SCREEN_STYLES.admin.analyticsDateLabel}>End Date</label>
+                      <input id="end-date" type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} style={SCREEN_STYLES.admin.analyticsDateInput} />
                   </div>
                   <button onClick={fetchAnalyticsData} disabled={isAnalyticsLoading} style={{ ...SCREEN_STYLES.admin.button, padding: `${SPACING[3]} ${SPACING[4]}`, background: COLORS.primary, color: COLORS.white, cursor: isAnalyticsLoading ? 'not-allowed' : 'pointer', alignSelf: 'flex-end', opacity: isAnalyticsLoading ? 0.6 : 1 }}>
                       {isAnalyticsLoading ? 'Loading...' : 'Fetch Activity'}
@@ -1089,10 +1089,10 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
               {analyticsError && <div style={SCREEN_STYLES.admin.errorContainer}>{analyticsError}</div>}
               {isAnalyticsLoading && <p>Loading analytics data...</p>}
               {!isAnalyticsLoading && sortedAnalyticsData.length > 0 && (
-                  <div style={{ overflowX: 'auto', background: COLORS.surface, borderRadius: BORDERS.radius.medium, padding: SPACING[2] }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
+                  <div style={SCREEN_STYLES.admin.analyticsTableContainer}>
+                      <table style={SCREEN_STYLES.admin.analyticsTable}>
                           <thead>
-                              <tr style={{ borderBottom: `2px solid ${COLORS.border}` }}>
+                              <tr style={SCREEN_STYLES.admin.analyticsTableHeaderRow}>
                                   <SortableHeader title="Full Name" sortKey="fullName" />
                                   <SortableHeader title="Email" sortKey="email" />
                                   <SortableHeader title="Restaurants Viewed" sortKey="restaurantsViewed" align="center" />
@@ -1104,14 +1104,14 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                           </thead>
                           <tbody>
                               {sortedAnalyticsData.map(user => (
-                                  <tr key={user.userId} style={{ borderBottom: `1px solid ${COLORS.border}` }}>
-                                      <td style={{...SCREEN_STYLES.admin.tableCell, fontWeight: TYPOGRAPHY.medium}}>{user.fullName || <span style={{color: COLORS.textSecondary}}>N/A</span>}</td>
+                                  <tr key={user.userId} style={SCREEN_STYLES.admin.analyticsTableRow}>
+                                      <td style={SCREEN_STYLES.admin.analyticsTableCellName}>{user.fullName || <span style={{color: COLORS.textSecondary}}>N/A</span>}</td>
                                       <td style={SCREEN_STYLES.admin.tableCell}>{user.email}</td>
-                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.restaurantsViewed}</td>
-                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.restaurantsAdded}</td>
-                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.dishesRated}</td>
-                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.dishesCommented}</td>
-                                      <td style={{...SCREEN_STYLES.admin.tableCell, textAlign: 'center'}}>{user.dishesAdded}</td>
+                                      <td style={SCREEN_STYLES.admin.analyticsTableCellCentered}>{user.restaurantsViewed}</td>
+                                      <td style={SCREEN_STYLES.admin.analyticsTableCellCentered}>{user.restaurantsAdded}</td>
+                                      <td style={SCREEN_STYLES.admin.analyticsTableCellCentered}>{user.dishesRated}</td>
+                                      <td style={SCREEN_STYLES.admin.analyticsTableCellCentered}>{user.dishesCommented}</td>
+                                      <td style={SCREEN_STYLES.admin.analyticsTableCellCentered}>{user.dishesAdded}</td>
                                   </tr>
                               ))}
                           </tbody>
@@ -1119,9 +1119,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
                   </div>
               )}
               {!isAnalyticsLoading && sortedAnalyticsData.length === 0 && !analyticsError && (
-                <div style={{ textAlign: 'center', padding: SPACING[8], background: COLORS.surface, borderRadius: BORDERS.radius.medium }}>
+                <div style={SCREEN_STYLES.admin.analyticsEmptyStateContainer}>
                     <p style={TYPOGRAPHY.body}>No data to display.</p>
-                    <p style={{...TYPOGRAPHY.caption, color: COLORS.textSecondary, marginTop: SPACING[2]}}>Select a date range and click "Fetch Activity" to load user data.</p>
+                    <p style={SCREEN_STYLES.admin.analyticsEmptyStateSubtext}>Select a date range and click "Fetch Activity" to load user data.</p>
                 </div>
               )}
           </div>
