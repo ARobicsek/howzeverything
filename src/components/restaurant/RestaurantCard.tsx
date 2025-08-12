@@ -1,6 +1,6 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 
@@ -244,12 +244,10 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           <p
             style={{
               ...FONTS.body,
+              ...UTILITIES.truncate,
               color: COLORS.textSecondary,
               fontSize: '0.875rem',
               margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
             }}
           >
             {displayAddress}

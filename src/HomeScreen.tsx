@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
 
 
 const InfoCard: React.FC<{
@@ -46,9 +46,8 @@ const HomeScreen: React.FC = () => {
   return (
     // This container is now set to fill the screen's height and has bottom padding.
     <div style={{
+      ...UTILITIES.fullBleed,
       backgroundColor: COLORS.navBarDark,
-      marginLeft: 'calc(-50vw + 50%)',
-      marginRight: 'calc(-50vw + 50%)',
       minHeight: '100vh',
       boxSizing: 'border-box',
       paddingBottom: SPACING[8],

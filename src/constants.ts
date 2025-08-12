@@ -208,6 +208,37 @@ const _shadowSmall = '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06
 const _shadowMedium = '0 4px 6px -1px rgba(0, 0, 0, 0.8), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
 const _shadowLarge = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
 
+export const UTILITIES = {
+  flexCenter: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as React.CSSProperties,
+  flexBetween: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  } as React.CSSProperties,
+  truncate: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  } as React.CSSProperties,
+  visuallyHidden: {
+    border: 0,
+    clip: 'rect(0 0 0 0)',
+    height: '1px',
+    margin: '-1px',
+    overflow: 'hidden',
+    padding: 0,
+    position: 'absolute',
+    width: '1px',
+  } as React.CSSProperties,
+  fullBleed: {
+    marginLeft: 'calc(-50vw + 50%)',
+    marginRight: 'calc(-50vw + 50%)',
+  } as React.CSSProperties,
+};
 
 export const STYLES = {
   // Border Radius
@@ -243,9 +274,8 @@ export const STYLES = {
     transition: 'all 0.2s ease',
     outline: 'none',
     textDecoration: 'none',
+    ...UTILITIES.flexCenter,
     display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     gap: '8px',
   } as React.CSSProperties, // Added casting
   secondaryButton: {
@@ -261,9 +291,8 @@ export const STYLES = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     outline: 'none',
+    ...UTILITIES.flexCenter,
     display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   } as React.CSSProperties, // Added casting
   deleteButton: {
     width: '40px',
@@ -273,9 +302,7 @@ export const STYLES = {
     color: COLORS.white,
     border: '2px solid ' + COLORS.black,
     cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...UTILITIES.flexCenter,
     transition: 'all 0.2s ease',
   } as React.CSSProperties, // Added casting
   card: {
@@ -306,9 +333,7 @@ export const STYLES = {
     bottom: 0,
     backgroundColor: COLORS.overlay,
     zIndex: 2147483647,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...UTILITIES.flexCenter,
     padding: SPACING[4],
   } as React.CSSProperties, // Added casting
   input: {
@@ -362,9 +387,7 @@ export const STYLES = {
     width: '40px',
     height: '40px',
     cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...UTILITIES.flexCenter,
     transition: 'all 0.2s ease',
   } as React.CSSProperties, // Added casting
   formButton: {
@@ -389,9 +412,7 @@ export const STYLES = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     fontFamily: FONTS.primary.fontFamily,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...UTILITIES.flexCenter,
     gap: '4px',
   } as React.CSSProperties, // Added casting
   sortButtonActive: {
@@ -405,9 +426,7 @@ export const STYLES = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     fontFamily: FONTS.primary.fontFamily,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...UTILITIES.flexCenter,
     gap: '4px',
   } as React.CSSProperties, // Added casting
 };
@@ -422,7 +441,6 @@ export const BORDERS = {
     full: STYLES.borderRadiusFull,
   },
 };
-
 
 export const SHADOWS = {
   small: STYLES.shadowSmall,
@@ -466,6 +484,7 @@ export const SCREEN_STYLES = {
     } as React.CSSProperties,
     // Sticky Header
     stickyHeader: {
+      ...UTILITIES.fullBleed,
       backgroundColor: COLORS.white,
       borderBottom: `1px solid ${COLORS.gray200}`,
       position: 'sticky',
@@ -473,16 +492,12 @@ export const SCREEN_STYLES = {
       zIndex: 10,
       boxShadow: STYLES.shadowSmall,
       width: '100vw',
-      marginLeft: 'calc(50% - 50vw)',
-      marginRight: 'calc(50% - 50vw)',
     } as React.CSSProperties,
     headerContainer: {
+      ...UTILITIES.flexBetween,
       maxWidth: '768px',
       margin: '0 auto',
       padding: `${SPACING[3]} ${LAYOUT_CONFIG.APP_CONTAINER.padding}`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
     } as React.CSSProperties,
     restaurantNameContainer: {
       flex: 1,
@@ -492,13 +507,11 @@ export const SCREEN_STYLES = {
       cursor: 'pointer',
     } as React.CSSProperties,
     restaurantName: {
+      ...UTILITIES.truncate,
       ...FONTS.heading,
       fontSize: TYPOGRAPHY.xl.fontSize,
       color: COLORS.gray900,
       margin: 0,
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
     } as React.CSSProperties,
     address: {
       ...FONTS.elegant,
@@ -507,9 +520,7 @@ export const SCREEN_STYLES = {
       fontSize: '0.8rem',
       lineHeight: '1.3',
       margin: '2px 0 0 0',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
+      ...UTILITIES.truncate,
     } as React.CSSProperties,
     headerButtonsContainer: {
       display: 'flex',
@@ -750,9 +761,7 @@ export const SCREEN_STYLES = {
         padding: SPACING[4],
       } as React.CSSProperties,
       header: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        ...UTILITIES.flexBetween,
         marginBottom: SPACING[1],
       } as React.CSSProperties,
       title: {
@@ -868,9 +877,8 @@ export const SCREEN_STYLES = {
       }
     `,
     header: {
+      ...UTILITIES.fullBleed,
       backgroundColor: COLORS.navBarDark,
-      marginLeft: 'calc(-50vw + 50%)',
-      marginRight: 'calc(-50vw + 50%)',
       marginBottom: SPACING[6],
     } as React.CSSProperties,
     headerInner: {
@@ -951,9 +959,8 @@ export const SCREEN_STYLES = {
       minHeight: '100vh',
     } as React.CSSProperties,
     header: {
+      ...UTILITIES.fullBleed,
       backgroundColor: COLORS.navBarDark,
-      marginLeft: 'calc(-50vw + 50%)',
-      marginRight: 'calc(-50vw + 50%)',
       marginBottom: SPACING[6],
     } as React.CSSProperties,
     headerInner: {
@@ -1074,9 +1081,8 @@ export const SCREEN_STYLES = {
   },
   ratings: {
     header: {
+      ...UTILITIES.fullBleed,
       backgroundColor: COLORS.navBarDark,
-      marginLeft: 'calc(-50vw + 50%)',
-      marginRight: 'calc(-50vw + 50%)',
     } as React.CSSProperties,
     headerInner: {
       maxWidth: '700px',
@@ -1361,9 +1367,7 @@ export const SCREEN_STYLES = {
       padding: SPACING[3],
     } as React.CSSProperties,
     paginationContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      ...UTILITIES.flexCenter,
       gap: SPACING[2],
       marginTop: SPACING[4],
       flexWrap: 'wrap',
@@ -1391,9 +1395,8 @@ export const SCREEN_STYLES = {
   },
   about: {
     header: {
+      ...UTILITIES.fullBleed,
       backgroundColor: COLORS.navBarDark,
-      marginLeft: 'calc(-50vw + 50%)',
-      marginRight: 'calc(-50vw + 50%)',
     } as React.CSSProperties,
     headerInner: {
       maxWidth: '700px',
@@ -1471,4 +1474,3 @@ export const SCREEN_STYLES = {
     } as React.CSSProperties,
   }
 };
-
