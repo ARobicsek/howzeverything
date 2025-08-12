@@ -1,6 +1,6 @@
 // src/components/PhotoUpload.tsx      
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, IMAGE_COMPRESSION, SPACING, STYLES } from '../constants';
+import { BORDERS, COLORS, FONTS, IMAGE_COMPRESSION, SPACING } from '../constants';
 
 interface PhotoUploadProps {      
   onUpload: (file: File, caption?: string) => Promise<void>;      

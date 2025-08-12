@@ -1,6 +1,6 @@
 // src/components/shared/AddressInput.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, Z_INDICES } from '../../constants';
 import type { AddressFormData } from '../../types/address';
 import { parseAddress } from '../../utils/addressParser';
 import { incrementGeoapifyCount, logGeoapifyCount } from '../../utils/apiCounter';
@@ -322,7 +322,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
             border: `1px solid ${COLORS.gray200}`,
             borderRadius: BORDERS.radius.medium,
             boxShadow: SHADOWS.medium,
-            zIndex: STYLES.zDropdown,
+            zIndex: Z_INDICES.dropdown,
             maxHeight: '200px',
             overflowY: 'auto'
           }}>

@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
+import { COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
 
 
 const InfoCard: React.FC<{
@@ -20,7 +20,7 @@ const InfoCard: React.FC<{
           textAlign: 'center',
           transition: 'transform 0.3s ease, box-shadow 0.3s ease',
           transform: isHovering ? 'scale(1.03)' : 'scale(1)',
-          boxShadow: isHovering ? STYLES.shadowLarge : STYLES.shadowMedium,
+          boxShadow: isHovering ? SHADOWS.large : SHADOWS.medium,
         }}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}

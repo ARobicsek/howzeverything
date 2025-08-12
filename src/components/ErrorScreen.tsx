@@ -1,6 +1,6 @@
 // src/components/ErrorScreen.tsx
 import React from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
+import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
 
 interface ErrorScreenProps { // Renamed from LoadingScreenProps
   error: string; // Added error prop

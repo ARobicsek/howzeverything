@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { COLORS, SCREEN_STYLES, STYLES } from './constants';
+import { COLORS, SCREEN_STYLES, STYLES, SHADOWS } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
 import { useLocationService } from './hooks/useLocationService';
@@ -34,12 +34,12 @@ const RatedDishCard: React.FC<{
       onMouseEnter={(e) => {
         const target = e.currentTarget;
         target.style.borderColor = COLORS.accent;
-        target.style.boxShadow = STYLES.shadowMedium;
+        target.style.boxShadow = SHADOWS.medium;
       }}
       onMouseLeave={(e) => {
         const target = e.currentTarget;
         target.style.borderColor = COLORS.gray200;
-        target.style.boxShadow = STYLES.shadowSmall;
+        target.style.boxShadow = SHADOWS.small;
       }}
     >
       <div style={SCREEN_STYLES.ratings.cardInner}>

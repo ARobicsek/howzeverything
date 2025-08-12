@@ -1,7 +1,7 @@
 // src/components/DishCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, Z_INDICES } from '../constants';
 import type { DishComment, DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 import PhotoCarousel from './PhotoCarousel';
@@ -434,7 +434,7 @@ const CommentsSection: React.FC<{
                             boxShadow: SHADOWS.large,
                             border: `1px solid ${COLORS.gray200}`,
                             overflow: 'hidden',
-                            zIndex: STYLES.zDropdown,
+                            zIndex: Z_INDICES.dropdown,
                             minWidth: '120px'
                           }}
                         >

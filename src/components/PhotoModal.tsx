@@ -1,7 +1,7 @@
 // src/components/PhotoModal.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+import { BORDERS, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
 import type { DishPhoto } from '../hooks/useDishes';
 
 interface PhotoModalProps {

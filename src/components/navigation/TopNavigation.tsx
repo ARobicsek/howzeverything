@@ -1,7 +1,7 @@
 // src/components/navigation/TopNavigation.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SPACING, STYLES } from '../../constants';
+import { COLORS, SHADOWS, SPACING, Z_INDICES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 import LocationAwareButton from '../location/LocationAwareButton';
 
@@ -60,7 +60,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       height: '60px',
       backgroundColor: COLORS.navBarDark,
       border: 'none',
-      zIndex: STYLES.zHeader,
+      zIndex: Z_INDICES.header,
       padding: `0 ${SPACING[4]}`,
       display: 'flex',
       alignItems: 'center',

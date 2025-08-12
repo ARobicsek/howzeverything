@@ -1,6 +1,6 @@
 ﻿// src/components/SupabaseDebugTest.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS, STYLES } from '../constants';
+import { BORDERS, COLORS, FONTS, STYLES } from '../constants';
 
 const SupabaseDebugTest: React.FC = () => {
   const [name, setName] = useState('starbucks');

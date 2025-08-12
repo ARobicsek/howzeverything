@@ -1,6 +1,6 @@
 // src/components/user/LoginForm.tsx  
 import React, { useState } from 'react';
-import { COLORS, COMPONENT_STYLES, FONTS, SPACING, STYLES, TYPOGRAPHY, STYLE_FUNCTIONS } from '../../constants';
+import { COLORS, COMPONENT_STYLES, SPACING, STYLES, STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 

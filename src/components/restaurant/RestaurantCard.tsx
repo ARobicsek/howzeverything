@@ -1,6 +1,6 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from '../../constants';
+import { SHADOWS, Z_INDICES, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from '../../constants';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 interface RestaurantCardProps {
@@ -204,7 +204,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ ...STYLES.card, position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: STYLES.zDropdown, width: '180px', padding: SPACING[2], boxShadow: SHADOWS.large, backgroundColor: COLORS.white }}>
+                <div ref={menuRef} style={{ position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: Z_INDICES.dropdown, width: '180px', padding: SPACING[2], boxShadow: SHADOWS.large, backgroundColor: COLORS.white, borderRadius: '12px', border: `1px solid ${COLORS.gray200}` }}>
                     {canEdit && onEdit && <button style={menuButtonStyle} onClick={handleEdit}>Edit</button>}
                     {hasWebsite && <button style={menuButtonStyle} onClick={handleViewWebsite}>View Website</button>}
                     {onShare && <button style={menuButtonStyle} onClick={handleShare}>Share</button>}

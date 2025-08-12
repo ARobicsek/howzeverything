@@ -1,7 +1,7 @@
 // src/components/navigation/NavigationModal.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { BORDERS, COLORS, SHADOWS, SPACING, TYPOGRAPHY, Z_INDICES } from '../../constants';
 
 
 interface NavigationModalProps {
@@ -86,7 +86,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: STYLES.zModal - 1,
+        zIndex: Z_INDICES.modal - 1,
       }}
     >
       <div
@@ -115,7 +115,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         flexDirection: 'column',
         padding: `${SPACING[8]} ${SPACING[4]}`,
         animation: 'slideInFromRight 0.3s ease',
-        zIndex: STYLES.zModal
+        zIndex: Z_INDICES.modal
       }}>
         <style>
           {`

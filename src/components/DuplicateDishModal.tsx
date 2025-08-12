@@ -1,7 +1,7 @@
 // src/components/DuplicateDishModal.tsx
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
 import { DishSearchResult } from '../hooks/useDishes';
 import { getSimilarityDescription } from '../utils/dishSearch';
 

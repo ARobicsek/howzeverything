@@ -1,6 +1,6 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
-import { COLORS, COMPONENT_STYLES, STYLES, STYLE_FUNCTIONS } from '../../constants';
+import { COLORS, COMPONENT_STYLES, STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
