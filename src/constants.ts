@@ -454,4 +454,407 @@ export const BREAKPOINTS = {
 };
 
 
+// 4. Screen-Specific Styles
+export const SCREEN_STYLES = {
+  menu: {
+    // Top-level container
+    container: {
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: COLORS.background,
+    },
+    // Sticky Header
+    stickyHeader: {
+      backgroundColor: COLORS.white,
+      borderBottom: `1px solid ${COLORS.gray200}`,
+      position: 'sticky',
+      top: '59px', // This assumes a fixed top navigation height
+      zIndex: 10,
+      boxShadow: STYLES.shadowSmall,
+      width: '100vw',
+      marginLeft: 'calc(50% - 50vw)',
+      marginRight: 'calc(50% - 50vw)',
+    },
+    headerContainer: {
+      maxWidth: '768px',
+      margin: '0 auto',
+      padding: `${SPACING[3]} ${LAYOUT_CONFIG.APP_CONTAINER.padding}`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    restaurantNameContainer: {
+      flex: 1,
+      textAlign: 'center',
+      margin: `0 ${SPACING[2]}`,
+      overflow: 'hidden',
+      cursor: 'pointer',
+    },
+    restaurantName: {
+      ...FONTS.heading,
+      fontSize: TYPOGRAPHY.xl.fontSize,
+      color: COLORS.gray900,
+      margin: 0,
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+    },
+    address: {
+      ...FONTS.elegant,
+      color: COLORS.text,
+      opacity: 0.7,
+      fontSize: '0.8rem',
+      lineHeight: '1.3',
+      margin: '2px 0 0 0',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+    },
+    headerButtonsContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: SPACING[2],
+    },
+    pinButton: {
+      ...STYLES.iconButton,
+      border: 'none',
+    },
+    actionMenu: {
+      container: {
+        position: 'relative',
+      },
+      dropdown: {
+        position: 'absolute',
+        top: 'calc(100% + 4px)',
+        right: 0,
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusMedium,
+        boxShadow: STYLES.shadowLarge,
+        border: `1px solid ${COLORS.gray200}`,
+        overflow: 'hidden',
+        zIndex: STYLES.zDropdown,
+        minWidth: '160px',
+      },
+      menuItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: SPACING[2],
+        width: '100%',
+        padding: `${SPACING[2]} ${SPACING[3]}`,
+        border: 'none',
+        background: 'none',
+        cursor: 'pointer',
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.sm.fontSize,
+        textAlign: 'left',
+        transition: 'background-color 0.2s ease',
+        color: COLORS.text,
+      },
+      menuItemDanger: {
+        color: COLORS.danger,
+      },
+    },
+    // Main Content Area
+    main: {
+      flex: 1,
+      maxWidth: '768px',
+      width: '100%',
+      margin: '0 auto',
+      paddingTop: SPACING[4],
+    },
+    mainInnerContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      padding: `0 ${SPACING[1]}`,
+    },
+    // Error Message
+    error: {
+      container: {
+        backgroundColor: COLORS.red50,
+        border: `1px solid ${COLORS.red200}`,
+        borderRadius: STYLES.borderRadiusMedium,
+        padding: SPACING[4],
+        textAlign: 'center',
+        marginBottom: SPACING[4],
+      },
+      text: {
+        ...FONTS.body,
+        color: COLORS.danger,
+        margin: 0,
+      },
+    },
+    // Advanced Sort Section
+    advancedSort: {
+      container: {
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusLarge,
+        padding: SPACING[4],
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`,
+        marginBottom: SPACING[4],
+      },
+      innerContainer: {
+        display: 'flex',
+        gap: SPACING[2],
+        flexWrap: 'wrap',
+      },
+      arrow: {
+        marginLeft: SPACING[1],
+      },
+    },
+    // Search Component Wrapper
+    searchWrapper: {
+      marginLeft: SPACING[1],
+      marginRight: SPACING[1],
+      marginBottom: SPACING[5],
+    },
+    // Dish List
+    dishList: {
+      container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: SPACING[2],
+      },
+      noResultsContainer: {
+        textAlign: 'center',
+        padding: SPACING[6],
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusLarge,
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`,
+      },
+      noResultsText: {
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.base.fontSize,
+        color: COLORS.textSecondary,
+        margin: 0,
+      },
+    },
+    // Empty State (No Dishes)
+    emptyState: {
+      container: {
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusLarge,
+        padding: SPACING[8],
+        textAlign: 'center',
+        boxShadow: STYLES.shadowMedium,
+        border: `1px solid ${COLORS.gray200}`,
+      },
+      icon: {
+        color: COLORS.gray400,
+        marginBottom: SPACING[4],
+      },
+      title: {
+        ...FONTS.heading,
+        fontSize: TYPOGRAPHY.xl.fontSize,
+        color: COLORS.gray900,
+        marginBottom: SPACING[3],
+      },
+      text: {
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.base.fontSize,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING[5],
+      },
+    },
+    // Add Form Container
+    addFormContainer: {
+      marginTop: SPACING[4],
+    },
+    // Full Name Modal
+    fullNameModal: {
+      content: {
+        ...STYLES.modal,
+        maxWidth: '500px',
+        textAlign: 'center',
+      },
+      name: {
+        ...FONTS.elegant,
+        color: COLORS.text,
+        fontSize: '1.5rem',
+        fontWeight: 500,
+        lineHeight: 1.4,
+        wordBreak: 'break-word',
+      },
+      address: {
+        ...FONTS.elegant,
+        color: COLORS.textSecondary,
+        fontSize: TYPOGRAPHY.base.fontSize,
+        lineHeight: 1.5,
+        marginBottom: SPACING[6],
+        wordBreak: 'break-word',
+      },
+      closeButton: {
+        ...STYLES.secondaryButton,
+        width: '100%',
+      },
+    },
+    // --- Sub-components defined in MenuScreen ---
+    // Duplicate Dish Warning Modal
+    duplicateWarningModal: {
+      content: {
+        ...STYLES.modal,
+        maxWidth: '500px',
+        border: `1px solid ${COLORS.border}`,
+      },
+      title: {
+        ...TYPOGRAPHY.h3,
+        color: COLORS.textPrimary,
+        marginTop: 0,
+        marginBottom: SPACING[2],
+      },
+      text: {
+        ...TYPOGRAPHY.body,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING[4],
+      },
+      list: {
+        listStyle: 'none',
+        padding: 0,
+        margin: `0 0 ${SPACING[6]} 0`,
+        maxHeight: '200px',
+        overflowY: 'auto',
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: BORDERS.radius.medium,
+      },
+      listItem: {
+        padding: `${SPACING[2]} ${SPACING[3]}`,
+        cursor: 'pointer',
+        color: COLORS.primary,
+        fontWeight: TYPOGRAPHY.semibold,
+        transition: 'background-color 0.2s ease',
+      },
+      buttonContainer: {
+        display: 'flex',
+        gap: SPACING[3],
+      },
+      cancelButton: {
+        ...STYLES.secondaryButton,
+        flex: 1,
+        border: `1px solid ${COLORS.gray300}`,
+        color: COLORS.text,
+      },
+      confirmButton: {
+        ...STYLES.primaryButton,
+        flex: 1,
+      },
+    },
+    // Consolidated Search and Add Form
+    search: {
+      container: {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        borderRadius: STYLES.borderRadiusLarge,
+        padding: SPACING[4],
+      },
+      header: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: SPACING[1],
+      },
+      title: {
+        ...FONTS.heading,
+        fontSize: TYPOGRAPHY.lg.fontSize,
+        color: COLORS.text,
+        margin: 0,
+      },
+      resetButton: {
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        color: COLORS.textSecondary,
+        transition: 'color 0.2s ease, transform 0.2s ease',
+      },
+      addDishContainer: {
+        marginTop: SPACING[4],
+        textAlign: 'center',
+      },
+      addDishText: {
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.sm.fontSize,
+        color: COLORS.textSecondary,
+        margin: `0 0 ${SPACING[2]} 0`,
+      },
+      addDishButton: {
+        ...STYLES.primaryButton,
+        padding: `${SPACING[2]} ${SPACING[4]}`,
+        fontSize: TYPOGRAPHY.sm.fontSize,
+      },
+    },
+    // Enhanced Add Dish Form
+    addDishForm: {
+      container: {
+        backgroundColor: COLORS.white,
+        borderRadius: STYLES.borderRadiusLarge,
+        padding: SPACING[6],
+        boxShadow: STYLES.shadowLarge,
+        border: `1px solid ${COLORS.gray200}`,
+      },
+      title: {
+        ...FONTS.heading,
+        fontSize: TYPOGRAPHY.xl.fontSize,
+        color: COLORS.gray900,
+        marginBottom: SPACING[5],
+      },
+      inputContainer: {
+        marginBottom: SPACING[5],
+      },
+      label: {
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.sm.fontSize,
+        fontWeight: TYPOGRAPHY.medium,
+        color: COLORS.textSecondary,
+        display: 'block',
+        marginBottom: SPACING[2],
+      },
+      input: {
+        ...STYLES.input,
+        borderWidth: '1px',
+      },
+      ratingContainer: {
+        marginBottom: SPACING[6],
+      },
+      starButtonContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: SPACING[2],
+      },
+      starButtonsInnerContainer: {
+        display: 'flex',
+        gap: SPACING[1],
+      },
+      starButton: {
+        background: 'none',
+        border: 'none',
+        padding: SPACING[1],
+        fontSize: '1.5rem',
+        transition: 'all 0.2s ease',
+      },
+      ratingText: {
+        ...FONTS.body,
+        fontSize: TYPOGRAPHY.base.fontSize,
+        color: COLORS.text,
+        marginLeft: SPACING[2],
+        minWidth: '30px',
+      },
+      buttonContainer: {
+        display: 'flex',
+        gap: SPACING[3],
+      },
+      submitButton: {
+        ...STYLES.primaryButton,
+        flex: 1,
+      },
+      cancelButton: {
+        ...STYLES.secondaryButton,
+        flex: 1,
+      },
+    },
+  }
+};
 
