@@ -1,7 +1,7 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Location, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, FONTS, LAYOUT_CONFIG } from './constants';
+import { COLORS, LAYOUT_CONFIG, SCREEN_STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
 // Screens
 import AboutScreen from './AboutScreen';
@@ -209,13 +209,13 @@ const AuthFlow: React.FC = () => {
     };
 
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, position: 'relative' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', minHeight: '100vh' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <img src="/logo.png" alt="Logo" style={{ maxWidth: '200px', height: 'auto', margin: '0 auto' }} />
+      <div style={SCREEN_STYLES.app.authFlowContainer}>
+        <div style={SCREEN_STYLES.app.authFlowInnerContainer}>
+          <div style={SCREEN_STYLES.app.authFlowLogoContainer}>
+            <img src="/logo.png" alt="Logo" style={SCREEN_STYLES.app.authFlowLogo} />
           </div>
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', textAlign: 'center' }}>
-            <h2 style={{ ...FONTS.elegant, fontSize: '20px', fontWeight: '600', color: COLORS.text, margin: '0 0 24px 0' }}>
+          <div style={SCREEN_STYLES.app.authFlowFormContainer}>
+            <h2 style={SCREEN_STYLES.app.authFlowFormTitle}>
                 Sign in and start dishing
             </h2>
             <LoginForm onSuccess={handleLoginSuccess} onCancel={() => {}} />

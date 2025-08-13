@@ -1,7 +1,7 @@
 // src/components/PhotoModal.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+import { BORDERS, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
 import type { DishPhoto } from '../hooks/useDishes';
 
 interface PhotoModalProps {
@@ -28,6 +28,34 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
   const [isEditingCaption, setIsEditingCaption] = useState(false);
   const [editedCaption, setEditedCaption] = useState('');
 
+  useEffect(() => {
+    const validIndex = Math.max(0, Math.min(initialIndex, (photos?.length || 1) - 1));
+    setCurrentIndex(validIndex);
+  }, [initialIndex, photos?.length]);
+
+  const handleNext = useCallback(() => {
+    if (photos) {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);
+    }
+  }, [photos]);
+
+  const handlePrev = useCallback(() => {
+    if (photos) {
+      setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);
+    }
+  }, [photos]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'ArrowRight') handleNext();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrev, handleNext, onClose]);
+
   // Early validation
   if (!photos || photos.length === 0) {
     setTimeout(() => onClose(), 0);
@@ -45,30 +73,6 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
 
   // Check if current user owns the photo
   const isOwner = currentPhoto.user_id === currentUserId;
-
-  useEffect(() => {
-    const validIndex = Math.max(0, Math.min(initialIndex, photos.length - 1));
-    setCurrentIndex(validIndex);
-  }, [initialIndex, photos.length]);
-
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % photos.length);
-  }, [photos.length]);
-
-  const handlePrev = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + photos.length) % photos.length);
-  }, [photos.length]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'ArrowRight') handleNext();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrev, handleNext, onClose]);
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this photo?')) {
@@ -138,7 +142,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: COLORS.black,
-          borderRadius: STYLES.borderRadiusLarge,
+          borderRadius: BORDERS.radius.large,
           overflow: 'hidden',
           animation: 'slideIn 0.3s ease'
         }}
@@ -161,7 +165,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
             {photos.length > 1 && (
               <div style={{
                 padding: `${SPACING[2]} ${SPACING[3]}`,
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 ...FONTS.body,
                 fontSize: TYPOGRAPHY.sm.fontSize,
@@ -329,7 +333,7 @@ const PhotoModal: React.FC<PhotoModalProps> = ({
               maxWidth: '100%',
               maxHeight: '70vh',
               objectFit: 'contain',
-              borderRadius: STYLES.borderRadiusMedium
+              borderRadius: BORDERS.radius.medium
             }}
           />
         </div>

@@ -1,7 +1,7 @@
 // src/components/navigation/NavigationModal.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { BORDERS, COLORS, SHADOWS, SPACING, TYPOGRAPHY, Z_INDICES } from '../../constants';
 
 
 interface NavigationModalProps {
@@ -86,7 +86,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: STYLES.zModal - 1,
+        zIndex: Z_INDICES.modal - 1,
       }}
     >
       <div
@@ -110,12 +110,12 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         bottom: 0,
         width: 'min(300px, 80vw)',
         backgroundColor: COLORS.navBarDark,
-        boxShadow: STYLES.shadowLarge,
+        boxShadow: SHADOWS.large,
         display: 'flex',
         flexDirection: 'column',
         padding: `${SPACING[8]} ${SPACING[4]}`,
         animation: 'slideInFromRight 0.3s ease',
-        zIndex: STYLES.zModal
+        zIndex: Z_INDICES.modal
       }}>
         <style>
           {`
@@ -163,7 +163,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
                       ...TYPOGRAPHY['2xl'],
                       color: linkColor,
                       fontWeight: TYPOGRAPHY.medium,
-                      borderRadius: STYLES.borderRadiusMedium,
+                      borderRadius: BORDERS.radius.medium,
                       transition: 'background-color 0.2s ease',
                     }}
                     onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; }}

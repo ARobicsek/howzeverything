@@ -1,6 +1,6 @@
 // src/components/user/LoginForm.tsx  
 import React, { useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, COMPONENT_STYLES, SPACING, STYLES, STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -124,30 +124,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
 
   // Style for password input container
-  const passwordInputContainerStyle: React.CSSProperties = {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center'
-  };
-
-
-  // Style for password toggle button
-  const passwordToggleButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    right: '12px',
-    background: 'none',
-    border: 'none',
-    cursor: loading ? 'not-allowed' : 'pointer',
-    padding: '4px',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: COLORS.gray400,
-    transition: 'color 0.2s ease',
-    opacity: loading ? 0.5 : 1,
-    zIndex: 1
-  };
 
 
   // Eye icon SVG component
@@ -181,28 +157,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
   return (  
     <div style={STYLES.modalOverlay}>  
-      <div style={{  
-        ...STYLES.modal,  
-        maxWidth: '400px',  
-        width: '100%',  
-        padding: SPACING[8]  
-      }}>  
+      <div style={COMPONENT_STYLES.loginForm.container}>
         {/* Header */}  
-        <div style={{ marginBottom: SPACING[6], textAlign: 'center' }}>  
-          <h2 style={{  
-            ...FONTS.heading,  
-            fontSize: TYPOGRAPHY['2xl'].fontSize,  
-            color: COLORS.gray900,  
-            margin: `0 0 ${SPACING[2]} 0`  
-          }}>  
+        <div style={COMPONENT_STYLES.loginForm.headerContainer}>
+          <h2 style={COMPONENT_STYLES.loginForm.headerTitle}>
             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}  
           </h2>  
-          <p style={{  
-            ...FONTS.body,  
-            fontSize: TYPOGRAPHY.base.fontSize,  
-            color: COLORS.textSecondary,  
-            margin: 0  
-          }}>  
+          <p style={COMPONENT_STYLES.loginForm.headerSubtitle}>
             {mode === 'signin'  
               ? 'Sign in to continue to Howzeverything'  
               : 'Join Howzeverything to start rating dishes'}  
@@ -212,19 +173,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
         {/* Error Display */}  
         {displayError && (  
-          <div style={{  
-            backgroundColor: '#FEE2E2',  
-            border: `1px solid #FECACA`,  
-            borderRadius: STYLES.borderRadiusMedium,  
-            padding: SPACING[3],  
-            marginBottom: SPACING[5]  
-          }}>  
-            <p style={{  
-              ...FONTS.body,  
-              fontSize: TYPOGRAPHY.sm.fontSize,  
-              color: COLORS.danger,  
-              margin: 0  
-            }}>  
+          <div style={COMPONENT_STYLES.loginForm.errorContainer}>
+            <p style={COMPONENT_STYLES.loginForm.errorText}>
               {displayError}  
             </p>  
           </div>  
@@ -234,23 +184,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
         {/* Form */}  
         <form onSubmit={handleSubmit}>  
           {mode === 'signup' && (  
-            <div style={{ marginBottom: SPACING[5] }}>  
-              <label style={{  
-                ...FONTS.body,  
-                fontSize: TYPOGRAPHY.sm.fontSize,  
-                fontWeight: TYPOGRAPHY.medium,  
-                color: COLORS.textSecondary,  
-                display: 'block',  
-                marginBottom: SPACING[2]  
-              }}>  
+            <div style={COMPONENT_STYLES.loginForm.formFieldContainer}>
+              <label style={COMPONENT_STYLES.loginForm.label}>
                 Username  
-                <span style={{  
-                  ...FONTS.body,  
-                  fontSize: TYPOGRAPHY.xs.fontSize,  
-                  fontWeight: TYPOGRAPHY.normal,  
-                  color: COLORS.gray400,  
-                  marginLeft: SPACING[2]  
-                }}>  
+                <span style={COMPONENT_STYLES.loginForm.usernameHint}>
                   (displayed with your comments)  
                 </span>  
               </label>  
@@ -268,15 +205,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           )}
 
 
-          <div style={{ marginBottom: SPACING[5] }}>  
-            <label style={{  
-              ...FONTS.body,  
-              fontSize: TYPOGRAPHY.sm.fontSize,  
-              fontWeight: TYPOGRAPHY.medium,  
-              color: COLORS.textSecondary,  
-              display: 'block',  
-              marginBottom: SPACING[2]  
-            }}>  
+          <div style={COMPONENT_STYLES.loginForm.formFieldContainer}>
+            <label style={COMPONENT_STYLES.loginForm.label}>
               Email  
             </label>  
             <input  
@@ -294,17 +224,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
 
           <div style={{ marginBottom: mode === 'signup' ? SPACING[5] : SPACING[6] }}>  
-            <label style={{  
-              ...FONTS.body,  
-              fontSize: TYPOGRAPHY.sm.fontSize,  
-              fontWeight: TYPOGRAPHY.medium,  
-              color: COLORS.textSecondary,  
-              display: 'block',  
-              marginBottom: SPACING[2]  
-            }}>  
+            <label style={COMPONENT_STYLES.loginForm.label}>
               Password  
             </label>  
-            <div style={passwordInputContainerStyle}>
+            <div style={COMPONENT_STYLES.loginForm.passwordInputContainer}>
               <input  
                 type={showPassword ? "text" : "password"}  
                 value={password}  
@@ -323,7 +246,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
-                style={passwordToggleButtonStyle}
+                style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
                 onMouseEnter={(e) => {
                   if (!loading) {
                     e.currentTarget.style.color = COLORS.gray500;
@@ -342,17 +265,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
           {mode === 'signup' && (  
             <div style={{ marginBottom: SPACING[6] }}>  
-              <label style={{  
-                ...FONTS.body,  
-                fontSize: TYPOGRAPHY.sm.fontSize,  
-                fontWeight: TYPOGRAPHY.medium,  
-                color: COLORS.textSecondary,  
-                display: 'block',  
-                marginBottom: SPACING[2]  
-              }}>  
+              <label style={COMPONENT_STYLES.loginForm.label}>
                 Confirm Password  
               </label>  
-              <div style={passwordInputContainerStyle}>
+              <div style={COMPONENT_STYLES.loginForm.passwordInputContainer}>
                 <input  
                   type={showConfirmPassword ? "text" : "password"}  
                   value={confirmPassword}  
@@ -371,7 +287,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={loading}
-                  style={passwordToggleButtonStyle}
+                  style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
                   onMouseEnter={(e) => {
                     if (!loading) {
                       e.currentTarget.style.color = COLORS.gray500;
@@ -393,16 +309,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           <button  
             type="submit"  
             disabled={loading}  
-            style={{  
-              ...STYLES.primaryButton,  
-              width: '100%',  
-              minHeight: '50px',  
-              marginBottom: SPACING[4],  
-              opacity: loading ? 0.5 : 1,  
-              cursor: loading ? 'not-allowed' : 'pointer',  
-              backgroundColor: loading ? COLORS.gray300 : COLORS.accent,  
-              borderColor: loading ? COLORS.gray300 : COLORS.black  
-            }}  
+            style={STYLE_FUNCTIONS.getSubmitButtonStyle(loading)}
             onMouseEnter={(e) => {  
               if (!loading) {  
                 e.currentTarget.style.backgroundColor = COLORS.accent;  
@@ -415,15 +322,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             }}  
           >  
             {loading ? (  
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: SPACING[2] }}>  
-                <span className="loading-spinner" style={{  
-                  border: '2px solid rgba(255, 255, 255, 0.3)',  
-                  borderTopColor: COLORS.white,  
-                  borderRadius: '50%',  
-                  width: '16px',  
-                  height: '16px',  
-                  animation: 'spin 0.8s linear infinite'  
-                }}></span>  
+              <span style={COMPONENT_STYLES.loginForm.loadingSpinnerContainer}>
+                <span className="loading-spinner" style={COMPONENT_STYLES.loginForm.loadingSpinner}></span>
                 Please wait...  
               </span>  
             ) : (  
@@ -433,24 +333,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
 
           {/* Mode Toggle */}  
-          <div style={{ textAlign: 'center', marginBottom: SPACING[4] }}>  
+          <div style={COMPONENT_STYLES.loginForm.modeToggleContainer}>
             <button  
               type="button"  
               onClick={toggleMode}  
               disabled={loading}  
-              style={{  
-                ...FONTS.body,  
-                background: 'none',  
-                border: 'none',  
-                color: COLORS.accent,  
-                fontSize: TYPOGRAPHY.sm.fontSize,  
-                cursor: loading ? 'not-allowed' : 'pointer',  
-                textDecoration: 'none',  
-                padding: `${SPACING[2]} ${SPACING[3]}`,  
-                borderRadius: STYLES.borderRadiusMedium,  
-                transition: 'background-color 0.2s ease',  
-                outline: 'none'  
-              }}  
+              style={STYLE_FUNCTIONS.getModeToggleButtonStyle(loading)}
               onMouseEnter={(e) => {  
                 if (!loading) {  
                   e.currentTarget.style.backgroundColor = `${COLORS.accent}2A`;
@@ -473,14 +361,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               type="button"  
               onClick={onCancel}  
               disabled={loading}  
-              style={{  
-                ...STYLES.secondaryButton,  
-                width: '100%',  
-                color: COLORS.black,
-                borderColor: COLORS.black,
-                opacity: loading ? 0.5 : 1,  
-                cursor: loading ? 'not-allowed' : 'pointer'  
-              }}  
+              style={STYLE_FUNCTIONS.getCancelButtonStyle(loading)}
               onMouseEnter={(e) => {
                 if (!loading) {
                   e.currentTarget.style.backgroundColor = COLORS.gray100;

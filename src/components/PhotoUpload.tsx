@@ -1,6 +1,6 @@
 // src/components/PhotoUpload.tsx      
 import React, { useEffect, useRef, useState } from 'react';
-import { COLORS, FONTS, IMAGE_COMPRESSION, SPACING, STYLES } from '../constants';
+import { BORDERS, COLORS, FONTS, IMAGE_COMPRESSION, SPACING } from '../constants';
 
 interface PhotoUploadProps {      
   onUpload: (file: File, caption?: string) => Promise<void>;      
@@ -35,7 +35,7 @@ const UploadProgressAnimation: React.FC<{
       gap: SPACING[3],
       padding: SPACING[4],
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      borderRadius: STYLES.borderRadiusMedium,
+      borderRadius: BORDERS.radius.medium,
       backdropFilter: 'blur(8px)',
       border: `1px solid ${COLORS.gray200}`
     }}>
@@ -372,19 +372,20 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         }
       }, 1000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle compression, timeout or other errors
       setUploadProgress(0);
       
-      if (error.message.includes('compression') || error.message.includes('Canvas')) {
+      if (error instanceof Error && (error.message.includes('compression') || error.message.includes('Canvas'))) {
         setUploadStatus('Compression failed');
         alert('Failed to compress image: ' + error.message);
-      } else if (error.message.includes('timeout')) {
+      } else if (error instanceof Error && error.message.includes('timeout')) {
         setUploadStatus('Upload failed - connection timeout');
         alert('Upload timed out. The compressed image should upload faster - please try again.');
       } else {
         setUploadStatus('Upload failed');
-        alert('Upload failed: ' + (error.message || 'Unknown error'));
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        alert('Upload failed: ' + errorMessage);
       }
     }
   };
@@ -497,7 +498,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               textAlign: 'center',
               padding: SPACING[2],
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: STYLES.borderRadiusMedium
+              borderRadius: BORDERS.radius.medium
             }}>
               Original size: {formatFileSize(selectedFile.size)} → Will be compressed to ~{formatFileSize(IMAGE_COMPRESSION.MAX_FILE_SIZE_MB * 1024 * 1024)} max
             </div>

@@ -1,7 +1,7 @@
 // src/components/DishCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants';
+import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, Z_INDICES } from '../constants';
 import type { DishComment, DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 import PhotoCarousel from './PhotoCarousel';
@@ -90,7 +90,12 @@ const StarRating: React.FC<{
           return (
             <button
               key={star}
-              onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (!readonly && onRatingChange) {
+                  onRatingChange(star);
+                }
+              }}
               disabled={readonly}
               className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'}`}
               style={{
@@ -199,7 +204,7 @@ const RatingBreakdown: React.FC<{
   <div style={{
     backgroundColor: COLORS.gray50,
     padding: SPACING[4],
-    borderRadius: STYLES.borderRadiusMedium,
+    borderRadius: BORDERS.radius.medium,
     marginTop: SPACING[4]
   }}>
     <div style={{ display: 'flex', gap: SPACING[8], alignItems: 'flex-start' }}>
@@ -360,7 +365,7 @@ const CommentsSection: React.FC<{
               style={{
                 backgroundColor: COLORS.gray50,
                 padding: SPACING[4],
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 cursor: editingComment?.id === comment.id ? 'default' : 'pointer',
               }}
             >
@@ -430,11 +435,11 @@ const CommentsSection: React.FC<{
                             right: 0,
                             marginBottom: SPACING[1],
                             backgroundColor: COLORS.white,
-                            borderRadius: STYLES.borderRadiusMedium,
-                            boxShadow: STYLES.shadowLarge,
+                            borderRadius: BORDERS.radius.medium,
+                            boxShadow: SHADOWS.large,
                             border: `1px solid ${COLORS.gray200}`,
                             overflow: 'hidden',
-                            zIndex: STYLES.zDropdown,
+                            zIndex: Z_INDICES.dropdown,
                             minWidth: '120px'
                           }}
                         >
@@ -582,11 +587,6 @@ const DishCard: React.FC<DishCardProps> = ({
   isExpanded,
   onToggleExpand
 }) => {
-  if (!dish) {
-    return null;
-  }
-
-
   const [showComments, setShowComments] = useState(false);
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -594,20 +594,13 @@ const DishCard: React.FC<DishCardProps> = ({
   const [selectedPhotoModal, setSelectedPhotoModal] = useState<{ photo: DishPhoto; index: number } | null>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedDishName, setEditedDishName] = useState(dish.name);
+  const [editedDishName, setEditedDishName] = useState(dish?.name || '');
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-
-
-  // --- FIX 2: Create safe local variables to prevent crashes ---
-  const safeRatings = dish.ratings || [];
-  const safePhotos = dish.photos || [];
-  const safeComments = dish.comments || [];
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -622,6 +615,15 @@ const DishCard: React.FC<DishCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  if (!dish) {
+    return null;
+  }
+
+  // --- FIX 2: Create safe local variables to prevent crashes ---
+  const safeRatings = dish.ratings || [];
+  const safePhotos = dish.photos || [];
+  const safeComments = dish.comments || [];
 
 
   const personalRating = getUserPersonalRating(safeRatings, currentUserId);
@@ -744,7 +746,7 @@ const DishCard: React.FC<DishCardProps> = ({
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           borderColor: isHovering ? COLORS.accent : COLORS.gray200,
-          boxShadow: isHovering ? STYLES.shadowMedium : STYLES.shadowSmall,
+          boxShadow: isHovering ? SHADOWS.medium : SHADOWS.small,
         }}
         onClick={onToggleExpand}
         onMouseEnter={() => setIsHovering(true)}
@@ -771,7 +773,7 @@ const DishCard: React.FC<DishCardProps> = ({
               <div style={{
                 width: '60px',
                 height: '60px',
-                borderRadius: STYLES.borderRadiusMedium,
+                borderRadius: BORDERS.radius.medium,
                 overflow: 'hidden',
                 flexShrink: 0
               }}>
@@ -826,7 +828,7 @@ const DishCard: React.FC<DishCardProps> = ({
         style={{
           ...STYLES.card,
           borderColor: COLORS.accent,
-          boxShadow: STYLES.shadowLarge,
+          boxShadow: SHADOWS.large,
           cursor: 'default',
         }}
         onClick={handleCardClick}
@@ -889,7 +891,7 @@ const DishCard: React.FC<DishCardProps> = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: STYLES.borderRadiusMedium, boxShadow: STYLES.shadowLarge, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: STYLES.zDropdown, minWidth: '160px', }}>
+                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.large, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: Z_INDICES.dropdown, minWidth: '160px', }}>
                   <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
                     Share Dish

@@ -1,7 +1,12 @@
 // src/utils/countryDetection.ts
 
+interface CountryPattern {
+  postalCode: RegExp;
+  state?: RegExp;
+  terms: RegExp;
+}
 
-export const COUNTRY_PATTERNS = { // Added export here
+export const COUNTRY_PATTERNS: Record<string, CountryPattern> = { // Added export here
   UK: {
     // UK postcodes: SW1A 1AA, W1U 5JX, etc.
     postalCode: /\b[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}\b/i,
@@ -206,7 +211,7 @@ export function detectCountry(address: string): string {
 }
 
 
-export function validateUSParseResults(usResult: any): boolean {
+export function validateUSParseResults(usResult: { state?: string }): boolean {
   if (usResult.state && !VALID_US_STATES.includes(usResult.state.toUpperCase()) && !US_STATE_NAME_TO_ABBR[usResult.state.toLowerCase()]) {
     console.log('Invalid US state detected:', usResult.state);
     return false;

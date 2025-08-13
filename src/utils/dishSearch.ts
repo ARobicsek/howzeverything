@@ -283,8 +283,8 @@ function normalizeText(text: string): string {
     .replace(/\b7up\b/g, 'seven up')
     .replace(/\ba1\b/g, 'a one')
     // Remove possessives
-    .replace(/\'s\b/g, 's')
-    .replace(/s\'\b/g, 's');
+    .replace(/'s\b/g, 's')
+    .replace(/s'\b/g, 's');
 }
 
 

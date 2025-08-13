@@ -1,6 +1,6 @@
 // src/components/ErrorScreen.tsx
 import React from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
+import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY } from '../constants'; // Added STYLES for button
 
 interface ErrorScreenProps { // Renamed from LoadingScreenProps
   error: string; // Added error prop
@@ -25,8 +25,8 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onBack }) => { // Chan
         gap: SPACING[4],
         backgroundColor: COLORS.white, // Added background for better presentation
         padding: SPACING[6],
-        borderRadius: STYLES.borderRadiusLarge,
-        boxShadow: STYLES.shadowMedium,
+        borderRadius: BORDERS.radius.large,
+        boxShadow: SHADOWS.medium,
         border: `1px solid ${COLORS.gray200}`
       }}>
         {/* Error icon or message */}

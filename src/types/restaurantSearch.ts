@@ -51,7 +51,7 @@ export interface GeoapifyPlaceDetails {
     categories: string[];
     website?: string;
     phone?: string;
-    opening_hours?: any;
+    opening_hours?: Record<string, unknown>;
     contact?: {
       website?: string;
       phone?: string;

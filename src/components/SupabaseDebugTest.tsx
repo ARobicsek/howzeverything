@@ -1,6 +1,6 @@
 ﻿// src/components/SupabaseDebugTest.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS, STYLES } from '../constants';
+import { BORDERS, COLORS, FONTS, STYLES } from '../constants';
 
 const SupabaseDebugTest: React.FC = () => {
   const [name, setName] = useState('starbucks');
@@ -73,7 +73,7 @@ const SupabaseDebugTest: React.FC = () => {
   const inputStyle: React.CSSProperties = {
     ...FONTS.elegant,
     padding: '12px 16px',
-    borderRadius: STYLES.borderRadiusMedium,
+    borderRadius: BORDERS.radius.medium,
     fontSize: '1rem',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     color: COLORS.text,

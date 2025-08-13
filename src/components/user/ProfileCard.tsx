@@ -1,6 +1,6 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY } from '../../constants';
+import { COLORS, COMPONENT_STYLES, STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -32,17 +32,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   if (!user || !profile) {
     return (
-      <div style={{
-        ...STYLES.card,
-        textAlign: 'center',
-        padding: SPACING[6]
-      }}>
-        <p style={{
-          ...FONTS.body,
-          fontSize: TYPOGRAPHY.base.fontSize,
-          color: COLORS.textSecondary,
-          margin: 0
-        }}>
+      <div style={COMPONENT_STYLES.profileCard.noProfileContainer}>
+        <p style={COMPONENT_STYLES.profileCard.noProfileText}>
           {loading ? 'Loading profile...' : 'No profile found'}
         </p>
       </div>
@@ -79,26 +70,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
   return (
-    <div style={{
-      ...STYLES.card,
-      boxShadow: STYLES.shadowLarge,
-      padding: SPACING[6]
-    }}>
+    <div style={COMPONENT_STYLES.profileCard.container}>
       {/* Error Display */}
       {error && (
-        <div style={{
-          backgroundColor: '#FEE2E2',
-          border: '1px solid #FECACA',
-          borderRadius: STYLES.borderRadiusMedium,
-          padding: SPACING[3],
-          marginBottom: SPACING[5]
-        }}>
-          <p style={{
-            ...FONTS.body,
-            fontSize: TYPOGRAPHY.sm.fontSize,
-            color: COLORS.danger,
-            margin: 0
-          }}>
+        <div style={COMPONENT_STYLES.profileCard.errorContainer}>
+          <p style={COMPONENT_STYLES.profileCard.errorText}>
             {error}
           </p>
         </div>
@@ -106,38 +82,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
       {/* Profile Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: SPACING[6]
-      }}>
+      <div style={COMPONENT_STYLES.profileCard.headerContainer}>
         {/* Avatar */}
-        <div style={{
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          backgroundColor: profile.avatar_url ? 'transparent' : COLORS.accent,
-          backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: SPACING[5],
-          flexShrink: 0,
-          border: `3px solid ${COLORS.gray100}`,
-          // --- THIS IS THE FIX ---
-          // Added a shadow to give the avatar depth
-          boxShadow: STYLES.shadowMedium,
-        }}>
+        <div style={STYLE_FUNCTIONS.getAvatarContainerStyle(profile.avatar_url)}>
           {!profile.avatar_url && (
-            <span style={{
-              fontFamily: '"Pinyon Script", cursive',
-              fontWeight: 400,
-              fontSize: '2.5rem', 
-              color: COLORS.white,
-              lineHeight: 1, 
-            }}>
+            <span style={COMPONENT_STYLES.profileCard.avatarInitials}>
               {initials.length > 1 ? initials.charAt(0) : initials}
             </span>
           )}
@@ -145,37 +94,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
         {/* Name and Email */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{
-            ...FONTS.heading,
-            fontSize: TYPOGRAPHY.xl.fontSize,
-            color: COLORS.gray900,
-            margin: `0 0 ${SPACING[1]} 0`,
-            wordBreak: 'break-word'
-          }}>
+        <div style={COMPONENT_STYLES.profileCard.nameAndEmailContainer}>
+          <h3 style={COMPONENT_STYLES.profileCard.name}>
             {profile.full_name || 'No name set'}
           </h3>
-          <p style={{
-            ...FONTS.body,
-            fontSize: TYPOGRAPHY.sm.fontSize,
-            color: COLORS.textSecondary,
-            margin: 0,
-            wordBreak: 'break-word'
-          }}>
+          <p style={COMPONENT_STYLES.profileCard.email}>
             {user.email}
           </p>
           {profile.is_admin && (
-            <span style={{
-              ...FONTS.body,
-              fontSize: TYPOGRAPHY.xs.fontSize,
-              fontWeight: TYPOGRAPHY.semibold,
-              color: COLORS.accent,
-              backgroundColor: `${COLORS.accent}2A`,
-              padding: `${SPACING[1]} ${SPACING[3]}`,
-              borderRadius: STYLES.borderRadiusSmall,
-              display: 'inline-block',
-              marginTop: SPACING[2]
-            }}>
+            <span style={COMPONENT_STYLES.profileCard.adminBadge}>
               Admin
             </span>
           )}
@@ -184,32 +111,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
       {/* Profile Details */}
-      <div style={{
-        marginBottom: SPACING[6],
-        paddingTop: SPACING[5],
-        borderTop: `1px solid ${COLORS.gray100}`
-      }}>
+      <div style={COMPONENT_STYLES.profileCard.detailsContainer}>
         {profile.bio && (
-          <div style={{ marginBottom: SPACING[4] }}>
-            <h4 style={{
-              ...FONTS.body,
-              fontSize: TYPOGRAPHY.sm.fontSize,
-              fontWeight: TYPOGRAPHY.semibold,
-              color: COLORS.textSecondary,
-              margin: `0 0 ${SPACING[2]} 0`,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em'
-            }}>
+          <div style={COMPONENT_STYLES.profileCard.bioContainer}>
+            <h4 style={COMPONENT_STYLES.profileCard.sectionHeader}>
               Bio
             </h4>
-            <p style={{
-              ...FONTS.body,
-              fontSize: TYPOGRAPHY.base.fontSize,
-              color: COLORS.text,
-              margin: 0,
-              lineHeight: '1.6',
-              wordBreak: 'break-word'
-            }}>
+            <p style={COMPONENT_STYLES.profileCard.bioText}>
               {profile.bio}
             </p>
           </div>
@@ -217,24 +125,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
         {profile.location && (
-          <div style={{ marginBottom: SPACING[4] }}>
-            <h4 style={{
-              ...FONTS.body,
-              fontSize: TYPOGRAPHY.sm.fontSize,
-              fontWeight: TYPOGRAPHY.semibold,
-              color: COLORS.textSecondary,
-              margin: `0 0 ${SPACING[2]} 0`,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em'
-            }}>
+          <div style={COMPONENT_STYLES.profileCard.bioContainer}>
+            <h4 style={COMPONENT_STYLES.profileCard.sectionHeader}>
               Location
             </h4>
-            <p style={{
-              ...FONTS.body,
-              fontSize: TYPOGRAPHY.base.fontSize,
-              color: COLORS.text,
-              margin: 0
-            }}>
+            <p style={COMPONENT_STYLES.profileCard.locationText}>
               {profile.location}
             </p>
           </div>
@@ -242,23 +137,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
         <div>
-          <h4 style={{
-            ...FONTS.body,
-            fontSize: TYPOGRAPHY.sm.fontSize,
-            fontWeight: TYPOGRAPHY.semibold,
-            color: COLORS.textSecondary,
-            margin: `0 0 ${SPACING[2]} 0`,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em'
-          }}>
+          <h4 style={COMPONENT_STYLES.profileCard.sectionHeader}>
             Member Since
           </h4>
-          <p style={{
-            ...FONTS.body,
-            fontSize: TYPOGRAPHY.base.fontSize,
-            color: COLORS.text,
-            margin: 0
-          }}>
+          <p style={COMPONENT_STYLES.profileCard.locationText}>
             {formatDate(profile.created_at ?? '')}
           </p>
         </div>
@@ -266,22 +148,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
 
       {/* Action Buttons */}
-      <div style={{
-        display: 'flex',
-        gap: SPACING[3],
-        flexDirection: 'column'
-      }}>
+      <div style={COMPONENT_STYLES.profileCard.actionButtonsContainer}>
         {showEditButton && onEditProfile && (
           <button
             onClick={onEditProfile}
             disabled={loading}
-            style={{
-              ...STYLES.primaryButton,
-              width: '100%',
-              backgroundColor: COLORS.accent,
-              opacity: loading ? 0.5 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
+            style={STYLE_FUNCTIONS.getEditProfileButtonStyle(loading)}
             onMouseEnter={(e) => {
               if (!loading) {
                 e.currentTarget.style.backgroundColor = COLORS.accent;
@@ -301,14 +173,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <button
           onClick={handleSignOut}
           disabled={loading || isSigningOut}
-          style={{
-            ...STYLES.secondaryButton,
-            width: '100%',
-            color: COLORS.black,
-            borderColor: COLORS.black,
-            opacity: (loading || isSigningOut) ? 0.5 : 1,
-            cursor: (loading || isSigningOut) ? 'not-allowed' : 'pointer'
-          }}
+          style={STYLE_FUNCTIONS.getSignOutButtonStyle(loading, isSigningOut)}
           onMouseEnter={(e) => {
             if (!loading && !isSigningOut) {
               e.currentTarget.style.backgroundColor = COLORS.gray100;

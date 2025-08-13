@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
-import { COLORS, FONTS, RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { SCREEN_STYLES, STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
 import type { DishRating, DishSearchResultWithRestaurant, DishWithDetails } from './hooks/useDishes';
 import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
@@ -11,8 +11,10 @@ import { useLocationService } from './hooks/useLocationService';
 import { useRestaurants } from './hooks/useRestaurants';
 import { supabase } from './supabaseClient';
 import { calculateDistanceInMiles, formatDistanceMiles } from './utils/geolocation';
-const SEARCH_BAR_WIDTH = '350px';
 const LOCATION_INTERACTION_KEY = 'locationInteractionDone';
+function isDishWithRestaurant(dish: DishWithDetails): dish is DishSearchResultWithRestaurant {
+    return 'restaurant' in dish && dish.restaurant !== null && typeof dish.restaurant === 'object';
+}
 interface RestaurantGroup {
   restaurant: {
     id: string;
@@ -44,7 +46,7 @@ const DiscoveryScreen: React.FC = () => {
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
-  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const searchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   const effectRunCount = useRef(0);
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
@@ -140,7 +142,7 @@ const DiscoveryScreen: React.FC = () => {
           if (isActive) {
             setFilteredAndGrouped(sortedGroups);
           }
-      } catch (e: any) {
+      } catch (e) {
           if (isActive) {
             setError('Could not load dishes. Please try again later.');
           }
@@ -152,17 +154,19 @@ const DiscoveryScreen: React.FC = () => {
           console.timeEnd(`DiscoveryScreen-search-${searchId}`);
       }
     };
-    if (searchDebounceTimer) {
-        clearTimeout(searchDebounceTimer);
+    if (searchDebounceTimer.current) {
+        clearTimeout(searchDebounceTimer.current);
     }
-    const timer = setTimeout(() => {
+    searchDebounceTimer.current = setTimeout(() => {
         runSearch();
     }, 300);
-    setSearchDebounceTimer(timer);
+
     return () => {
         isActive = false;
-        console.log(`[CLEANUP] Clearing timer ${timer} and disarming effect in DiscoveryScreen.`);
-        clearTimeout(timer);
+        if (searchDebounceTimer.current) {
+            console.log(`[CLEANUP] Clearing timer ${searchDebounceTimer.current} and disarming effect in DiscoveryScreen.`);
+            clearTimeout(searchDebounceTimer.current);
+        }
     }
   }, [searchTerm, minRating, maxDistance, userLocation]);
   const addRestaurantToFavorites = async (restaurantId: string) => {
@@ -197,7 +201,7 @@ const DiscoveryScreen: React.FC = () => {
           dishes: group.dishes.map(dish => {
               if (dish.id === dishId) {
                   const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
-                  let newRatings: DishRating[] = [...dish.ratings];
+                  const newRatings: DishRating[] = [...dish.ratings];
                   if (existingRatingIndex > -1) {
                       if (newRating === 0) {
                           newRatings.splice(existingRatingIndex, 1);
@@ -223,15 +227,14 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
   const handleShareDish = (dish: DishWithDetails) => {
-    if (!('restaurant' in dish) || !(dish as any).restaurant.name) {
+    if (!isDishWithRestaurant(dish) || !dish.restaurant.name) {
       console.error("Cannot share dish, missing restaurant context:", dish);
       alert("Could not share this dish, information is missing.");
       return;
     }
-    const dishWithRestaurant = dish as DishSearchResultWithRestaurant;
+    const dishWithRestaurant = dish;
     const restaurantId = dishWithRestaurant.restaurant?.id ||
-                        dishWithRestaurant.restaurant_id ||
-                        (dishWithRestaurant as any).restaurantId;
+                        dishWithRestaurant.restaurant_id;
     console.log('Sharing dish - Debug info:', {
       dishId: dishWithRestaurant.id,
       dishName: dishWithRestaurant.name,
@@ -262,22 +265,6 @@ const DiscoveryScreen: React.FC = () => {
       });
     }
   };
-  const selectStyle: React.CSSProperties = {
-    border: `1px solid ${COLORS.gray300}`,
-    borderRadius: '8px',
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    backgroundColor: COLORS.white,
-    color: COLORS.text,
-    cursor: 'pointer',
-    appearance: 'none',
-    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-    backgroundPosition: 'right 0.5rem center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '1.25em 1.25em',
-    paddingRight: '2.5rem',
-    width: '100%'
-  };
   const renderContent = () => {
     const hasSearchTerm = searchTerm.trim().length >= 2;
     const hasActiveFilters = minRating > 0 || maxDistance > -1;
@@ -287,31 +274,31 @@ const DiscoveryScreen: React.FC = () => {
     if (error) {
       return (
           <div className="text-center py-12">
-              <p style={{ ...FONTS.elegant, color: COLORS.danger, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>{error}</p>
-              <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>You can also try refreshing the page.</p>
+              <p style={SCREEN_STYLES.discovery.errorText}>{error}</p>
+              <p style={SCREEN_STYLES.discovery.messageSubText}>You can also try refreshing the page.</p>
           </div>
       );
     }
     if (!hasSearchTerm && !hasActiveFilters) {
       return (
         <div className="text-center py-12">
-          <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start Discovering</p>
-          <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Use the search bar or filters above to find dishes the community has rated.</p>
+          <p style={SCREEN_STYLES.discovery.messageText}>Start Discovering</p>
+          <p style={SCREEN_STYLES.discovery.messageSubText}>Use the search bar or filters above to find dishes the community has rated.</p>
         </div>
       );
     }
     if (filteredAndGrouped.length > 0) {
       return filteredAndGrouped.map((group) => (
         <div key={group.restaurant.id}>
-          <div className="mb-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${COLORS.gray200}`, paddingBottom: SPACING[2] }}>
-            <h2 style={{ ...FONTS.elegant, fontSize: '1.125rem', fontWeight: '600', color: COLORS.primary, margin: 0, cursor: 'pointer' }} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
+          <div className="mb-4" style={SCREEN_STYLES.discovery.restaurantHeader}>
+            <h2 style={SCREEN_STYLES.discovery.restaurantName} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
             {group.restaurant.distance !== undefined && (
-              <span style={{...FONTS.elegant, color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize, flexShrink: 0, marginLeft: SPACING[3]}}>
+              <span style={SCREEN_STYLES.discovery.restaurantDistance}>
                 {formatDistanceMiles(group.restaurant.distance)}
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
+          <div style={SCREEN_STYLES.discovery.dishesContainer}>
             {group.dishes.map((dish) => (
               <DishCard
                 key={dish.id} dish={dish} currentUserId={user?.id || null}
@@ -319,6 +306,7 @@ const DiscoveryScreen: React.FC = () => {
                 onUpdateRating={handleUpdateRating}
                 onAddComment={() => Promise.resolve()} onUpdateComment={() => Promise.resolve()}
                 onDeleteComment={() => Promise.resolve()} onAddPhoto={() => Promise.resolve()} onDeletePhoto={() => Promise.resolve()}
+                onUpdatePhotoCaption={() => Promise.resolve()}
                 onShare={() => handleShareDish(dish)} isSubmittingComment={false} isExpanded={expandedDishId === dish.id}
                 onToggleExpand={() => setExpandedDishId(prev => (prev === dish.id ? null : dish.id))}
               />
@@ -329,54 +317,30 @@ const DiscoveryScreen: React.FC = () => {
     }
     return (
       <div className="text-center py-12">
-        <p style={{ ...FONTS.elegant, color: COLORS.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No Dishes Found</p>
-        <p style={{ ...FONTS.elegant, color: COLORS.text, opacity: 0.7 }}>Try adjusting your search or filters to find more results.</p>
+        <p style={SCREEN_STYLES.discovery.messageText}>No Dishes Found</p>
+        <p style={SCREEN_STYLES.discovery.messageSubText}>Try adjusting your search or filters to find more results.</p>
       </div>
     );
   };
   return (
-    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh' }}>
+    <div style={SCREEN_STYLES.discovery.container}>
       {/* HEADER SECTION */}
-      <div style={{
-        backgroundColor: COLORS.navBarDark,
-        marginLeft: 'calc(-50vw + 50%)',
-        marginRight: 'calc(-50vw + 50%)',
-        marginBottom: SPACING[6],
-      }}>
-        <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={{paddingTop: `calc(60px + ${SPACING[4]})`, paddingBottom: SPACING[6]}}>
+      <div style={SCREEN_STYLES.discovery.header}>
+        <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={SCREEN_STYLES.discovery.headerInner}>
           <img
               src="/stolen_dish.png"
               alt="Discovering a new dish"
-              style={{
-                width: '180px',
-                marginTop: SPACING[4],
-                marginBottom: SPACING[4],
-                border: `2px solid ${COLORS.white}`,
-                borderRadius: STYLES.borderRadiusMedium,
-                height: 'auto',
-                objectFit: 'contain',
-              }}
+              style={SCREEN_STYLES.discovery.headerImage}
           />
-          <h1 style={{...TYPOGRAPHY.h1, color: COLORS.textWhite, marginBottom: SPACING[6]}}>
+          <h1 style={SCREEN_STYLES.discovery.headerTitle}>
               Discover dishes
           </h1>
-          <div className="w-full" style={{ maxWidth: SEARCH_BAR_WIDTH, position: 'relative' }}>
+          <div className="w-full" style={SCREEN_STYLES.discovery.searchBarContainer}>
             <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g. pasta, dessert, Mexican" style={STYLES.input} />
             {searchTerm.trim().length > 0 && (
               <button
                 onClick={handleResetFilters}
-                style={{
-                    position: 'absolute',
-                    top: '-30px',
-                    right: '-5px',
-                    background: 'transparent',
-                    border: 'none',
-                    padding: 0,
-                    cursor: 'pointer',
-                    color: COLORS.white,
-                    opacity: 0.7,
-                    transition: 'all 0.2s ease',
-                }}
+                style={SCREEN_STYLES.discovery.resetButton}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'scale(1)'; }}
                 aria-label="Reset search and filters" title="Reset search and filters"
@@ -385,16 +349,16 @@ const DiscoveryScreen: React.FC = () => {
               </button>
             )}
           </div>
-          <div style={{display: 'flex', gap: SPACING[3], marginTop: SPACING[4], width: '100%', maxWidth: SEARCH_BAR_WIDTH}}>
-            <div style={{ flex: 1 }}>
-              <select value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={selectStyle}>
+          <div style={SCREEN_STYLES.discovery.filtersContainer}>
+            <div style={SCREEN_STYLES.discovery.filterContainer}>
+              <select value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={SCREEN_STYLES.discovery.select}>
                 <option value={0}>Any Rating</option>
                 {[...Array(8)].map((_, i) => <option key={i} value={i * 0.5 + 1}>{(i * 0.5 + 1).toFixed(1)}+ ★</option>)}
                 <option value={5}>5.0 ★</option>
               </select>
             </div>
             <div
-                style={{ flex: 1, opacity: !hasLocationPermission ? 0.6 : 1, cursor: !hasLocationPermission ? 'pointer' : 'default', position: 'relative' }}
+                style={{ ...SCREEN_STYLES.discovery.filterContainer, opacity: !hasLocationPermission ? 0.6 : 1, cursor: !hasLocationPermission ? 'pointer' : 'default' }}
                 onClick={!hasLocationPermission ? requestLocation : undefined}
                 title={!hasLocationPermission ? 'Enable location services to filter by distance' : ''}
             >
@@ -402,7 +366,7 @@ const DiscoveryScreen: React.FC = () => {
                 value={maxDistance}
                 onChange={e => setMaxDistance(parseInt(e.target.value, 10))}
                 style={{
-                  ...selectStyle,
+                  ...SCREEN_STYLES.discovery.select,
                   cursor: !hasLocationPermission ? 'pointer' : 'default',
                   pointerEvents: !hasLocationPermission ? 'none' : 'auto',
                 }}
@@ -419,8 +383,8 @@ const DiscoveryScreen: React.FC = () => {
         </div>
       </div>
       {/* BODY SECTION */}
-      <main className="w-full mx-auto p-4" style={{ maxWidth: RESTAURANT_CARD_MAX_WIDTH }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[4] }}>
+      <main className="w-full mx-auto p-4" style={SCREEN_STYLES.discovery.main}>
+        <div style={SCREEN_STYLES.discovery.contentContainer}>
           {renderContent()}
         </div>
       </main>

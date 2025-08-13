@@ -1,6 +1,6 @@
 // src/components/user/UserForm.tsx  
 import React, { useEffect, useState } from 'react'
-import { COLORS, FONTS } from '../../constants'
+import { COLORS, COMPONENT_STYLES } from '../../constants'
 import { useAuth } from '../../hooks/useAuth'
 
 
@@ -112,46 +112,14 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
 
 
   return (  
-    <div style={{  
-      position: 'fixed',  
-      top: 0,  
-      left: 0,  
-      right: 0,  
-      bottom: 0,  
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',  
-      display: 'flex',  
-      alignItems: 'center',  
-      justifyContent: 'center',  
-      padding: '20px',  
-      zIndex: 1000  
-    }}>  
-      <div style={{  
-        backgroundColor: 'white',  
-        borderRadius: '12px',  
-        padding: '32px',  
-        width: '100%',  
-        maxWidth: '500px',  
-        maxHeight: '90vh',  
-        overflowY: 'auto',  
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'  
-      }}>  
+    <div style={COMPONENT_STYLES.userForm.overlay}>
+      <div style={COMPONENT_STYLES.userForm.content}>
         {/* Header */}  
-        <div style={{ marginBottom: '24px', textAlign: 'center' }}>  
-          <h2 style={{  
-            ...FONTS.elegant,  
-            fontSize: '24px',  
-            fontWeight: '600',  
-            color: COLORS.text,  
-            margin: '0 0 8px 0'  
-          }}>  
+        <div style={COMPONENT_STYLES.userForm.headerContainer}>
+          <h2 style={COMPONENT_STYLES.userForm.headerTitle}>
             Edit Profile  
           </h2>  
-          <p style={{  
-            ...FONTS.elegant,  
-            fontSize: '14px',  
-            color: COLORS.text, 
-            margin: 0  
-          }}>  
+          <p style={COMPONENT_STYLES.userForm.headerSubtitle}>
             Update your profile information  
           </p>  
         </div>
@@ -159,19 +127,8 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
 
         {/* Error Display */}  
         {displayError && (  
-          <div style={{  
-            backgroundColor: '#FEF2F2',  
-            border: '1px solid #FECACA',  
-            borderRadius: '8px',  
-            padding: '12px',  
-            marginBottom: '20px'  
-          }}>  
-            <p style={{  
-              ...FONTS.elegant,  
-              fontSize: '14px',  
-              color: COLORS.danger,  
-              margin: 0  
-            }}>  
+          <div style={COMPONENT_STYLES.userForm.errorContainer}>
+            <p style={COMPONENT_STYLES.userForm.errorText}>
               {displayError}  
             </p>  
           </div>  
@@ -181,15 +138,8 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
         {/* Form */}  
         <form onSubmit={handleSubmit}>  
           {/* Full Name */}  
-          <div style={{ marginBottom: '16px' }}>  
-            <label style={{  
-              ...FONTS.elegant,  
-              fontSize: '14px',  
-              fontWeight: '500',  
-              color: COLORS.text,  
-              display: 'block',  
-              marginBottom: '6px'  
-            }}>  
+          <div style={COMPONENT_STYLES.userForm.formFieldContainer}>
+            <label style={COMPONENT_STYLES.userForm.label}>
               Full Name *  
             </label>  
             <input  
@@ -197,17 +147,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
               value={formData.full_name}  
               onChange={handleInputChange('full_name')}  
               placeholder="Enter your full name"  
-              style={{  
-                ...FONTS.elegant,  
-                width: '100%',  
-                padding: '12px',  
-                border: '1px solid #D1D5DB',  
-                borderRadius: '8px',  
-                fontSize: '16px',  
-                backgroundColor: 'white',  
-                boxSizing: 'border-box', // Corrected from 'border-sizing'
-                WebkitAppearance: 'none'  
-              }}  
+              style={COMPONENT_STYLES.userForm.input}
               disabled={loading || isSubmitting}  
               required  
             />  
@@ -215,15 +155,8 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
 
 
           {/* Avatar URL */}  
-          <div style={{ marginBottom: '24px' }}>  
-            <label style={{  
-              ...FONTS.elegant,  
-              fontSize: '14px',  
-              fontWeight: '500',  
-              color: COLORS.text,  
-              display: 'block',  
-              marginBottom: '6px'  
-            }}>  
+          <div style={COMPONENT_STYLES.userForm.formFieldContainerLargeMargin}>
+            <label style={COMPONENT_STYLES.userForm.label}>
               Avatar Image URL  
             </label>  
             <input  
@@ -231,51 +164,24 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
               value={formData.avatar_url}  
               onChange={handleInputChange('avatar_url')}  
               placeholder="https://example.com/your-photo.jpg"  
-              style={{  
-                ...FONTS.elegant,  
-                width: '100%',  
-                padding: '12px',  
-                border: '1px solid #D1D5DB',  
-                borderRadius: '8px',  
-                fontSize: '16px',  
-                backgroundColor: 'white',  
-                boxSizing: 'border-box', // Corrected from 'border-sizing'
-                WebkitAppearance: 'none'  
-              }}  
+              style={COMPONENT_STYLES.userForm.input}
               disabled={loading || isSubmitting}  
             />  
-            <p style={{  
-              ...FONTS.elegant,  
-              fontSize: '12px',  
-              color: COLORS.text, 
-              margin: '4px 0 0 0'  
-            }}>  
+            <p style={COMPONENT_STYLES.userForm.avatarUrlHint}>
               Enter a URL to an image for your profile picture  
             </p>  
           </div>
 
 
           {/* Action Buttons */}  
-          <div style={{  
-            display: 'flex',  
-            gap: '12px',  
-            flexDirection: 'column'  
-          }}>  
+          <div style={COMPONENT_STYLES.userForm.actionButtonsContainer}>
             <button  
               type="submit"  
               disabled={loading || isSubmitting}  
               style={{  
-                ...FONTS.elegant,  
-                height: '50px',  
+                ...COMPONENT_STYLES.userForm.submitButton,
                 backgroundColor: (loading || isSubmitting) ? COLORS.gray300 : COLORS.primary, 
-                color: 'white',  
-                border: 'none',  
-                borderRadius: '8px',  
-                fontSize: '16px',  
-                fontWeight: '600',  
                 cursor: (loading || isSubmitting) ? 'not-allowed' : 'pointer',  
-                WebkitAppearance: 'none',  
-                WebkitTapHighlightColor: 'transparent'  
               }}  
             >  
               {isSubmitting ? 'Saving...' : 'Save Changes'}  
@@ -288,16 +194,8 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
                 onClick={onCancel}  
                 disabled={loading || isSubmitting}  
                 style={{  
-                  ...FONTS.elegant,  
-                  height: '44px',  
-                  backgroundColor: 'transparent',  
-                  color: COLORS.text, 
-                  border: '1px solid #D1D5DB',  
-                  borderRadius: '8px',  
-                  fontSize: '14px',  
+                  ...COMPONENT_STYLES.userForm.cancelButton,
                   cursor: (loading || isSubmitting) ? 'not-allowed' : 'pointer',  
-                  WebkitAppearance: 'none',  
-                  WebkitTapHighlightColor: 'transparent'  
                 }}  
               >  
                 Cancel  
