@@ -168,6 +168,10 @@ interface RatingsScreenStyles {
 }
 
 interface ProfileScreenStyles {
+    header: StyleObject;
+    headerInner: StyleObject;
+    headerImage: StyleObject;
+    headerTitle: StyleObject;
     container: StyleObject;
     noUserContainer: StyleObject;
     noUserIcon: StyleObject;
@@ -282,7 +286,54 @@ export const LAYOUT_CONFIG = {
   },
 };
 
-export const COLORS: ColorPalette = THEMES.default;
+export const COLORS: ColorPalette = THEMES['90s'];
+
+// Helper function to get page-specific background
+export const getPageBackground = (pathname: string): string => {
+  if (pathname.includes('/home')) return COLORS.homeBackground;
+  if (pathname.includes('/menu') || pathname.includes('/restaurant')) return COLORS.menuBackground;
+  if (pathname.includes('/find-restaurant')) return COLORS.findRestaurantBackground;
+  if (pathname.includes('/discovery')) return COLORS.discoveryBackground;
+  if (pathname.includes('/ratings')) return COLORS.ratingsBackground;
+  if (pathname.includes('/profile')) return COLORS.profileBackground;
+  if (pathname.includes('/admin')) return COLORS.adminBackground;
+  if (pathname.includes('/about')) return COLORS.aboutBackground;
+  return COLORS.background; // Default fallback
+};
+
+/**
+ * FULL-WIDTH BACKGROUND UTILITIES
+ * 
+ * These utilities ensure that background colors and gradients extend to the full
+ * edges of the viewport, preventing the common issue of white padding around content.
+ * 
+ * USAGE:
+ * 1. For manual backgrounds: 
+ *    style={{ ...SCREEN_STYLES.container, ...createFullWidthBackground('linear-gradient(...)') }}
+ * 
+ * 2. For automatic page-specific backgrounds:
+ *    style={{ ...SCREEN_STYLES.container, ...getFullWidthPageBackground(location.pathname) }}
+ * 
+ * IMPORTANT: Always spread the existing SCREEN_STYLES first, then the full-width styles
+ * to ensure proper inheritance and override behavior.
+ */
+
+// Utility function to create full-width background styles
+// This ensures consistent edge-to-edge background coverage across all screens
+export const createFullWidthBackground = (backgroundValue: string): StyleObject => ({
+  background: backgroundValue,
+  width: '100vw',
+  marginLeft: 'calc(-50vw + 50%)',
+  marginRight: 'calc(-50vw + 50%)',
+  minHeight: '100vh'
+});
+
+// Helper function to get full-width background styles for specific pages
+// Automatically selects the correct page background and applies full-width styling
+export const getFullWidthPageBackground = (pathname: string): StyleObject => {
+  const backgroundValue = getPageBackground(pathname);
+  return createFullWidthBackground(backgroundValue);
+};
 
 export const STYLE_FUNCTIONS = {
   getPaginationButtonStyle: (disabled: boolean): StyleObject => ({
@@ -387,22 +438,27 @@ export const STYLE_FUNCTIONS = {
 
 export const FONTS: NamedStyles<StyleObject> = {
   primary: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    letterSpacing: '-0.01em',
+    fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+    letterSpacing: '0.05em',
+    textShadow: '0 0 5px rgba(255, 0, 255, 0.5)',
   },
   heading: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontWeight: '600',
-    letterSpacing: '-0.025em',
+    fontFamily: '"Impact", "Arial Black", "Helvetica Inserat", fantasy',
+    fontWeight: '900',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    textShadow: '0 0 10px rgba(0, 255, 255, 0.8)',
   },
   body: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    lineHeight: '1.5',
+    fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+    lineHeight: '1.6',
+    letterSpacing: '0.02em',
   },
   // Legacy mappings
   elegant: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    letterSpacing: '-0.01em',
+    fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+    letterSpacing: '0.05em',
+    textShadow: '0 0 3px rgba(255, 0, 255, 0.3)',
   },
 };
 
@@ -466,13 +522,13 @@ export const IMAGE_COMPRESSION = {
 };
 
 // --- Values defined before STYLES to prevent reference errors ---
-const _borderRadiusSmall = '6px';
-const _borderRadiusMedium = '8px';
-const _borderRadiusLarge = '12px';
+const _borderRadiusSmall = '0px'; // Sharp 90s edges
+const _borderRadiusMedium = '2px'; // Minimal rounding
+const _borderRadiusLarge = '4px'; // Slightly rounded
 const _borderRadiusFull = '9999px';
-const _shadowSmall = '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)';
-const _shadowMedium = '0 4px 6px -1px rgba(0, 0, 0, 0.8), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-const _shadowLarge = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+const _shadowSmall = '0 0 10px rgba(255, 0, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3)'; // Neon glow
+const _shadowMedium = '0 0 15px rgba(255, 0, 255, 0.6), 0 0 30px rgba(0, 255, 255, 0.4)'; // Stronger neon glow
+const _shadowLarge = '0 0 25px rgba(255, 0, 255, 0.8), 0 0 50px rgba(0, 255, 255, 0.6)'; // Intense neon glow
 
 export const UTILITIES: NamedStyles<StyleObject> = {
   flexCenter: {
@@ -529,9 +585,9 @@ export const Z_INDICES = {
 };
 
 export const ANIMATIONS = {
-  fast: '150ms',
-  normal: '200ms',
-  slow: '300ms',
+  fast: '300ms', // Slower for retro feel
+  normal: '500ms', // More dramatic transitions
+  slow: '800ms', // Very slow, dramatic 90s style
 };
 
 // This object now only contains reusable StyleObjects
@@ -875,11 +931,12 @@ export const COMPONENT_STYLES: {
       boxShadow: SHADOWS.medium,
     },
     avatarInitials: {
-      fontFamily: '"Pinyon Script", cursive',
-      fontWeight: 400,
-      fontSize: '2.5rem',
+      fontFamily: '"Orbitron", "Courier New", monospace',
+      fontWeight: 'bold',
+      fontSize: '2.4rem',
       color: COLORS.white,
       lineHeight: 1,
+      textShadow: `0 0 5px ${COLORS.accent}`,
     },
     nameAndEmailContainer: {
       flex: 1,
@@ -888,7 +945,7 @@ export const COMPONENT_STYLES: {
     name: {
       ...FONTS.heading,
       fontSize: TYPOGRAPHY.xl.fontSize,
-      color: COLORS.gray900,
+      color: COLORS.black,
       margin: `0 0 ${SPACING[1]} 0`,
       wordBreak: 'break-word',
     },
@@ -1076,7 +1133,7 @@ export const SCREEN_STYLES: {
   app: {
     authFlowContainer: {
       minHeight: '100vh',
-      backgroundColor: COLORS.background,
+      background: COLORS.homeBackground,
       position: 'relative',
     },
     authFlowInnerContainer: {
@@ -1119,7 +1176,7 @@ export const SCREEN_STYLES: {
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      backgroundColor: COLORS.background,
+      background: COLORS.menuBackground,
     },
     // Sticky Header
     stickyHeader: {
@@ -1506,7 +1563,7 @@ export const SCREEN_STYLES: {
   },
   findRestaurant: {
     container: {
-      backgroundColor: COLORS.background,
+      background: COLORS.findRestaurantBackground,
       minHeight: '100vh',
     },
     spinAnimation: `
@@ -1597,7 +1654,7 @@ export const SCREEN_STYLES: {
   },
   discovery: {
     container: {
-      backgroundColor: COLORS.background,
+      background: COLORS.discoveryBackground,
       minHeight: '100vh',
     },
     header: {
@@ -1810,7 +1867,7 @@ export const SCREEN_STYLES: {
     cardTitle: {
       ...FONTS.heading,
       fontSize: TYPOGRAPHY.lg.fontSize,
-      color: COLORS.gray900,
+      color: COLORS.black,
       margin: `0 0 ${SPACING[1]} 0`,
     },
     cardSubtitle: {
@@ -1870,10 +1927,39 @@ export const SCREEN_STYLES: {
     },
   },
   profile: {
+    header: {
+      ...UTILITIES.fullBleed,
+      backgroundColor: COLORS.navBarDark,
+    },
+    headerInner: {
+      maxWidth: '700px',
+      margin: '0 auto',
+      padding: `calc(60px + ${SPACING[4]}) ${SPACING[4]} ${SPACING[6]}`,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+    },
+    headerImage: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain',
+      marginBottom: SPACING[4],
+      border: `2px solid ${COLORS.white}`,
+      borderRadius: STYLES.borderRadiusMedium as string,
+    },
+    headerTitle: {
+      ...TYPOGRAPHY.h1,
+      color: COLORS.textWhite,
+      marginBottom: SPACING[4],
+    },
     container: {
       minHeight: '100vh',
-      backgroundColor: COLORS.background,
+      background: COLORS.profileBackground,
       paddingTop: SPACING[4],
+      maxWidth: '370px',
+      margin: '0 auto',
+      padding: SPACING[4],
     },
     noUserContainer: {
       backgroundColor: COLORS.white,
@@ -1899,6 +1985,8 @@ export const SCREEN_STYLES: {
       padding: SPACING[4],
       maxWidth: '1200px',
       margin: '0 auto',
+      minHeight: '100vh',
+      background: COLORS.adminBackground,
     },
     title: {
       ...TYPOGRAPHY.h1,
@@ -2218,18 +2306,25 @@ export const SCREEN_STYLES: {
     communityBox: {
       marginTop: SPACING[10],
       padding: SPACING[6],
-      backgroundColor: '#cac2af',
+      background: 'linear-gradient(135deg, #FF00FF, #00FFFF, #FFFF00, #FF0080)',
       borderRadius: STYLES.borderRadiusLarge as string,
       textAlign: 'center',
+      border: `3px solid ${COLORS.primary}`,
+      boxShadow: `0 0 20px ${COLORS.primary}, 0 0 40px ${COLORS.accent}`,
     },
     communityTitle: {
       ...TYPOGRAPHY.h3,
       marginTop: 0,
       marginBottom: SPACING[3],
-      color: COLORS.accent,
+      color: COLORS.black,
+      textShadow: `2px 2px 0px ${COLORS.white}`,
+      fontWeight: 'bold',
     },
     communityText: {
       margin: `0 0 ${SPACING[4]} 0`,
+      color: COLORS.black,
+      fontWeight: 'bold',
+      textShadow: `1px 1px 0px ${COLORS.white}`,
     },
     communityLink: {
       ...STYLES.primaryButton as StyleObject,

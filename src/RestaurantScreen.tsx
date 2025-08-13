@@ -525,7 +525,7 @@ const RestaurantScreen: React.FC = () => {
   const showSearchAndResults = !showManualAddForm && !showInitialEmptyState;
  
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: COLORS.background, paddingBottom: SPACING[8] }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: COLORS.menuBackground, paddingBottom: SPACING[8] }}>
       <main style={{ flex: 1, maxWidth: RESTAURANT_CARD_MAX_WIDTH, width: '100%', margin: '0 auto' }}>
         <div className="space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>

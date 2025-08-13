@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { COLORS, SCREEN_STYLES, STYLES, SHADOWS } from './constants';
+import { COLORS, SCREEN_STYLES, STYLES, SHADOWS, createFullWidthBackground } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
 import { useLocationService } from './hooks/useLocationService';
@@ -188,8 +188,8 @@ const RatingsScreen: React.FC = () => {
       <div style={SCREEN_STYLES.ratings.header}>
         <div style={SCREEN_STYLES.ratings.headerInner}>
           <img
-            src="/my_ratings.png"
-            alt="Person rating food"
+            src="/90s judge.png"
+            alt="Judge character"
             style={SCREEN_STYLES.ratings.headerImage}
           />
           <h1 style={SCREEN_STYLES.ratings.headerTitle}>
@@ -220,7 +220,8 @@ const RatingsScreen: React.FC = () => {
 
 
       {/* BODY SECTION */}
-      <div style={SCREEN_STYLES.ratings.body}>
+      <div style={{ ...createFullWidthBackground('linear-gradient(225deg, #FF0040, #FF4080, #8040FF)'), paddingTop: '20px', paddingBottom: '20px' }}>
+        <div style={SCREEN_STYLES.ratings.body}>
         {isLoading ? (
           <LoadingScreen message="Loading your ratings..." />
         ) : error ? (
@@ -245,6 +246,7 @@ const RatingsScreen: React.FC = () => {
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

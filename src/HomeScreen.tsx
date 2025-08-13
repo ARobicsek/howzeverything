@@ -30,7 +30,7 @@ const InfoCard: React.FC<{
           <h3 style={{
             ...FONTS.heading,
             ...TYPOGRAPHY.h3,
-            color: COLORS.text,
+            color: COLORS.black,
             margin: 0,
           }}>
             {title}
@@ -47,7 +47,7 @@ const HomeScreen: React.FC = () => {
     // This container is now set to fill the screen's height and has bottom padding.
     <div style={{
       ...UTILITIES.fullBleed,
-      backgroundColor: COLORS.navBarDark,
+      background: COLORS.homeBackground,
       minHeight: '100vh',
       boxSizing: 'border-box',
       paddingBottom: SPACING[8],
@@ -90,12 +90,12 @@ const HomeScreen: React.FC = () => {
         }}>
           <InfoCard
             title="Find a Restaurant and Start Dishing"
-            imageSrc="/critic_2.png"
+            imageSrc="/90s critic.png"
             to="/find-restaurant"
           />
           <InfoCard
             title="Discover Dishes"
-            imageSrc="/explorer_2.png"
+            imageSrc="/90s explorer.png"
             to="/discover"
           />
         </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import ProfileCard from './components/user/ProfileCard';
-import { SCREEN_STYLES } from './constants';
+import { SCREEN_STYLES, createFullWidthBackground } from './constants';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -29,13 +29,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
 
   if (!user || !profile) {
     return (
-      // Added paddingTop here for consistency
-      <div style={SCREEN_STYLES.profile.container}>
-        <div style={SCREEN_STYLES.profile.noUserContainer}>
-          <div style={SCREEN_STYLES.profile.noUserIcon}>👤</div>
-          <p style={SCREEN_STYLES.profile.noUserText}>
-            No user profile loaded. You might be signed out.
-          </p>
+      <div style={{ ...createFullWidthBackground('linear-gradient(90deg, #40FF00, #00FFFF, #0080FF)') }}>
+        {/* Content container with original width */}
+        <div style={SCREEN_STYLES.profile.container}>
+          <div style={SCREEN_STYLES.profile.noUserContainer}>
+            <div style={SCREEN_STYLES.profile.noUserIcon}>👤</div>
+            <p style={SCREEN_STYLES.profile.noUserText}>
+              No user profile loaded. You might be signed out.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -45,14 +47,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
 
 
   return (
-    // --- THIS IS THE FIX ---
-    // We are adding back the vertical spacing (paddingTop) that was removed before.
-    // This creates the gap between the top navigation and the card.
-    <div style={SCREEN_STYLES.profile.container}>
+    <div style={{ ...createFullWidthBackground('linear-gradient(90deg, #40FF00, #00FFFF, #0080FF)') }}>
+      {/* Content container with original width */}
+      <div style={SCREEN_STYLES.profile.container}>
         <ProfileCard
           onEditProfile={onEditProfile}
           showEditButton={true}
         />
+      </div>
     </div>
   );
 };

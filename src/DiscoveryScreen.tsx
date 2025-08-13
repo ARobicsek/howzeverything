@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
-import { SCREEN_STYLES, STYLES } from './constants';
+import { SCREEN_STYLES, STYLES, createFullWidthBackground } from './constants';
 import { useAuth } from './hooks/useAuth';
 import type { DishRating, DishSearchResultWithRestaurant, DishWithDetails } from './hooks/useDishes';
 import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
@@ -323,12 +323,12 @@ const DiscoveryScreen: React.FC = () => {
     );
   };
   return (
-    <div style={SCREEN_STYLES.discovery.container}>
+    <div style={{ ...SCREEN_STYLES.discovery.container, ...createFullWidthBackground('linear-gradient(180deg, #0040FF, #8000FF, #FF0080)') }}>
       {/* HEADER SECTION */}
       <div style={SCREEN_STYLES.discovery.header}>
         <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={SCREEN_STYLES.discovery.headerInner}>
           <img
-              src="/stolen_dish.png"
+              src="/90s discover.png"
               alt="Discovering a new dish"
               style={SCREEN_STYLES.discovery.headerImage}
           />

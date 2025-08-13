@@ -1,7 +1,7 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Location, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, LAYOUT_CONFIG, SCREEN_STYLES } from './constants';
+import { LAYOUT_CONFIG, SCREEN_STYLES, getPageBackground } from './constants';
 import { useAuth } from './hooks/useAuth';
 // Screens
 import AboutScreen from './AboutScreen';
@@ -144,7 +144,7 @@ const AppRoutes: React.FC = () => {
 
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
+        <div style={{ minHeight: '100vh', background: getPageBackground(location.pathname), paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} isAdmin={isAdmin} />
             <SharedContentHandler />

@@ -7,7 +7,7 @@ import DuplicateRestaurantModal from './components/restaurant/DuplicateRestauran
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import SearchResultsModal from './components/restaurant/SearchResultsModal';
 import AccordionSection from './components/shared/AccordionSection';
-import { COLORS, SCREEN_STYLES } from './constants';
+import { COLORS, SCREEN_STYLES, createFullWidthBackground } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useLocationService } from './hooks/useLocationService';
 import { useNearbyRestaurants } from './hooks/useNearbyRestaurants';
@@ -401,12 +401,12 @@ const FindRestaurantScreen: React.FC = () => {
   }, [nearbyLoading, locationStatus, hasLocationPermission, clearCacheForLocation, nearbyRadius, fetchNearbyRestaurants, refreshLocation]);
 
   return (
-    <div style={SCREEN_STYLES.findRestaurant.container}>
+    <div style={{ ...SCREEN_STYLES.findRestaurant.container, ...createFullWidthBackground('linear-gradient(45deg, #FF4000, #FF8000, #FFFF00)') }}>
       <style>{SCREEN_STYLES.findRestaurant.spinAnimation}</style>
       <div style={SCREEN_STYLES.findRestaurant.header}>
         <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={SCREEN_STYLES.findRestaurant.headerInner}>
             <img
-                src="/finding_restaurant.png"
+                src="/90s find restaurant.png"
                 alt="Finding Restaurant"
                 style={SCREEN_STYLES.findRestaurant.headerImage}
             />

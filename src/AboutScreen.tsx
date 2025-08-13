@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { SCREEN_STYLES } from './constants';
+import { SCREEN_STYLES, createFullWidthBackground } from './constants';
 
 
 
@@ -12,7 +12,7 @@ const AboutScreen: React.FC = () => {
       <div style={SCREEN_STYLES.about.header}>
         <div style={SCREEN_STYLES.about.headerInner}>
           <img
-            src="/ordering.png"
+            src="/90s about us.png"
             alt="Person ordering food"
             style={SCREEN_STYLES.about.headerImage}
           />

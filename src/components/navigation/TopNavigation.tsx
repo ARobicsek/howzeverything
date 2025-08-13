@@ -1,7 +1,7 @@
 // src/components/navigation/TopNavigation.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SHADOWS, SPACING, Z_INDICES } from '../../constants';
+import { COLORS, SPACING, Z_INDICES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 import LocationAwareButton from '../location/LocationAwareButton';
 
@@ -29,20 +29,22 @@ const Avatar: React.FC = () => {
         width: '30px',
         height: '30px',
         borderRadius: '50%',
-        backgroundColor: profile?.avatar_url ? 'transparent' : '#642e32',
-        backgroundImage: profile?.avatar_url ? `url(${profile.avatar_url})` : 'none',
+        backgroundColor: profile?.avatar_url ? 'transparent' : COLORS.primary,
+        backgroundImage: profile?.avatar_url ? `url(${profile.avatar_url})` : `linear-gradient(45deg, ${COLORS.primary}, ${COLORS.accent})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        border: `1px solid ${COLORS.white}`,
-        boxShadow: SHADOWS.small,
-        color: COLORS.white,
-        fontFamily: '"Pinyon Script", cursive',
-        fontSize: '1.6rem',
+        border: `2px solid ${COLORS.accent}`,
+        boxShadow: `0 0 15px ${COLORS.primary}, 0 0 25px ${COLORS.accent}`,
+        color: COLORS.textWhite,
+        fontFamily: '"Orbitron", "Courier New", monospace',
+        fontSize: '1.2rem',
+        fontWeight: 'bold',
         lineHeight: 1,
+        textShadow: `0 0 5px ${COLORS.accent}`,
       }}>
         {!profile?.avatar_url && <span>{initials.length > 1 ? initials.charAt(0) : initials}</span>}
       </div>
@@ -69,7 +71,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
         <Link to="/home">
           <img
-            src="/HowzEverything.png"
+            src="/90s logo.png"
             alt="HowzEverything Logo"
             style={{ height: '60px', width: 'auto' }}
           />
