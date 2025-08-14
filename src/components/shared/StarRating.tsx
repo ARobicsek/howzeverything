@@ -1,19 +1,26 @@
 import React from 'react';
-import { COLORS, SPACING } from '../../constants';
+import { SPACING } from '../../constants';
+import { useTheme } from '../../hooks/useTheme';
 
 const Star: React.FC<{
   type: 'full' | 'half' | 'empty';
   filledColor: string;
   emptyColor: string;
   size: string;
-}> = ({ type, filledColor, emptyColor, size }) => {
+  outlineMode?: boolean;
+}> = ({ type, filledColor, emptyColor, size, outlineMode = false }) => {
   const starPath = "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
 
   return (
     <div style={{ display: 'inline-block', position: 'relative', width: size, height: size, lineHeight: '1' }}>
-      {/* Base star (can be empty or a base color) */}
+      {/* Base star - outline mode uses stroke only for empty stars */}
       <svg width={size} height={size} viewBox="0 0 24 24" style={{ position: 'absolute', left: 0, top: 0 }}>
-        <path d={starPath} fill={emptyColor} />
+        <path 
+          d={starPath} 
+          fill={outlineMode && type === 'empty' ? 'none' : emptyColor}
+          stroke={outlineMode && type === 'empty' ? emptyColor : 'none'}
+          strokeWidth={outlineMode && type === 'empty' ? '2' : '0'}
+        />
       </svg>
       {/* Filled portion */}
       {type !== 'empty' &&
@@ -35,6 +42,8 @@ export const StarRating: React.FC<{
   size?: 'sm' | 'md' | 'lg';
   showClearButton?: boolean;
 }> = ({ rating, onRatingChange, readonly = false, variant = 'personal', size = 'md', showClearButton = false }) => {
+  const { theme } = useTheme();
+  
   const sizeMap = {
     sm: '1rem',
     md: '1.25rem',
@@ -42,11 +51,12 @@ export const StarRating: React.FC<{
   };
    
   const colorMap = {
-    personal: { filled: COLORS.accent, empty: COLORS.ratingEmpty },
-    community: { filled: '#101010', empty: COLORS.ratingEmpty }
+    personal: { filled: theme.colors.accent, empty: theme.colors.gray400 },
+    community: { filled: theme.colors.star, empty: theme.colors.gray400 }
   };
 
   const roundedRating = Math.round(rating * 2) / 2;
+  const is90sTheme = theme.colors.background === '#0D0515';
 
   return (
     <div className="flex items-center gap-3">
@@ -78,6 +88,7 @@ export const StarRating: React.FC<{
                 filledColor={colorMap[variant].filled}
                 emptyColor={colorMap[variant].empty}
                 size={sizeMap[size]}
+                outlineMode={is90sTheme}
               />
             </button>
           );

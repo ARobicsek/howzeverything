@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
+import { SHADOWS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
+import { useTheme } from './hooks/useTheme';
 
 
 const InfoCard: React.FC<{
@@ -9,6 +10,7 @@ const InfoCard: React.FC<{
   to: string;
 }> = ({ title, imageSrc, to }) => {
   const [isHovering, setIsHovering] = React.useState(false);
+  const { theme } = useTheme();
  
   return (
     <Link to={to} style={{ textDecoration: 'none', display: 'block' }}>
@@ -28,9 +30,9 @@ const InfoCard: React.FC<{
         <img src={imageSrc} alt={title} style={{ width: '100%', height: 'auto', display: 'block' }} />
         <div style={{ padding: SPACING[4] }}>
           <h3 style={{
-            ...FONTS.heading,
+            ...theme.fonts.heading,
             ...TYPOGRAPHY.h3,
-            color: COLORS.text,
+            color: theme.colors.text,
             margin: 0,
           }}>
             {title}
@@ -43,11 +45,13 @@ const InfoCard: React.FC<{
 
 
 const HomeScreen: React.FC = () => {
+  const { theme } = useTheme();
+  
   return (
     // This container is now set to fill the screen's height and has bottom padding.
     <div style={{
       ...UTILITIES.fullBleed,
-      backgroundColor: COLORS.navBarDark,
+      backgroundColor: theme.colors.navBarDark,
       minHeight: '100vh',
       boxSizing: 'border-box',
       paddingBottom: SPACING[8],
@@ -63,9 +67,9 @@ const HomeScreen: React.FC = () => {
         textAlign: 'center',
       }}>
         <p style={{
-          ...FONTS.body,
+          ...theme.fonts.body,
           ...TYPOGRAPHY.lg,
-          color: COLORS.textWhite,
+          color: theme.colors.textWhite,
           lineHeight: 1.6,
           margin: 0,
         }}>
@@ -90,12 +94,12 @@ const HomeScreen: React.FC = () => {
         }}>
           <InfoCard
             title="Find a Restaurant and Start Dishing"
-            imageSrc="/critic_2.png"
+            imageSrc={theme.images.homeHero}
             to="/find-restaurant"
           />
           <InfoCard
             title="Discover Dishes"
-            imageSrc="/explorer_2.png"
+            imageSrc={theme.images.homeExplorer}
             to="/discover"
           />
         </div>

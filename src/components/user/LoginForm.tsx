@@ -1,6 +1,7 @@
 // src/components/user/LoginForm.tsx  
 import React, { useState } from 'react';
-import { COLORS, COMPONENT_STYLES, SPACING, STYLES, STYLE_FUNCTIONS } from '../../constants';
+import { COMPONENT_STYLES, SPACING, STYLES, STYLE_FUNCTIONS } from '../../constants';
+import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../hooks/useAuth';
 
 
@@ -11,6 +12,7 @@ interface LoginFormProps {
 
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {  
+  const { theme } = useTheme();
   const { signIn, signUp, loading, error, clearError } = useAuth();  
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');  
   const [email, setEmail] = useState('');  
@@ -249,11 +251,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
                 onMouseEnter={(e) => {
                   if (!loading) {
-                    e.currentTarget.style.color = COLORS.gray500;
+                    e.currentTarget.style.color = theme.colors.gray500;
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = COLORS.gray400;
+                  e.currentTarget.style.color = theme.colors.gray400;
                 }}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -290,11 +292,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                   style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
                   onMouseEnter={(e) => {
                     if (!loading) {
-                      e.currentTarget.style.color = COLORS.gray500;
+                      e.currentTarget.style.color = theme.colors.gray500;
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = COLORS.gray400;
+                    e.currentTarget.style.color = theme.colors.gray400;
                   }}
                   aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 >
@@ -312,12 +314,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
             style={STYLE_FUNCTIONS.getSubmitButtonStyle(loading)}
             onMouseEnter={(e) => {  
               if (!loading) {  
-                e.currentTarget.style.backgroundColor = COLORS.accent;  
+                e.currentTarget.style.backgroundColor = theme.colors.accent;  
               }  
             }}  
             onMouseLeave={(e) => {  
               if (!loading) {  
-                e.currentTarget.style.backgroundColor = COLORS.accent;  
+                e.currentTarget.style.backgroundColor = theme.colors.accent;  
               }  
             }}  
           >  
@@ -341,7 +343,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               style={STYLE_FUNCTIONS.getModeToggleButtonStyle(loading)}
               onMouseEnter={(e) => {  
                 if (!loading) {  
-                  e.currentTarget.style.backgroundColor = `${COLORS.accent}2A`;
+                  e.currentTarget.style.backgroundColor = `${theme.colors.accent}2A`;
                 }  
               }}  
               onMouseLeave={(e) => {  
@@ -364,7 +366,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               style={STYLE_FUNCTIONS.getCancelButtonStyle(loading)}
               onMouseEnter={(e) => {
                 if (!loading) {
-                  e.currentTarget.style.backgroundColor = COLORS.gray100;
+                  e.currentTarget.style.backgroundColor = theme.colors.gray100;
                 }
               }}
               onMouseLeave={(e) => {

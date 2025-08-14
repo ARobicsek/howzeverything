@@ -7,8 +7,9 @@ import DuplicateRestaurantModal from './components/restaurant/DuplicateRestauran
 import RestaurantCard from './components/restaurant/RestaurantCard';
 import SearchResultsModal from './components/restaurant/SearchResultsModal';
 import AccordionSection from './components/shared/AccordionSection';
-import { COLORS, SCREEN_STYLES } from './constants';
+import { SCREEN_STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
+import { useTheme } from './hooks/useTheme';
 import { useLocationService } from './hooks/useLocationService';
 import { useNearbyRestaurants } from './hooks/useNearbyRestaurants';
 import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
@@ -36,6 +37,7 @@ interface RestaurantStats {
 }
 
 const FindRestaurantScreen: React.FC = () => {
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
   const {
@@ -401,22 +403,95 @@ const FindRestaurantScreen: React.FC = () => {
   }, [nearbyLoading, locationStatus, hasLocationPermission, clearCacheForLocation, nearbyRadius, fetchNearbyRestaurants, refreshLocation]);
 
   return (
-    <div style={SCREEN_STYLES.findRestaurant.container}>
+    <div style={{ 
+      backgroundColor: theme.colors.background, 
+      minHeight: '100vh',
+      width: '100%',
+      overflowX: 'hidden'
+    }}>
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
+        div, article, section {
+          max-width: 100%;
+        }
+      `}</style>
       <style>{SCREEN_STYLES.findRestaurant.spinAnimation}</style>
-      <div style={SCREEN_STYLES.findRestaurant.header}>
-        <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={SCREEN_STYLES.findRestaurant.headerInner}>
+      <div style={{
+        background: theme.colors.background === '#0D0515' 
+          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+          : theme.colors.primary,
+        paddingTop: '84px',
+        paddingBottom: '32px',
+        minHeight: '400px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '512px',
+          margin: '0 auto',
+          padding: '0 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
             <img
-                src="/finding_restaurant.png"
+                src={theme.images.findRestaurantHero}
                 alt="Finding Restaurant"
-                style={SCREEN_STYLES.findRestaurant.headerImage}
+                style={{
+                  width: '200px',
+                  height: '200px',
+                  objectFit: 'contain',
+                  marginBottom: '24px',
+                  border: theme.colors.background === '#0D0515' 
+                    ? 'none'
+                    : `3px solid ${theme.colors.white}`,
+                  borderRadius: theme.colors.background === '#0D0515' 
+                    ? '0px'
+                    : '16px',
+                  boxShadow: theme.colors.background === '#0D0515' 
+                    ? 'none'
+                    : '0 4px 20px rgba(0, 0, 0, 0.1)'
+                }}
             />
-            <h1 style={SCREEN_STYLES.findRestaurant.headerTitle}>
+            <h1 style={{
+              ...theme.fonts.heading,
+              fontSize: '2.5rem',
+              fontWeight: '700',
+              color: theme.colors.white,
+              margin: 0,
+              marginBottom: '24px',
+              textAlign: 'center',
+              ...(theme.colors.background === '#0D0515' && {
+                textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
+              })
+            }}>
                 Find a restaurant
             </h1>
-            <div className="w-full" style={SCREEN_STYLES.findRestaurant.searchBarContainer}>
+            <div style={{ width: '100%', maxWidth: '400px' }}>
                 <div
                     onClick={() => setSearchModalOpen(true)}
-                    style={SCREEN_STYLES.findRestaurant.searchBar}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 16px',
+                      backgroundColor: theme.colors.white,
+                      border: theme.colors.background === '#0D0515' 
+                        ? '2px solid #ff00ff'
+                        : `2px solid ${theme.colors.gray200}`,
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      ...theme.fonts.body,
+                      fontSize: '1rem',
+                      color: theme.colors.textSecondary,
+                      boxShadow: theme.colors.background === '#0D0515' 
+                        ? '0 0 20px rgba(255, 0, 255, 0.3)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      transition: 'all 0.3s ease'
+                    }}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                     <span>Search online...</span>
@@ -424,9 +499,26 @@ const FindRestaurantScreen: React.FC = () => {
             </div>
         </div>
       </div>
-      <div style={SCREEN_STYLES.findRestaurant.mainContent}>
-        <div className="w-full mx-auto p-4" style={SCREEN_STYLES.findRestaurant.mainContentInner}>
-          {showAddForm ? (
+      <div style={{
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh',
+        padding: '24px 0',
+        width: '100%',
+        overflowX: 'hidden'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '800px',
+          margin: '0 auto',
+          padding: '0 16px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '100%',
+            overflowX: 'hidden'
+          }}>
+            {showAddForm ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 style={SCREEN_STYLES.findRestaurant.addRestaurantTitle}>Add New Restaurant</h2>
@@ -489,7 +581,7 @@ const FindRestaurantScreen: React.FC = () => {
                         height="16"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke={COLORS.textSecondary}
+                        stroke={theme.colors.textSecondary}
                         strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -564,6 +656,7 @@ const FindRestaurantScreen: React.FC = () => {
               </AccordionSection>
             </div>
           )}
+          </div>
         </div>
       </div>
       <SearchResultsModal

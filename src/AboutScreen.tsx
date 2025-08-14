@@ -1,25 +1,77 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { SCREEN_STYLES } from './constants';
+import { useTheme } from './hooks/useTheme';
 
 
 
 
 const AboutScreen: React.FC = () => {
+  const { theme } = useTheme();
   return (
-    <div>
+    <div style={{ backgroundColor: theme.colors.background, minHeight: '100vh' }}>
       {/* HEADER SECTION */}
-      <div style={SCREEN_STYLES.about.header}>
-        <div style={SCREEN_STYLES.about.headerInner}>
+      <div style={{
+        background: theme.colors.background === '#0D0515' 
+          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+          : theme.colors.primary,
+        paddingTop: '84px',
+        paddingBottom: '32px',
+        minHeight: '400px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '512px',
+          margin: '0 auto',
+          padding: '0 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
           <img
-            src="/ordering.png"
+            src={theme.images.aboutHero}
             alt="Person ordering food"
-            style={SCREEN_STYLES.about.headerImage}
+            style={{
+              width: '200px',
+              height: '200px',
+              objectFit: 'contain',
+              marginBottom: '24px',
+              border: theme.colors.background === '#0D0515' 
+                ? 'none'
+                : `3px solid ${theme.colors.white}`,
+              borderRadius: theme.colors.background === '#0D0515' 
+                ? '0px'
+                : '16px',
+              boxShadow: theme.colors.background === '#0D0515' 
+                ? 'none'
+                : '0 4px 20px rgba(0, 0, 0, 0.1)'
+            }}
           />
-          <h1 style={SCREEN_STYLES.about.headerTitle}>
+          <h1 style={{
+            ...theme.fonts.heading,
+            fontSize: '2.5rem',
+            fontWeight: '700',
+            color: theme.colors.white,
+            margin: 0,
+            marginBottom: '24px',
+            textAlign: 'center',
+            ...(theme.colors.background === '#0D0515' && {
+              textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
+            })
+          }}>
             About HowzEverything
           </h1>
-          <p style={SCREEN_STYLES.about.headerSubtitle}>
+          <p style={{
+            ...theme.fonts.body,
+            fontSize: '1.125rem',
+            color: theme.colors.white,
+            textAlign: 'center',
+            margin: 0,
+            lineHeight: '1.6',
+            maxWidth: '500px'
+          }}>
             HowzEverything started from a simple, universal question: "What should I order?" We've all been there—staring at a long menu, overwhelmed by options, wishing we had a trusted friend's recommendation. <strong>This app is that friend.</strong>
           </p>
         </div>
@@ -29,8 +81,16 @@ const AboutScreen: React.FC = () => {
 
 
       {/* BODY SECTION */}
-      <div style={SCREEN_STYLES.about.body}>
-        <div style={SCREEN_STYLES.about.bodyInner}>
+      <div style={{
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh',
+        padding: '24px 0'
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          padding: '0 16px'
+        }}>
           <h2 style={SCREEN_STYLES.about.sectionTitle}>
             Our Mission
           </h2>

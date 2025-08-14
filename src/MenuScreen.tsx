@@ -5,7 +5,8 @@ import DishCard from './components/DishCard';
 import ErrorScreen from './components/ErrorScreen';
 import LoadingScreen from './components/LoadingScreen';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
-import { COLORS, SCREEN_STYLES, SPACING, STYLES } from './constants';
+import { SCREEN_STYLES, SPACING, STYLES } from './constants';
+import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { useDishes, type DishSearchResult, type DishWithDetails } from './hooks/useDishes';
 import { usePinnedRestaurants } from './hooks/usePinnedRestaurants';
@@ -33,6 +34,7 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
   newDishName,
   onSelectDuplicate,
 }) => {
+  const { theme } = useTheme();
   if (!isOpen) return null;
   return (
     <div style={STYLES.modalOverlay}>
@@ -47,9 +49,9 @@ const DuplicateDishWarningModal: React.FC<DuplicateDishWarningModalProps> = ({
           {duplicates.map((dish, index) => (
             <li
               key={dish.id}
-              style={{ ...SCREEN_STYLES.menu.duplicateWarningModal.listItem, borderBottom: index < duplicates.length - 1 ? `1px solid ${COLORS.border}` : 'none' }}
+              style={{ ...SCREEN_STYLES.menu.duplicateWarningModal.listItem, borderBottom: index < duplicates.length - 1 ? `1px solid ${theme.colors.border}` : 'none' }}
               onClick={() => onSelectDuplicate(dish.id)}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primaryLight; }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = theme.colors.primaryLight; }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               {dish.name}
@@ -76,6 +78,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
   onReset: () => void;
   onShowAddForm: () => void;
 }> = ({ searchTerm, onSearchChange, onReset, onShowAddForm }) => {
+  const { theme } = useTheme();
   const hasTyped = searchTerm.length > 0;
   const [isFocused, setIsFocused] = useState(false);
   return (
@@ -85,12 +88,38 @@ const ConsolidatedSearchAndAdd: React.FC<{
           Find Your Dish
         </h2>
         {hasTyped && (
-          <button onClick={onReset} style={SCREEN_STYLES.menu.search.resetButton} onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search">
+          <button onClick={onReset} style={SCREEN_STYLES.menu.search.resetButton} onMouseEnter={(e) => { e.currentTarget.style.color = theme.colors.danger; e.currentTarget.style.transform = 'scale(1.15)'; }} onMouseLeave={(e) => { e.currentTarget.style.color = theme.colors.textSecondary; e.currentTarget.style.transform = 'scale(1)'; }} aria-label="Clear search" title="Clear search">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
           </button>
         )}
       </div>
-      <input type="text" value={searchTerm} onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)} placeholder="Start typing to find a dish..." onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} style={{ ...STYLES.input, ...(isFocused && STYLES.inputFocusBlack) }} autoFocus />
+      <input 
+        type="text" 
+        value={searchTerm} 
+        onChange={(e) => e.target.value.length <= 100 && onSearchChange(e.target.value)} 
+        placeholder="Start typing to find a dish..." 
+        onFocus={() => setIsFocused(true)} 
+        onBlur={() => setIsFocused(false)} 
+        style={{
+          width: '100%',
+          padding: '12px 16px',
+          borderRadius: '12px',
+          border: theme.colors.background === '#0D0515' 
+            ? `2px solid ${isFocused ? '#ff00ff' : '#640464'}`
+            : `2px solid ${isFocused ? theme.colors.primary : theme.colors.gray200}`,
+          outline: 'none',
+          fontSize: '1rem',
+          ...theme.fonts.body,
+          backgroundColor: theme.colors.white,
+          color: theme.colors.black,
+          boxShadow: theme.colors.background === '#0D0515' && isFocused
+            ? '0 0 20px rgba(255, 0, 255, 0.3)'
+            : 'none',
+          boxSizing: 'border-box',
+          transition: 'all 0.3s ease'
+        }}
+        autoFocus 
+      />
       {hasTyped && (
         <div style={SCREEN_STYLES.menu.search.addDishContainer}>
           <p style={SCREEN_STYLES.menu.search.addDishText}>
@@ -111,6 +140,7 @@ const EnhancedAddDishForm: React.FC<{
   onSubmit: (name: string, rating: number) => Promise<void>;
   onCancel: () => void;
 }> = ({ initialDishName = '', onSubmit, onCancel }) => {
+  const { theme } = useTheme();
   const [dishName, setDishName] = useState(initialDishName);
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -138,7 +168,7 @@ const EnhancedAddDishForm: React.FC<{
         <div style={SCREEN_STYLES.menu.addDishForm.starButtonContainer}>
           <div style={SCREEN_STYLES.menu.addDishForm.starButtonsInnerContainer}>
             {[1, 2, 3, 4, 5].map((star) => (
-              <button key={star} onClick={() => setRating(star === rating ? 0 : star)} disabled={isSubmitting} style={{ ...SCREEN_STYLES.menu.addDishForm.starButton, color: star <= rating ? COLORS.primary : COLORS.gray300, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }} onMouseEnter={(e) => { if (!isSubmitting) { e.currentTarget.style.transform = 'scale(1.1)'; } }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}>
+              <button key={star} onClick={() => setRating(star === rating ? 0 : star)} disabled={isSubmitting} style={{ ...SCREEN_STYLES.menu.addDishForm.starButton, color: star <= rating ? theme.colors.primary : theme.colors.gray300, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }} onMouseEnter={(e) => { if (!isSubmitting) { e.currentTarget.style.transform = 'scale(1.1)'; } }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}>
                 ★
               </button>
             ))}
@@ -149,7 +179,7 @@ const EnhancedAddDishForm: React.FC<{
         </div>
       </div>
       <div style={SCREEN_STYLES.menu.addDishForm.buttonContainer}>
-        <button onClick={handleSubmit} disabled={!dishName.trim() || isSubmitting} style={{ ...SCREEN_STYLES.menu.addDishForm.submitButton, opacity: (!dishName.trim() || isSubmitting) ? 0.5 : 1, cursor: (!dishName.trim() || isSubmitting) ? 'not-allowed' : 'pointer' }} onMouseEnter={(e) => { if (dishName.trim() && !isSubmitting) { e.currentTarget.style.backgroundColor = COLORS.primaryHover; } }} onMouseLeave={(e) => { if (dishName.trim() && !isSubmitting) { e.currentTarget.style.backgroundColor = COLORS.primary; } }}>
+        <button onClick={handleSubmit} disabled={!dishName.trim() || isSubmitting} style={{ ...SCREEN_STYLES.menu.addDishForm.submitButton, opacity: (!dishName.trim() || isSubmitting) ? 0.5 : 1, cursor: (!dishName.trim() || isSubmitting) ? 'not-allowed' : 'pointer' }} onMouseEnter={(e) => { if (dishName.trim() && !isSubmitting) { e.currentTarget.style.backgroundColor = theme.colors.primaryHover; } }} onMouseLeave={(e) => { if (dishName.trim() && !isSubmitting) { e.currentTarget.style.backgroundColor = theme.colors.primary; } }}>
           {isSubmitting ? 'Adding...' : 'Add Dish'}
         </button>
         <button onClick={onCancel} disabled={isSubmitting} style={{ ...SCREEN_STYLES.menu.addDishForm.cancelButton, opacity: isSubmitting ? 0.5 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
@@ -162,6 +192,7 @@ const EnhancedAddDishForm: React.FC<{
 
 
 const MenuScreen: React.FC = () => {
+  const { theme } = useTheme();
   const { restaurantId } = useParams<{ restaurantId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -519,61 +550,118 @@ const MenuScreen: React.FC = () => {
 
 
   return (
-    <div style={SCREEN_STYLES.menu.container}>
-      <header style={SCREEN_STYLES.menu.stickyHeader}>
-        <div style={SCREEN_STYLES.menu.headerContainer}>
-            <button onClick={() => navigate(-1)} style={STYLES.iconButton} aria-label="Go back">
+    <div style={{
+      minHeight: '100vh'
+    }}>
+      <header style={{
+        position: 'sticky',
+        top: '60px',
+        backgroundColor: theme.colors.background === '#1a0829' 
+          ? 'rgba(26, 8, 41, 0.95)'
+          : 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: `1px solid ${theme.colors.gray200}`,
+        zIndex: 10,
+        boxShadow: theme.colors.background === '#1a0829' 
+          ? '0 2px 20px rgba(255, 0, 255, 0.2)'
+          : '0 2px 8px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '12px 16px',
+          gap: '12px'
+        }}>
+            <button onClick={() => navigate(-1)} style={{
+              ...STYLES.iconButton,
+              color: theme.colors.text
+            }} aria-label="Go back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
             </button>
           <div
             onClick={() => setShowFullRestaurantName(true)}
-            style={SCREEN_STYLES.menu.restaurantNameContainer}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              cursor: 'pointer'
+            }}
           >
-            <h1 style={SCREEN_STYLES.menu.restaurantName} title={restaurant.name}>
+            <h1 style={{
+              ...theme.fonts.heading,
+              fontSize: '1.25rem',
+              fontWeight: '600',
+              color: theme.colors.text,
+              margin: 0,
+              marginBottom: displayAddress ? '2px' : 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textEllipsis: 'ellipsis',
+              ...(theme.colors.background === '#1a0829' && {
+                textShadow: '0 0 10px #ff00ff'
+              })
+            }} title={restaurant.name}>
               {restaurant.name}
             </h1>
             {displayAddress && (
-              <p style={SCREEN_STYLES.menu.address} title={displayAddress}>
+              <p style={{
+                ...theme.fonts.body,
+                fontSize: '0.75rem',
+                color: theme.colors.textSecondary,
+                margin: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textEllipsis: 'ellipsis'
+              }} title={displayAddress}>
                 {displayAddress}
               </p>
             )}
           </div>
-          <div style={SCREEN_STYLES.menu.headerButtonsContainer}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
             <button
               onClick={() => restaurantId && togglePin(restaurantId)}
-              style={SCREEN_STYLES.menu.pinButton}
+              style={{
+                ...STYLES.iconButton,
+                color: isPinned ? theme.colors.accent : theme.colors.text,
+                ...(theme.colors.background === '#1a0829' && isPinned && {
+                  filter: 'drop-shadow(0 0 5px #ff00ff)'
+                })
+              }}
               aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isPinned ? COLORS.accent : "none"} stroke={isPinned ? COLORS.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isPinned ? theme.colors.accent : "none"} stroke={isPinned ? theme.colors.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
-            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...STYLES.iconButton, backgroundColor: showAdvancedSort ? COLORS.primary : COLORS.white, color: showAdvancedSort ? COLORS.white : COLORS.gray700, border: showAdvancedSort ? `1px solid ${COLORS.primary}` : `1px solid ${COLORS.gray200}` }} aria-label="Sort options">
+            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...STYLES.iconButton, backgroundColor: showAdvancedSort ? theme.colors.primary : theme.colors.white, color: showAdvancedSort ? theme.colors.white : theme.colors.gray700, border: showAdvancedSort ? `1px solid ${theme.colors.primary}` : `1px solid ${theme.colors.gray200}` }} aria-label="Sort options">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" /></svg>
             </button>
             <div style={SCREEN_STYLES.menu.actionMenu.container} ref={menuRef}>
-              <button onClick={toggleActionMenu} style={{ ...STYLES.iconButton, backgroundColor: isActionMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
+              <button onClick={toggleActionMenu} style={{ ...STYLES.iconButton, backgroundColor: isActionMenuOpen ? theme.colors.gray100 : 'transparent' }} aria-label="More options">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isActionMenuOpen && (
                 <div style={SCREEN_STYLES.menu.actionMenu.dropdown}>
-                  <button onClick={handleShareRestaurant} style={SCREEN_STYLES.menu.actionMenu.menuItem} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <button onClick={handleShareRestaurant} style={SCREEN_STYLES.menu.actionMenu.menuItem} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                     <span>Share</span>
                   </button>
                   {restaurant.website_url && (
-                    <button onClick={() => { if(restaurant.website_url) window.open(restaurant.website_url, '_blank', 'noopener,noreferrer'); setIsActionMenuOpen(false); }} style={SCREEN_STYLES.menu.actionMenu.menuItem} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                    <button onClick={() => { if(restaurant.website_url) window.open(restaurant.website_url, '_blank', 'noopener,noreferrer'); setIsActionMenuOpen(false); }} style={SCREEN_STYLES.menu.actionMenu.menuItem} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"/></svg>
                       <span>Website</span>
                     </button>
                   )}
                   {canEditOrDelete && (
                     <>
-                      <button onClick={() => { setShowEditForm(true); setIsActionMenuOpen(false); }} style={SCREEN_STYLES.menu.actionMenu.menuItem} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <button onClick={() => { setShowEditForm(true); setIsActionMenuOpen(false); }} style={SCREEN_STYLES.menu.actionMenu.menuItem} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         <span>Edit</span>
                       </button>
-                      <button onClick={handleDeleteRestaurant} style={{...SCREEN_STYLES.menu.actionMenu.menuItem, ...SCREEN_STYLES.menu.actionMenu.menuItemDanger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.red50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <button onClick={handleDeleteRestaurant} style={{...SCREEN_STYLES.menu.actionMenu.menuItem, ...SCREEN_STYLES.menu.actionMenu.menuItemDanger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.red50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         <span>Delete</span>
                       </button>
@@ -585,8 +673,17 @@ const MenuScreen: React.FC = () => {
           </div>
         </div>
       </header>
-      <main style={SCREEN_STYLES.menu.main}>
-        <div style={SCREEN_STYLES.menu.mainInnerContainer}>
+      <main style={{
+        backgroundColor: 'transparent',
+        minHeight: 'calc(100vh - 60px)',
+        paddingTop: '80px'
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          padding: '0 16px 24px 16px',
+          backgroundColor: 'transparent'
+        }}>
           {dishesError && (<div style={SCREEN_STYLES.menu.error.container}><p style={SCREEN_STYLES.menu.error.text}>{dishesError}</p></div>)}
           {showAdvancedSort && (
             <div style={SCREEN_STYLES.menu.advancedSort.container}>
@@ -597,7 +694,7 @@ const MenuScreen: React.FC = () => {
                   const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
                   return (
                     <button key={option.value} onClick={() => { if (isActive) { setSortBy(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' })); } else { setSortBy({ criterion: option.value as typeof sortBy.criterion, direction: (option.value === 'your_rating' || option.value === 'community_rating') ? 'desc' : 'asc' }); } }} style={buttonStyle}>
-                      {option.value === 'your_rating' ? (<><span>Your</span><span style={{ color: isActive ? COLORS.white : COLORS.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? COLORS.white : COLORS.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
+                      {option.value === 'your_rating' ? (<><span>Your</span><span style={{ color: isActive ? theme.colors.white : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? theme.colors.white : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
                       {arrow && <span style={SCREEN_STYLES.menu.advancedSort.arrow}>{arrow}</span>}
                     </button>
                   );
@@ -605,7 +702,18 @@ const MenuScreen: React.FC = () => {
               </div>
             </div>
           )}
-          {!showAddForm && hasDishes && (<div style={SCREEN_STYLES.menu.searchWrapper}><ConsolidatedSearchAndAdd searchTerm={searchTerm} onSearchChange={handleSearchChange} onReset={handleResetSearch} onShowAddForm={handleShowAddForm} /></div>)}
+          {!showAddForm && hasDishes && (
+            <div style={{
+              marginBottom: '24px'
+            }}>
+              <ConsolidatedSearchAndAdd 
+                searchTerm={searchTerm} 
+                onSearchChange={handleSearchChange} 
+                onReset={handleResetSearch} 
+                onShowAddForm={handleShowAddForm} 
+              />
+            </div>
+          )}
           {!showAddForm ? (
             <div style={SCREEN_STYLES.menu.dishList.container}>
               {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={false} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} />))}</>) : (<div style={SCREEN_STYLES.menu.dishList.noResultsContainer}><p style={SCREEN_STYLES.menu.dishList.noResultsText}>No dishes found matching "{searchTerm}"</p></div>))}
@@ -621,7 +729,7 @@ const MenuScreen: React.FC = () => {
                     <div style={SCREEN_STYLES.menu.emptyState.icon}><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg></div>
                     <h2 style={SCREEN_STYLES.menu.emptyState.title}>No dishes yet</h2>
                     <p style={SCREEN_STYLES.menu.emptyState.text}>Be the first to add a dish to {restaurant.name}!</p>
-                    <button onClick={handleShowAddForm} style={STYLES.primaryButton} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primaryHover; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.primary; }}>Add First Dish</button>
+                    <button onClick={handleShowAddForm} style={STYLES.primaryButton} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = theme.colors.primaryHover; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = theme.colors.primary; }}>Add First Dish</button>
                   </div>
                 )
               )}

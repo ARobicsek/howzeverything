@@ -1,6 +1,7 @@
 // src/components/user/UserForm.tsx  
 import React, { useEffect, useState } from 'react'
-import { COLORS, COMPONENT_STYLES } from '../../constants'
+import { COMPONENT_STYLES } from '../../constants'
+import { useTheme } from '../../hooks/useTheme'
 import { useAuth } from '../../hooks/useAuth'
 
 
@@ -11,6 +12,7 @@ interface UserFormProps {
 
 
 const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {  
+  const { theme } = useTheme();
   const { profile, updateProfile, loading, error, clearError } = useAuth()  
   const [formData, setFormData] = useState({  
     full_name: '',  
@@ -180,7 +182,7 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel }) => {
               disabled={loading || isSubmitting}  
               style={{  
                 ...COMPONENT_STYLES.userForm.submitButton,
-                backgroundColor: (loading || isSubmitting) ? COLORS.gray300 : COLORS.primary, 
+                backgroundColor: (loading || isSubmitting) ? theme.colors.gray300 : theme.colors.primary, 
                 cursor: (loading || isSubmitting) ? 'not-allowed' : 'pointer',  
               }}  
             >  

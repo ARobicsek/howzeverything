@@ -5,6 +5,7 @@ import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
 import { SCREEN_STYLES, STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
+import { useTheme } from './hooks/useTheme';
 import type { DishRating, DishSearchResultWithRestaurant, DishWithDetails } from './hooks/useDishes';
 import { searchAllDishes, updateRatingForDish } from './hooks/useDishes';
 import { useLocationService } from './hooks/useLocationService';
@@ -24,6 +25,7 @@ interface RestaurantGroup {
   dishes: DishSearchResultWithRestaurant[];
 }
 const DiscoveryScreen: React.FC = () => {
+  const { theme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { restaurants: favoriteRestaurants } = useRestaurants({ sortBy: { criterion: 'name', direction: 'asc' }});
@@ -323,42 +325,162 @@ const DiscoveryScreen: React.FC = () => {
     );
   };
   return (
-    <div style={SCREEN_STYLES.discovery.container}>
+    <div style={{ 
+      backgroundColor: theme.colors.background, 
+      minHeight: '100vh',
+      width: '100%',
+      overflowX: 'hidden'
+    }}>
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
+        div, article, section {
+          max-width: 100%;
+        }
+      `}</style>
       {/* HEADER SECTION */}
-      <div style={SCREEN_STYLES.discovery.header}>
-        <div className="w-full max-w-lg mx-auto px-4 flex flex-col items-center" style={SCREEN_STYLES.discovery.headerInner}>
+      <div style={{
+        background: theme.colors.background === '#0D0515' 
+          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+          : theme.colors.primary,
+        paddingTop: '84px',
+        paddingBottom: '32px',
+        minHeight: '400px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '512px',
+          margin: '0 auto',
+          padding: '0 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
           <img
-              src="/stolen_dish.png"
+              src={theme.images.discoveryHero}
               alt="Discovering a new dish"
-              style={SCREEN_STYLES.discovery.headerImage}
+              style={{
+                width: '200px',
+                height: '200px',
+                objectFit: 'contain',
+                marginBottom: '24px',
+                border: theme.colors.background === '#0D0515' 
+                  ? 'none'
+                  : `3px solid ${theme.colors.white}`,
+                borderRadius: theme.colors.background === '#0D0515' 
+                  ? '0px'
+                  : '16px',
+                boxShadow: theme.colors.background === '#0D0515' 
+                  ? 'none'
+                  : '0 4px 20px rgba(0, 0, 0, 0.1)'
+              }}
           />
-          <h1 style={SCREEN_STYLES.discovery.headerTitle}>
+          <h1 style={{
+            ...theme.fonts.heading,
+            fontSize: '2.5rem',
+            fontWeight: '700',
+            color: theme.colors.white,
+            margin: 0,
+            marginBottom: '24px',
+            textAlign: 'center',
+            ...(theme.colors.background === '#0D0515' && {
+              textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
+            })
+          }}>
               Discover dishes
           </h1>
-          <div className="w-full" style={SCREEN_STYLES.discovery.searchBarContainer}>
-            <input id="discover-search" type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="e.g. pasta, dessert, Mexican" style={STYLES.input} />
+          <div style={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
+            <input 
+              id="discover-search" 
+              type="text" 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)} 
+              placeholder="e.g. pasta, dessert, Mexican" 
+              style={{
+                width: '100%',
+                padding: '12px 40px 12px 16px',
+                borderRadius: '12px',
+                border: theme.colors.background === '#0D0515' 
+                  ? '2px solid #ff00ff'
+                  : `2px solid ${theme.colors.gray200}`,
+                outline: 'none',
+                fontSize: '1rem',
+                ...theme.fonts.body,
+                backgroundColor: theme.colors.white,
+                color: theme.colors.black,
+                boxShadow: theme.colors.background === '#0D0515' 
+                  ? '0 0 20px rgba(255, 0, 255, 0.3)'
+                  : 'none',
+                boxSizing: 'border-box'
+              }}
+            />
             {searchTerm.trim().length > 0 && (
               <button
                 onClick={handleResetFilters}
-                style={SCREEN_STYLES.discovery.resetButton}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'scale(1)'; }}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  color: theme.colors.textSecondary,
+                  opacity: 0.7,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
                 aria-label="Reset search and filters" title="Reset search and filters"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
               </button>
             )}
           </div>
-          <div style={SCREEN_STYLES.discovery.filtersContainer}>
-            <div style={SCREEN_STYLES.discovery.filterContainer}>
-              <select value={minRating} onChange={e => setMinRating(parseFloat(e.target.value))} style={SCREEN_STYLES.discovery.select}>
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginTop: '16px',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+              <select 
+                value={minRating} 
+                onChange={e => setMinRating(parseFloat(e.target.value))} 
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: theme.colors.background === '#0D0515' 
+                    ? '2px solid #640464'
+                    : `2px solid ${theme.colors.gray200}`,
+                  backgroundColor: theme.colors.white,
+                  color: theme.colors.black,
+                  ...theme.fonts.body,
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
                 <option value={0}>Any Rating</option>
                 {[...Array(8)].map((_, i) => <option key={i} value={i * 0.5 + 1}>{(i * 0.5 + 1).toFixed(1)}+ ★</option>)}
                 <option value={5}>5.0 ★</option>
               </select>
             </div>
             <div
-                style={{ ...SCREEN_STYLES.discovery.filterContainer, opacity: !hasLocationPermission ? 0.6 : 1, cursor: !hasLocationPermission ? 'pointer' : 'default' }}
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: '4px',
+                  opacity: !hasLocationPermission ? 0.6 : 1, 
+                  cursor: !hasLocationPermission ? 'pointer' : 'default' 
+                }}
                 onClick={!hasLocationPermission ? requestLocation : undefined}
                 title={!hasLocationPermission ? 'Enable location services to filter by distance' : ''}
             >
@@ -366,9 +488,18 @@ const DiscoveryScreen: React.FC = () => {
                 value={maxDistance}
                 onChange={e => setMaxDistance(parseInt(e.target.value, 10))}
                 style={{
-                  ...SCREEN_STYLES.discovery.select,
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: theme.colors.background === '#0D0515' 
+                    ? '2px solid #640464'
+                    : `2px solid ${theme.colors.gray200}`,
+                  backgroundColor: theme.colors.white,
+                  color: theme.colors.black,
+                  ...theme.fonts.body,
+                  fontSize: '1rem',
                   cursor: !hasLocationPermission ? 'pointer' : 'default',
                   pointerEvents: !hasLocationPermission ? 'none' : 'auto',
+                  outline: 'none'
                 }}
               >
                   <option value={-1}>Any Distance</option>
@@ -383,9 +514,27 @@ const DiscoveryScreen: React.FC = () => {
         </div>
       </div>
       {/* BODY SECTION */}
-      <main className="w-full mx-auto p-4" style={SCREEN_STYLES.discovery.main}>
-        <div style={SCREEN_STYLES.discovery.contentContainer}>
-          {renderContent()}
+      <main style={{
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh',
+        paddingTop: '24px',
+        width: '100%',
+        overflowX: 'hidden'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '800px',
+          margin: '0 auto',
+          padding: '0 16px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '100%',
+            overflowX: 'hidden'
+          }}>
+            {renderContent()}
+          </div>
         </div>
       </main>
     </div>

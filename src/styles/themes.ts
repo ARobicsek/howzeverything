@@ -148,4 +148,75 @@ export const THEMES: Themes = {
     border: '#E5E7EB', // Maps to gray200
     textPrimary: '#374151', // Maps to text
   },
+  '90s': {
+    // Primary Colors - Neon and Electric
+    primary: '#FF00FF', // Electric magenta for main actions
+    primaryHover: '#E600E6', // Darker magenta for hover
+    primaryLight: '#FF66FF', // Light magenta backgrounds
+    accent: '#00FFFF', // Electric cyan accent
+    // Neon Grays with dark theme feel
+    gray50: '#1A0D26', // Dark purple background
+    gray100: '#2D1B3D', // Darker card backgrounds
+    gray200: '#3D2954', // Borders with purple tint
+    gray300: '#4D3664', // Disabled states
+    gray400: '#6B4C85', // Placeholder text with purple
+    gray500: '#8A6BA3', // Secondary text
+    gray600: '#A488C1', // Custom secondary text
+    gray700: '#fecd06', // Primary text - electric yellow with glow
+    gray900: '#fecd06', // Headers - electric yellow with glow
+    // Neon Blue variants
+    blue50: '#001A33',
+    blue100: '#003366',
+    blue200: '#0066CC',
+    blue600: '#0099FF',
+    blue700: '#00CCFF',
+    blue800: '#00FFFF',
+    // Neon Green variants
+    green100: '#003300',
+    green700: '#00FF00',
+    // Neon Red variants
+    red50: '#330000',
+    red200: '#660000',
+    red700: '#FF0000',
+    // Base Colors - high contrast
+    white: '#FFFFFF',
+    black: '#000000',
+    // Neon Shadows & Overlay
+    shadowLight: 'rgba(255, 0, 255, 0.3)', // Magenta glow
+    shadowMedium: 'rgba(0, 255, 255, 0.4)', // Cyan glow
+    overlay: 'rgba(26, 13, 38, 0.9)', // Dark purple overlay
+    // Neon Rating Colors
+    ratingGold: '#FFFF00', // Electric yellow
+    ratingGoldLight: '#FFFF99', // Light yellow
+    ratingEmpty: '#4D3664', // Dark purple for empty
+    // Neon Action Colors
+    danger: '#FF0040', // Electric red
+    success: '#00FF40', // Electric green
+    warning: '#FFFF00', // Electric yellow
+    // Navigation - Hot pink top bar
+    navBar: '#1A0D26', // Dark purple navigation
+    navBarDark: '#FF1493', // Hot pink background for top navigation
+    navBarBorder: '#FF00FF', // Magenta border
+    // Text Colors - high contrast on dark
+    text: '#fecd06', // Electric yellow text with glow
+    textSecondary: '#C2A6DE', // Lighter purple for secondary text
+    textWhite: '#FFFFFF', // Pure white text
+    // Background Colors
+    background: '#0D0515', // Very dark purple background (default)
+    cardBg: '#1A0D26', // Dark purple cards
+    inputBg: '#2D1B3D', // Darker input backgrounds
+    // Legacy mappings for compatibility
+    star: '#FFFF00', // Electric yellow stars
+    starEmpty: '#4D3664', // Dark purple empty
+    starCommunity: '#00FFFF', // Cyan community rating
+    starCommunityEmpty: '#4D3664', // Dark purple empty
+    secondary: '#00FFFF', // Cyan secondary
+    iconPrimary: '#fecd06', // Electric yellow icons with glow
+    iconBackground: '#2D1B3D', // Dark purple icon backgrounds
+    // Aliases for common color usages
+    error: '#FF0040', // Electric red
+    surface: '#1A0D26', // Dark purple surface
+    border: '#FF00FF', // Magenta borders
+    textPrimary: '#fecd06', // Electric yellow primary text with glow
+  },
 };

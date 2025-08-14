@@ -1,8 +1,9 @@
 // src/components/navigation/TopNavigation.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { COLORS, SHADOWS, SPACING, Z_INDICES } from '../../constants';
+import { SHADOWS, SPACING, Z_INDICES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
 import LocationAwareButton from '../location/LocationAwareButton';
 
 interface TopNavigationProps {
@@ -11,6 +12,7 @@ interface TopNavigationProps {
 
 const Avatar: React.FC = () => {
   const { user, profile } = useAuth();
+  const { theme } = useTheme();
 
   const getInitials = (name?: string | null): string => {
     if (!name) return user?.email?.charAt(0).toUpperCase() ?? '?';
@@ -29,7 +31,7 @@ const Avatar: React.FC = () => {
         width: '30px',
         height: '30px',
         borderRadius: '50%',
-        backgroundColor: profile?.avatar_url ? 'transparent' : '#642e32',
+        backgroundColor: profile?.avatar_url ? 'transparent' : theme.colors.accent,
         backgroundImage: profile?.avatar_url ? `url(${profile.avatar_url})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -37,10 +39,10 @@ const Avatar: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        border: `1px solid ${COLORS.white}`,
+        border: `1px solid ${theme.colors.white}`,
         boxShadow: SHADOWS.small,
-        color: COLORS.white,
-        fontFamily: '"Pinyon Script", cursive',
+        color: theme.colors.white,
+        fontFamily: theme.fonts.primary.fontFamily,
         fontSize: '1.6rem',
         lineHeight: 1,
       }}>
@@ -51,6 +53,8 @@ const Avatar: React.FC = () => {
 };
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
+  const { theme } = useTheme();
+  
   return (
     <header style={{
       position: 'fixed',
@@ -58,7 +62,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       left: 0,
       right: 0,
       height: '60px',
-      backgroundColor: COLORS.navBarDark,
+      backgroundColor: theme.colors.navBarDark,
       border: 'none',
       zIndex: Z_INDICES.header,
       padding: `0 ${SPACING[4]}`,
@@ -69,7 +73,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
         <Link to="/home">
           <img
-            src="/HowzEverything.png"
+            src={theme.images.logo}
             alt="HowzEverything Logo"
             style={{ height: '60px', width: 'auto' }}
           />
@@ -84,7 +88,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
         <LocationAwareButton />
         <Avatar />
         <button onClick={onToggleMenu} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: SPACING[2] }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color={COLORS.white}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color={theme.colors.white}>
             <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
           </svg>
         </button>

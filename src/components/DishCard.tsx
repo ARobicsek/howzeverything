@@ -1,7 +1,8 @@
 // src/components/DishCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { BORDERS, COLORS, FONTS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, Z_INDICES } from '../constants';
+import { BORDERS, SHADOWS, SPACING, STYLES, TYPOGRAPHY, Z_INDICES } from '../constants';
+import { useTheme } from '../hooks/useTheme';
 import type { DishComment, DishPhoto, DishRating, DishWithDetails } from '../hooks/useDishes';
 import CommentForm from './CommentForm';
 import PhotoCarousel from './PhotoCarousel';
@@ -69,9 +70,10 @@ const StarRating: React.FC<{
     lg: '1.5rem'
   };
    
+  const { theme } = useTheme();
   const colorMap = {
-    personal: { filled: COLORS.accent, empty: COLORS.ratingEmpty },
-    community: { filled: '#101010', empty: COLORS.ratingEmpty }
+    personal: { filled: theme.colors.accent, empty: theme.colors.ratingEmpty },
+    community: { filled: '#101010', empty: theme.colors.ratingEmpty }
   };
 
   const roundedRating = Math.round(rating * 2) / 2;
@@ -124,7 +126,7 @@ const StarRating: React.FC<{
             border: 'none',
             padding: 0,
             cursor: 'pointer',
-            color: COLORS.textSecondary,
+            color: theme.colors.textSecondary,
             transition: 'color 0.2s ease, transform 0.2s ease',
             display: 'flex',
             alignItems: 'center',
@@ -133,11 +135,11 @@ const StarRating: React.FC<{
             marginLeft: SPACING[1]
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = COLORS.danger;
+            e.currentTarget.style.color = theme.colors.danger;
             e.currentTarget.style.transform = 'scale(1.15)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = COLORS.textSecondary;
+            e.currentTarget.style.color = theme.colors.textSecondary;
             e.currentTarget.style.transform = 'scale(1)';
           }}
           aria-label="Clear rating"
@@ -156,38 +158,41 @@ const StarRating: React.FC<{
 const RatingSummary: React.FC<{
   personalRating: number | null;
   communityAverage: number;
-}> = ({ personalRating, communityAverage }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: SPACING[1] }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-      <span style={{
-        ...FONTS.body,
-        fontSize: TYPOGRAPHY.sm.fontSize,
-        color: COLORS.textSecondary,
-        fontWeight: TYPOGRAPHY.medium
-      }}>Me:</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-        <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />
-        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
-          {personalRating || '—'}
-        </span>
+}> = ({ personalRating, communityAverage }) => {
+  const { theme } = useTheme();
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: SPACING[1] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+        <span style={{
+          ...theme.fonts.body,
+          fontSize: TYPOGRAPHY.sm.fontSize,
+          color: theme.colors.textSecondary,
+          fontWeight: TYPOGRAPHY.medium
+        }}>Me:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+          <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />
+          <span style={{ color: theme.colors.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            {personalRating || '—'}
+          </span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+        <span style={{
+          ...theme.fonts.body,
+          fontSize: TYPOGRAPHY.sm.fontSize,
+          color: theme.colors.textSecondary,
+          fontWeight: TYPOGRAPHY.medium
+        }}>Average:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
+          <StarRating rating={communityAverage} readonly variant="community" size="sm" />
+          <span style={{ color: theme.colors.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            {communityAverage.toFixed(1)}
+          </span>
+        </div>
       </div>
     </div>
-    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
-      <span style={{
-        ...FONTS.body,
-        fontSize: TYPOGRAPHY.sm.fontSize,
-        color: COLORS.textSecondary,
-        fontWeight: TYPOGRAPHY.medium
-      }}>Average:</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-        <StarRating rating={communityAverage} readonly variant="community" size="sm" />
-        <span style={{ color: COLORS.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
-          {communityAverage.toFixed(1)}
-        </span>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 
 const RatingBreakdown: React.FC<{
@@ -200,9 +205,11 @@ const RatingBreakdown: React.FC<{
   communityAverage,
   totalRatings,
   onUpdatePersonalRating
-}) => (
+}) => {
+  const { theme } = useTheme();
+  return (
   <div style={{
-    backgroundColor: COLORS.gray50,
+    backgroundColor: theme.colors.gray50,
     padding: SPACING[4],
     borderRadius: BORDERS.radius.medium,
     marginTop: SPACING[4]
@@ -211,9 +218,9 @@ const RatingBreakdown: React.FC<{
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ marginBottom: SPACING[2] }}>
           <span style={{
-            ...FONTS.body,
+            ...theme.fonts.body,
             fontSize: TYPOGRAPHY.sm.fontSize,
-            color: COLORS.textSecondary,
+            color: theme.colors.textSecondary,
             fontWeight: TYPOGRAPHY.medium
           }}>
             My Rating
@@ -232,9 +239,9 @@ const RatingBreakdown: React.FC<{
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ marginBottom: SPACING[2] }}>
           <span style={{
-            ...FONTS.body,
+            ...theme.fonts.body,
             fontSize: TYPOGRAPHY.sm.fontSize,
-            color: COLORS.textSecondary,
+            color: theme.colors.textSecondary,
             fontWeight: TYPOGRAPHY.medium
           }}>
             Average
@@ -251,9 +258,9 @@ const RatingBreakdown: React.FC<{
           </div>
           <div style={{ marginTop: SPACING[1] }}>
             <span style={{
-              ...FONTS.body,
+              ...theme.fonts.body,
               fontSize: TYPOGRAPHY.xs.fontSize,
-              color: COLORS.textSecondary
+              color: theme.colors.textSecondary
             }}>
               {communityAverage.toFixed(1)}/5 • {totalRatings} rating{totalRatings !== 1 ? 's' : ''}
             </span>
@@ -262,7 +269,8 @@ const RatingBreakdown: React.FC<{
       </div>
     </div>
   </div>
-);
+  );
+};
 
 
 const CommentsSection: React.FC<{
@@ -288,6 +296,7 @@ const CommentsSection: React.FC<{
   onCancelEdit,
   isSubmittingComment
 }) => {
+  const { theme } = useTheme();
   const [openActionMenuCommentId, setOpenActionMenuCommentId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -324,9 +333,9 @@ const CommentsSection: React.FC<{
           display: 'flex',
           alignItems: 'center',
           gap: SPACING[2],
-          ...FONTS.body,
+          ...theme.fonts.body,
           fontSize: TYPOGRAPHY.base.fontSize,
-          color: COLORS.text,
+          color: theme.colors.text,
           fontWeight: TYPOGRAPHY.medium,
           width: '100%',
           textAlign: 'left'
@@ -341,7 +350,7 @@ const CommentsSection: React.FC<{
           style={{
             transform: showComments ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.2s ease',
-            color: COLORS.gray400
+            color: theme.colors.gray400
           }}
         >
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
@@ -363,7 +372,7 @@ const CommentsSection: React.FC<{
                     }
               }
               style={{
-                backgroundColor: COLORS.gray50,
+                backgroundColor: theme.colors.gray50,
                 padding: SPACING[4],
                 borderRadius: BORDERS.radius.medium,
                 cursor: editingComment?.id === comment.id ? 'default' : 'pointer',
@@ -383,18 +392,18 @@ const CommentsSection: React.FC<{
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, marginRight: SPACING[2] }}>
                     <p style={{
-                      ...FONTS.body,
+                      ...theme.fonts.body,
                       fontSize: TYPOGRAPHY.sm.fontSize,
-                      color: COLORS.text,
+                      color: theme.colors.text,
                       margin: 0,
                       wordBreak: 'break-word'
                     }}>
                       {comment.comment_text}
                     </p>
                     <p style={{
-                      ...FONTS.body,
+                      ...theme.fonts.body,
                       fontSize: TYPOGRAPHY.xs.fontSize,
-                      color: COLORS.textSecondary,
+                      color: theme.colors.textSecondary,
                       margin: 0,
                       marginTop: SPACING[1]
                     }}>
@@ -434,10 +443,10 @@ const CommentsSection: React.FC<{
                             bottom: '100%',
                             right: 0,
                             marginBottom: SPACING[1],
-                            backgroundColor: COLORS.white,
+                            backgroundColor: theme.colors.white,
                             borderRadius: BORDERS.radius.medium,
                             boxShadow: SHADOWS.large,
-                            border: `1px solid ${COLORS.gray200}`,
+                            border: `1px solid ${theme.colors.gray200}`,
                             overflow: 'hidden',
                             zIndex: Z_INDICES.dropdown,
                             minWidth: '120px'
@@ -458,14 +467,14 @@ const CommentsSection: React.FC<{
                               border: 'none',
                               background: 'none',
                               cursor: 'pointer',
-                              ...FONTS.body,
+                              ...theme.fonts.body,
                               fontSize: TYPOGRAPHY.sm.fontSize,
-                              color: COLORS.text,
+                              color: theme.colors.text,
                               textAlign: 'left',
                               transition: 'background-color 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = COLORS.gray50;
+                              e.currentTarget.style.backgroundColor = theme.colors.gray50;
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = 'transparent';
@@ -491,14 +500,14 @@ const CommentsSection: React.FC<{
                               border: 'none',
                               background: 'none',
                               cursor: 'pointer',
-                              ...FONTS.body,
+                              ...theme.fonts.body,
                               fontSize: TYPOGRAPHY.sm.fontSize,
-                              color: COLORS.danger,
+                              color: theme.colors.danger,
                               textAlign: 'left',
                               transition: 'background-color 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = COLORS.gray50;
+                              e.currentTarget.style.backgroundColor = theme.colors.gray50;
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = 'transparent';
@@ -587,6 +596,7 @@ const DishCard: React.FC<DishCardProps> = ({
   isExpanded,
   onToggleExpand
 }) => {
+  const { theme } = useTheme();
   const [showComments, setShowComments] = useState(false);
   const [editingComment, setEditingComment] = useState<{ id: string; currentText: string } | null>(null);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -745,7 +755,7 @@ const DishCard: React.FC<DishCardProps> = ({
           ...STYLES.card,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
-          borderColor: isHovering ? COLORS.accent : COLORS.gray200,
+          borderColor: isHovering ? theme.colors.accent : theme.colors.gray200,
           boxShadow: isHovering ? SHADOWS.medium : SHADOWS.small,
         }}
         onClick={onToggleExpand}
@@ -755,9 +765,9 @@ const DishCard: React.FC<DishCardProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 style={{
-              ...FONTS.heading,
+              ...theme.fonts.heading,
               fontSize: TYPOGRAPHY.lg.fontSize,
-              color: COLORS.gray900,
+              color: theme.colors.gray900,
               margin: 0,
               marginBottom: SPACING[2]
             }}>
@@ -793,7 +803,7 @@ const DishCard: React.FC<DishCardProps> = ({
               height="24"
               viewBox="0 0 24 24"
               fill="currentColor"
-              style={{ color: COLORS.gray400 }}
+              style={{ color: theme.colors.gray400 }}
             >
               <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
             </svg>
@@ -813,7 +823,7 @@ const DishCard: React.FC<DishCardProps> = ({
     border: 'none',
     background: 'none',
     cursor: 'pointer',
-    ...FONTS.body,
+    ...theme.fonts.body,
     fontSize: TYPOGRAPHY.sm.fontSize,
     textAlign: 'left',
     transition: 'background-color 0.2s ease',
@@ -827,7 +837,7 @@ const DishCard: React.FC<DishCardProps> = ({
         id={`dish-card-${dish.id}`}
         style={{
           ...STYLES.card,
-          borderColor: COLORS.accent,
+          borderColor: theme.colors.accent,
           boxShadow: SHADOWS.large,
           cursor: 'default',
         }}
@@ -874,12 +884,12 @@ const DishCard: React.FC<DishCardProps> = ({
                   </div>
                 </div>
               ) : (
-                <h3 style={{ ...FONTS.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: COLORS.gray900, margin: 0, wordBreak: 'break-word' }}>
+                <h3 style={{ ...theme.fonts.heading, fontSize: TYPOGRAPHY.lg.fontSize, color: theme.colors.gray900, margin: 0, wordBreak: 'break-word' }}>
                   {dish.name}
                 </h3>
               )}
               {!isEditingName && (
-                <p style={{ ...FONTS.body, fontSize: TYPOGRAPHY.xs.fontSize, color: COLORS.textSecondary, margin: 0, marginTop: SPACING[1] }}>
+                <p style={{ ...theme.fonts.body, fontSize: TYPOGRAPHY.xs.fontSize, color: theme.colors.textSecondary, margin: 0, marginTop: SPACING[1] }}>
                   Added {new Date(dish.dateAdded).toLocaleDateString()}
                 </p>
               )}
@@ -887,31 +897,31 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
             <div style={{ position: 'relative', flexShrink: 0 }}>
-              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(prev => !prev); }} style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? COLORS.gray100 : 'transparent' }} aria-label="More options">
+              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(prev => !prev); }} style={{ ...STYLES.iconButton, width: '40px', height: '40px', backgroundColor: isMenuOpen ? theme.colors.gray100 : 'transparent' }} aria-label="More options">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: COLORS.white, borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.large, border: `1px solid ${COLORS.gray200}`, overflow: 'hidden', zIndex: Z_INDICES.dropdown, minWidth: '160px', }}>
-                  <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                <div ref={menuRef} style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, backgroundColor: theme.colors.white, borderRadius: BORDERS.radius.medium, boxShadow: SHADOWS.large, border: `1px solid ${theme.colors.gray200}`, overflow: 'hidden', zIndex: Z_INDICES.dropdown, minWidth: '160px', }}>
+                  <button onClick={(e) => handleAction(e, () => onShare(dish!))} style={{...menuButtonStyle, color: theme.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
                     Share Dish
                   </button>
-                  <button onClick={(e) => handleAction(e, handleDirectPhotoUpload)} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <button onClick={(e) => handleAction(e, handleDirectPhotoUpload)} style={{...menuButtonStyle, color: theme.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                     Add Photo
                   </button>
-                  <button onClick={(e) => handleAction(e, () => setShowCommentModal(true))} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                  <button onClick={(e) => handleAction(e, () => setShowCommentModal(true))} style={{...menuButtonStyle, color: theme.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     Add Comment
                   </button>
                   {canModify && (
                     <>
-                      <hr style={{ border: 0, borderTop: `1px solid ${COLORS.gray200}`, margin: `${SPACING[1]} 0` }} />
-                      <button onClick={(e) => handleAction(e, () => { setIsEditingName(true); setEditedDishName(dish.name); })} style={{...menuButtonStyle, color: COLORS.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <hr style={{ border: 0, borderTop: `1px solid ${theme.colors.gray200}`, margin: `${SPACING[1]} 0` }} />
+                      <button onClick={(e) => handleAction(e, () => { setIsEditingName(true); setEditedDishName(dish.name); })} style={{...menuButtonStyle, color: theme.colors.text}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                         Edit Name
                       </button>
-                      <button onClick={(e) => handleAction(e, handleDeleteDish)} style={{...menuButtonStyle, color: COLORS.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=COLORS.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
+                      <button onClick={(e) => handleAction(e, handleDeleteDish)} style={{...menuButtonStyle, color: theme.colors.danger}} onMouseEnter={(e)=>{e.currentTarget.style.backgroundColor=theme.colors.gray50}} onMouseLeave={(e)=>{e.currentTarget.style.backgroundColor='transparent'}}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
                         Delete Dish
                       </button>
@@ -974,9 +984,9 @@ const DishCard: React.FC<DishCardProps> = ({
         onClose={() => setShowCommentModal(false)}
       >
         <h3 style={{
-          ...FONTS.heading,
+          ...theme.fonts.heading,
           fontSize: TYPOGRAPHY.xl.fontSize,
-          color: COLORS.gray900,
+          color: theme.colors.gray900,
           marginBottom: SPACING[4]
         }}>
           Add Comment about {dish.name}

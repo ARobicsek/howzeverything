@@ -1,6 +1,7 @@
 // src/components/LoadingScreen.tsx
 import React from 'react';
-import { COLORS, FONTS, SPACING, TYPOGRAPHY } from '../constants';
+import { useTheme } from '../hooks/useTheme';
+import { SPACING, TYPOGRAPHY } from '../constants';
 
 
 // We define the keyframes for our animation here. By injecting this <style>
@@ -19,6 +20,8 @@ interface LoadingScreenProps {
 
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
+  const { theme } = useTheme();
+  
   return (
     // We use a React Fragment (<>) to return multiple elements without a wrapper div.
     <>
@@ -32,7 +35,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: COLORS.background,
+        backgroundColor: theme.colors.background,
       }}>
         <div style={{
           display: 'flex',
@@ -44,17 +47,17 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
           <div className="loading-spinner" style={{
             width: '48px',
             height: '48px',
-            border: `3px solid ${COLORS.gray200}`,
-            borderTopColor: COLORS.primary,
+            border: `3px solid ${theme.colors.gray200}`,
+            borderTopColor: theme.colors.primary,
             borderRadius: '50%',
             animation: 'spin 0.8s linear infinite'
           }}></div>
        
           {/* Loading text */}
           <p style={{
-            ...FONTS.body,
+            ...theme.fonts.body,
             fontSize: TYPOGRAPHY.lg.fontSize,
-            color: COLORS.textSecondary,
+            color: theme.colors.textSecondary,
             margin: 0
           }}>
             {message || 'Loading...'}

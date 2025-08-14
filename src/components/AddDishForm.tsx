@@ -1,7 +1,8 @@
 // Updated AddDishForm with fixed overflow and responsive constraints
 // src/components/AddDishForm.tsx
 import React, { useState } from 'react';
-import { COLORS, FONTS, STYLES } from '../constants'; // Import STYLES for secondary button
+import { STYLES } from '../constants'; // Import STYLES for secondary button
+import { useTheme } from '../hooks/useTheme';
 
 
 interface AddDishFormProps {
@@ -14,7 +15,9 @@ interface AddDishFormProps {
 const StarRating: React.FC<{
   rating: number;
   onRatingChange: (rating: number) => void;
-}> = ({ rating, onRatingChange }) => (
+}> = ({ rating, onRatingChange }) => {
+  const { theme } = useTheme();
+  return (
   <div className="flex gap-px">
     {[1, 2, 3, 4, 5].map((star) => (
       <button
@@ -22,7 +25,7 @@ const StarRating: React.FC<{
         onClick={() => onRatingChange(star)}
         className="transition-all duration-200 cursor-pointer hover:scale-105 focus:outline-none"
         style={{
-          color: star <= rating ? COLORS.primary : COLORS.ratingEmpty, // Changed COLORS.star and COLORS.starEmpty
+          color: star <= rating ? theme.colors.primary : theme.colors.ratingEmpty, // Changed COLORS.star and COLORS.starEmpty
           background: 'none',
           border: 'none',
           padding: '0 1px',
@@ -35,10 +38,12 @@ const StarRating: React.FC<{
       </button>
     ))}
   </div>
-);
+  );
+};
 
 
 const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit }) => {
+  const { theme } = useTheme();
   const [dishName, setDishName] = useState('');
   const [rating, setRating] = useState(5);
 
@@ -68,18 +73,25 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
             onClick={onToggleShow}
             className="transition-all duration-300 transform hover:scale-105 focus:outline-none w-full"
             style={{
-              backgroundColor: COLORS.primary, // Changed COLORS.addButtonBg
-              color: COLORS.textWhite,
+              backgroundColor: theme.colors.primary, // Changed COLORS.addButtonBg
+              color: theme.colors.textWhite,
               border: 'none',
               borderRadius: '12px',
               padding: '12px 20px',
-              ...FONTS.elegant,
+              ...theme.fonts.elegant,
               fontWeight: '500',
               fontSize: '1rem',
               width: '100%'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryHover} // Changed COLORS.addButtonHover
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary} // Changed COLORS.addButtonBg
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+              Object.assign(e.currentTarget.style, theme.effects.primaryButtonHover);
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.primary;
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           >
             + Add New Dish
           </button>
@@ -96,8 +108,8 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
               style={{
                 background: 'white',
                 fontSize: '1rem',
-                ...FONTS.elegant,
-                color: COLORS.text, // Changed COLORS.textDark
+                ...theme.fonts.elegant,
+                color: theme.colors.text, // Changed COLORS.textDark
                 maxWidth: 'calc(100% - 16px)', // Account for container padding
                 boxSizing: 'border-box',
               }}
@@ -108,7 +120,7 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
             />
           </div>
           <div className="flex flex-col items-center gap-1">
-            <p className="text-sm mb-0.5" style={{...FONTS.elegant, color: COLORS.text}}>
+            <p className="text-sm mb-0.5" style={{...theme.fonts.elegant, color: theme.colors.text}}>
               Rate this dish:
             </p>
             <StarRating rating={rating} onRatingChange={setRating} />
@@ -122,18 +134,18 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
               disabled={!dishName.trim()}
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
-                backgroundColor: !dishName.trim() ? COLORS.gray300 : COLORS.primary, // Changed COLORS.disabled and COLORS.addButtonBg
-                color: COLORS.textWhite,
+                backgroundColor: !dishName.trim() ? theme.colors.gray300 : theme.colors.primary, // Changed COLORS.disabled and COLORS.addButtonBg
+                color: theme.colors.textWhite,
                 border: 'none',
-                ...FONTS.elegant,
+                ...theme.fonts.elegant,
                 fontWeight: '500',
                 fontSize: '1rem'
               }}
               onMouseEnter={(e) => {
-                if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.primaryHover; // Changed COLORS.addButtonHover
+                if (dishName.trim()) e.currentTarget.style.backgroundColor = theme.colors.primaryHover; // Changed COLORS.addButtonHover
               }}
               onMouseLeave={(e) => {
-                if (dishName.trim()) e.currentTarget.style.backgroundColor = COLORS.primary; // Changed COLORS.addButtonBg
+                if (dishName.trim()) e.currentTarget.style.backgroundColor = theme.colors.primary; // Changed COLORS.addButtonBg
               }}
             >
               Add Dish
@@ -145,10 +157,10 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
               className="py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 flex-1"
               style={{
                 ...STYLES.secondaryButton, // Use secondaryButton style
-                color: COLORS.primary // Ensure text color is primary as per secondaryButton style
+                color: theme.colors.primary // Ensure text color is primary as per secondaryButton style
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.gray700} // Hardcoded '#5b6574' replaced with COLORS.gray700
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.white} // Changed COLORS.viewCommentsBg to COLORS.white to revert to secondaryButton's background
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.gray700} // Hardcoded '#5b6574' replaced with COLORS.gray700
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.colors.white} // Changed COLORS.viewCommentsBg to COLORS.white to revert to secondaryButton's background
             >
               Cancel
             </button>

@@ -1,6 +1,7 @@
 // src/components/shared/AccordionSection.tsx
 import React, { ReactNode } from 'react';
-import { COLORS, FONTS, SPACING } from '../../constants';
+import { SPACING } from '../../constants';
+import { useTheme } from '../../hooks/useTheme';
 
 interface AccordionSectionProps {
   title: string;
@@ -23,6 +24,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   isDisabled = false,
   headerAccessory,
 }) => {
+  const { theme } = useTheme();
   const isGrayedOut = isEmpty || isDisabled;
 
   return (
@@ -47,8 +49,8 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             margin: 0,
             fontSize: '1.25rem',
             fontWeight: 500,
-            color: isGrayedOut ? COLORS.textSecondary : COLORS.accent,
-            ...FONTS.elegant,
+            color: isGrayedOut ? theme.colors.textSecondary : theme.colors.accent,
+            ...theme.fonts.elegant,
           }}>
             {title}
           </h3>
@@ -66,7 +68,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           style={{
             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.3s ease',
-            color: COLORS.textSecondary,
+            color: theme.colors.textSecondary,
             flexShrink: 0, // Prevent icon from shrinking
             // --- THIS IS THE FIX ---
             // Adding a right margin pulls the chevron away from the edge.

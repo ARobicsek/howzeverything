@@ -1,6 +1,6 @@
 // src/components/RestaurantSearchAndSort.tsx
 import React from 'react';
-import { COLORS, FONTS } from '../../constants';
+import { useTheme } from '../../hooks/useTheme';
 
 
 
@@ -22,7 +22,10 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
   sortBy,
   onSortChange,
   disabled = false
-}) => (
+}) => {
+  const { theme } = useTheme();
+  
+  return (
   <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
     <div className="flex flex-col gap-3">
       <input
@@ -32,12 +35,12 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
         placeholder="Search restaurants..."
         className={`px-4 py-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-white/50 w-full ${disabled ? 'opacity-60' : 'text-gray-800'}`}
         style={{
-          background: disabled ? COLORS.gray300 : 'white', // Changed COLORS.disabled
+          background: disabled ? theme.colors.gray300 : 'white',
           fontSize: '1rem',
-          ...FONTS.elegant,
-          color: disabled ? COLORS.text : COLORS.text, // Changed COLORS.textDark
+          ...theme.fonts.body,
+          color: disabled ? theme.colors.gray500 : theme.colors.black,
           cursor: disabled ? 'not-allowed' : 'auto',
-          border: '2px solid ' + COLORS.gray200 // MODIFIED: Added grey border
+          border: '2px solid ' + theme.colors.gray200
         }}
         disabled={disabled}
       />
@@ -49,9 +52,9 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
             className={`px-3 py-1 rounded-lg text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-white ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{
               background: sortBy === option ? 'white' : 'transparent',
-              color: sortBy === option ? COLORS.text : COLORS.text, // Changed COLORS.textDark
-              border: sortBy === option ? 'none' : `1px solid ${COLORS.text}30`,
-              ...FONTS.elegant
+              color: sortBy === option ? theme.colors.black : theme.colors.text,
+              border: sortBy === option ? 'none' : `1px solid ${theme.colors.text}30`,
+              ...theme.fonts.body
             }}
             disabled={disabled}
           >
@@ -61,7 +64,8 @@ const RestaurantSearchAndSort: React.FC<RestaurantSearchAndSortProps> = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 
 

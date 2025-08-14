@@ -1,8 +1,10 @@
 // src/App.tsx - REFACTORED for UI Redesign with React Router
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Location, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { COLORS, LAYOUT_CONFIG, SCREEN_STYLES } from './constants';
+import { LAYOUT_CONFIG, SCREEN_STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useTheme } from './hooks/useTheme';
 // Screens
 import AboutScreen from './AboutScreen';
 import AdminScreen from './AdminScreen';
@@ -114,6 +116,7 @@ const getScreenConfig = (pathname: string) => {
 
 const AppRoutes: React.FC = () => {
     const { user, profile, loading: authLoading, createProfile } = useAuth();
+    const { theme } = useTheme();
     const [showProfileEdit, setShowProfileEdit] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
@@ -144,7 +147,17 @@ const AppRoutes: React.FC = () => {
 
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.background, paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop }}>
+        <div style={{ 
+          minHeight: '100vh', 
+          ...(theme.id === '90s' ? {
+            // 90s theme: electric gradient background
+            background: `linear-gradient(135deg, ${theme.colors.background} 0%, #1A0D26 25%, #2D1B3D 50%, #0D0515 75%, ${theme.colors.background} 100%)`,
+          } : {
+            // Victorian theme: solid background
+            backgroundColor: theme.colors.background,
+          }),
+          paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop 
+        }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} isAdmin={isAdmin} />
             <SharedContentHandler />
@@ -227,10 +240,20 @@ const AuthFlow: React.FC = () => {
 
 
 const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AppWithTheme />
+    </ThemeProvider>
+  );
+};
+
+const AppWithTheme: React.FC = () => {
   const { loading: authLoading } = useAuth();
+  
   if (authLoading) {
     return <LoadingScreen />;
   }
+  
   return (
     <LocationProvider>
       <BrowserRouter>

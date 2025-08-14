@@ -1,7 +1,8 @@
 // src/components/navigation/NavigationModal.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BORDERS, COLORS, SHADOWS, SPACING, TYPOGRAPHY, Z_INDICES } from '../../constants';
+import { BORDERS, SHADOWS, SPACING, TYPOGRAPHY, Z_INDICES } from '../../constants';
+import { useTheme } from '../../hooks/useTheme';
 
 
 interface NavigationModalProps {
@@ -21,6 +22,7 @@ interface MenuItem {
 
 
 const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAdmin }) => {
+  const { theme } = useTheme();
   if (!isOpen) return null;
 
 
@@ -109,7 +111,7 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
         right: 0,
         bottom: 0,
         width: 'min(300px, 80vw)',
-        backgroundColor: COLORS.navBarDark,
+        backgroundColor: theme.colors.navBarDark,
         boxShadow: SHADOWS.large,
         display: 'flex',
         flexDirection: 'column',
@@ -135,14 +137,14 @@ const NavigationModal: React.FC<NavigationModalProps> = ({ isOpen, onClose, isAd
             padding: SPACING[2]
           }}
         >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" color={COLORS.white}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" color={theme.colors.white}>
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg>
         </button>
         <nav>
           <ul style={{ listStyle: 'none', padding: 0, margin: `calc(60px + ${SPACING[4]}) 0 0 0` }}>
             {menuItems.map(item => {
-              const linkColor = item.adminOnly ? COLORS.ratingGold : COLORS.textWhite;
+              const linkColor = item.adminOnly ? theme.colors.ratingGold : theme.colors.textWhite;
 
               const svgProps: React.SVGAttributes<SVGSVGElement> = item.iconStyle === 'stroke'
                 ? { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }

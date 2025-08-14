@@ -1,8 +1,10 @@
 import React from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import ProfileCard from './components/user/ProfileCard';
-import { SCREEN_STYLES } from './constants';
+import ThemeSelector from './components/ThemeSelector';
+import { SCREEN_STYLES, SPACING, STYLES, SHADOWS } from './constants';
 import { useAuth } from './hooks/useAuth';
+import { useTheme } from './hooks/useTheme';
 
 
 
@@ -16,6 +18,7 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
   const { user, profile, loading: authLoading } = useAuth();
+  const { theme } = useTheme();
 
 
 
@@ -29,11 +32,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
 
   if (!user || !profile) {
     return (
-      // Added paddingTop here for consistency
-      <div style={SCREEN_STYLES.profile.container}>
-        <div style={SCREEN_STYLES.profile.noUserContainer}>
-          <div style={SCREEN_STYLES.profile.noUserIcon}>👤</div>
-          <p style={SCREEN_STYLES.profile.noUserText}>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: theme.colors.background,
+        paddingTop: SPACING[4],
+      }}>
+        <div style={{
+          backgroundColor: theme.colors.white,
+          borderRadius: STYLES.borderRadiusLarge as string,
+          padding: `${SPACING[12]} ${SPACING[6]}`,
+          boxShadow: SHADOWS.medium as string,
+          border: `1px solid ${theme.colors.gray200}`,
+          textAlign: 'center' as const,
+        }}>
+          <div style={{
+            fontSize: '3rem',
+            marginBottom: SPACING[3],
+          }}>👤</div>
+          <p style={{
+            ...theme.fonts.body,
+            fontSize: '1rem',
+            color: theme.colors.textSecondary,
+            margin: 0,
+          }}>
             No user profile loaded. You might be signed out.
           </p>
         </div>
@@ -45,14 +66,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
 
 
   return (
-    // --- THIS IS THE FIX ---
-    // We are adding back the vertical spacing (paddingTop) that was removed before.
-    // This creates the gap between the top navigation and the card.
-    <div style={SCREEN_STYLES.profile.container}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: theme.colors.background,
+      paddingTop: SPACING[4],
+    }}>
         <ProfileCard
           onEditProfile={onEditProfile}
           showEditButton={true}
         />
+        <ThemeSelector />
     </div>
   );
 };

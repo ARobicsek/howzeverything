@@ -1,6 +1,7 @@
 // src/components/restaurant/RestaurantCard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { SHADOWS, Z_INDICES, COLORS, FONTS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from '../../constants';
+import { SHADOWS, Z_INDICES, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from '../../constants';
+import { useTheme } from '../../hooks/useTheme';
 import { RestaurantWithPinStatus } from '../../types/restaurant';
 
 interface RestaurantCardProps {
@@ -33,6 +34,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
   isAdmin = false,
   onClick
 }) => {
+  const { theme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -130,7 +132,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
   const menuButtonStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: SPACING[2], width: '100%', padding: `${SPACING[2]} ${SPACING[3]}`,
-    border: 'none', background: 'none', cursor: 'pointer', ...FONTS.body, fontSize: TYPOGRAPHY.sm.fontSize,
+    border: 'none', background: 'none', cursor: 'pointer', ...theme.fonts.body, fontSize: TYPOGRAPHY.sm.fontSize,
     textAlign: 'left', transition: 'background-color 0.2s ease',
   };
 
@@ -145,11 +147,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       style={{
         position: 'relative',
         cursor: 'pointer',
-        borderBottom: `1px solid ${COLORS.gray200}`,
+        borderBottom: `1px solid ${theme.colors.gray200}`,
         padding: `${SPACING[3]} 0`,
         transition: 'background-color 0.2s ease',
       }}
-      onMouseEnter={() => { if(cardRef.current) cardRef.current.style.backgroundColor = COLORS.gray50; }}
+      onMouseEnter={() => { if(cardRef.current) cardRef.current.style.backgroundColor = theme.colors.gray50; }}
       onMouseLeave={() => { if(cardRef.current) cardRef.current.style.backgroundColor = 'transparent'; }}
     >
       {/* TOP ROW: Name and Controls */}
@@ -158,9 +160,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           <h2
             className="hover:underline"
             style={{
-                ...(FONTS.elegant || {}),
+                ...(theme.fonts.elegant || {}),
                 fontWeight: 500,
-                color: COLORS.text,
+                color: theme.colors.text,
                 fontSize: '1.1rem',
                 lineHeight: 1.3,
                 margin: 0,
@@ -172,15 +174,15 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2], flexShrink: 0 }}>
           {restaurant.distance && (
-            <span style={{ ...(FONTS.elegant || {}), color: COLORS.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
+            <span style={{ ...(theme.fonts.elegant || {}), color: theme.colors.accent, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize }}>
               {restaurant.distance}
             </span>
           )}
           {isAdmin && (
             <div style={{
-                ...FONTS.body,
+                ...theme.fonts.body,
                 fontSize: '0.65rem', fontWeight: '600', padding: '2px 4px', borderRadius: '4px',
-                color: isFromApi ? COLORS.gray500 : COLORS.primary,
+                color: isFromApi ? theme.colors.gray500 : theme.colors.primary,
                 backgroundColor: isFromApi ? 'rgba(107, 114, 128, 0.1)' : 'rgba(99, 102, 241, 0.1)',
                 border: `1px solid ${isFromApi ? 'rgba(107, 114, 128, 0.2)' : 'rgba(99, 102, 241, 0.3)'}`,
             }}>
@@ -193,7 +195,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
               style={{ ...STYLES.iconButton, width: '32px', height: '32px', border: 'none', backgroundColor: 'transparent', margin: '-6px' }}
               title={isPinned ? "Unpin restaurant" : "Pin restaurant"} aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isPinned ? COLORS.accent : "none"} stroke={isPinned ? COLORS.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isPinned ? theme.colors.accent : "none"} stroke={isPinned ? theme.colors.accent : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
@@ -204,11 +206,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isMenuOpen && (
-                <div ref={menuRef} style={{ position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: Z_INDICES.dropdown, width: '180px', padding: SPACING[2], boxShadow: SHADOWS.large, backgroundColor: COLORS.white, borderRadius: '12px', border: `1px solid ${COLORS.gray200}` }}>
+                <div ref={menuRef} style={{ position: 'absolute', top: '100%', right: 0, marginTop: SPACING[1], zIndex: Z_INDICES.dropdown, width: '180px', padding: SPACING[2], boxShadow: SHADOWS.large, backgroundColor: theme.colors.white, borderRadius: '12px', border: `1px solid ${theme.colors.gray200}` }}>
                     {canEdit && onEdit && <button style={menuButtonStyle} onClick={handleEdit}>Edit</button>}
                     {hasWebsite && <button style={menuButtonStyle} onClick={handleViewWebsite}>View Website</button>}
                     {onShare && <button style={menuButtonStyle} onClick={handleShare}>Share</button>}
-                    {onDelete && <button style={{...menuButtonStyle, color: COLORS.danger}} onClick={handleDelete}>Delete</button>}
+                    {onDelete && <button style={{...menuButtonStyle, color: theme.colors.danger}} onClick={handleDelete}>Delete</button>}
                 </div>
               )}
             </div>
@@ -220,9 +222,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         <div style={{ flex: 1, minWidth: 0 }}>
           <p
             style={{
-              ...FONTS.body,
+              ...theme.fonts.body,
               ...(UTILITIES.truncate || {}),
-              color: COLORS.textSecondary,
+              color: theme.colors.textSecondary,
               fontSize: '0.875rem',
               margin: 0,
             }}
@@ -233,14 +235,14 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3], flexShrink: 0, paddingRight: statsPaddingRight }}>
           {(restaurant.dishCount ?? 0) > 0 && (
             <div title={`${restaurant.dishCount} rated dishes`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
-              <span style={{...(FONTS.elegant || {}), color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: theme.colors.accent }}><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
+              <span style={{...(theme.fonts.elegant || {}), color: theme.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.dishCount}</span>
             </div>
           )}
           {(restaurant.raterCount ?? 0) > 0 && (
             <div title={`${restaurant.raterCount} raters`} style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: COLORS.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              <span style={{...(FONTS.elegant || {}), color: COLORS.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: theme.colors.accent }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span style={{...(theme.fonts.elegant || {}), color: theme.colors.textSecondary, fontWeight: TYPOGRAPHY.semibold, fontSize: TYPOGRAPHY.sm.fontSize}}>{restaurant.raterCount}</span>
             </div>
           )}
         </div>

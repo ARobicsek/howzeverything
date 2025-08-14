@@ -4,7 +4,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { COLORS, SCREEN_STYLES, STYLES, SHADOWS } from './constants';
+import { SCREEN_STYLES, STYLES, SHADOWS } from './constants';
+import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
 import { useLocationService } from './hooks/useLocationService';
@@ -19,6 +20,7 @@ const RatedDishCard: React.FC<{
   item: DishSearchResultWithRestaurant & { distanceFormatted: string | null };
   myRating: DishRating | undefined;
 }> = ({ item, myRating }) => {
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
 
@@ -30,49 +32,116 @@ const RatedDishCard: React.FC<{
   return (
     <div
       onClick={handleNavigate}
-      style={SCREEN_STYLES.ratings.card}
+      style={{
+        backgroundColor: theme.colors.white,
+        border: `1px solid ${theme.colors.gray200}`,
+        borderRadius: '12px',
+        padding: '16px',
+        marginBottom: '12px',
+        boxShadow: SHADOWS.small,
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        ...theme.fonts.body
+      }}
       onMouseEnter={(e) => {
         const target = e.currentTarget;
-        target.style.borderColor = COLORS.accent;
+        target.style.borderColor = theme.colors.accent;
         target.style.boxShadow = SHADOWS.medium;
       }}
       onMouseLeave={(e) => {
         const target = e.currentTarget;
-        target.style.borderColor = COLORS.gray200;
+        target.style.borderColor = theme.colors.gray200;
         target.style.boxShadow = SHADOWS.small;
       }}
     >
-      <div style={SCREEN_STYLES.ratings.cardInner}>
-        <div style={SCREEN_STYLES.ratings.cardContent}>
-          <h3 style={SCREEN_STYLES.ratings.cardTitle}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3 style={{
+            ...theme.fonts.heading,
+            fontSize: '1.125rem',
+            color: theme.colors.gray900,
+            margin: 0,
+            marginBottom: '4px',
+            wordBreak: 'break-word'
+          }}>
             {item.name}
           </h3>
-          <p style={SCREEN_STYLES.ratings.cardSubtitle}>
-            <span>at</span>
-            <Link to={`/restaurants/${item.restaurant.id}`} onClick={(e) => e.stopPropagation()} style={SCREEN_STYLES.ratings.cardRestaurantLink}>{item.restaurant.name}</Link>
+          <p style={{
+            ...theme.fonts.body,
+            fontSize: '0.875rem',
+            color: theme.colors.textSecondary,
+            margin: 0,
+            marginBottom: '8px'
+          }}>
+            <span>at </span>
+            <Link 
+              to={`/restaurants/${item.restaurant.id}`} 
+              onClick={(e) => e.stopPropagation()} 
+              style={{
+                color: theme.colors.accent,
+                textDecoration: 'none',
+                fontWeight: '500'
+              }}
+            >
+              {item.restaurant.name}
+            </Link>
             {item.distanceFormatted && (
-                <span style={SCREEN_STYLES.ratings.cardDistance}>
+                <span style={{
+                  color: theme.colors.textSecondary,
+                  fontSize: '0.75rem'
+                }}>
                     • {item.distanceFormatted}
                 </span>
             )}
           </p>
-          <div style={SCREEN_STYLES.ratings.cardRatingsContainer}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {myRating && (
-              <div style={SCREEN_STYLES.ratings.cardRatingRow}>
-                <span style={SCREEN_STYLES.ratings.cardRatingLabel}>Me:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  ...theme.fonts.body,
+                  fontSize: '0.75rem',
+                  color: theme.colors.textSecondary,
+                  fontWeight: '500',
+                  minWidth: '24px'
+                }}>Me:</span>
                 <StarRating rating={myRating.rating} variant="personal" size="sm" />
               </div>
             )}
-            <div style={SCREEN_STYLES.ratings.cardRatingRow}>
-              <span style={SCREEN_STYLES.ratings.cardRatingLabel}>Average:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                ...theme.fonts.body,
+                fontSize: '0.75rem',
+                color: theme.colors.textSecondary,
+                fontWeight: '500',
+                minWidth: '40px'
+              }}>Average:</span>
               <StarRating rating={item.average_rating} variant="community" size="sm" />
-              <span style={SCREEN_STYLES.ratings.cardRatingValue}>{item.average_rating.toFixed(1)}</span>
+              <span style={{
+                ...theme.fonts.body,
+                fontSize: '0.75rem',
+                color: theme.colors.text,
+                fontWeight: '600'
+              }}>{item.average_rating.toFixed(1)}</span>
             </div>
           </div>
         </div>
         {item.photos && item.photos.length > 0 && (
-          <div style={SCREEN_STYLES.ratings.cardPhotoContainer}>
-            <img src={item.photos[0].url} alt={item.name} style={SCREEN_STYLES.ratings.cardPhoto} />
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            flexShrink: 0
+          }}>
+            <img 
+              src={item.photos[0].url} 
+              alt={item.name} 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }} 
+            />
           </div>
         )}
       </div>
@@ -82,6 +151,7 @@ const RatedDishCard: React.FC<{
 
 
 const RatingsScreen: React.FC = () => {
+  const { theme } = useTheme();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [rawRatedDishes, setRawRatedDishes] = useState<DishSearchResultWithRestaurant[]>([]);
@@ -183,32 +253,103 @@ const RatingsScreen: React.FC = () => {
 
 
   return (
-    <div>
+    <div style={{ backgroundColor: theme.colors.background }}>
       {/* HEADER SECTION */}
-      <div style={SCREEN_STYLES.ratings.header}>
-        <div style={SCREEN_STYLES.ratings.headerInner}>
+      <div style={{
+        background: theme.colors.background === '#0D0515' 
+          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+          : theme.colors.primary,
+        paddingTop: '84px',
+        paddingBottom: '32px',
+        minHeight: '300px',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '512px',
+          margin: '0 auto',
+          padding: '0 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
           <img
-            src="/my_ratings.png"
+            src={theme.images.ratingsHero}
             alt="Person rating food"
-            style={SCREEN_STYLES.ratings.headerImage}
+            style={{
+              width: '200px',
+              height: '200px',
+              objectFit: 'contain',
+              marginBottom: '24px',
+              border: theme.colors.background === '#0D0515' 
+                ? 'none'
+                : `3px solid ${theme.colors.white}`,
+              borderRadius: theme.colors.background === '#0D0515' 
+                ? '0px'
+                : '16px',
+              boxShadow: theme.colors.background === '#0D0515' 
+                ? 'none'
+                : '0 4px 20px rgba(0, 0, 0, 0.1)'
+            }}
           />
-          <h1 style={SCREEN_STYLES.ratings.headerTitle}>
+          <h1 style={{
+            ...theme.fonts.heading,
+            fontSize: '2.5rem',
+            fontWeight: '700',
+            color: theme.colors.white,
+            margin: 0,
+            marginBottom: '24px',
+            textAlign: 'center',
+            ...(theme.colors.background === '#0D0515' && {
+              textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
+            })
+          }}>
             My Ratings
           </h1>
-          <div className="w-full" style={SCREEN_STYLES.ratings.searchBarContainer}>
+          <div style={{ width: '100%', position: 'relative' }}>
              <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="e.g. pizza, Chez Frontenac"
-              style={SCREEN_STYLES.ratings.searchInput}
+              style={{
+                width: '100%',
+                padding: '12px 40px 12px 16px',
+                borderRadius: '12px',
+                border: theme.colors.background === '#0D0515' 
+                  ? '2px solid #ff00ff'
+                  : `2px solid ${theme.colors.gray200}`,
+                outline: 'none',
+                fontSize: '1rem',
+                ...theme.fonts.body,
+                backgroundColor: theme.colors.white,
+                color: theme.colors.black,
+                boxShadow: theme.colors.background === '#0D0515' 
+                  ? '0 0 20px rgba(255, 0, 255, 0.3)'
+                  : 'none',
+                boxSizing: 'border-box'
+              }}
             />
             {searchTerm.trim().length > 0 && (
               <button
                 onClick={() => setSearchTerm('')}
-                style={SCREEN_STYLES.ratings.resetButton}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'scale(1)'; }}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  color: theme.colors.textSecondary,
+                  opacity: 0.7,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
                 aria-label="Reset search" title="Reset search"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
@@ -220,26 +361,62 @@ const RatingsScreen: React.FC = () => {
 
 
       {/* BODY SECTION */}
-      <div style={SCREEN_STYLES.ratings.body}>
+      <div style={{
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh',
+        padding: '24px 16px'
+      }}>
         {isLoading ? (
           <LoadingScreen message="Loading your ratings..." />
         ) : error ? (
-          <div style={SCREEN_STYLES.ratings.errorContainer}>
-            <p>{error}</p>
+          <div style={{
+            textAlign: 'center',
+            padding: '48px 16px',
+            color: theme.colors.text,
+            ...theme.fonts.body
+          }}>
+            <p style={{ marginBottom: '16px', fontSize: '1.125rem' }}>{error}</p>
             <button onClick={loadRatedDishes} style={STYLES.primaryButton}>Try Again</button>
           </div>
         ) : filteredDishes.length > 0 ? (
-          <div style={SCREEN_STYLES.ratings.dishesContainer}>
+          <div style={{
+            maxWidth: '800px',
+            margin: '0 auto'
+          }}>
             {filteredDishes.map((item) => {
               const myRating = item.ratings.find((r) => r.user_id === user?.id);
               return <RatedDishCard key={item.id} item={item} myRating={myRating} />;
             })}
           </div>
         ) : (
-          <div style={SCREEN_STYLES.ratings.emptyStateContainer}>
-            <p>{searchTerm ? `No matches found for "${searchTerm}".` : "You haven't rated any dishes yet."}</p>
+          <div style={{
+            textAlign: 'center',
+            padding: '48px 16px',
+            color: theme.colors.text,
+            ...theme.fonts.body
+          }}>
+            <p style={{ 
+              marginBottom: '24px', 
+              fontSize: '1.125rem',
+              color: theme.colors.textSecondary 
+            }}>
+              {searchTerm ? `No matches found for "${searchTerm}".` : "You haven't rated any dishes yet."}
+            </p>
             {!searchTerm && (
-              <Link to="/find-restaurant" style={SCREEN_STYLES.ratings.emptyStateLink}>
+              <Link 
+                to="/find-restaurant" 
+                style={{
+                  display: 'inline-block',
+                  padding: '12px 24px',
+                  backgroundColor: theme.colors.primary,
+                  color: theme.colors.white,
+                  textDecoration: 'none',
+                  borderRadius: '8px',
+                  ...theme.fonts.body,
+                  fontWeight: '500',
+                  transition: 'all 0.3s ease'
+                }}
+              >
                 Find a Restaurant to Rate
               </Link>
             )}
