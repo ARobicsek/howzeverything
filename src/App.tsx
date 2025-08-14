@@ -104,6 +104,8 @@ const getScreenConfig = (pathname: string) => {
     if (pathSegments[0] === 'restaurants' && pathSegments.length > 1) {
         screenKey = 'menu'; // This is the MenuScreen
         hasStickyHeader = true; // MenuScreen has its own sticky header
+        // MenuScreen should be full bleed too
+        return { isFullBleed: true, hasStickyHeader: true, maxWidth: LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] };
     } else {
         screenKey = pathSegments[0] || 'home';
     }

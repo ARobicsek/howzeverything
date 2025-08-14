@@ -404,19 +404,13 @@ const FindRestaurantScreen: React.FC = () => {
 
   return (
     <div style={{ 
+      width: '100vw',
+      position: 'relative',
+      left: '50%',
+      transform: 'translateX(-50%)',
       backgroundColor: theme.colors.background, 
-      minHeight: '100vh',
-      width: '100%',
-      overflowX: 'hidden'
+      minHeight: '100vh'
     }}>
-      <style>{`
-        * {
-          box-sizing: border-box;
-        }
-        div, article, section {
-          max-width: 100%;
-        }
-      `}</style>
       <style>{SCREEN_STYLES.findRestaurant.spinAnimation}</style>
       <div style={{
         background: theme.colors.background === '#0D0515' 
@@ -503,20 +497,24 @@ const FindRestaurantScreen: React.FC = () => {
         backgroundColor: theme.colors.background,
         minHeight: '100vh',
         padding: '24px 0',
-        width: '100%',
-        overflowX: 'hidden'
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        transform: 'translateX(-50%)'
       }}>
         <div style={{
           width: '100%',
-          maxWidth: '800px',
+          maxWidth: '448px',
           margin: '0 auto',
           padding: '0 16px',
           boxSizing: 'border-box'
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '100%',
-            overflowX: 'hidden'
+            overflowX: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
           }}>
             {showAddForm ? (
               <div className="space-y-4">

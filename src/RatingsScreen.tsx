@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { SCREEN_STYLES, STYLES, SHADOWS } from './constants';
+import { STYLES, SHADOWS } from './constants';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
@@ -253,7 +253,14 @@ const RatingsScreen: React.FC = () => {
 
 
   return (
-    <div style={{ backgroundColor: theme.colors.background }}>
+    <div style={{ 
+      width: '100vw',
+      position: 'relative',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      backgroundColor: theme.colors.background,
+      minHeight: '100vh'
+    }}>
       {/* HEADER SECTION */}
       <div style={{
         background: theme.colors.background === '#0D0515' 
@@ -364,24 +371,32 @@ const RatingsScreen: React.FC = () => {
       <div style={{
         backgroundColor: theme.colors.background,
         minHeight: '100vh',
-        padding: '24px 16px'
+        padding: '24px 0',
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        overflowX: 'hidden'
       }}>
         {isLoading ? (
           <LoadingScreen message="Loading your ratings..." />
         ) : error ? (
           <div style={{
             textAlign: 'center',
-            padding: '48px 16px',
+            padding: '48px 8px',
             color: theme.colors.text,
-            ...theme.fonts.body
+            ...theme.fonts.body,
+            maxWidth: '100%',
+            margin: '0 auto'
           }}>
             <p style={{ marginBottom: '16px', fontSize: '1.125rem' }}>{error}</p>
             <button onClick={loadRatedDishes} style={STYLES.primaryButton}>Try Again</button>
           </div>
         ) : filteredDishes.length > 0 ? (
           <div style={{
-            maxWidth: '800px',
-            margin: '0 auto'
+            maxWidth: '448px',
+            margin: '0 auto',
+            padding: '0 16px'
           }}>
             {filteredDishes.map((item) => {
               const myRating = item.ratings.find((r) => r.user_id === user?.id);
@@ -391,9 +406,11 @@ const RatingsScreen: React.FC = () => {
         ) : (
           <div style={{
             textAlign: 'center',
-            padding: '48px 16px',
+            padding: '48px 8px',
             color: theme.colors.text,
-            ...theme.fonts.body
+            ...theme.fonts.body,
+            maxWidth: '100%',
+            margin: '0 auto'
           }}>
             <p style={{ 
               marginBottom: '24px', 

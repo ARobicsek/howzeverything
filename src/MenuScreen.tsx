@@ -550,7 +550,14 @@ const MenuScreen: React.FC = () => {
 
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{ 
+      width: '100vw',
+      position: 'relative',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      backgroundColor: theme.colors.background,
+      minHeight: '100vh'
+    }}>
       <header style={{
         position: 'sticky',
         top: '60px',
@@ -563,21 +570,18 @@ const MenuScreen: React.FC = () => {
         boxShadow: theme.colors.background === '#0D0515' 
           ? '0 2px 20px rgba(255, 0, 255, 0.2)'
           : '0 2px 8px rgba(0, 0, 0, 0.1)',
-        width: '100vw',
-        position: 'relative',
-        left: '50%',
-        right: '50%',
-        marginLeft: '-50vw',
-        marginRight: '-50vw'
+        width: '100%',
+        left: 0,
+        right: 0
       }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '12px 0',
-          gap: '12px',
-          paddingLeft: '16px',
-          paddingRight: '16px',
-          width: '100%'
+          padding: '12px 16px',
+          gap: '8px',
+          width: '100%',
+          boxSizing: 'border-box',
+          minWidth: 0
         }}>
             <button onClick={() => navigate(-1)} style={{
               ...STYLES.iconButton,
@@ -590,7 +594,8 @@ const MenuScreen: React.FC = () => {
             style={{
               flex: 1,
               minWidth: 0,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              overflow: 'hidden'
             }}
           >
             <h1 style={{
@@ -626,7 +631,9 @@ const MenuScreen: React.FC = () => {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '4px',
+            flexShrink: 0,
+            minWidth: 0
           }}>
             <button
               onClick={() => restaurantId && togglePin(restaurantId)}
@@ -686,7 +693,7 @@ const MenuScreen: React.FC = () => {
         <main style={{
           backgroundColor: 'transparent',
           minHeight: 'calc(100vh - 60px)',
-          paddingTop: '24px'
+          paddingTop: '80px'
         }}>
         <div style={{
           maxWidth: '800px',

@@ -264,7 +264,7 @@ export const LAYOUT_CONFIG = {
     profile: '370px',
     discovery: 'none', // Full bleed, handles its own width
     home: '1280px',
-    about: '768px',
+    about: 'none', // Set to none to allow full-bleed background
     admin: '1280px',
   } as Record<string, string>,
   // Component-level widths
@@ -635,6 +635,10 @@ export const UTILITIES: NamedStyles<StyleObject> = {
     position: 'absolute',
     width: '1px',
   },
+  // ⚠️ WARNING: fullBleed pattern can cause white border issues on some screens
+  // For new full-width screens, use the proven pattern from AboutScreen.tsx:
+  // width: '100vw', position: 'relative', left: '50%', transform: 'translateX(-50%)'
+  // See WHITE_BORDER_FIX_GUIDE.md for complete documentation
   fullBleed: {
     marginLeft: 'calc(-50vw + 50%)',
     marginRight: 'calc(-50vw + 50%)',

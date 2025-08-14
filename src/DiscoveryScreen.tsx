@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
 import LoadingScreen from './components/LoadingScreen';
-import { SCREEN_STYLES, STYLES } from './constants';
+import { SCREEN_STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useTheme } from './hooks/useTheme';
 import type { DishRating, DishSearchResultWithRestaurant, DishWithDetails } from './hooks/useDishes';
@@ -326,19 +326,13 @@ const DiscoveryScreen: React.FC = () => {
   };
   return (
     <div style={{ 
+      width: '100vw',
+      position: 'relative',
+      left: '50%',
+      transform: 'translateX(-50%)',
       backgroundColor: theme.colors.background, 
-      minHeight: '100vh',
-      width: '100%',
-      overflowX: 'hidden'
+      minHeight: '100vh'
     }}>
-      <style>{`
-        * {
-          box-sizing: border-box;
-        }
-        div, article, section {
-          max-width: 100%;
-        }
-      `}</style>
       {/* HEADER SECTION */}
       <div style={{
         background: theme.colors.background === '#0D0515' 
@@ -518,19 +512,20 @@ const DiscoveryScreen: React.FC = () => {
         backgroundColor: theme.colors.background,
         minHeight: '100vh',
         paddingTop: '24px',
-        width: '100%',
-        overflowX: 'hidden'
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        transform: 'translateX(-50%)'
       }}>
         <div style={{
           width: '100%',
-          maxWidth: '800px',
+          maxWidth: '448px',
           margin: '0 auto',
           padding: '0 16px',
           boxSizing: 'border-box'
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '100%',
             overflowX: 'hidden'
           }}>
             {renderContent()}

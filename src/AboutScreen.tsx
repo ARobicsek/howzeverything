@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { SCREEN_STYLES } from './constants';
+import { SCREEN_STYLES, UTILITIES } from './constants';
 import { useTheme } from './hooks/useTheme';
 
 
@@ -9,7 +9,14 @@ import { useTheme } from './hooks/useTheme';
 const AboutScreen: React.FC = () => {
   const { theme } = useTheme();
   return (
-    <div style={{ backgroundColor: theme.colors.background, minHeight: '100vh' }}>
+    <div style={{ 
+      width: '100vw',
+      position: 'relative',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      backgroundColor: theme.colors.background, 
+      minHeight: '100vh'
+    }}>
       {/* HEADER SECTION */}
       <div style={
         theme.colors.background === '#0D0515' 
@@ -104,29 +111,29 @@ const AboutScreen: React.FC = () => {
 
 
       {/* BODY SECTION */}
-      <div style={
-        theme.colors.background === '#0D0515' 
-          ? {
-              backgroundColor: theme.colors.background,
-              minHeight: '100vh',
-              padding: '24px 0'
-            }
-          : {
-              backgroundColor: theme.colors.background,
-              padding: '64px 0 96px'
-            }
-      }>
+      <div style={{
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh',
+        padding: theme.colors.background === '#0D0515' ? '24px 0' : '64px 0 96px',
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        right: '50%',
+        marginLeft: '-50vw',
+        marginRight: '-50vw',
+        overflowX: 'hidden'
+      }}>
         <div style={
           theme.colors.background === '#0D0515' 
             ? {
-                maxWidth: '800px',
+                maxWidth: '700px',
                 margin: '0 auto',
-                padding: '0 16px'
+                padding: '0 24px'
               }
             : {
                 maxWidth: '700px',
                 margin: '0 auto',
-                padding: '0 16px',
+                padding: '0 32px',
                 lineHeight: '1.7'
               }
         }>
