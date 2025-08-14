@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { SPACING, BORDERS, SHADOWS } from '../constants';
+import { THEMES } from '../styles/themes';
 
 const ThemeSelector: React.FC = () => {
   const { currentTheme, availableThemes, switchTheme, theme } = useTheme();
@@ -19,74 +20,149 @@ const ThemeSelector: React.FC = () => {
     ...theme.fonts.heading,
     fontSize: '1.25rem',
     color: theme.colors.gray900,
-    marginBottom: SPACING[4],
+    marginBottom: SPACING[6],
     textAlign: 'center',
   };
 
   const optionsContainerStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    gap: SPACING[3],
+    gap: SPACING[4],
   };
 
-  const optionStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    padding: SPACING[3],
-    borderRadius: BORDERS.radius.medium,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    border: `2px solid transparent`,
+  // Helper function to get theme-specific styles for each button
+  const getThemeButtonStyle = (themeId: string): React.CSSProperties => {
+    const isSelected = currentTheme === themeId;
+    const themeData = THEMES[themeId === 'victorian' ? 'default' : themeId];
+    
+    if (themeId === 'victorian') {
+      return {
+        padding: SPACING[4],
+        borderRadius: BORDERS.radius.medium,
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        backgroundColor: themeData.white,
+        border: isSelected 
+          ? `3px solid ${themeData.primary}` 
+          : `2px solid ${themeData.gray300}`,
+        boxShadow: isSelected 
+          ? `0 4px 12px rgba(37, 99, 235, 0.3)` 
+          : '0 2px 6px rgba(0, 0, 0, 0.1)',
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+      };
+    } else if (themeId === '90s') {
+      return {
+        padding: SPACING[4],
+        borderRadius: BORDERS.radius.medium,
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        backgroundColor: themeData.cardBg,
+        border: isSelected 
+          ? `3px solid ${themeData.primary}` 
+          : `2px solid ${themeData.accent}`,
+        boxShadow: isSelected 
+          ? `0 0 20px ${themeData.primary}, 0 0 40px ${themeData.accent}` 
+          : `0 0 8px ${themeData.accent}`,
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+      };
+    }
+    return {};
   };
 
-  const getOptionStyle = (themeId: string): React.CSSProperties => ({
-    ...optionStyle,
-    backgroundColor: currentTheme === themeId ? theme.colors.primaryLight : theme.colors.gray50,
-    borderColor: currentTheme === themeId ? theme.colors.primary : 'transparent',
-    // Add theme-specific hover effects via CSS custom properties
-    ...(theme.id === '90s' ? {
-      // 90s theme: neon glow on hover
-      boxShadow: currentTheme === themeId 
-        ? `0 0 15px ${theme.colors.primary}, 0 0 30px ${theme.colors.accent}`
-        : 'none',
-    } : {
-      // Victorian theme: subtle shadow on hover
-      boxShadow: currentTheme === themeId ? SHADOWS.medium : 'none',
-    }),
-  });
-
-  const radioStyle: React.CSSProperties = {
-    width: '16px',
-    height: '16px',
-    borderRadius: '50%',
-    border: `2px solid ${theme.colors.primary}`,
-    backgroundColor: theme.colors.white,
-    marginRight: SPACING[3],
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+  const getThemeTextStyle = (themeId: string): React.CSSProperties => {
+    const themeData = THEMES[themeId === 'victorian' ? 'default' : themeId];
+    
+    if (themeId === 'victorian') {
+      return {
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+        fontSize: '1.125rem',
+        fontWeight: '600',
+        color: themeData.gray900,
+        marginBottom: SPACING[2],
+      };
+    } else if (themeId === '90s') {
+      return {
+        fontFamily: 'Impact, "Arial Black", sans-serif',
+        fontSize: '1.125rem',
+        fontWeight: '900',
+        color: themeData.text,
+        textShadow: '0 0 10px #fecd06, 0 0 20px #fecd06',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: SPACING[2],
+      };
+    }
+    return {};
   };
 
-  const checkedDotStyle: React.CSSProperties = {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: theme.colors.primary,
+  const getThemeDescriptionStyle = (themeId: string): React.CSSProperties => {
+    const themeData = THEMES[themeId === 'victorian' ? 'default' : themeId];
+    
+    if (themeId === 'victorian') {
+      return {
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+        fontSize: '0.875rem',
+        color: themeData.textSecondary,
+        lineHeight: '1.4',
+      };
+    } else if (themeId === '90s') {
+      return {
+        fontFamily: '"Courier New", Courier, monospace',
+        fontSize: '0.875rem',
+        color: themeData.textSecondary,
+        lineHeight: '1.4',
+      };
+    }
+    return {};
   };
 
-  const labelStyle: React.CSSProperties = {
-    ...theme.fonts.body,
-    fontSize: '1rem',
-    color: theme.colors.gray900,
-    fontWeight: '500',
-  };
+  const getSelectedIndicator = (themeId: string): React.ReactNode => {
+    const isSelected = currentTheme === themeId;
+    if (!isSelected) return null;
 
-  const descriptionStyle: React.CSSProperties = {
-    ...theme.fonts.body,
-    fontSize: '0.875rem',
-    color: theme.colors.textSecondary,
-    marginTop: SPACING[1],
+    if (themeId === 'victorian') {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          width: '24px',
+          height: '24px',
+          backgroundColor: THEMES.default.primary,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        }}>
+          ✓
+        </div>
+      );
+    } else if (themeId === '90s') {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          width: '24px',
+          height: '24px',
+          backgroundColor: THEMES['90s'].primary,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          boxShadow: '0 0 15px #FF00FF'
+        }}>
+          ✓
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -96,15 +172,18 @@ const ThemeSelector: React.FC = () => {
         {availableThemes.map((themeOption) => (
           <div 
             key={themeOption.id}
-            style={getOptionStyle(themeOption.id)}
+            style={{
+              ...getThemeButtonStyle(themeOption.id),
+              position: 'relative',
+            }}
             onClick={() => switchTheme(themeOption.id)}
           >
-            <div style={radioStyle}>
-              {currentTheme === themeOption.id && <div style={checkedDotStyle} />}
-            </div>
+            {getSelectedIndicator(themeOption.id)}
             <div>
-              <div style={labelStyle}>{themeOption.name}</div>
-              <div style={descriptionStyle}>
+              <div style={getThemeTextStyle(themeOption.id)}>
+                {themeOption.name}
+              </div>
+              <div style={getThemeDescriptionStyle(themeOption.id)}>
                 {themeOption.id === 'victorian' 
                   ? 'Classic elegance with refined typography and subtle shadows'
                   : 'Bold neon colors with retro fonts and electric effects'

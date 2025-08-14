@@ -421,7 +421,7 @@ const FindRestaurantScreen: React.FC = () => {
       <div style={{
         background: theme.colors.background === '#0D0515' 
           ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
-          : theme.colors.primary,
+          : theme.colors.navBarDark,
         paddingTop: '84px',
         paddingBottom: '32px',
         minHeight: '400px',

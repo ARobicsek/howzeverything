@@ -550,27 +550,34 @@ const MenuScreen: React.FC = () => {
 
 
   return (
-    <div style={{
-      minHeight: '100vh'
-    }}>
+    <div style={{ minHeight: '100vh' }}>
       <header style={{
         position: 'sticky',
         top: '60px',
-        backgroundColor: theme.colors.background === '#1a0829' 
-          ? 'rgba(26, 8, 41, 0.95)'
+        backgroundColor: theme.colors.background === '#0D0515' 
+          ? 'rgba(13, 5, 21, 0.95)'
           : 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
         borderBottom: `1px solid ${theme.colors.gray200}`,
         zIndex: 10,
-        boxShadow: theme.colors.background === '#1a0829' 
+        boxShadow: theme.colors.background === '#0D0515' 
           ? '0 2px 20px rgba(255, 0, 255, 0.2)'
-          : '0 2px 8px rgba(0, 0, 0, 0.1)'
+          : '0 2px 8px rgba(0, 0, 0, 0.1)',
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        right: '50%',
+        marginLeft: '-50vw',
+        marginRight: '-50vw'
       }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '12px 16px',
-          gap: '12px'
+          padding: '12px 0',
+          gap: '12px',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          width: '100%'
         }}>
             <button onClick={() => navigate(-1)} style={{
               ...STYLES.iconButton,
@@ -596,7 +603,7 @@ const MenuScreen: React.FC = () => {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textEllipsis: 'ellipsis',
-              ...(theme.colors.background === '#1a0829' && {
+              ...(theme.colors.background === '#0D0515' && {
                 textShadow: '0 0 10px #ff00ff'
               })
             }} title={restaurant.name}>
@@ -626,7 +633,7 @@ const MenuScreen: React.FC = () => {
               style={{
                 ...STYLES.iconButton,
                 color: isPinned ? theme.colors.accent : theme.colors.text,
-                ...(theme.colors.background === '#1a0829' && isPinned && {
+                ...(theme.colors.background === '#0D0515' && isPinned && {
                   filter: 'drop-shadow(0 0 5px #ff00ff)'
                 })
               }}
@@ -673,11 +680,14 @@ const MenuScreen: React.FC = () => {
           </div>
         </div>
       </header>
-      <main style={{
-        backgroundColor: 'transparent',
-        minHeight: 'calc(100vh - 60px)',
-        paddingTop: '80px'
+      <div style={{
+        minHeight: '100vh'
       }}>
+        <main style={{
+          backgroundColor: 'transparent',
+          minHeight: 'calc(100vh - 60px)',
+          paddingTop: '24px'
+        }}>
         <div style={{
           maxWidth: '800px',
           margin: '0 auto',
@@ -738,7 +748,10 @@ const MenuScreen: React.FC = () => {
             <div style={SCREEN_STYLES.menu.addFormContainer}><EnhancedAddDishForm initialDishName={searchTerm} onSubmit={handleAttemptAddDish} onCancel={() => setShowAddForm(false)} /></div>
           )}
         </div>
-      </main>
+        </main>
+      </div>
+      
+      {/* Modals */}
       {showFullRestaurantName && (
           <div style={STYLES.modalOverlay} onClick={() => setShowFullRestaurantName(false)}>
               <div style={SCREEN_STYLES.menu.fullNameModal.content} onClick={(e) => e.stopPropagation()}>

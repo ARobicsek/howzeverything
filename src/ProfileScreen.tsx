@@ -75,7 +75,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
           onEditProfile={onEditProfile}
           showEditButton={true}
         />
-        <ThemeSelector />
+        <div style={{ marginTop: SPACING[8] }}>
+          <ThemeSelector />
+        </div>
     </div>
   );
 };
