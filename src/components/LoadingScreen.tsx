@@ -27,15 +27,17 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
     <>
       <style>{spinAnimation}</style>
       <div style={{
-        // MODIFIED: Replaced 100vh with generous vertical padding.
-        // This works for both full-screen loading and in-content loading
-        // without being pushed off the screen by other elements like a header.
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh',
         padding: '8rem 1rem',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.colors.background,
       }}>
         <div style={{
           display: 'flex',

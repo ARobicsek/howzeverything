@@ -81,10 +81,19 @@ const ConsolidatedSearchAndAdd: React.FC<{
   const { theme } = useTheme();
   const hasTyped = searchTerm.length > 0;
   const [isFocused, setIsFocused] = useState(false);
+  const is90sTheme = theme.colors.background === '#0D0515';
+  
   return (
-    <div style={SCREEN_STYLES.menu.search.container}>
+    <div style={{
+      ...SCREEN_STYLES.menu.search.container,
+      backgroundColor: is90sTheme ? 'transparent' : 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: is90sTheme ? 'none' : 'blur(4px)'
+    }}>
       <div style={SCREEN_STYLES.menu.search.header}>
-        <h2 style={SCREEN_STYLES.menu.search.title}>
+        <h2 style={{
+          ...SCREEN_STYLES.menu.search.title,
+          color: is90sTheme ? '#ff00ff' : SCREEN_STYLES.menu.search.title.color
+        }}>
           Find Your Dish
         </h2>
         {hasTyped && (
@@ -105,7 +114,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
           padding: '12px 16px',
           borderRadius: '12px',
           border: theme.colors.background === '#0D0515' 
-            ? `2px solid ${isFocused ? '#ff00ff' : '#640464'}`
+            ? 'none'
             : `2px solid ${isFocused ? theme.colors.primary : theme.colors.gray200}`,
           outline: 'none',
           fontSize: '1rem',
@@ -742,10 +751,34 @@ const MenuScreen: React.FC = () => {
                     ))}
                   </>
                 ) : (
-                  <div style={SCREEN_STYLES.menu.emptyState.container}>
-                    <div style={SCREEN_STYLES.menu.emptyState.icon}><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg></div>
-                    <h2 style={SCREEN_STYLES.menu.emptyState.title}>No dishes yet</h2>
-                    <p style={SCREEN_STYLES.menu.emptyState.text}>Be the first to add a dish to {restaurant.name}!</p>
+                  <div style={{
+                    ...SCREEN_STYLES.menu.emptyState.container,
+                    textAlign: 'center',
+                    padding: '3rem 1rem'
+                  }}>
+                    <div style={{
+                      ...SCREEN_STYLES.menu.emptyState.icon,
+                      color: theme.colors.background === '#0D0515' ? '#ff00ff' : SCREEN_STYLES.menu.emptyState.icon.color
+                    }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
+                    </div>
+                    <h2 style={{
+                      ...theme.fonts.heading,
+                      fontSize: '1.5rem',
+                      color: theme.colors.text,
+                      marginBottom: '0.5rem'
+                    }}>
+                      No dishes yet
+                    </h2>
+                    <p style={{
+                      ...theme.fonts.body,
+                      fontSize: '1rem',
+                      color: theme.colors.text,
+                      opacity: 0.7,
+                      marginBottom: '1.5rem'
+                    }}>
+                      Be the first to add a dish to {restaurant.name}!
+                    </p>
                     <button onClick={handleShowAddForm} style={STYLES.primaryButton} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = theme.colors.primaryHover; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = theme.colors.primary; }}>Add First Dish</button>
                   </div>
                 )

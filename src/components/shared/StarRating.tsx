@@ -102,7 +102,7 @@ export const StarRating: React.FC<{
             border: 'none',
             padding: 0,
             cursor: 'pointer',
-            color: COLORS.textSecondary,
+            color: theme.colors.textSecondary,
             transition: 'color 0.2s ease, transform 0.2s ease',
             display: 'flex',
             alignItems: 'center',
@@ -111,11 +111,11 @@ export const StarRating: React.FC<{
             marginLeft: SPACING[1]
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = COLORS.danger;
+            e.currentTarget.style.color = theme.colors.danger;
             e.currentTarget.style.transform = 'scale(1.15)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = COLORS.textSecondary;
+            e.currentTarget.style.color = theme.colors.textSecondary;
             e.currentTarget.style.transform = 'scale(1)';
           }}
           aria-label="Clear rating"

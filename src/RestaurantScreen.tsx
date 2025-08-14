@@ -558,7 +558,36 @@ const RestaurantScreen: React.FC = () => {
               </div>
             </div>
           )}
-          {showInitialEmptyState && (<div className="text-center py-12"><p style={{ ...theme.fonts.elegant, color: theme.colors.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No restaurants yet</p><button onClick={handleAddFirstRestaurantFlow} style={STYLES.addButton} onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primaryHover} onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primary}>Add your first restaurant</button></div>)}
+          {showInitialEmptyState && (
+            <div className="text-center py-12">
+              <p style={{ 
+                ...theme.fonts.heading, 
+                color: theme.colors.text, 
+                fontSize: '1.5rem', 
+                fontWeight: '500', 
+                marginBottom: '0.5rem' 
+              }}>
+                No restaurants yet
+              </p>
+              <p style={{
+                ...theme.fonts.body,
+                color: theme.colors.text,
+                opacity: 0.7,
+                fontSize: '1rem',
+                marginBottom: '1.5rem'
+              }}>
+                Add your first restaurant to start rating dishes!
+              </p>
+              <button 
+                onClick={handleAddFirstRestaurantFlow} 
+                style={STYLES.addButton} 
+                onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primaryHover} 
+                onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primary}
+              >
+                Add your first restaurant
+              </button>
+            </div>
+          )}
           {showSearchAndResults && (
             <div className="space-y-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SPACING[6] }}>
@@ -578,11 +607,44 @@ const RestaurantScreen: React.FC = () => {
                   {hasLocalResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ ...theme.fonts.elegant, color: theme.colors.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>Your restaurants:</h3></div>{filteredAndSortedRestaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))}</div>)}
                   {hasOnlineResults && (<div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}><div className="text-center"><h3 style={{ ...theme.fonts.elegant, color: theme.colors.text, fontSize: '18px', fontWeight: '500', margin: 0, paddingBottom: SPACING[2] }}>{hasLocalResults ? 'Found online:' : 'Online results:'}</h3></div>{searchError && (<div className="bg-red-500/20 p-3 rounded-lg text-center"><p style={{ color: theme.colors.danger, ...theme.fonts.elegant }}>{searchError}</p></div>)}{searchResults.map((result) => (<div key={result.place_id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4"><div className="flex justify-between items-start"><div className="flex-1 mr-4"><h4 style={{ ...theme.fonts.elegant, fontSize: '16px', fontWeight: '500', color: theme.colors.text, margin: '0 0 4px 0' }}>{result.properties.name}</h4><p style={{ ...theme.fonts.elegant, fontSize: '14px', color: theme.colors.text, opacity: 0.8, margin: 0, lineHeight: '1.4' }}>{result.properties.formatted}</p></div><button onClick={() => handleImportRestaurant(result)} disabled={addingRestaurantId === result.place_id} style={{ ...STYLES.addButton, padding: '8px 16px', fontSize: '14px', opacity: addingRestaurantId === result.place_id ? 0.6 : 1 }} onMouseEnter={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primaryHover; }} onMouseLeave={(e) => { if(addingRestaurantId !== result.place_id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primary; }}>{addingRestaurantId === result.place_id ? 'Adding...' : 'Add'}</button></div>{restaurantErrors.has(result.place_id) && (<div className="mt-2 p-2 bg-red-500/20 rounded"><p style={{ ...theme.fonts.elegant, fontSize: '12px', color: theme.colors.danger, margin: 0 }}>{restaurantErrors.get(result.place_id)}</p></div>)}</div>))}</div>)}
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center"><p style={{ ...theme.fonts.elegant, fontSize: '0.95rem', color: theme.colors.text, marginBottom: '12px' }}>Can't find it?</p><button onClick={handleShowAddForm} className="px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105" style={STYLES.addButton} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primaryHover; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = theme.colors.primary; }}>Add New Restaurant</button></div>
-                  {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (<div className="text-center py-12"><p style={{ ...theme.fonts.elegant, color: theme.colors.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>No restaurants found for "{searchTerm}"</p><p style={{ ...theme.fonts.elegant, color: theme.colors.text, opacity: 0.7, marginBottom: '16px' }}>Try a different search term or add this restaurant.</p></div>)}
+                  {!hasAnyResults && !isSearching && lastSearchedTerm === searchTerm && hasSearchTerm && (
+                    <div className="text-center py-12">
+                      <p style={{ 
+                        ...theme.fonts.heading, 
+                        color: theme.colors.text, 
+                        fontSize: '1.5rem', 
+                        fontWeight: '500', 
+                        marginBottom: '0.5rem' 
+                      }}>
+                        No restaurants found for "{searchTerm}"
+                      </p>
+                      <p style={{ 
+                        ...theme.fonts.body, 
+                        color: theme.colors.text, 
+                        opacity: 0.7, 
+                        fontSize: '1rem',
+                        marginBottom: '1rem' 
+                      }}>
+                        Try a different search term or add this restaurant.
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2] }}>
-                  {hasRestaurants ? (restaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))) : (<div className="text-center py-12"><p style={{ ...theme.fonts.elegant, color: theme.colors.text, fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Start by searching for your first restaurant!</p></div>)}
+                  {hasRestaurants ? (restaurants.map((restaurant) => (<RestaurantCard key={restaurant.id} restaurant={restaurant} onDelete={handleDeleteRestaurant} onNavigateToMenu={handleNavigateToMenu} onShare={() => handleShareRestaurant(restaurant)} onEdit={() => handleEditRestaurant(restaurant.id)} currentUserId={user?.id || null} isAdmin={isAdmin} />))) : (
+                    <div className="text-center py-12">
+                      <p style={{ 
+                        ...theme.fonts.heading, 
+                        color: theme.colors.text, 
+                        fontSize: '1.5rem', 
+                        fontWeight: '500', 
+                        marginBottom: '0.5rem' 
+                      }}>
+                        Start by searching for your first restaurant!
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

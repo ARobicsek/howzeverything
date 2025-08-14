@@ -290,12 +290,25 @@ const DiscoveryScreen: React.FC = () => {
       );
     }
     if (filteredAndGrouped.length > 0) {
+      const is90sTheme = theme.colors.background === '#0D0515';
+      
       return filteredAndGrouped.map((group) => (
         <div key={group.restaurant.id}>
           <div className="mb-4" style={SCREEN_STYLES.discovery.restaurantHeader}>
-            <h2 style={SCREEN_STYLES.discovery.restaurantName} onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}>{group.restaurant.name}</h2>
+            <h2 
+              style={{
+                ...SCREEN_STYLES.discovery.restaurantName,
+                color: is90sTheme ? theme.colors.navBarDark : SCREEN_STYLES.discovery.restaurantName.color
+              }} 
+              onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}
+            >
+              {group.restaurant.name}
+            </h2>
             {group.restaurant.distance !== undefined && (
-              <span style={SCREEN_STYLES.discovery.restaurantDistance}>
+              <span style={{
+                ...SCREEN_STYLES.discovery.restaurantDistance,
+                color: is90sTheme ? theme.colors.navBarDark : SCREEN_STYLES.discovery.restaurantDistance.color
+              }}>
                 {formatDistanceMiles(group.restaurant.distance)}
               </span>
             )}

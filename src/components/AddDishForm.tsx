@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { STYLES } from '../constants'; // Import STYLES for secondary button
 import { useTheme } from '../hooks/useTheme';
+import { StarRating } from './shared/StarRating';
 
 
 interface AddDishFormProps {
@@ -12,34 +13,6 @@ interface AddDishFormProps {
 }
 
 
-const StarRating: React.FC<{
-  rating: number;
-  onRatingChange: (rating: number) => void;
-}> = ({ rating, onRatingChange }) => {
-  const { theme } = useTheme();
-  return (
-  <div className="flex gap-px">
-    {[1, 2, 3, 4, 5].map((star) => (
-      <button
-        key={star}
-        onClick={() => onRatingChange(star)}
-        className="transition-all duration-200 cursor-pointer hover:scale-105 focus:outline-none"
-        style={{
-          color: star <= rating ? theme.colors.primary : theme.colors.ratingEmpty, // Changed COLORS.star and COLORS.starEmpty
-          background: 'none',
-          border: 'none',
-          padding: '0 1px',
-          fontSize: '1.3rem',
-          lineHeight: '1'
-        }}
-        aria-label={`Rate ${star} of 5 stars`}
-      >
-        ★
-      </button>
-    ))}
-  </div>
-  );
-};
 
 
 const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit }) => {
@@ -123,7 +96,7 @@ const AddDishForm: React.FC<AddDishFormProps> = ({ show, onToggleShow, onSubmit 
             <p className="text-sm mb-0.5" style={{...theme.fonts.elegant, color: theme.colors.text}}>
               Rate this dish:
             </p>
-            <StarRating rating={rating} onRatingChange={setRating} />
+            <StarRating rating={rating} onRatingChange={setRating} variant="personal" />
           </div>
          
           {/* Add Dish and Cancel buttons */}

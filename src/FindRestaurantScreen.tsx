@@ -597,7 +597,10 @@ const FindRestaurantScreen: React.FC = () => {
                 <div className="p-4">
                     {nearbyError && <p className="text-sm text-red-700">{nearbyError}</p>}
                   <div className="flex items-center" style={SCREEN_STYLES.findRestaurant.distanceFilterContainer}>
-                    <label style={SCREEN_STYLES.findRestaurant.distanceLabel}>
+                    <label style={{
+                        ...SCREEN_STYLES.findRestaurant.distanceLabel,
+                        color: theme.colors.background === '#0D0515' ? theme.colors.navBarDark : SCREEN_STYLES.findRestaurant.distanceLabel.color
+                    }}>
                         Distance:
                     </label>
                     <select
