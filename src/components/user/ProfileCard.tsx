@@ -125,7 +125,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          backgroundColor: theme.colors.navBarDark,
+          backgroundColor: theme.colors.accent,
           backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -139,7 +139,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               color: theme.colors.white,
               fontSize: '2.5rem',
               fontWeight: '600',
-              ...theme.fonts.body
+              fontFamily: theme.colors.background === '#0D0515' ? theme.fonts.primary.fontFamily : '"Pinyon Script", cursive'
             }}>
               {initials.length > 1 ? initials.charAt(0) : initials}
             </span>
@@ -291,7 +291,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             style={{
               flex: 1,
               padding: '12px 24px',
-              backgroundColor: theme.colors.primary,
+              backgroundColor: theme.colors.accent,
               color: theme.colors.white,
               border: 'none',
               borderRadius: '8px',
@@ -304,12 +304,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             }}
             onMouseEnter={(e) => {
               if (!loading) {
-                e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+                e.currentTarget.style.backgroundColor = theme.colors.accent;
               }
             }}
             onMouseLeave={(e) => {
               if (!loading) {
-                e.currentTarget.style.backgroundColor = theme.colors.primary;
+                e.currentTarget.style.backgroundColor = theme.colors.accent;
               }
             }}
           >

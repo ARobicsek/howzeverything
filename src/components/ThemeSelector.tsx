@@ -17,9 +17,11 @@ const ThemeSelector: React.FC = () => {
   };
 
   const headerStyle: React.CSSProperties = {
-    ...theme.fonts.heading,
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+    fontWeight: '600',
+    letterSpacing: '-0.025em',
     fontSize: '1.25rem',
-    color: theme.colors.gray900,
+    color: '#111827', // Always black regardless of theme
     marginBottom: SPACING[6],
     textAlign: 'center',
   };
@@ -41,7 +43,7 @@ const ThemeSelector: React.FC = () => {
         borderRadius: BORDERS.radius.medium,
         cursor: 'pointer',
         transition: 'all 0.3s ease',
-        backgroundColor: themeData.white,
+        backgroundColor: themeData.accent,
         border: isSelected 
           ? `3px solid ${themeData.primary}` 
           : `2px solid ${themeData.gray300}`,
@@ -74,10 +76,10 @@ const ThemeSelector: React.FC = () => {
     
     if (themeId === 'victorian') {
       return {
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-        fontSize: '1.125rem',
-        fontWeight: '600',
-        color: themeData.gray900,
+        fontFamily: '"Pinyon Script", cursive',
+        fontSize: '1.5rem',
+        fontWeight: '400',
+        color: themeData.white,
         marginBottom: SPACING[2],
       };
     } else if (themeId === '90s') {
@@ -102,7 +104,7 @@ const ThemeSelector: React.FC = () => {
       return {
         fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
         fontSize: '0.875rem',
-        color: themeData.textSecondary,
+        color: themeData.white,
         lineHeight: '1.4',
       };
     } else if (themeId === '90s') {

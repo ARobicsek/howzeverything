@@ -42,7 +42,7 @@ const Avatar: React.FC = () => {
         border: `1px solid ${theme.colors.white}`,
         boxShadow: SHADOWS.small,
         color: theme.colors.white,
-        fontFamily: theme.fonts.primary.fontFamily,
+        fontFamily: theme.colors.background === '#0D0515' ? theme.fonts.primary.fontFamily : '"Pinyon Script", cursive',
         fontSize: '1.6rem',
         lineHeight: 1,
       }}>

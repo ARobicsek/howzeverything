@@ -434,21 +434,25 @@ const FindRestaurantScreen: React.FC = () => {
             <img
                 src={theme.images.findRestaurantHero}
                 alt="Finding Restaurant"
-                style={{
-                  width: '200px',
-                  height: '200px',
-                  objectFit: 'contain',
-                  marginBottom: '24px',
-                  border: theme.colors.background === '#0D0515' 
-                    ? 'none'
-                    : `3px solid ${theme.colors.white}`,
-                  borderRadius: theme.colors.background === '#0D0515' 
-                    ? '0px'
-                    : '16px',
-                  boxShadow: theme.colors.background === '#0D0515' 
-                    ? 'none'
-                    : '0 4px 20px rgba(0, 0, 0, 0.1)'
-                }}
+                style={
+                  theme.colors.background === '#0D0515' 
+                    ? {
+                        width: '200px',
+                        height: '200px',
+                        objectFit: 'contain',
+                        marginBottom: '24px',
+                        border: 'none',
+                        borderRadius: '0px'
+                      }
+                    : {
+                        width: '180px',
+                        height: 'auto',
+                        objectFit: 'contain',
+                        marginBottom: '24px',
+                        border: `2px solid ${theme.colors.white}`,
+                        borderRadius: '12px'
+                      }
+                }
             />
             <h1 style={{
               ...theme.fonts.heading,

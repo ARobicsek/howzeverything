@@ -92,7 +92,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 const getScreenConfig = (pathname: string) => {
     // Add ratings to the a full-bleed screens
-    if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings'].includes(pathname)) {
+    if (['/', '/home', '/find-restaurant', '/discover', '/about', '/ratings', '/profile'].includes(pathname)) {
         const screenKey = pathname === '/' ? 'home' : pathname.split('/')[1] as keyof typeof LAYOUT_CONFIG.SCREEN_MAX_WIDTHS;
         return { isFullBleed: true, hasStickyHeader: false, maxWidth: LAYOUT_CONFIG.SCREEN_MAX_WIDTHS[screenKey] };
     }

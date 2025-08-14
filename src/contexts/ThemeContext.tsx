@@ -34,7 +34,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const THEME_DEFINITIONS: { [key: string]: Theme } = {
   victorian: {
     id: 'victorian',
-    name: 'Victorian Elegance',
+    name: 'Nouveau Victorian',
     colors: THEMES.default, // Victorian theme colors
     fonts: {
       primary: {

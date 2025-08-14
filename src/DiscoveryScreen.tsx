@@ -276,16 +276,40 @@ const DiscoveryScreen: React.FC = () => {
     if (error) {
       return (
           <div className="text-center py-12">
-              <p style={SCREEN_STYLES.discovery.errorText}>{error}</p>
-              <p style={SCREEN_STYLES.discovery.messageSubText}>You can also try refreshing the page.</p>
+              <p style={{
+                ...theme.fonts.heading,
+                fontSize: '1.5rem',
+                color: theme.colors.white,
+                fontWeight: '700',
+                marginBottom: '16px'
+              }}>{error}</p>
+              <p style={{
+                ...theme.fonts.body,
+                fontSize: '1.125rem',
+                color: theme.colors.white,
+                lineHeight: '1.6',
+                margin: 0
+              }}>You can also try refreshing the page.</p>
           </div>
       );
     }
     if (!hasSearchTerm && !hasActiveFilters) {
       return (
         <div className="text-center py-12">
-          <p style={SCREEN_STYLES.discovery.messageText}>Start Discovering</p>
-          <p style={SCREEN_STYLES.discovery.messageSubText}>Use the search bar or filters above to find dishes the community has rated.</p>
+          <p style={{
+            ...theme.fonts.heading,
+            fontSize: '1.5rem',
+            color: theme.colors.white,
+            fontWeight: '700',
+            marginBottom: '16px'
+          }}>Start Discovering</p>
+          <p style={{
+            ...theme.fonts.body,
+            fontSize: '1.125rem',
+            color: theme.colors.white,
+            lineHeight: '1.6',
+            margin: 0
+          }}>Use the search bar or filters above to find dishes the community has rated.</p>
         </div>
       );
     }
@@ -332,8 +356,20 @@ const DiscoveryScreen: React.FC = () => {
     }
     return (
       <div className="text-center py-12">
-        <p style={SCREEN_STYLES.discovery.messageText}>No Dishes Found</p>
-        <p style={SCREEN_STYLES.discovery.messageSubText}>Try adjusting your search or filters to find more results.</p>
+        <p style={{
+          ...theme.fonts.heading,
+          fontSize: '1.5rem',
+          color: theme.colors.white,
+          fontWeight: '700',
+          marginBottom: '16px'
+        }}>No Dishes Found</p>
+        <p style={{
+          ...theme.fonts.body,
+          fontSize: '1.125rem',
+          color: theme.colors.white,
+          lineHeight: '1.6',
+          margin: 0
+        }}>Try adjusting your search or filters to find more results.</p>
       </div>
     );
   };
@@ -369,21 +405,25 @@ const DiscoveryScreen: React.FC = () => {
           <img
               src={theme.images.discoveryHero}
               alt="Discovering a new dish"
-              style={{
-                width: '200px',
-                height: '200px',
-                objectFit: 'contain',
-                marginBottom: '24px',
-                border: theme.colors.background === '#0D0515' 
-                  ? 'none'
-                  : `3px solid ${theme.colors.white}`,
-                borderRadius: theme.colors.background === '#0D0515' 
-                  ? '0px'
-                  : '16px',
-                boxShadow: theme.colors.background === '#0D0515' 
-                  ? 'none'
-                  : '0 4px 20px rgba(0, 0, 0, 0.1)'
-              }}
+              style={
+                theme.colors.background === '#0D0515' 
+                  ? {
+                      width: '200px',
+                      height: '200px',
+                      objectFit: 'contain',
+                      marginBottom: '24px',
+                      border: 'none',
+                      borderRadius: '0px'
+                    }
+                  : {
+                      width: '180px',
+                      height: 'auto',
+                      objectFit: 'contain',
+                      marginBottom: '24px',
+                      border: `2px solid ${theme.colors.white}`,
+                      borderRadius: '12px'
+                    }
+              }
           />
           <h1 style={{
             ...theme.fonts.heading,

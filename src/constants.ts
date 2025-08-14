@@ -261,7 +261,7 @@ export const LAYOUT_CONFIG = {
     restaurants: '768px',
     findRestaurant: 'none', // Already has special handling
     ratings: 'none', // Set to none to allow full-bleed header
-    profile: '370px',
+    profile: 'none',
     discovery: 'none', // Full bleed, handles its own width
     home: '1280px',
     about: 'none', // Set to none to allow full-bleed background

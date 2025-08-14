@@ -101,7 +101,11 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
 
 
   return (
-    <div style={STYLES.modalOverlay} onClick={onClose}>
+    <div style={{
+      ...STYLES.modalOverlay,
+      alignItems: 'flex-start',
+      paddingTop: '10vh'
+    }} onClick={onClose}>
       <div
         style={{ ...STYLES.modal, maxWidth: '600px', width: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', padding: 0 }}
         onClick={(e) => e.stopPropagation()}
