@@ -150,6 +150,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
         borderBottom: `1px solid ${theme.colors.gray200}`,
         padding: `${SPACING[3]} 0`,
         transition: 'background-color 0.2s ease',
+        maxWidth: '340px',
+        margin: '0 auto',
       }}
       onMouseEnter={() => { if(cardRef.current) cardRef.current.style.backgroundColor = theme.colors.gray50; }}
       onMouseLeave={() => { if(cardRef.current) cardRef.current.style.backgroundColor = 'transparent'; }}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SCREEN_STYLES, UTILITIES } from './constants';
 import { useTheme } from './hooks/useTheme';
 
@@ -8,6 +8,15 @@ import { useTheme } from './hooks/useTheme';
 
 const AboutScreen: React.FC = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleStartDishing = () => {
+    navigate('/find-restaurant');
+    // Scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
   return (
     <div style={{ 
       width: '100vw',
@@ -351,7 +360,7 @@ const AboutScreen: React.FC = () => {
             }>
               Your ratings make restauranting better for everyone. Start by rating your favorite (and not-so-favorite) dishes today.
             </p>
-            <Link to="/find-restaurant" style={
+            <button onClick={handleStartDishing} style={
               theme.colors.background === '#0D0515' 
                 ? {
                     ...theme.fonts.body,
@@ -384,7 +393,7 @@ const AboutScreen: React.FC = () => {
                   }
             }>
               Start Dishing
-            </Link>
+            </button>
           </div>
         </div>
       </div>
