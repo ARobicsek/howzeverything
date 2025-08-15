@@ -347,7 +347,7 @@ function generateColorPalette(coreColors: ThemeSpec['colors'], typography: Theme
     // AboutScreen semantic tokens
     aboutHeaderBackground: isDarkTheme 
       ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
-      : accent,
+      : gray900,
     aboutContainerMaxWidth: isDarkTheme ? '700px' : '700px',
     aboutContainerPadding: isDarkTheme ? '0 24px' : '0 32px',
     aboutHeroImageBorder: isDarkTheme ? 'none' : `2px solid ${white}`,

@@ -209,7 +209,7 @@ export const THEMES: Themes = {
     avatarFontFamily: '"Pinyon Script", cursive',
     appBackground: '#F9FAFB',
     // AboutScreen semantic tokens
-    aboutHeaderBackground: '#642e32',
+    aboutHeaderBackground: '#101010',
     aboutContainerMaxWidth: '700px',
     aboutContainerPadding: '0 32px',
     aboutHeroImageBorder: '2px solid #FFFFFF',

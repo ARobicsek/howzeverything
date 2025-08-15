@@ -301,7 +301,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     avatarFontFamily: '"Pinyon Script", cursive', // Victorian theme uses elegant cursive for avatar
     appBackground: '#F9FAFB', // Victorian theme solid background
     // AboutScreen semantic tokens for Victorian theme
-    aboutHeaderBackground: '#642e32',
+    aboutHeaderBackground: '#101010',
     aboutContainerMaxWidth: '700px',
     aboutContainerPadding: '0 32px',
     aboutHeroImageBorder: '2px solid #FFFFFF',

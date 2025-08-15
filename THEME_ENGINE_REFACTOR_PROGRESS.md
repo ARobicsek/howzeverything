@@ -700,6 +700,7 @@ starCommunity: isDarkTheme ? warning : primary,  // Victorian: primary, 90s: war
 
 **Post-Migration Quality Improvements**:
 - ✅ **Discovery Header Background Fix**: Corrected Victorian theme header from accent (`#642e32`) to proper navBarDark (`#101010`)
+- ✅ **About Header Background Fix**: Corrected Victorian theme About screen header from accent (`#642e32`) to proper navBarDark (`#101010`)
 - ✅ **Victorian Star Colors Fix**: Corrected inverted star colors to match original design
   - Personal stars: `#642e32` (brownish purple - accent)
   - Community stars: `#2563EB` (blue - primary)
@@ -711,7 +712,40 @@ starCommunity: isDarkTheme ? warning : primary,  // Victorian: primary, 90s: war
 - **Migration Success Rate**: 100% - all themes work identically to original
 - **Build Status**: All production builds successful throughout migration
 
+### 🔧 Bug Fix: About Screen Header Background (Post Phase 3.6)
+
+**Issue Identified**: Victorian theme About screen header background was using incorrect color after migration.
+
+**Problem**: After the AboutScreen migration in Phase 3.3, the Victorian theme was using the accent color (`#642e32` - brownish purple) for the About screen header background, but comparison with the original feature/theme-system branch showed it should use the navBarDark color (`#101010` - very dark gray).
+
+**Root Cause**: During the AboutScreen semantic token migration, the `aboutHeaderBackground` semantic token was designed to use `accent` for the Victorian theme in the theme engine generation logic, but the original implementation used `theme.colors.navBarDark`.
+
+**Solution Applied**:
+```typescript
+// Theme engine generation (corrected)
+aboutHeaderBackground: isDarkTheme 
+  ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+  : gray900,  // Changed from accent to gray900 (which maps to navBarDark #101010)
+
+// Victorian theme overrides (corrected)
+aboutHeaderBackground: '#101010',  // Changed from '#642e32' to '#101010'
+```
+
+**Files Updated**:
+- `src/styles/themeEngine.ts` - Theme engine generation logic
+- `src/contexts/ThemeContext.tsx` - Victorian theme overrides
+- `src/styles/themes.ts` - Static theme definitions
+
+**Verification**:
+- ✅ Production build successful
+- ✅ TypeScript compilation clean  
+- ✅ Victorian theme About header now uses correct dark gray background (`#101010`)
+- ✅ 90s theme About header unchanged (still uses gradient)
+- ✅ Matches original feature/theme-system visual design exactly
+
+**Result**: Victorian theme About screen header now displays with the correct dark gray background instead of the brownish purple accent color, maintaining pixel-perfect accuracy to the original theme design.
+
 ---
-*Last Updated*: Phase 3.5+ complete - DiscoveryScreen migration + Victorian star color fix  
+*Last Updated*: Phase 3.6+ complete - FindRestaurantScreen migration + About header background fix  
 *Branch*: feature/theme-engine-refactor  
-*Status*: Ready for Phase 3.6 - FindRestaurantScreen migration (8 instances) using proven enhanced 7-step pattern
+*Status*: Ready for Phase 3.7 - RatingsScreen migration (6 instances) - FINAL SCREEN to complete 100% theme engine refactor
