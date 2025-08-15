@@ -151,13 +151,7 @@ const AppRoutes: React.FC = () => {
     return (
         <div style={{ 
           minHeight: '100vh', 
-          ...(theme.id === '90s' ? {
-            // 90s theme: electric gradient background
-            background: `linear-gradient(135deg, ${theme.colors.background} 0%, #1A0D26 25%, #2D1B3D 50%, #0D0515 75%, ${theme.colors.background} 100%)`,
-          } : {
-            // Victorian theme: solid background
-            backgroundColor: theme.colors.background,
-          }),
+          background: theme.colors.appBackground,
           paddingTop: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.paddingTop 
         }}>
             <TopNavigation onToggleMenu={handleToggleMenu} />

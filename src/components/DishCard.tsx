@@ -84,11 +84,10 @@ const RatingBreakdown: React.FC<{
   onUpdatePersonalRating
 }) => {
   const { theme } = useTheme();
-  const is90sTheme = theme.colors.background === '#0D0515';
   
   return (
   <div style={{
-    backgroundColor: is90sTheme ? 'transparent' : theme.colors.gray50,
+    backgroundColor: theme.colors.ratingBreakdownBackground,
     padding: SPACING[4],
     borderRadius: BORDERS.radius.medium,
     marginTop: SPACING[4]

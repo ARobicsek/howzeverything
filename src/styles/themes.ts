@@ -70,6 +70,62 @@ export type ColorPalette = {
   surface: string;
   border: string;
   textPrimary: string;
+  // Semantic tokens for component-specific needs
+  ratingBreakdownBackground: string;
+  starOutlineMode: boolean;
+  avatarFontFamily: string;
+  appBackground: string;
+  // AboutScreen semantic tokens
+  aboutHeaderBackground: string;
+  aboutContainerMaxWidth: string;
+  aboutContainerPadding: string;
+  aboutHeroImageBorder: string;
+  aboutHeroImageBorderRadius: string;
+  aboutHeroImageWidth: string;
+  aboutHeadingTextShadow: string;
+  aboutSectionPadding: string;
+  aboutCtaCardBackground: string;
+  aboutCtaCardBorder: string;
+  aboutCtaCardBoxShadow: string;
+  aboutCtaButtonBackground: string;
+  aboutCtaButtonPadding: string;
+  aboutCtaButtonBoxShadow: string;
+  aboutCtaButtonTextShadow: string;
+  // Text styling semantic tokens
+  aboutHeadingColor: string;
+  aboutHeadingFontWeight: string;
+  aboutHeadingLineHeight: string;
+  aboutBodyColor: string;
+  aboutBodyFontSize: string;
+  aboutCtaHeadingColor: string;
+  aboutCtaHeadingFontSize: string;
+  aboutCtaHeadingFontWeight: string;
+  aboutCtaHeadingLineHeight: string;
+  aboutCtaBodyLineHeight: string;
+  aboutButtonFontSize: string;
+  aboutButtonBorderRadius: string;
+  // MenuScreen semantic tokens
+  menuSearchContainerBackground: string;
+  menuSearchContainerBackdropFilter: string;
+  menuSearchTitleColor: string;
+  menuInputBorder: string;
+  menuInputBoxShadow: string;
+  menuHeaderBackground: string;
+  menuHeaderBoxShadow: string;
+  menuRestaurantNameTextShadow: string;
+  menuPinButtonFilter: string;
+  menuEmptyStateIconColor: string;
+  // Star styling
+  starBorderWidth: string;
+  // DiscoveryScreen semantic tokens
+  discoveryRestaurantNameColor: string;
+  discoveryRestaurantDistanceColor: string;
+  discoveryHeaderBackground: string;
+  discoveryHeroImageStyle: object;
+  discoveryHeadingTextShadow: string;
+  discoverySearchInputBorder: string;
+  discoverySearchInputBoxShadow: string;
+  discoverySelectBorder: string;
 };
 
 export type Themes = {
@@ -147,6 +203,69 @@ export const THEMES: Themes = {
     surface: '#FFFFFF', // Maps to white/cardBg
     border: '#E5E7EB', // Maps to gray200
     textPrimary: '#374151', // Maps to text
+    // Semantic tokens for component-specific needs
+    ratingBreakdownBackground: '#F9FAFB', // Gray-50 background for Victorian rating breakdown
+    starOutlineMode: false,
+    avatarFontFamily: '"Pinyon Script", cursive',
+    appBackground: '#F9FAFB',
+    // AboutScreen semantic tokens
+    aboutHeaderBackground: '#642e32',
+    aboutContainerMaxWidth: '700px',
+    aboutContainerPadding: '0 32px',
+    aboutHeroImageBorder: '2px solid #FFFFFF',
+    aboutHeroImageBorderRadius: '12px',
+    aboutHeroImageWidth: '180px',
+    aboutHeadingTextShadow: 'none',
+    aboutSectionPadding: '64px 0 96px',
+    aboutCtaCardBackground: '#cac2af',
+    aboutCtaCardBorder: 'none',
+    aboutCtaCardBoxShadow: 'none',
+    aboutCtaButtonBackground: '#642e32',
+    aboutCtaButtonPadding: '12px 24px',
+    aboutCtaButtonBoxShadow: 'none',
+    aboutCtaButtonTextShadow: 'none',
+    // Text styling semantic tokens
+    aboutHeadingColor: '#111827',
+    aboutHeadingFontWeight: '600',
+    aboutHeadingLineHeight: '2.5rem',
+    aboutBodyColor: '#374151',
+    aboutBodyFontSize: '1rem',
+    aboutCtaHeadingColor: '#642e32',
+    aboutCtaHeadingFontSize: '1.5rem',
+    aboutCtaHeadingFontWeight: '600',
+    aboutCtaHeadingLineHeight: '2rem',
+    aboutCtaBodyLineHeight: '1.5',
+    aboutButtonFontSize: '1rem',
+    aboutButtonBorderRadius: '8px',
+    // MenuScreen semantic tokens
+    menuSearchContainerBackground: 'rgba(255, 255, 255, 0.1)',
+    menuSearchContainerBackdropFilter: 'blur(4px)',
+    menuSearchTitleColor: '#111827',
+    menuInputBorder: '2px solid #E5E7EB',
+    menuInputBoxShadow: 'none',
+    menuHeaderBackground: 'rgba(255, 255, 255, 0.95)',
+    menuHeaderBoxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    menuRestaurantNameTextShadow: 'none',
+    menuPinButtonFilter: 'none',
+    menuEmptyStateIconColor: '#6B7280',
+    // Star styling
+    starBorderWidth: '2',
+    // DiscoveryScreen semantic tokens
+    discoveryRestaurantNameColor: '#374151',
+    discoveryRestaurantDistanceColor: '#6B7280',
+    discoveryHeaderBackground: '#101010',
+    discoveryHeroImageStyle: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain',
+      marginBottom: '24px',
+      border: '2px solid #FFFFFF',
+      borderRadius: '12px'
+    },
+    discoveryHeadingTextShadow: 'none',
+    discoverySearchInputBorder: '2px solid #E5E7EB',
+    discoverySearchInputBoxShadow: 'none',
+    discoverySelectBorder: '2px solid #E5E7EB',
   },
   '90s': {
     // Primary Colors - Neon and Electric
@@ -206,9 +325,9 @@ export const THEMES: Themes = {
     cardBg: '#1A0D26', // Dark purple cards
     inputBg: '#2D1B3D', // Darker input backgrounds
     // Legacy mappings for compatibility
-    star: '#FFFF00', // Electric yellow stars
+    star: '#00FFFF', // Electric cyan stars (matches restaurant names)
     starEmpty: '#4D3664', // Dark purple empty
-    starCommunity: '#00FFFF', // Cyan community rating
+    starCommunity: '#fecd06', // Electric yellow community rating (matches dish name color)
     starCommunityEmpty: '#4D3664', // Dark purple empty
     secondary: '#00FFFF', // Cyan secondary
     iconPrimary: '#fecd06', // Electric yellow icons with glow
@@ -218,5 +337,68 @@ export const THEMES: Themes = {
     surface: '#1A0D26', // Dark purple surface
     border: '#FF00FF', // Magenta borders
     textPrimary: '#fecd06', // Electric yellow primary text with glow
+    // Semantic tokens for component-specific needs
+    ratingBreakdownBackground: 'transparent', // Transparent background for 90s rating breakdown
+    starOutlineMode: true,
+    avatarFontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+    appBackground: 'linear-gradient(135deg, #0D0515 0%, #1A0D26 25%, #2D1B3D 50%, #0D0515 75%, #0D0515 100%)',
+    // AboutScreen semantic tokens
+    aboutHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    aboutContainerMaxWidth: '700px',
+    aboutContainerPadding: '0 24px',
+    aboutHeroImageBorder: 'none',
+    aboutHeroImageBorderRadius: '0px',
+    aboutHeroImageWidth: '200px',
+    aboutHeadingTextShadow: '0 0 15px #ff00ff, 0 0 30px #ff00ff',
+    aboutSectionPadding: '24px 0',
+    aboutCtaCardBackground: 'rgba(255, 0, 255, 0.1)',
+    aboutCtaCardBorder: '2px solid #ff00ff',
+    aboutCtaCardBoxShadow: '0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1)',
+    aboutCtaButtonBackground: '#ff00ff',
+    aboutCtaButtonPadding: '16px 32px',
+    aboutCtaButtonBoxShadow: '0 0 20px #ff00ff, 0 4px 15px rgba(255, 0, 255, 0.4)',
+    aboutCtaButtonTextShadow: '0 0 10px rgba(255, 255, 255, 0.8)',
+    // Text styling semantic tokens
+    aboutHeadingColor: '#FFFFFF',
+    aboutHeadingFontWeight: '700',
+    aboutHeadingLineHeight: '1.2',
+    aboutBodyColor: '#FFFFFF',
+    aboutBodyFontSize: '1.125rem',
+    aboutCtaHeadingColor: '#fecd06',
+    aboutCtaHeadingFontSize: '1.75rem',
+    aboutCtaHeadingFontWeight: '700',
+    aboutCtaHeadingLineHeight: '1.2',
+    aboutCtaBodyLineHeight: '1.6',
+    aboutButtonFontSize: '1.125rem',
+    aboutButtonBorderRadius: '12px',
+    // MenuScreen semantic tokens
+    menuSearchContainerBackground: 'transparent',
+    menuSearchContainerBackdropFilter: 'none',
+    menuSearchTitleColor: '#ff00ff',
+    menuInputBorder: 'none',
+    menuInputBoxShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    menuHeaderBackground: 'rgba(13, 5, 21, 0.95)',
+    menuHeaderBoxShadow: '0 2px 20px rgba(255, 0, 255, 0.2)',
+    menuRestaurantNameTextShadow: '0 0 10px #ff00ff',
+    menuPinButtonFilter: 'drop-shadow(0 0 5px #ff00ff)',
+    menuEmptyStateIconColor: '#ff00ff',
+    // Star styling
+    starBorderWidth: '1',
+    // DiscoveryScreen semantic tokens
+    discoveryRestaurantNameColor: '#00FFFF',
+    discoveryRestaurantDistanceColor: '#00FFFF',
+    discoveryHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    discoveryHeroImageStyle: {
+      width: '200px',
+      height: '200px',
+      objectFit: 'contain',
+      marginBottom: '24px',
+      border: 'none',
+      borderRadius: '0px'
+    },
+    discoveryHeadingTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
+    discoverySearchInputBorder: '2px solid #ff00ff',
+    discoverySearchInputBoxShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    discoverySelectBorder: '2px solid #640464',
   },
 };

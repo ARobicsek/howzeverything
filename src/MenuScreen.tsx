@@ -81,18 +81,17 @@ const ConsolidatedSearchAndAdd: React.FC<{
   const { theme } = useTheme();
   const hasTyped = searchTerm.length > 0;
   const [isFocused, setIsFocused] = useState(false);
-  const is90sTheme = theme.colors.background === '#0D0515';
   
   return (
     <div style={{
       ...SCREEN_STYLES.menu.search.container,
-      backgroundColor: is90sTheme ? 'transparent' : 'rgba(255, 255, 255, 0.1)',
-      backdropFilter: is90sTheme ? 'none' : 'blur(4px)'
+      backgroundColor: theme.colors.menuSearchContainerBackground,
+      backdropFilter: theme.colors.menuSearchContainerBackdropFilter
     }}>
       <div style={SCREEN_STYLES.menu.search.header}>
         <h2 style={{
           ...SCREEN_STYLES.menu.search.title,
-          color: is90sTheme ? '#ff00ff' : SCREEN_STYLES.menu.search.title.color
+          color: theme.colors.menuSearchTitleColor
         }}>
           Find Your Dish
         </h2>
@@ -113,7 +112,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
           width: '100%',
           padding: '12px 16px',
           borderRadius: '12px',
-          border: theme.colors.background === '#0D0515' 
+          border: theme.colors.menuInputBorder === 'none' 
             ? 'none'
             : `2px solid ${isFocused ? theme.colors.primary : theme.colors.gray200}`,
           outline: 'none',
@@ -121,8 +120,8 @@ const ConsolidatedSearchAndAdd: React.FC<{
           ...theme.fonts.body,
           backgroundColor: theme.colors.white,
           color: theme.colors.black,
-          boxShadow: theme.colors.background === '#0D0515' && isFocused
-            ? '0 0 20px rgba(255, 0, 255, 0.3)'
+          boxShadow: isFocused && theme.colors.menuInputBoxShadow !== 'none'
+            ? theme.colors.menuInputBoxShadow
             : 'none',
           boxSizing: 'border-box',
           transition: 'all 0.3s ease'
@@ -570,15 +569,11 @@ const MenuScreen: React.FC = () => {
       <header style={{
         position: 'sticky',
         top: '60px',
-        backgroundColor: theme.colors.background === '#0D0515' 
-          ? 'rgba(13, 5, 21, 0.95)'
-          : 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: theme.colors.menuHeaderBackground,
         backdropFilter: 'blur(10px)',
         borderBottom: `1px solid ${theme.colors.gray200}`,
         zIndex: 10,
-        boxShadow: theme.colors.background === '#0D0515' 
-          ? '0 2px 20px rgba(255, 0, 255, 0.2)'
-          : '0 2px 8px rgba(0, 0, 0, 0.1)',
+        boxShadow: theme.colors.menuHeaderBoxShadow,
         width: '100%',
         left: 0,
         right: 0
@@ -616,10 +611,8 @@ const MenuScreen: React.FC = () => {
               marginBottom: displayAddress ? '2px' : 0,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
-              textEllipsis: 'ellipsis',
-              ...(theme.colors.background === '#0D0515' && {
-                textShadow: '0 0 10px #ff00ff'
-              })
+              textOverflow: 'ellipsis',
+              textShadow: theme.colors.menuRestaurantNameTextShadow
             }} title={restaurant.name}>
               {restaurant.name}
             </h1>
@@ -631,7 +624,7 @@ const MenuScreen: React.FC = () => {
                 margin: 0,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
-                textEllipsis: 'ellipsis'
+                textOverflow: 'ellipsis'
               }} title={displayAddress}>
                 {displayAddress}
               </p>
@@ -649,8 +642,8 @@ const MenuScreen: React.FC = () => {
               style={{
                 ...STYLES.iconButton,
                 color: isPinned ? theme.colors.accent : theme.colors.text,
-                ...(theme.colors.background === '#0D0515' && isPinned && {
-                  filter: 'drop-shadow(0 0 5px #ff00ff)'
+                ...(isPinned && theme.colors.menuPinButtonFilter !== 'none' && {
+                  filter: theme.colors.menuPinButtonFilter
                 })
               }}
               aria-label={isPinned ? "Unpin restaurant" : "Pin restaurant"}
@@ -758,7 +751,7 @@ const MenuScreen: React.FC = () => {
                   }}>
                     <div style={{
                       ...SCREEN_STYLES.menu.emptyState.icon,
-                      color: theme.colors.background === '#0D0515' ? '#ff00ff' : SCREEN_STYLES.menu.emptyState.icon.color
+                      color: theme.colors.menuEmptyStateIconColor
                     }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></svg>
                     </div>

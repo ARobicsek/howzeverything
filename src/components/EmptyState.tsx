@@ -9,7 +9,6 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({ hasSearchTerm, restaurantName }) => {
   const { theme } = useTheme();
-  const is90sTheme = theme.colors.background === '#0D0515';
   
   return (
     <div className="text-center py-12">

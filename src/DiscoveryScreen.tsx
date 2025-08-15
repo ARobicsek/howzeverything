@@ -314,7 +314,6 @@ const DiscoveryScreen: React.FC = () => {
       );
     }
     if (filteredAndGrouped.length > 0) {
-      const is90sTheme = theme.colors.background === '#0D0515';
       
       return filteredAndGrouped.map((group) => (
         <div key={group.restaurant.id}>
@@ -322,7 +321,7 @@ const DiscoveryScreen: React.FC = () => {
             <h2 
               style={{
                 ...SCREEN_STYLES.discovery.restaurantName,
-                color: is90sTheme ? theme.colors.navBarDark : SCREEN_STYLES.discovery.restaurantName.color
+                color: theme.colors.discoveryRestaurantNameColor
               }} 
               onClick={() => navigate(`/restaurants/${group.restaurant.id}`)}
             >
@@ -331,7 +330,7 @@ const DiscoveryScreen: React.FC = () => {
             {group.restaurant.distance !== undefined && (
               <span style={{
                 ...SCREEN_STYLES.discovery.restaurantDistance,
-                color: is90sTheme ? theme.colors.navBarDark : SCREEN_STYLES.discovery.restaurantDistance.color
+                color: theme.colors.discoveryRestaurantDistanceColor
               }}>
                 {formatDistanceMiles(group.restaurant.distance)}
               </span>
@@ -384,9 +383,7 @@ const DiscoveryScreen: React.FC = () => {
     }}>
       {/* HEADER SECTION */}
       <div style={{
-        background: theme.colors.background === '#0D0515' 
-          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
-          : theme.colors.navBarDark,
+        background: theme.colors.discoveryHeaderBackground,
         paddingTop: '84px',
         paddingBottom: '32px',
         minHeight: '400px',
@@ -405,25 +402,7 @@ const DiscoveryScreen: React.FC = () => {
           <img
               src={theme.images.discoveryHero}
               alt="Discovering a new dish"
-              style={
-                theme.colors.background === '#0D0515' 
-                  ? {
-                      width: '200px',
-                      height: '200px',
-                      objectFit: 'contain',
-                      marginBottom: '24px',
-                      border: 'none',
-                      borderRadius: '0px'
-                    }
-                  : {
-                      width: '180px',
-                      height: 'auto',
-                      objectFit: 'contain',
-                      marginBottom: '24px',
-                      border: `2px solid ${theme.colors.white}`,
-                      borderRadius: '12px'
-                    }
-              }
+              style={theme.colors.discoveryHeroImageStyle}
           />
           <h1 style={{
             ...theme.fonts.heading,
@@ -433,9 +412,7 @@ const DiscoveryScreen: React.FC = () => {
             margin: 0,
             marginBottom: '24px',
             textAlign: 'center',
-            ...(theme.colors.background === '#0D0515' && {
-              textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
-            })
+            textShadow: theme.colors.discoveryHeadingTextShadow
           }}>
               Discover dishes
           </h1>
@@ -450,17 +427,13 @@ const DiscoveryScreen: React.FC = () => {
                 width: '100%',
                 padding: '12px 40px 12px 16px',
                 borderRadius: '12px',
-                border: theme.colors.background === '#0D0515' 
-                  ? '2px solid #ff00ff'
-                  : `2px solid ${theme.colors.gray200}`,
+                border: theme.colors.discoverySearchInputBorder,
                 outline: 'none',
                 fontSize: '1rem',
                 ...theme.fonts.body,
                 backgroundColor: theme.colors.white,
                 color: theme.colors.black,
-                boxShadow: theme.colors.background === '#0D0515' 
-                  ? '0 0 20px rgba(255, 0, 255, 0.3)'
-                  : 'none',
+                boxShadow: theme.colors.discoverySearchInputBoxShadow,
                 boxSizing: 'border-box'
               }}
             />
@@ -503,9 +476,7 @@ const DiscoveryScreen: React.FC = () => {
                 style={{
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  border: theme.colors.background === '#0D0515' 
-                    ? '2px solid #640464'
-                    : `2px solid ${theme.colors.gray200}`,
+                  border: theme.colors.discoverySelectBorder,
                   backgroundColor: theme.colors.white,
                   color: theme.colors.black,
                   ...theme.fonts.body,
@@ -537,9 +508,7 @@ const DiscoveryScreen: React.FC = () => {
                 style={{
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  border: theme.colors.background === '#0D0515' 
-                    ? '2px solid #640464'
-                    : `2px solid ${theme.colors.gray200}`,
+                  border: theme.colors.discoverySelectBorder,
                   backgroundColor: theme.colors.white,
                   color: theme.colors.black,
                   ...theme.fonts.body,

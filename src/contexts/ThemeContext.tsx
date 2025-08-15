@@ -1,25 +1,9 @@
 // src/contexts/ThemeContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { THEMES, ColorPalette } from '../styles/themes';
+import { createTheme, ThemeSpec, GeneratedTheme } from '../styles/themeEngine';
 
-// Basic theme interface for Phase 1
-export interface Theme {
-  id: string;
-  name: string;
-  colors: ColorPalette;
-  fonts: {
-    primary: React.CSSProperties;
-    heading: React.CSSProperties;
-    body: React.CSSProperties;
-    elegant: React.CSSProperties;
-  };
-  images: { [key: string]: string };
-  effects: {
-    primaryButtonHover: React.CSSProperties;
-    cardHover: React.CSSProperties;
-    glowEffect: React.CSSProperties;
-  };
-}
+// Use the new GeneratedTheme interface from the engine
+export type Theme = GeneratedTheme;
 
 export interface ThemeContextType {
   currentTheme: string;
@@ -30,108 +14,453 @@ export interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Theme definitions - Phase 1 simple structure
-const THEME_DEFINITIONS: { [key: string]: Theme } = {
+// Minimal theme specifications - Phase 2 engine-driven approach
+const THEME_SPECS: { [key: string]: ThemeSpec } = {
   victorian: {
     id: 'victorian',
     name: 'Nouveau Victorian',
-    colors: THEMES.default, // Victorian theme colors
-    fonts: {
-      primary: {
-        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        letterSpacing: '-0.01em',
-      },
-      heading: {
-        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        fontWeight: '600',
-        letterSpacing: '-0.025em',
-      },
-      body: {
-        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        lineHeight: '1.5',
-      },
-      elegant: {
-        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        letterSpacing: '-0.01em',
-      },
+    description: 'Elegant and refined with classic sensibilities',
+    colors: {
+      primary: '#2563EB',    // Royal blue
+      surface: '#F9FAFB',    // Light gray  
+      text: '#374151',       // Dark gray
+      accent: '#642e32',     // Deep burgundy
     },
-    images: {
-      logo: '/HowzEverything.png',
-      homeHero: '/critic_2.png',
-      homeExplorer: '/explorer_2.png',
-      discoveryHero: '/stolen_dish.png',
-      findRestaurantHero: '/finding_restaurant.png',
-      ratingsHero: '/my_ratings.png',
-      aboutHero: '/ordering.png',
-      restaurantIllustration: '/victorian_restaurant2.png',
+    typography: {
+      primaryFont: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      headingFont: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontScaleRatio: 1.25,  // Perfect fourth scale
     },
-    effects: {
-      primaryButtonHover: {
-        transform: 'translateY(-1px)',
-        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-      },
-      cardHover: {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-      },
-      glowEffect: {
-        // No glow for Victorian theme
-      },
+    geometry: {
+      baseSpacingUnit: 16,      // 1rem base
+      baseBorderRadius: 8,      // Moderate rounded corners
+      shadowPreset: 'soft',     // Subtle, refined shadows
     },
   },
   '90s': {
     id: '90s',
     name: 'Neon 90s',
-    colors: THEMES['90s'], // 90s theme colors
-    fonts: {
-      primary: {
-        fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
-        letterSpacing: '0.05em',
-        textShadow: '0 0 5px rgba(255, 0, 255, 0.5)',
-      },
-      heading: {
-        fontFamily: '"Impact", "Arial Black", "Helvetica Inserat", fantasy',
-        fontWeight: '900',
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        textShadow: '0 0 10px rgba(0, 255, 255, 0.8)',
-      },
-      body: {
-        fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
-        lineHeight: '1.6',
-        letterSpacing: '0.02em',
-      },
-      elegant: {
-        fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
-        letterSpacing: '0.05em',
-        textShadow: '0 0 3px rgba(255, 0, 255, 0.3)',
-      },
+    description: 'Electric cyberpunk aesthetics with neon colors',
+    colors: {
+      primary: '#FF00FF',    // Electric magenta
+      surface: '#0D0515',    // Very dark purple
+      text: '#fecd06',       // Electric yellow
+      accent: '#00FFFF',     // Electric cyan
     },
-    images: {
-      logo: '/90s logo.png',
-      homeHero: '/90s critic.png',
-      homeExplorer: '/90s explorer.png',
-      discoveryHero: '/90s discover.png',
-      findRestaurantHero: '/90s find restaurant.png',
-      ratingsHero: '/90s judge.png',
-      aboutHero: '/90s about us.png',
-      restaurantIllustration: '/90s find restaurant.png', // Reuse for now
+    typography: {
+      primaryFont: '"Courier New", "Monaco", "Lucida Console", monospace',
+      headingFont: '"Impact", "Arial Black", "Helvetica Inserat", fantasy',
+      fontScaleRatio: 1.3,   // Aggressive scale for impact
     },
-    effects: {
-      primaryButtonHover: {
-        transform: 'translateY(-1px) scale(1.02)',
-        boxShadow: `0 0 20px rgba(255, 0, 255, 0.6), 0 0 40px rgba(0, 255, 255, 0.3)`,
-      },
-      cardHover: {
-        transform: 'translateY(-3px)',
-        boxShadow: `0 0 25px rgba(255, 0, 255, 0.4), 0 0 50px rgba(0, 255, 255, 0.2)`,
-      },
-      glowEffect: {
-        boxShadow: `0 0 15px rgba(255, 0, 255, 0.5), 0 0 30px rgba(0, 255, 255, 0.3)`,
-      },
+    geometry: {
+      baseSpacingUnit: 16,      // Same base for consistency
+      baseBorderRadius: 0,      // Sharp, angular edges
+      shadowPreset: 'glow',     // Neon glow effects
     },
   },
 };
+
+// Specific color overrides to match original themes exactly
+const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
+  '90s': {
+    // Copy EVERY color from the original 90s theme exactly
+    primary: '#FF00FF',              // Electric magenta for main actions
+    primaryHover: '#E600E6',         // Darker magenta for hover
+    primaryLight: '#FF66FF',         // Light magenta backgrounds
+    accent: '#00FFFF',               // Electric cyan accent
+    
+    // Neon Grays with dark theme feel
+    gray50: '#1A0D26',               // Dark purple background
+    gray100: '#2D1B3D',              // Darker card backgrounds
+    gray200: '#3D2954',              // Borders with purple tint
+    gray300: '#4D3664',              // Disabled states
+    gray400: '#6B4C85',              // Placeholder text with purple
+    gray500: '#8A6BA3',              // Secondary text
+    gray600: '#A488C1',              // Custom secondary text
+    gray700: '#fecd06',              // Primary text - electric yellow with glow
+    gray900: '#fecd06',              // Headers - electric yellow with glow
+    
+    // Neon Blue variants
+    blue50: '#001A33',
+    blue100: '#003366',
+    blue200: '#0066CC',
+    blue600: '#0099FF',
+    blue700: '#00CCFF',
+    blue800: '#00FFFF',
+    
+    // Neon Green variants
+    green100: '#003300',
+    green700: '#00FF00',
+    
+    // Neon Red variants
+    red50: '#330000',
+    red200: '#660000',
+    red700: '#FF0000',
+    
+    // Base Colors - high contrast
+    white: '#FFFFFF',
+    black: '#000000',
+    
+    // Neon Shadows & Overlay
+    shadowLight: 'rgba(255, 0, 255, 0.3)', // Magenta glow
+    shadowMedium: 'rgba(0, 255, 255, 0.4)', // Cyan glow
+    overlay: 'rgba(26, 13, 38, 0.9)',       // Dark purple overlay
+    
+    // Neon Rating Colors
+    ratingGold: '#FFFF00',           // Electric yellow
+    ratingGoldLight: '#FFFF99',      // Light yellow
+    ratingEmpty: '#4D3664',          // Dark purple for empty
+    
+    // Neon Action Colors
+    danger: '#FF0040',               // Electric red
+    success: '#00FF40',              // Electric green
+    warning: '#FFFF00',              // Electric yellow
+    
+    // Navigation - Hot pink top bar
+    navBar: '#1A0D26',               // Dark purple navigation
+    navBarDark: '#FF1493',           // Hot pink background for top navigation
+    navBarBorder: '#FF00FF',         // Magenta border
+    
+    // Text Colors - high contrast on dark
+    text: '#fecd06',                 // Electric yellow text with glow
+    textSecondary: '#C2A6DE',        // Lighter purple for secondary text
+    textWhite: '#FFFFFF',            // Pure white text
+    
+    // Background Colors
+    background: '#0D0515',           // Very dark purple background (default)
+    cardBg: '#1A0D26',               // Dark purple cards
+    inputBg: '#2D1B3D',              // Darker input backgrounds
+    
+    // Legacy mappings for compatibility
+    star: '#00FFFF',                 // Electric cyan stars (matches restaurant names)
+    starEmpty: '#4D3664',            // Dark purple empty
+    starCommunity: '#fecd06',        // Electric yellow community rating (matches dish name color)
+    starCommunityEmpty: '#4D3664',   // Dark purple empty
+    secondary: '#00FFFF',            // Cyan secondary
+    iconPrimary: '#fecd06',          // Electric yellow icons with glow
+    iconBackground: '#2D1B3D',       // Dark purple icon backgrounds
+    
+    // Aliases for common color usages
+    error: '#FF0040',                // Electric red
+    surface: '#1A0D26',              // Dark purple surface
+    border: '#FF00FF',               // Magenta borders
+    textPrimary: '#fecd06',          // Electric yellow primary text with glow
+    
+    // Semantic tokens for component-specific needs
+    ratingBreakdownBackground: 'transparent', // Transparent background for 90s rating breakdown
+    starOutlineMode: true, // Use outline mode for stars in 90s theme
+    avatarFontFamily: '"Courier New", "Monaco", "Lucida Console", monospace', // 90s theme uses monospace for avatar
+    appBackground: 'linear-gradient(135deg, #0D0515 0%, #1A0D26 25%, #2D1B3D 50%, #0D0515 75%, #0D0515 100%)', // 90s theme gradient background
+    // AboutScreen semantic tokens for 90s theme
+    aboutHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    aboutContainerMaxWidth: '700px',
+    aboutContainerPadding: '0 24px',
+    aboutHeroImageBorder: 'none',
+    aboutHeroImageBorderRadius: '0px',
+    aboutHeroImageWidth: '200px',
+    aboutHeadingTextShadow: '0 0 15px #ff00ff, 0 0 30px #ff00ff',
+    aboutSectionPadding: '24px 0',
+    aboutCtaCardBackground: 'rgba(255, 0, 255, 0.1)',
+    aboutCtaCardBorder: '2px solid #ff00ff',
+    aboutCtaCardBoxShadow: '0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1)',
+    aboutCtaButtonBackground: '#ff00ff',
+    aboutCtaButtonPadding: '16px 32px',
+    aboutCtaButtonBoxShadow: '0 0 20px #ff00ff, 0 4px 15px rgba(255, 0, 255, 0.4)',
+    aboutCtaButtonTextShadow: '0 0 10px rgba(255, 255, 255, 0.8)',
+    // Text styling semantic tokens for 90s theme
+    aboutHeadingColor: '#FFFFFF',
+    aboutHeadingFontWeight: '700',
+    aboutHeadingLineHeight: '1.2',
+    aboutBodyColor: '#FFFFFF',
+    aboutBodyFontSize: '1.125rem',
+    aboutCtaHeadingColor: '#fecd06',
+    aboutCtaHeadingFontSize: '1.75rem',
+    aboutCtaHeadingFontWeight: '700',
+    aboutCtaHeadingLineHeight: '1.2',
+    aboutCtaBodyLineHeight: '1.6',
+    aboutButtonFontSize: '1.125rem',
+    aboutButtonBorderRadius: '12px',
+    // MenuScreen semantic tokens for 90s theme
+    menuSearchContainerBackground: 'transparent',
+    menuSearchContainerBackdropFilter: 'none',
+    menuSearchTitleColor: '#ff00ff',
+    menuInputBorder: 'none',
+    menuInputBoxShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    menuHeaderBackground: 'rgba(13, 5, 21, 0.95)',
+    menuHeaderBoxShadow: '0 2px 20px rgba(255, 0, 255, 0.2)',
+    menuRestaurantNameTextShadow: '0 0 10px #ff00ff',
+    menuPinButtonFilter: 'drop-shadow(0 0 5px #ff00ff)',
+    menuEmptyStateIconColor: '#ff00ff',
+    // Star styling
+    starBorderWidth: '1',
+    // DiscoveryScreen semantic tokens for 90s theme
+    discoveryRestaurantNameColor: '#00FFFF',
+    discoveryRestaurantDistanceColor: '#00FFFF',
+    discoveryHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    discoveryHeroImageStyle: {
+      width: '200px',
+      height: '200px',
+      objectFit: 'contain',
+      marginBottom: '24px',
+      border: 'none',
+      borderRadius: '0px'
+    },
+    discoveryHeadingTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
+    discoverySearchInputBorder: '2px solid #ff00ff',
+    discoverySearchInputBoxShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    discoverySelectBorder: '2px solid #640464',
+  },
+  
+  victorian: {
+    // Copy EVERY color from the original Victorian theme exactly
+    primary: '#2563EB',              // Main accent, buttons, links
+    primaryHover: '#1D4ED8',         // Hover states
+    primaryLight: '#DBEAFE',         // Light backgrounds, highlights
+    accent: '#642e32',               // NEW: Accent color for sliders, etc.
+    
+    // Neutral Grays
+    gray50: '#F9FAFB',               // Page backgrounds
+    gray100: '#F3F4F6',              // Card backgrounds
+    gray200: '#E5E7EB',              // Borders, dividers
+    gray300: '#D1D5DB',              // Disabled states
+    gray400: '#9CA3AF',              // Placeholder text
+    gray500: '#6B7280',              // Secondary text
+    gray600: '#586780',              // Custom secondary text / stats
+    gray700: '#374151',              // Primary text
+    gray900: '#111827',              // Headers, emphasis
+    
+    // Blue variants (needed for new components)
+    blue50: '#EFF6FF',
+    blue100: '#DBEAFE',
+    blue200: '#BFDBFE',
+    blue600: '#2563EB',
+    blue700: '#1D4ED8',
+    blue800: '#1E40AF',
+    
+    // Green variants (needed for success states)
+    green100: '#DCFCE7',
+    green700: '#15803D',
+    
+    // Red variants (needed for error states)
+    red50: '#FEF2F2',
+    red200: '#FECACA',
+    red700: '#B91C1C',
+    
+    // Base Colors
+    white: '#FFFFFF',                // Pure white for cards, modals
+    black: '#000000',                // Text, borders
+    
+    // Shadow & Overlay
+    shadowLight: 'rgba(0, 0, 0, 0.05)', // Subtle shadows
+    shadowMedium: 'rgba(0, 0, 0, 0.1)',  // Card shadows
+    overlay: 'rgba(0, 0, 0, 0.6)',       // Modal overlays
+    
+    // Rating Colors (No Green)
+    ratingGold: '#F59E0B',           // Star fills, rating highlights
+    ratingGoldLight: '#FEF3C7',      // Rating backgrounds
+    ratingEmpty: '#E5E7EB',          // Empty stars
+    
+    // Action Colors
+    danger: '#EF4444',               // Delete actions
+    success: '#10B981',              // Success states
+    warning: '#F59E0B',              // Warning states
+    
+    // Navigation
+    navBar: '#FFFFFF',               // Clean white navigation
+    navBarDark: '#101010',           // NEW: Dark background for navigation elements
+    navBarBorder: '#E5E7EB',         // Navigation border
+    
+    // Text Colors (simplified)
+    text: '#374151',                 // Primary text (gray-700)
+    textSecondary: '#6B7280',        // Secondary text (gray-500)
+    textWhite: '#FFFFFF',            // White text
+    
+    // Background Colors
+    background: '#F9FAFB',           // Main page background (gray-50)
+    cardBg: '#FFFFFF',               // Card backgrounds
+    inputBg: '#FFFFFF',              // Input backgrounds
+    
+    // Legacy mappings for compatibility
+    star: '#2563EB',                 // Personal rating (blue)
+    starEmpty: '#E5E7EB',            // Empty stars
+    starCommunity: '#F59E0B',        // Community rating (gold)
+    starCommunityEmpty: '#E5E7EB',   // Empty community stars
+    secondary: '#6B7280',            // Secondary color
+    iconPrimary: '#374151',          // Icon color
+    iconBackground: '#FFFFFF',       // Icon button backgrounds
+    
+    // NEW: Aliases for common color usages in AdminScreen
+    error: '#EF4444',                // Maps to danger
+    surface: '#FFFFFF',              // Maps to white/cardBg
+    border: '#E5E7EB',               // Maps to gray200
+    textPrimary: '#374151',          // Maps to text
+    
+    // Semantic tokens for component-specific needs
+    ratingBreakdownBackground: '#F9FAFB', // Gray-50 background for Victorian rating breakdown
+    starOutlineMode: false, // Use filled mode for stars in Victorian theme
+    avatarFontFamily: '"Pinyon Script", cursive', // Victorian theme uses elegant cursive for avatar
+    appBackground: '#F9FAFB', // Victorian theme solid background
+    // AboutScreen semantic tokens for Victorian theme
+    aboutHeaderBackground: '#642e32',
+    aboutContainerMaxWidth: '700px',
+    aboutContainerPadding: '0 32px',
+    aboutHeroImageBorder: '2px solid #FFFFFF',
+    aboutHeroImageBorderRadius: '12px',
+    aboutHeroImageWidth: '180px',
+    aboutHeadingTextShadow: 'none',
+    aboutSectionPadding: '64px 0 96px',
+    aboutCtaCardBackground: '#cac2af',
+    aboutCtaCardBorder: 'none',
+    aboutCtaCardBoxShadow: 'none',
+    aboutCtaButtonBackground: '#642e32',
+    aboutCtaButtonPadding: '12px 24px',
+    aboutCtaButtonBoxShadow: 'none',
+    aboutCtaButtonTextShadow: 'none',
+    // Text styling semantic tokens for Victorian theme
+    aboutHeadingColor: '#111827',
+    aboutHeadingFontWeight: '600',
+    aboutHeadingLineHeight: '2.5rem',
+    aboutBodyColor: '#374151',
+    aboutBodyFontSize: '1rem',
+    aboutCtaHeadingColor: '#642e32',
+    aboutCtaHeadingFontSize: '1.5rem',
+    aboutCtaHeadingFontWeight: '600',
+    aboutCtaHeadingLineHeight: '2rem',
+    aboutCtaBodyLineHeight: '1.5',
+    aboutButtonFontSize: '1rem',
+    aboutButtonBorderRadius: '8px',
+    // MenuScreen semantic tokens for Victorian theme
+    menuSearchContainerBackground: 'rgba(255, 255, 255, 0.1)',
+    menuSearchContainerBackdropFilter: 'blur(4px)',
+    menuSearchTitleColor: '#111827',
+    menuInputBorder: '2px solid #E5E7EB',
+    menuInputBoxShadow: 'none',
+    menuHeaderBackground: 'rgba(255, 255, 255, 0.95)',
+    menuHeaderBoxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    menuRestaurantNameTextShadow: 'none',
+    menuPinButtonFilter: 'none',
+    menuEmptyStateIconColor: '#6B7280',
+    // Star styling
+    starBorderWidth: '2',
+    // DiscoveryScreen semantic tokens for Victorian theme
+    discoveryRestaurantNameColor: '#374151',
+    discoveryRestaurantDistanceColor: '#6B7280',
+    discoveryHeaderBackground: '#101010',
+    discoveryHeroImageStyle: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain',
+      marginBottom: '24px',
+      border: '2px solid #FFFFFF',
+      borderRadius: '12px'
+    },
+    discoveryHeadingTextShadow: 'none',
+    discoverySearchInputBorder: '2px solid #E5E7EB',
+    discoverySearchInputBoxShadow: 'none',
+    discoverySelectBorder: '2px solid #E5E7EB',
+  },
+};
+
+// Font styling overrides for specific theme effects
+const THEME_FONT_OVERRIDES: { [themeId: string]: Partial<Theme['fonts']> } = {
+  '90s': {
+    primary: {
+      fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+      letterSpacing: '0.05em',
+      textShadow: '0 0 5px rgba(255, 0, 255, 0.5)', // Magenta glow
+    },
+    heading: {
+      fontFamily: '"Impact", "Arial Black", "Helvetica Inserat", fantasy',
+      fontWeight: '900',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      textShadow: '0 0 10px rgba(0, 255, 255, 0.8)', // Cyan glow - CRITICAL
+    },
+    body: {
+      fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+      lineHeight: '1.6',
+      letterSpacing: '0.02em',
+    },
+    elegant: {
+      fontFamily: '"Courier New", "Monaco", "Lucida Console", monospace',
+      letterSpacing: '0.05em',
+      textShadow: '0 0 3px rgba(255, 0, 255, 0.3)', // Subtle magenta glow
+    },
+  },
+};
+
+// Effects overrides to match original theme behaviors exactly
+const THEME_EFFECTS_OVERRIDES: { [themeId: string]: Partial<Theme['effects']> } = {
+  '90s': {
+    primaryButtonHover: {
+      transform: 'translateY(-1px) scale(1.02)',
+      boxShadow: `0 0 20px rgba(255, 0, 255, 0.6), 0 0 40px rgba(0, 255, 255, 0.3)`,
+    },
+    cardHover: {
+      transform: 'translateY(-3px)',
+      boxShadow: `0 0 25px rgba(255, 0, 255, 0.4), 0 0 50px rgba(0, 255, 255, 0.2)`,
+    },
+    glowEffect: {
+      boxShadow: `0 0 15px rgba(255, 0, 255, 0.5), 0 0 30px rgba(0, 255, 255, 0.3)`,
+    },
+  },
+};
+
+// Custom image mappings for existing assets
+const CUSTOM_IMAGES: { [themeId: string]: Partial<Theme['images']> } = {
+  victorian: {
+    logo: '/HowzEverything.png',
+    homeFindRestaurants: '/critic_2.png',
+    homeDiscoverDishes: '/explorer_2.png',
+    discoveryHero: '/stolen_dish.png',
+    findRestaurantHero: '/finding_restaurant.png',
+    ratingsHero: '/my_ratings.png',
+    aboutHero: '/ordering.png',
+    restaurantDefault: '/victorian_restaurant2.png',
+  },
+  '90s': {
+    logo: '/90s logo.png',
+    homeFindRestaurants: '/90s critic.png',
+    homeDiscoverDishes: '/90s explorer.png',
+    discoveryHero: '/90s discover.png',
+    findRestaurantHero: '/90s find restaurant.png',
+    ratingsHero: '/90s judge.png',
+    aboutHero: '/90s about us.png',
+    restaurantDefault: '/90s find restaurant.png', // Reuse for now
+  },
+};
+
+// Generate complete themes from minimal specifications and apply overrides
+const THEME_DEFINITIONS: { [key: string]: Theme } = Object.fromEntries(
+  Object.entries(THEME_SPECS).map(([key, spec]) => {
+    const generatedTheme = createTheme(spec);
+    // Apply overrides to match original themes exactly
+    const colorOverrides = THEME_COLOR_OVERRIDES[key] || {};
+    const fontOverrides = THEME_FONT_OVERRIDES[key] || {};
+    const effectsOverrides = THEME_EFFECTS_OVERRIDES[key] || {};
+    const imageOverrides = CUSTOM_IMAGES[key] || {};
+    
+    return [key, {
+      ...generatedTheme,
+      colors: {
+        ...generatedTheme.colors,
+        ...colorOverrides,
+      },
+      fonts: {
+        ...generatedTheme.fonts,
+        ...fontOverrides,
+      },
+      effects: {
+        ...generatedTheme.effects,
+        ...effectsOverrides,
+      },
+      images: {
+        ...generatedTheme.images,
+        ...imageOverrides,
+      },
+    }];
+  })
+);
 
 interface ThemeProviderProps {
   children: ReactNode;

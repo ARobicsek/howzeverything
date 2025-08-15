@@ -113,12 +113,12 @@ const HomeScreen: React.FC = () => {
         }}>
           <InfoCard
             title="Find a Restaurant and Start Dishing"
-            imageSrc={theme.images.homeHero}
+            imageSrc={theme.images.homeFindRestaurants}
             to="/find-restaurant"
           />
           <InfoCard
             title="Discover Dishes"
-            imageSrc={theme.images.homeExplorer}
+            imageSrc={theme.images.homeDiscoverDishes}
             to="/discover"
           />
         </div>

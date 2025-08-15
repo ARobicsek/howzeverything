@@ -139,7 +139,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               color: theme.colors.white,
               fontSize: '2.5rem',
               fontWeight: '600',
-              fontFamily: theme.colors.background === '#0D0515' ? theme.fonts.primary.fontFamily : '"Pinyon Script", cursive'
+              fontFamily: theme.colors.avatarFontFamily
             }}>
               {initials.length > 1 ? initials.charAt(0) : initials}
             </span>

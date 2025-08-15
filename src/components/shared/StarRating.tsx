@@ -8,7 +8,8 @@ const Star: React.FC<{
   emptyColor: string;
   size: string;
   outlineMode?: boolean;
-}> = ({ type, filledColor, emptyColor, size, outlineMode = false }) => {
+  borderWidth?: string;
+}> = ({ type, filledColor, emptyColor, size, outlineMode = false, borderWidth = '2' }) => {
   const starPath = "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
 
   return (
@@ -19,7 +20,7 @@ const Star: React.FC<{
           d={starPath} 
           fill={outlineMode && type === 'empty' ? 'none' : emptyColor}
           stroke={outlineMode && type === 'empty' ? emptyColor : 'none'}
-          strokeWidth={outlineMode && type === 'empty' ? '2' : '0'}
+          strokeWidth={outlineMode && type === 'empty' ? borderWidth : '0'}
         />
       </svg>
       {/* Filled portion */}
@@ -51,12 +52,11 @@ export const StarRating: React.FC<{
   };
    
   const colorMap = {
-    personal: { filled: theme.colors.accent, empty: theme.colors.gray400 },
-    community: { filled: theme.colors.star, empty: theme.colors.gray400 }
+    personal: { filled: theme.colors.star, empty: theme.colors.starEmpty },
+    community: { filled: theme.colors.starCommunity, empty: theme.colors.starCommunityEmpty }
   };
 
   const roundedRating = Math.round(rating * 2) / 2;
-  const is90sTheme = theme.colors.background === '#0D0515';
 
   return (
     <div className="flex items-center gap-3">
@@ -88,7 +88,8 @@ export const StarRating: React.FC<{
                 filledColor={colorMap[variant].filled}
                 emptyColor={colorMap[variant].empty}
                 size={sizeMap[size]}
-                outlineMode={is90sTheme}
+                outlineMode={theme.colors.starOutlineMode}
+                borderWidth={theme.colors.starBorderWidth}
               />
             </button>
           );
