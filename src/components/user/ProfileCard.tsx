@@ -1,6 +1,5 @@
 // src/components/user/ProfileCard.tsx
 import React, { useState } from 'react';
-import { STYLE_FUNCTIONS } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 

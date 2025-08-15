@@ -2,7 +2,7 @@ import React from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import ProfileCard from './components/user/ProfileCard';
 import ThemeSelector from './components/ThemeSelector';
-import { SCREEN_STYLES, SPACING, STYLES, SHADOWS, UTILITIES } from './constants';
+import { SPACING, STYLES, SHADOWS, UTILITIES } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useTheme } from './hooks/useTheme';
 

@@ -134,6 +134,16 @@ export type ColorPalette = {
   ratingsTitleTextShadow: string;
   ratingsSearchBorder: string;
   ratingsSearchShadow: string;
+  // FindRestaurantScreen semantic tokens
+  findRestaurantHeaderBackground: string;
+  findRestaurantHeroImageWidth: string;
+  findRestaurantHeroImageBorder: string;
+  findRestaurantHeroImageBorderRadius: string;
+  findRestaurantTitleTextShadow: string;
+  findRestaurantSearchBorder: string;
+  findRestaurantSearchShadow: string;
+  findRestaurantInputBorder: string;
+  findRestaurantDistanceColor: string;
 };
 
 export type Themes = {
@@ -282,6 +292,16 @@ export const THEMES: Themes = {
     ratingsTitleTextShadow: 'none',
     ratingsSearchBorder: '2px solid #E5E7EB',
     ratingsSearchShadow: 'none',
+    // FindRestaurantScreen semantic tokens
+    findRestaurantHeaderBackground: '#101010',
+    findRestaurantHeroImageWidth: '180px',
+    findRestaurantHeroImageBorder: '2px solid #FFFFFF',
+    findRestaurantHeroImageBorderRadius: '12px',
+    findRestaurantTitleTextShadow: 'none',
+    findRestaurantSearchBorder: '2px solid #E5E7EB',
+    findRestaurantSearchShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    findRestaurantInputBorder: '2px solid #E5E7EB',
+    findRestaurantDistanceColor: '#6B7280',
   },
   '90s': {
     // Primary Colors - Neon and Electric
@@ -424,5 +444,15 @@ export const THEMES: Themes = {
     ratingsTitleTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
     ratingsSearchBorder: '2px solid #ff00ff',
     ratingsSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    // FindRestaurantScreen semantic tokens
+    findRestaurantHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    findRestaurantHeroImageWidth: '200px',
+    findRestaurantHeroImageBorder: 'none',
+    findRestaurantHeroImageBorderRadius: '0px',
+    findRestaurantTitleTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
+    findRestaurantSearchBorder: '2px solid #ff00ff',
+    findRestaurantSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    findRestaurantInputBorder: '2px solid #ff00ff',
+    findRestaurantDistanceColor: '#111827',
   },
 };

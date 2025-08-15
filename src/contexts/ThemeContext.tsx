@@ -180,6 +180,16 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     aboutCtaBodyLineHeight: '1.6',
     aboutButtonFontSize: '1.125rem',
     aboutButtonBorderRadius: '12px',
+    // FindRestaurantScreen semantic tokens for 90s theme
+    findRestaurantHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    findRestaurantHeroImageWidth: '200px',
+    findRestaurantHeroImageBorder: 'none',
+    findRestaurantHeroImageBorderRadius: '0px',
+    findRestaurantTitleTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
+    findRestaurantSearchBorder: '2px solid #ff00ff',
+    findRestaurantSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    findRestaurantInputBorder: '2px solid #ff00ff',
+    findRestaurantDistanceColor: '#111827',
     // MenuScreen semantic tokens for 90s theme
     menuSearchContainerBackground: 'transparent',
     menuSearchContainerBackdropFilter: 'none',
@@ -337,6 +347,16 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     aboutCtaBodyLineHeight: '1.5',
     aboutButtonFontSize: '1rem',
     aboutButtonBorderRadius: '8px',
+    // FindRestaurantScreen semantic tokens for Victorian theme
+    findRestaurantHeaderBackground: '#101010',
+    findRestaurantHeroImageWidth: '180px',
+    findRestaurantHeroImageBorder: '2px solid #FFFFFF',
+    findRestaurantHeroImageBorderRadius: '12px',
+    findRestaurantTitleTextShadow: 'none',
+    findRestaurantSearchBorder: '2px solid #E5E7EB',
+    findRestaurantSearchShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    findRestaurantInputBorder: '2px solid #E5E7EB',
+    findRestaurantDistanceColor: '#6B7280',
     // MenuScreen semantic tokens for Victorian theme
     menuSearchContainerBackground: 'rgba(255, 255, 255, 0.1)',
     menuSearchContainerBackdropFilter: 'blur(4px)',

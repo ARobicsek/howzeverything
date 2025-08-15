@@ -423,7 +423,7 @@ function generateColorPalette(coreColors: ThemeSpec['colors'], typography: Theme
     discoveryRestaurantDistanceColor: isDarkTheme ? accent : textSecondary,
     discoveryHeaderBackground: isDarkTheme 
       ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
-      : '#101010',
+      : gray900,
     discoveryHeroImageStyle: isDarkTheme 
       ? {
           width: '200px',
@@ -469,6 +469,26 @@ function generateColorPalette(coreColors: ThemeSpec['colors'], typography: Theme
     ratingsSearchShadow: isDarkTheme 
       ? '0 0 20px rgba(255, 0, 255, 0.3)'
       : 'none',
+    // FindRestaurantScreen semantic tokens
+    findRestaurantHeaderBackground: isDarkTheme 
+      ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+      : gray900,
+    findRestaurantHeroImageWidth: isDarkTheme ? '200px' : '180px',
+    findRestaurantHeroImageBorder: isDarkTheme ? 'none' : `2px solid ${white}`,
+    findRestaurantHeroImageBorderRadius: isDarkTheme ? '0px' : '12px',
+    findRestaurantTitleTextShadow: isDarkTheme 
+      ? '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
+      : 'none',
+    findRestaurantSearchBorder: isDarkTheme 
+      ? '2px solid #ff00ff'
+      : `2px solid ${gray200}`,
+    findRestaurantSearchShadow: isDarkTheme 
+      ? '0 0 20px rgba(255, 0, 255, 0.3)'
+      : '0 2px 8px rgba(0, 0, 0, 0.1)',
+    findRestaurantInputBorder: isDarkTheme 
+      ? '2px solid #ff00ff'
+      : `2px solid ${gray200}`,
+    findRestaurantDistanceColor: isDarkTheme ? gray900 : textSecondary,
   };
 }
 

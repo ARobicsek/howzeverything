@@ -413,9 +413,7 @@ const FindRestaurantScreen: React.FC = () => {
     }}>
       <style>{SCREEN_STYLES.findRestaurant.spinAnimation}</style>
       <div style={{
-        background: theme.colors.background === '#0D0515' 
-          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
-          : theme.colors.navBarDark,
+        background: theme.colors.findRestaurantHeaderBackground,
         paddingTop: '84px',
         paddingBottom: '32px',
         minHeight: '400px',
@@ -434,25 +432,14 @@ const FindRestaurantScreen: React.FC = () => {
             <img
                 src={theme.images.findRestaurantHero}
                 alt="Finding Restaurant"
-                style={
-                  theme.colors.background === '#0D0515' 
-                    ? {
-                        width: '200px',
-                        height: '200px',
+                style={{
+                        width: theme.colors.findRestaurantHeroImageWidth,
+                        height: theme.colors.findRestaurantHeroImageWidth === '200px' ? '200px' : 'auto',
                         objectFit: 'contain',
                         marginBottom: '24px',
-                        border: 'none',
-                        borderRadius: '0px'
-                      }
-                    : {
-                        width: '180px',
-                        height: 'auto',
-                        objectFit: 'contain',
-                        marginBottom: '24px',
-                        border: `2px solid ${theme.colors.white}`,
-                        borderRadius: '12px'
-                      }
-                }
+                        border: theme.colors.findRestaurantHeroImageBorder,
+                        borderRadius: theme.colors.findRestaurantHeroImageBorderRadius
+                      }}
             />
             <h1 style={{
               ...theme.fonts.heading,
@@ -462,9 +449,7 @@ const FindRestaurantScreen: React.FC = () => {
               margin: 0,
               marginBottom: '24px',
               textAlign: 'center',
-              ...(theme.colors.background === '#0D0515' && {
-                textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
-              })
+              textShadow: theme.colors.findRestaurantTitleTextShadow
             }}>
                 Find a restaurant
             </h1>
@@ -477,17 +462,13 @@ const FindRestaurantScreen: React.FC = () => {
                       gap: '12px',
                       padding: '12px 16px',
                       backgroundColor: theme.colors.white,
-                      border: theme.colors.background === '#0D0515' 
-                        ? '2px solid #ff00ff'
-                        : `2px solid ${theme.colors.gray200}`,
+                      border: theme.colors.findRestaurantSearchBorder,
                       borderRadius: '12px',
                       cursor: 'pointer',
                       ...theme.fonts.body,
                       fontSize: '1rem',
                       color: theme.colors.textSecondary,
-                      boxShadow: theme.colors.background === '#0D0515' 
-                        ? '0 0 20px rgba(255, 0, 255, 0.3)'
-                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      boxShadow: theme.colors.findRestaurantSearchShadow,
                       transition: 'all 0.3s ease'
                     }}
                 >
@@ -603,7 +584,7 @@ const FindRestaurantScreen: React.FC = () => {
                   <div className="flex items-center" style={SCREEN_STYLES.findRestaurant.distanceFilterContainer}>
                     <label style={{
                         ...SCREEN_STYLES.findRestaurant.distanceLabel,
-                        color: theme.colors.background === '#0D0515' ? theme.colors.navBarDark : SCREEN_STYLES.findRestaurant.distanceLabel.color
+                        color: theme.colors.findRestaurantDistanceColor
                     }}>
                         Distance:
                     </label>
