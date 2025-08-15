@@ -634,7 +634,24 @@ discoverySelectBorder: '2px solid #640464',      // Dark magenta selects
 - 🎯 **FindRestaurantScreen.tsx**: 8 instances (NEXT TARGET)
 - **RatingsScreen.tsx**: 6 instances
 
+### ⚠️ CRITICAL REMINDER: Documentation is Mandatory
+
+**📋 ALWAYS UPDATE DOCUMENTATION THROUGHOUT EACH SESSION**:
+- Update `THEME_ENGINE_REFACTOR_PROGRESS.md` with each semantic token added
+- Document exact conditional patterns eliminated (with before/after code examples)
+- Record build test results and theme functionality verification  
+- Note any styling issues discovered and resolution methods
+- Track total semantic token count and migration progress
+- Document lessons learned comparing screen complexity vs previous screens
+
+**Why Documentation is Critical**:
+- **Progress Tracking**: Systematic approach across large codebase ensures nothing is missed
+- **Pattern Evolution**: Recording successful migration strategies helps refine the approach
+- **Future Development**: Other developers need to understand architectural decisions
+- **Quality Assurance**: Documentation ensures pixel-perfect theme preservation is verified
+- **Session Continuity**: Enables efficient work resumption across multiple sessions
+
 ---
-*Last Updated*: Phase 3.5 complete - DiscoveryScreen.tsx migrated successfully  
+*Last Updated*: Phase 3.5 complete - DiscoveryScreen.tsx migrated successfully + header background fix  
 *Branch*: feature/theme-engine-refactor  
 *Status*: Ready for Phase 3.6 - FindRestaurantScreen migration (8 instances) using proven enhanced 7-step pattern
