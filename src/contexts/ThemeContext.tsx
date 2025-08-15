@@ -371,7 +371,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     // Star styling
     starBorderWidth: '2',
     // DiscoveryScreen semantic tokens for Victorian theme
-    discoveryRestaurantNameColor: '#374151',
+    discoveryRestaurantNameColor: '#642e32',
     discoveryRestaurantDistanceColor: '#6B7280',
     discoveryHeaderBackground: '#101010',
     discoveryHeroImageStyle: {

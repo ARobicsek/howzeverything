@@ -269,7 +269,7 @@ export const THEMES: Themes = {
     // Star styling
     starBorderWidth: '2',
     // DiscoveryScreen semantic tokens
-    discoveryRestaurantNameColor: '#374151',
+    discoveryRestaurantNameColor: '#642e32',
     discoveryRestaurantDistanceColor: '#6B7280',
     discoveryHeaderBackground: '#101010',
     discoveryHeroImageStyle: {
@@ -453,6 +453,6 @@ export const THEMES: Themes = {
     findRestaurantSearchBorder: '2px solid #ff00ff',
     findRestaurantSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
     findRestaurantInputBorder: '2px solid #ff00ff',
-    findRestaurantDistanceColor: '#111827',
+    findRestaurantDistanceColor: '#C2A6DE',
   },
 };

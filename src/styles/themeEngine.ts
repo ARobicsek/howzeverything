@@ -419,7 +419,7 @@ function generateColorPalette(coreColors: ThemeSpec['colors'], typography: Theme
     // Star styling
     starBorderWidth: isDarkTheme ? '1' : '2',
     // DiscoveryScreen semantic tokens
-    discoveryRestaurantNameColor: isDarkTheme ? accent : text,
+    discoveryRestaurantNameColor: accent,
     discoveryRestaurantDistanceColor: isDarkTheme ? accent : textSecondary,
     discoveryHeaderBackground: isDarkTheme 
       ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'

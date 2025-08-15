@@ -585,7 +585,7 @@ const FindRestaurantScreen: React.FC = () => {
                   <div className="flex items-center" style={SCREEN_STYLES.findRestaurant.distanceFilterContainer}>
                     <label style={{
                         ...SCREEN_STYLES.findRestaurant.distanceLabel,
-                        color: theme.colors.findRestaurantDistanceColor
+                        color: theme.colors.textSecondary
                     }}>
                         Distance:
                     </label>
