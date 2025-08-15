@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SHADOWS, SPACING, STYLES, TYPOGRAPHY, UTILITIES } from './constants';
 import { useTheme } from './hooks/useTheme';
 
@@ -11,9 +11,28 @@ const InfoCard: React.FC<{
 }> = ({ title, imageSrc, to }) => {
   const [isHovering, setIsHovering] = React.useState(false);
   const { theme } = useTheme();
+  const navigate = useNavigate();
  
+  const handleClick = () => {
+    navigate(to);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
-    <Link to={to} style={{ textDecoration: 'none', display: 'block' }}>
+    <button 
+      onClick={handleClick}
+      style={{ 
+        textDecoration: 'none', 
+        display: 'block',
+        border: 'none',
+        background: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        width: '100%'
+      }}
+    >
       <div
         style={{
           ...STYLES.card,
@@ -39,7 +58,7 @@ const InfoCard: React.FC<{
           </h3>
         </div>
       </div>
-    </Link>
+    </button>
   );
 };
 
