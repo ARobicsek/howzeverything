@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
+import InlineLoadingSpinner from './components/InlineLoadingSpinner';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
 import RestaurantCard from './components/restaurant/RestaurantCard';
@@ -525,7 +526,7 @@ const FindRestaurantScreen: React.FC = () => {
                 className="bg-white rounded-lg shadow-sm"
               >
                 <div className="p-4 pt-2 space-y-0">
-                  {areInitialSectionsLoading && expandedSection === 'recents' ? <LoadingScreen message="Loading..."/> :
+                  {areInitialSectionsLoading && expandedSection === 'recents' ? <InlineLoadingSpinner message="Loading..."/> :
                   recentsWithDistance.map(restaurant => (
                     <RestaurantCard
                       key={`recents-${restaurant.id}`}
@@ -600,7 +601,7 @@ const FindRestaurantScreen: React.FC = () => {
                     </select>
                   </div>
                   <div className="space-y-0">
-                    {nearbyLoading ? <LoadingScreen message="Finding restaurants..."/> :
+                    {nearbyLoading ? <InlineLoadingSpinner message="Finding restaurants..."/> :
                     nearbyWithDistance.map(restaurant => (
                       <RestaurantCard
                         key={`nearby-${restaurant.id}`}
@@ -625,7 +626,7 @@ const FindRestaurantScreen: React.FC = () => {
                 className="bg-white rounded-lg shadow-sm"
               >
                 <div className="p-4 pt-2 space-y-0">
-                    {areInitialSectionsLoading && expandedSection === 'pinned' ? <LoadingScreen message="Loading..."/> :
+                    {areInitialSectionsLoading && expandedSection === 'pinned' ? <InlineLoadingSpinner message="Loading..."/> :
                     pinnedWithDistance.map(restaurant => (
                         <RestaurantCard
                             key={`pinned-${restaurant.id}`}
