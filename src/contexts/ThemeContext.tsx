@@ -209,6 +209,14 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     discoverySearchInputBorder: '2px solid #ff00ff',
     discoverySearchInputBoxShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
     discoverySelectBorder: '2px solid #640464',
+    // RatingsScreen semantic tokens for 90s theme
+    ratingsHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
+    ratingsHeroImageWidth: '200px',
+    ratingsHeroImageBorder: 'none',
+    ratingsHeroImageBorderRadius: '0px',
+    ratingsTitleTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
+    ratingsSearchBorder: '2px solid #ff00ff',
+    ratingsSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
   },
   
   victorian: {
@@ -358,6 +366,14 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     discoverySearchInputBorder: '2px solid #E5E7EB',
     discoverySearchInputBoxShadow: 'none',
     discoverySelectBorder: '2px solid #E5E7EB',
+    // RatingsScreen semantic tokens for Victorian theme
+    ratingsHeaderBackground: '#101010',
+    ratingsHeroImageWidth: '180px',
+    ratingsHeroImageBorder: '2px solid #FFFFFF',
+    ratingsHeroImageBorderRadius: '12px',
+    ratingsTitleTextShadow: 'none',
+    ratingsSearchBorder: '2px solid #E5E7EB',
+    ratingsSearchShadow: 'none',
   },
 };
 

@@ -263,9 +263,7 @@ const RatingsScreen: React.FC = () => {
     }}>
       {/* HEADER SECTION */}
       <div style={{
-        background: theme.colors.background === '#0D0515' 
-          ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
-          : theme.colors.navBarDark,
+        background: theme.colors.ratingsHeaderBackground,
         paddingTop: '84px',
         paddingBottom: '32px',
         minHeight: '300px',
@@ -284,25 +282,14 @@ const RatingsScreen: React.FC = () => {
           <img
             src={theme.images.ratingsHero}
             alt="Person rating food"
-            style={
-              theme.colors.background === '#0D0515' 
-                ? {
-                    width: '200px',
-                    height: '200px',
-                    objectFit: 'contain',
-                    marginBottom: '24px',
-                    border: 'none',
-                    borderRadius: '0px'
-                  }
-                : {
-                    width: '180px',
-                    height: 'auto',
-                    objectFit: 'contain',
-                    marginBottom: '24px',
-                    border: `2px solid ${theme.colors.white}`,
-                    borderRadius: '12px'
-                  }
-            }
+            style={{
+              width: theme.colors.ratingsHeroImageWidth,
+              height: theme.colors.ratingsHeroImageWidth === '200px' ? '200px' : 'auto',
+              objectFit: 'contain',
+              marginBottom: '24px',
+              border: theme.colors.ratingsHeroImageBorder,
+              borderRadius: theme.colors.ratingsHeroImageBorderRadius
+            }}
           />
           <h1 style={{
             ...theme.fonts.heading,
@@ -312,9 +299,7 @@ const RatingsScreen: React.FC = () => {
             margin: 0,
             marginBottom: '24px',
             textAlign: 'center',
-            ...(theme.colors.background === '#0D0515' && {
-              textShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
-            })
+            textShadow: theme.colors.ratingsTitleTextShadow
           }}>
             My Ratings
           </h1>
@@ -328,17 +313,13 @@ const RatingsScreen: React.FC = () => {
                 width: '100%',
                 padding: '12px 40px 12px 16px',
                 borderRadius: '12px',
-                border: theme.colors.background === '#0D0515' 
-                  ? '2px solid #ff00ff'
-                  : `2px solid ${theme.colors.gray200}`,
+                border: theme.colors.ratingsSearchBorder,
                 outline: 'none',
                 fontSize: '1rem',
                 ...theme.fonts.body,
                 backgroundColor: theme.colors.white,
                 color: theme.colors.black,
-                boxShadow: theme.colors.background === '#0D0515' 
-                  ? '0 0 20px rgba(255, 0, 255, 0.3)'
-                  : 'none',
+                boxShadow: theme.colors.ratingsSearchShadow,
                 boxSizing: 'border-box'
               }}
             />

@@ -279,14 +279,14 @@ const DiscoveryScreen: React.FC = () => {
               <p style={{
                 ...theme.fonts.heading,
                 fontSize: '1.5rem',
-                color: theme.colors.white,
+                color: theme.colors.text,
                 fontWeight: '700',
                 marginBottom: '16px'
               }}>{error}</p>
               <p style={{
                 ...theme.fonts.body,
                 fontSize: '1.125rem',
-                color: theme.colors.white,
+                color: theme.colors.text,
                 lineHeight: '1.6',
                 margin: 0
               }}>You can also try refreshing the page.</p>
@@ -299,14 +299,14 @@ const DiscoveryScreen: React.FC = () => {
           <p style={{
             ...theme.fonts.heading,
             fontSize: '1.5rem',
-            color: theme.colors.white,
+            color: theme.colors.text,
             fontWeight: '700',
             marginBottom: '16px'
           }}>Start Discovering</p>
           <p style={{
             ...theme.fonts.body,
             fontSize: '1.125rem',
-            color: theme.colors.white,
+            color: theme.colors.text,
             lineHeight: '1.6',
             margin: 0
           }}>Use the search bar or filters above to find dishes the community has rated.</p>
@@ -358,14 +358,14 @@ const DiscoveryScreen: React.FC = () => {
         <p style={{
           ...theme.fonts.heading,
           fontSize: '1.5rem',
-          color: theme.colors.white,
+          color: theme.colors.text,
           fontWeight: '700',
           marginBottom: '16px'
         }}>No Dishes Found</p>
         <p style={{
           ...theme.fonts.body,
           fontSize: '1.125rem',
-          color: theme.colors.white,
+          color: theme.colors.text,
           lineHeight: '1.6',
           margin: 0
         }}>Try adjusting your search or filters to find more results.</p>

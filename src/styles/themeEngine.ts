@@ -453,6 +453,22 @@ function generateColorPalette(coreColors: ThemeSpec['colors'], typography: Theme
     discoverySelectBorder: isDarkTheme 
       ? '2px solid #640464'
       : `2px solid ${gray200}`,
+    // RatingsScreen semantic tokens
+    ratingsHeaderBackground: isDarkTheme 
+      ? 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)'
+      : gray900,
+    ratingsHeroImageWidth: isDarkTheme ? '200px' : '180px',
+    ratingsHeroImageBorder: isDarkTheme ? 'none' : `2px solid ${white}`,
+    ratingsHeroImageBorderRadius: isDarkTheme ? '0px' : '12px',
+    ratingsTitleTextShadow: isDarkTheme 
+      ? '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff'
+      : 'none',
+    ratingsSearchBorder: isDarkTheme 
+      ? '2px solid #ff00ff'
+      : `2px solid ${gray200}`,
+    ratingsSearchShadow: isDarkTheme 
+      ? '0 0 20px rgba(255, 0, 255, 0.3)'
+      : 'none',
   };
 }
 
