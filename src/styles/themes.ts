@@ -191,9 +191,9 @@ export const THEMES: Themes = {
     cardBg: '#FFFFFF', // Card backgrounds
     inputBg: '#FFFFFF', // Input backgrounds
     // Legacy mappings for compatibility
-    star: '#2563EB', // Personal rating (blue)
+    star: '#642e32', // Personal rating (brownish purple - accent)
     starEmpty: '#E5E7EB', // Empty stars
-    starCommunity: '#F59E0B', // Community rating (gold)
+    starCommunity: '#2563EB', // Community rating (blue - primary)
     starCommunityEmpty: '#E5E7EB', // Empty community stars
     secondary: '#6B7280', // Secondary color
     iconPrimary: '#374151', // Icon color

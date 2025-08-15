@@ -634,6 +634,39 @@ discoverySelectBorder: '2px solid #640464',      // Dark magenta selects
 - 🎯 **FindRestaurantScreen.tsx**: 8 instances (NEXT TARGET)
 - **RatingsScreen.tsx**: 6 instances
 
+### 🔧 Bug Fix: Victorian Theme Star Colors (Post Phase 3.5)
+
+**Issue Identified**: Victorian theme star colors were inverted from the correct visual design.
+
+**Problem**: Our implementation had:
+- Personal stars: Blue (`#2563EB`) 
+- Community stars: Gold (`#F59E0B`)
+
+**Correct Design**: Based on feature/theme-system branch visual comparison:
+- Personal stars: Brownish purple (`#642e32` - accent color)
+- Community stars: Blue (`#2563EB` - primary color)
+
+**Solution Applied**:
+```typescript
+// Victorian theme overrides (corrected)
+star: '#642e32',                 // Personal rating (brownish purple - accent)
+starCommunity: '#2563EB',        // Community rating (blue - primary)
+
+// Theme engine generation (updated)
+star: isDarkTheme ? primary : accent,        // Victorian: accent, 90s: primary  
+starCommunity: isDarkTheme ? warning : primary,  // Victorian: primary, 90s: warning
+```
+
+**Files Updated**:
+- `src/contexts/ThemeContext.tsx` - Victorian theme overrides
+- `src/styles/themes.ts` - Static theme definitions
+- `src/styles/themeEngine.ts` - Generation logic
+
+**Verification**:
+- ✅ Production build successful
+- ✅ 90s theme star colors unchanged (cyan personal, yellow community)
+- ✅ Victorian theme now matches original visual design
+
 ### ⚠️ CRITICAL REMINDER: Documentation is Mandatory
 
 **📋 ALWAYS UPDATE DOCUMENTATION THROUGHOUT EACH SESSION**:

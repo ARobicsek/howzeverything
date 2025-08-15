@@ -325,9 +325,9 @@ function generateColorPalette(coreColors: ThemeSpec['colors'], typography: Theme
     inputBg: isDarkTheme ? ColorUtils.lighten(surface, 12) : white,
     
     // Legacy mappings for compatibility
-    star: primary,
+    star: isDarkTheme ? primary : accent,        // Victorian: accent (brownish purple), 90s: primary
     starEmpty: gray300,
-    starCommunity: warning,
+    starCommunity: isDarkTheme ? warning : primary,  // Victorian: primary (blue), 90s: warning
     starCommunityEmpty: gray300,
     secondary: gray500,
     iconPrimary: text,
