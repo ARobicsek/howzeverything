@@ -74,6 +74,12 @@ Each theme provides:
 - **Colors**: Electric purples and neon pink (`#ff00ff`)
 - **Use case**: Modern, edgy interface
 
+### Grumpy Cat Theme
+- **Background**: Cream (`#fbeedd`)
+- **Style**: Warm, playful design with argyle patterns
+- **Colors**: Warm oranges (`#dd5a14`) and golden accents (`#ee9d2a`)
+- **Use case**: Friendly, approachable interface with personality
+
 ## Semantic Tokens by Screen
 
 ### Global Tokens
@@ -232,6 +238,95 @@ Consistent input styling:
 }} />
 ```
 
+## Common Gotchas & Implementation Notes
+
+### Asset Management
+**Critical**: Theme assets must be committed to git for production deployment.
+
+```bash
+# ❌ Images work locally but fail in production
+git status
+# Untracked files: public/cat_logo.png, public/cat_hero.jpg
+
+# ✅ Always commit theme assets  
+git add public/theme_*
+git commit -m "assets: add theme image files"
+```
+
+### React Inline Style Considerations
+
+**Complex CSS Patterns**: Use template literals and RGBA for React compatibility:
+```typescript
+// ❌ Complex gradients may not work reliably
+background: 'linear-gradient(45deg, #color1 25%, transparent 75%), linear-gradient(-45deg, #color2 25%, transparent 75%)'
+
+// ✅ Use RGBA with template literals for better compatibility
+backgroundImage: `
+  repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.3) 14px, rgba(221, 90, 20, 0.3) 16px),
+  repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.25) 14px, rgba(238, 157, 42, 0.25) 16px)
+`
+```
+
+**Opacity for Readability**: When using patterned backgrounds, reduce opacity for text readability:
+```typescript
+// ✅ Use alpha transparency to ensure text readability
+backgroundColor: 'rgba(221, 90, 20, 0.3)' // 30% opacity
+```
+
+### Semantic Token Misuse
+
+**Common Error**: Components using `theme.colors.white` for backgrounds instead of semantic tokens:
+```typescript
+// ❌ Wrong - uses theme text color for backgrounds
+backgroundColor: theme.colors.white // In grumpy-cat theme, this is brown text color!
+
+// ✅ Correct - use semantic background tokens
+backgroundColor: theme.colors.inputBg
+backgroundColor: theme.colors.cardBg
+backgroundColor: theme.colors.background
+```
+
+### Theme Selector Integration
+
+**Custom Theme Selectors**: Themes may need special handling in the theme selector:
+```typescript
+// Example: Custom argyle background with proper text color
+if (themeId === 'grumpy-cat') {
+  return {
+    backgroundImage: 'argyle-pattern...',
+    color: '#482107', // Dark brown for readability
+  };
+}
+```
+
+### File Path Case Sensitivity
+
+**Critical for Production**: Ensure image file extensions match exactly:
+```typescript
+// ❌ Case mismatch causes production failures
+homeFindRestaurants: '/cat_home_find_hero.JPG', // Config expects uppercase
+// But file is: cat_home_find_hero.jpg (lowercase)
+
+// ✅ Exact case match required
+homeFindRestaurants: '/cat_home_find_hero.jpg', // Matches actual file
+```
+
+### New Token Creation Pattern
+
+When themes need new capabilities, create semantic tokens instead of hardcoding:
+```typescript
+// ❌ Don't hardcode theme-specific values
+color: currentTheme === 'grumpy-cat' ? '#ffffff' : theme.colors.text
+
+// ✅ Create semantic tokens and override in specific themes
+color: theme.colors.signOutButtonText || theme.colors.text
+
+// In theme overrides:
+'grumpy-cat': {
+  signOutButtonText: '#ffffff',
+}
+```
+
 ## Best Practices
 
 ### 1. Always Use Semantic Tokens
@@ -274,6 +369,97 @@ src/
     └── [screen].tsx        # Components using semantic tokens
 ```
 
+## Implementation Workflow
+
+### Adding a New Theme (Complete Process)
+
+Based on real implementation experience, follow this proven workflow:
+
+#### 1. Theme Definition
+```typescript
+// Add to THEME_SPECS in ThemeContext.tsx
+'new-theme': {
+  id: 'new-theme',
+  name: 'New Theme',
+  description: 'Theme description that will appear in selector',
+  colors: { primary: '#color', surface: '#color', text: '#color', accent: '#color' },
+  typography: { primaryFont: 'font-stack', headingFont: 'font-stack', fontScaleRatio: 1.25 },
+  geometry: { baseSpacingUnit: 16, baseBorderRadius: 8, shadowPreset: 'soft' }
+}
+```
+
+#### 2. Asset Preparation
+```bash
+# Add theme images to public/ directory
+public/
+├── theme_logo.png
+├── theme_hero_about.jpg
+├── theme_hero_discovery.jpg
+└── theme_hero_find.jpg
+
+# CRITICAL: Commit assets immediately
+git add public/theme_*
+git commit -m "assets: add theme image files"
+```
+
+#### 3. Color Overrides
+```typescript
+// Add theme-specific overrides to THEME_COLOR_OVERRIDES
+'new-theme': {
+  // Fix common issues preemptively
+  inputBg: '#your-input-bg',        // Not white!
+  cardBg: '#your-card-bg',          // Not white!
+  signOutButtonText: '#ffffff',     // If needed
+  
+  // Screen-specific headers
+  aboutHeaderBackground: '#color',
+  findRestaurantHeaderBackground: '#color',
+  // ... etc
+}
+```
+
+#### 4. Image Mapping
+```typescript
+// Add to CUSTOM_IMAGES
+'new-theme': {
+  logo: '/theme_logo.png',
+  homeFindRestaurants: '/theme_home_find.jpg',    // Exact case match!
+  discoveryHero: '/theme_discovery.jpg',
+  // ... etc
+}
+```
+
+#### 5. Theme Selector Integration
+```typescript
+// Add styling to ThemeSelector.tsx getThemeButtonStyle()
+} else if (themeId === 'new-theme') {
+  return {
+    padding: SPACING[4],
+    cursor: 'pointer',
+    backgroundColor: '#base-color',
+    // Add custom patterns if needed
+    backgroundImage: 'pattern...',
+    color: '#readable-text-color',    // Test readability!
+    border: isSelected ? '3px solid #primary' : '2px solid #accent'
+  };
+}
+```
+
+#### 6. Testing Checklist
+- [ ] Images appear on all screens
+- [ ] Search bars use correct background colors  
+- [ ] Text is readable on all backgrounds
+- [ ] Theme selector card displays correctly
+- [ ] Navigation modal works properly
+- [ ] All screens have appropriate headers
+- [ ] Production deployment includes assets
+
+#### 7. Common Issues & Quick Fixes
+1. **Images missing in production**: Check `git ls-files public/theme_*`
+2. **Search bars wrong color**: Replace `theme.colors.white` with `theme.colors.inputBg`
+3. **Text unreadable**: Reduce pattern opacity to 0.2-0.4
+4. **Theme selector broken**: Add theme-specific styling logic
+
 ## Migration Guide
 
 When updating existing components:
@@ -281,7 +467,7 @@ When updating existing components:
 1. **Identify conditional logic**: Look for theme-specific conditions
 2. **Create semantic tokens**: Add new tokens if needed  
 3. **Replace conditions**: Use semantic tokens instead
-4. **Test both themes**: Verify styling works in both themes
+4. **Test all themes**: Verify styling works in Victorian, 90s, AND new themes
 5. **Update types**: Add tokens to ColorPalette interface if needed
 
 ## Troubleshooting
@@ -296,10 +482,61 @@ When updating existing components:
 - Verify token exists in both Victorian and 90s theme definitions
 - Check spelling of semantic token names
 
+### Images Not Showing in Production
+**Symptom**: Images work locally but fail in deployed environment
+**Causes & Solutions**:
+1. **Untracked assets**: `git status` shows untracked `public/` files
+   - **Fix**: `git add public/theme_assets*` and commit
+2. **Case sensitivity**: `theme.images.hero: '/Hero.jpg'` but file is `hero.JPG`
+   - **Fix**: Ensure exact case match between config and files
+3. **Path mismatch**: Config uses `/cat_image.jpg` but file is in wrong location
+   - **Fix**: Verify `public/` directory structure matches theme config
+
+### Search Bars Showing Wrong Colors
+**Symptom**: Search inputs show theme text color instead of expected background
+**Cause**: Components using `theme.colors.white` for backgrounds
+**Fix**: Replace with semantic tokens:
+```typescript
+// Change from:
+backgroundColor: theme.colors.white
+// To:
+backgroundColor: theme.colors.inputBg
+```
+
+### Text Unreadable on Patterned Backgrounds
+**Symptom**: Text disappears or hard to read on complex theme backgrounds
+**Solutions**:
+1. **Reduce pattern opacity**: Use `rgba()` with 0.2-0.4 alpha
+2. **Increase text contrast**: Use darker text colors (`#482107` vs `#000000`)
+3. **Add text shadows**: `textShadow: '1px 1px 2px rgba(0,0,0,0.5)'`
+
+### CSS Patterns Not Rendering in React
+**Symptom**: Complex gradients or patterns don't appear
+**Cause**: React inline style limitations with complex CSS
+**Fix**: Use template literals and break complex patterns into simpler parts:
+```typescript
+// Instead of one complex gradient, use simpler repeating patterns
+backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.3) 14px, rgba(221, 90, 20, 0.3) 16px)`
+```
+
+### Theme Selector Cards Not Styled Correctly
+**Symptom**: Custom themes don't show properly in theme selector
+**Cause**: ThemeSelector component needs theme-specific styling logic
+**Fix**: Add conditional styling in `getThemeButtonStyle()`:
+```typescript
+if (themeId === 'your-theme') {
+  return {
+    backgroundImage: 'your-pattern',
+    color: 'readable-text-color'
+  };
+}
+```
+
 ### Styling Issues
 - Use browser dev tools to inspect applied theme values
 - Verify semantic token values in theme definitions
 - Check for CSS specificity conflicts
+- Test in multiple themes to ensure compatibility
 
 ## Future Development
 
