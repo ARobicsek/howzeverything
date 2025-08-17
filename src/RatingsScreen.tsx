@@ -33,7 +33,7 @@ const RatedDishCard: React.FC<{
     <div
       onClick={handleNavigate}
       style={{
-        backgroundColor: theme.colors.white,
+        backgroundColor: theme.colors.cardBg,
         border: `1px solid ${theme.colors.gray200}`,
         borderRadius: '12px',
         padding: '16px',
@@ -317,7 +317,7 @@ const RatingsScreen: React.FC = () => {
                 outline: 'none',
                 fontSize: '1rem',
                 ...theme.fonts.body,
-                backgroundColor: theme.colors.white,
+                backgroundColor: theme.colors.inputBg,
                 color: theme.colors.black,
                 boxShadow: theme.colors.ratingsSearchShadow,
                 boxSizing: 'border-box'

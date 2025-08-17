@@ -118,7 +118,7 @@ const ConsolidatedSearchAndAdd: React.FC<{
           outline: 'none',
           fontSize: '1rem',
           ...theme.fonts.body,
-          backgroundColor: theme.colors.white,
+          backgroundColor: theme.colors.inputBg,
           color: theme.colors.black,
           boxShadow: isFocused && theme.colors.menuInputBoxShadow !== 'none'
             ? theme.colors.menuInputBoxShadow

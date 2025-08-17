@@ -67,6 +67,26 @@ const ThemeSelector: React.FC = () => {
           : `0 0 8px ${themeData.accent}`,
         transform: isSelected ? 'scale(1.02)' : 'scale(1)',
       };
+    } else if (themeId === 'grumpy-cat') {
+      return {
+        padding: SPACING[4],
+        borderRadius: '4px', // Use custom border radius
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        // Argyle pattern using overlapping diagonal stripes (faded for better text readability)
+        backgroundImage: `
+          repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.3) 14px, rgba(221, 90, 20, 0.3) 16px),
+          repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.25) 14px, rgba(238, 157, 42, 0.25) 16px)
+        `,
+        backgroundColor: '#fbeedd', // Cream base color
+        border: isSelected 
+          ? `3px solid #dd5a14` 
+          : `2px solid #ee9d2a`,
+        boxShadow: isSelected 
+          ? `0 4px 12px rgba(221, 90, 20, 0.3)` 
+          : '0 2px 6px rgba(238, 157, 42, 0.2)',
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+      };
     }
     return {};
   };
@@ -93,6 +113,14 @@ const ThemeSelector: React.FC = () => {
         letterSpacing: '0.05em',
         marginBottom: SPACING[2],
       };
+    } else if (themeId === 'grumpy-cat') {
+      return {
+        fontFamily: 'Comfortaa, -apple-system, BlinkMacSystemFont, sans-serif',
+        fontSize: '1.25rem',
+        fontWeight: '600',
+        color: '#482107', // Dark brown to match hero image borders
+        marginBottom: SPACING[2],
+      };
     }
     return {};
   };
@@ -112,6 +140,13 @@ const ThemeSelector: React.FC = () => {
         fontFamily: '"Courier New", Courier, monospace',
         fontSize: '0.875rem',
         color: themeData.textSecondary,
+        lineHeight: '1.4',
+      };
+    } else if (themeId === 'grumpy-cat') {
+      return {
+        fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, sans-serif',
+        fontSize: '0.875rem',
+        color: '#482107', // Dark brown to match hero image borders
         lineHeight: '1.4',
       };
     }
@@ -163,6 +198,26 @@ const ThemeSelector: React.FC = () => {
           ✓
         </div>
       );
+    } else if (themeId === 'grumpy-cat') {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          width: '24px',
+          height: '24px',
+          backgroundColor: '#dd5a14', // Primary grumpy cat color
+          borderRadius: '4px', // Match theme border radius
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        }}>
+          ✓
+        </div>
+      );
     }
     return null;
   };
@@ -188,7 +243,9 @@ const ThemeSelector: React.FC = () => {
               <div style={getThemeDescriptionStyle(themeOption.id)}>
                 {themeOption.id === 'victorian' 
                   ? 'Classic elegance with refined typography and subtle shadows'
-                  : 'Bold neon colors with retro fonts and electric effects'
+                  : themeOption.id === '90s'
+                  ? 'Bold neon colors with retro fonts and electric effects'
+                  : themeOption.description
                 }
               </div>
             </div>

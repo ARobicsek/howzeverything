@@ -58,6 +58,27 @@ const THEME_SPECS: { [key: string]: ThemeSpec } = {
       shadowPreset: 'glow',     // Neon glow effects
     },
   },
+  'grumpy-cat': {
+    id: 'grumpy-cat',
+    name: 'Grumpy Cat',
+    description: 'Playful, warm colors, inspired by argyle blankets and the enduring grumpiness of cats',
+    colors: {
+      primary: '#dd5a14',    // Warm orange-brown
+      surface: '#fbeedd',    // Cream background
+      text: '#ca4719',       // Darker orange-brown text
+      accent: '#ee9d2a',     // Golden accent
+    },
+    typography: {
+      primaryFont: '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      headingFont: '"Comfortaa", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontScaleRatio: 1.25,  // Balanced scale
+    },
+    geometry: {
+      baseSpacingUnit: 16,      // Standard base
+      baseBorderRadius: 4,      // Gently rounded corners
+      shadowPreset: 'soft',     // Soft shadows
+    },
+  },
 };
 
 // Specific color overrides to match original themes exactly
@@ -395,6 +416,101 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     ratingsSearchBorder: '2px solid #E5E7EB',
     ratingsSearchShadow: 'none',
   },
+  
+  'grumpy-cat': {
+    // Top navigation background - restore to cream
+    navBar: '#fbeedd',
+    navBarDark: '#fbeedd',
+    
+    // Background colors - restore to cream
+    background: '#fbeedd',
+    cardBg: '#fbeedd',
+    inputBg: '#fbeedd',
+    surface: '#fbeedd', // Ensure all surfaces use cream
+    
+    // White text color for home screen (to match about screen)
+    white: '#ca4719',
+    textWhite: '#ca4719', 
+    
+    // Custom header background for all screen headers
+    aboutHeaderBackground: '#df5d12',
+    findRestaurantHeaderBackground: '#df5d12',
+    discoveryHeaderBackground: '#df5d12',
+    ratingsHeaderBackground: '#df5d12',
+    menuHeaderBackground: 'rgba(251, 238, 221, 0.95)', // Cream color with transparency
+    
+    // Hero image styling for grumpy cat theme
+    aboutHeroImageWidth: '180px',
+    aboutHeroImageBorder: '2px solid #482107',
+    aboutHeroImageBorderRadius: '4px',
+    findRestaurantHeroImageWidth: '180px', 
+    findRestaurantHeroImageBorder: '2px solid #482107',
+    findRestaurantHeroImageBorderRadius: '4px',
+    ratingsHeroImageWidth: '180px',
+    ratingsHeroImageBorder: '2px solid #482107', 
+    ratingsHeroImageBorderRadius: '4px',
+    discoveryHeroImageStyle: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain' as const,
+      marginBottom: '24px',
+      border: '2px solid #482107',
+      borderRadius: '4px'
+    },
+    
+    // Search and input styling - use cream backgrounds with subtle borders
+    findRestaurantSearchBorder: '2px solid #e8dcc6',
+    findRestaurantInputBorder: '2px solid #e8dcc6', 
+    discoverySearchInputBorder: '2px solid #e8dcc6',
+    ratingsSearchBorder: '2px solid #e8dcc6',
+    menuInputBorder: '2px solid #e8dcc6',
+    
+    // Remove any colored shadows/effects from search inputs
+    findRestaurantSearchShadow: 'none',
+    discoverySearchInputBoxShadow: 'none',
+    ratingsSearchShadow: 'none',
+    menuInputBoxShadow: 'none',
+    
+    // Text shadows - none for clean look
+    aboutHeadingTextShadow: 'none',
+    findRestaurantTitleTextShadow: 'none',
+    discoveryHeadingTextShadow: 'none',
+    ratingsTitleTextShadow: 'none',
+    menuRestaurantNameTextShadow: 'none',
+    
+    // CTA card styling for about screen
+    aboutCtaCardBackground: '#f4d4b8',
+    aboutCtaCardBorder: '2px solid #dd5a14',
+    aboutCtaButtonBackground: '#dd5a14',
+    
+    // Menu specific styling
+    menuSearchTitleColor: '#ca4719',
+    menuEmptyStateIconColor: '#ee9d2a',
+    
+    // Star styling - use warm colors
+    star: '#ee9d2a',
+    starCommunity: '#dd5a14',
+    
+    // Distance colors
+    findRestaurantDistanceColor: '#ca4719',
+    discoveryRestaurantDistanceColor: '#ca4719',
+    
+    // Restaurant name colors
+    discoveryRestaurantNameColor: '#dd5a14',
+    
+    // Navigation elements styling
+    iconPrimary: '#df5d12', // Hamburger menu icon color
+    iconBackground: '#df5d12', // Avatar button background
+    
+    // Rating card backgrounds - ensure cream color
+    ratingBreakdownBackground: '#fbeedd', // Cream background for rating breakdown
+    
+    // Navigation modal - use golden color for admin items
+    ratingGold: '#ee9d2a', // Golden accent color for Admin Panel and My Restaurants
+    
+    // Profile page sign out button - use white text for better visibility
+    signOutButtonText: '#ffffff', // White text for sign out button
+  },
 };
 
 // Font styling overrides for specific theme effects
@@ -463,6 +579,16 @@ const CUSTOM_IMAGES: { [themeId: string]: Partial<Theme['images']> } = {
     ratingsHero: '/90s judge.png',
     aboutHero: '/90s about us.png',
     restaurantDefault: '/90s find restaurant.png', // Reuse for now
+  },
+  'grumpy-cat': {
+    logo: '/cat_logo.png',
+    homeFindRestaurants: '/cat_home_find_hero.jpg',
+    homeDiscoverDishes: '/cat_home_dish_hero.JPG',
+    discoveryHero: '/cat_discovery_hero.JPG',
+    findRestaurantHero: '/cat_find_hero.JPG',
+    ratingsHero: '/cat_ratings_hero.JPG',
+    aboutHero: '/cat_about_hero.JPG',
+    restaurantDefault: '/cat_find_hero.JPG', // Reuse find hero for restaurant default
   },
 };
 

@@ -1,7 +1,6 @@
 // src/FindRestaurantScreen.tsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoadingScreen from './components/LoadingScreen';
 import InlineLoadingSpinner from './components/InlineLoadingSpinner';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
@@ -462,7 +461,7 @@ const FindRestaurantScreen: React.FC = () => {
                       alignItems: 'center',
                       gap: '12px',
                       padding: '12px 16px',
-                      backgroundColor: theme.colors.white,
+                      backgroundColor: theme.colors.inputBg,
                       border: theme.colors.findRestaurantSearchBorder,
                       borderRadius: '12px',
                       cursor: 'pointer',

@@ -324,7 +324,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             flex: 1,
             padding: '12px 24px',
             backgroundColor: theme.colors.white,
-            color: theme.colors.text,
+            color: theme.colors.signOutButtonText || theme.colors.text,
             border: `2px solid ${theme.colors.gray200}`,
             borderRadius: '8px',
             fontSize: '0.875rem',
