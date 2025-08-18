@@ -144,6 +144,26 @@ export type ColorPalette = {
   findRestaurantSearchShadow: string;
   findRestaurantInputBorder: string;
   findRestaurantDistanceColor: string;
+  // LoginForm semantic tokens
+  loginFormInputBackground: string;
+  loginFormInputBorder: string;
+  loginFormInputBoxShadow: string;
+  loginFormInputColor: string;
+  loginFormContainer: string;
+  loginFormHeaderTitleColor: string;
+  loginFormHeaderTitleTextShadow: string;
+  loginFormHeaderSubtitleColor: string;
+  loginFormErrorBackground: string;
+  loginFormErrorBorder: string;
+  loginFormErrorTextColor: string;
+  loginFormLabelColor: string;
+  loginFormSubmitButtonBackground: string;
+  loginFormSubmitButtonTextColor: string;
+  loginFormSubmitButtonBoxShadow: string;
+  loginFormSubmitButtonHoverBackground: string;
+  loginFormModeToggleColor: string;
+  loginFormCancelColor: string;
+  loginFormPasswordToggleColor: string;
 };
 
 export type Themes = {
@@ -302,6 +322,26 @@ export const THEMES: Themes = {
     findRestaurantSearchShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
     findRestaurantInputBorder: '2px solid #E5E7EB',
     findRestaurantDistanceColor: '#6B7280',
+    // LoginForm semantic tokens
+    loginFormInputBackground: '#FFFFFF',
+    loginFormInputBorder: '2px solid #E5E7EB',
+    loginFormInputBoxShadow: 'none',
+    loginFormInputColor: '#374151',
+    loginFormContainer: '#101010',
+    loginFormHeaderTitleColor: '#111827',
+    loginFormHeaderTitleTextShadow: 'none',
+    loginFormHeaderSubtitleColor: '#6B7280',
+    loginFormErrorBackground: '#FEF2F2',
+    loginFormErrorBorder: '2px solid #FCA5A5',
+    loginFormErrorTextColor: '#B91C1C',
+    loginFormLabelColor: '#374151',
+    loginFormSubmitButtonBackground: '#2563EB',
+    loginFormSubmitButtonTextColor: '#FFFFFF',
+    loginFormSubmitButtonBoxShadow: 'none',
+    loginFormSubmitButtonHoverBackground: '#1D4ED8',
+    loginFormModeToggleColor: '#2563EB',
+    loginFormCancelColor: '#6B7280',
+    loginFormPasswordToggleColor: '#6B7280',
   },
   '90s': {
     // Primary Colors - Neon and Electric
@@ -454,5 +494,25 @@ export const THEMES: Themes = {
     findRestaurantSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
     findRestaurantInputBorder: '2px solid #ff00ff',
     findRestaurantDistanceColor: '#C2A6DE',
+    // LoginForm semantic tokens
+    loginFormInputBackground: '#1a0d1a',
+    loginFormInputBorder: '2px solid #ff00ff',
+    loginFormInputBoxShadow: '0 0 10px rgba(255, 0, 255, 0.3)',
+    loginFormInputColor: '#ffffff',
+    loginFormContainer: '#000000',
+    loginFormHeaderTitleColor: '#ff00ff',
+    loginFormHeaderTitleTextShadow: '0 0 20px #ff00ff',
+    loginFormHeaderSubtitleColor: '#C2A6DE',
+    loginFormErrorBackground: 'rgba(255, 0, 128, 0.1)',
+    loginFormErrorBorder: '2px solid #ff0080',
+    loginFormErrorTextColor: '#ff0080',
+    loginFormLabelColor: '#C2A6DE',
+    loginFormSubmitButtonBackground: '#ff00ff',
+    loginFormSubmitButtonTextColor: '#000000',
+    loginFormSubmitButtonBoxShadow: '0 0 15px rgba(255, 0, 255, 0.5)',
+    loginFormSubmitButtonHoverBackground: '#cc00cc',
+    loginFormModeToggleColor: '#ff00ff',
+    loginFormCancelColor: '#C2A6DE',
+    loginFormPasswordToggleColor: '#C2A6DE',
   },
 };

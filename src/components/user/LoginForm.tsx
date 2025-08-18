@@ -12,7 +12,7 @@ interface LoginFormProps {
 
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {  
-  const { theme, currentTheme } = useTheme();
+  const { theme } = useTheme();
   const { signIn, signUp, loading, error, clearError } = useAuth();  
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');  
   const [email, setEmail] = useState('');  
@@ -140,7 +140,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
   // Get theme-specific container style
   const getContainerStyle = () => ({
     ...COMPONENT_STYLES.loginForm.container,
-    ...(theme.colors.loginFormContainer || {}),
+    ...(theme.colors.loginFormContainer && {
+      backgroundColor: theme.colors.loginFormContainer,
+    }),
   });
 
   // Get theme-specific header title style

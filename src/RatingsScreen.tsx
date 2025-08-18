@@ -250,9 +250,10 @@ const RatingsScreen: React.FC = () => {
     // Apply sorting based on sortBy criterion
     withDistance.sort((a, b) => {
       switch (sortBy.criterion) {
-        case 'name':
+        case 'name': {
           const nameResult = a.name.localeCompare(b.name);
           return sortBy.direction === 'asc' ? nameResult : -nameResult;
+        }
         
         case 'my_rating': {
           const aMyRating = a.ratings.find(r => r.user_id === user?.id)?.rating || 0;
@@ -261,20 +262,23 @@ const RatingsScreen: React.FC = () => {
           return sortBy.direction === 'asc' ? ratingResult : -ratingResult;
         }
         
-        case 'community_rating':
+        case 'community_rating': {
           const communityResult = a.average_rating - b.average_rating;
           return sortBy.direction === 'asc' ? communityResult : -communityResult;
+        }
         
-        case 'date':
+        case 'date': {
           const dateResult = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           return sortBy.direction === 'asc' ? dateResult : -dateResult;
+        }
         
         case 'distance':
-        default:
+        default: {
           if (a.distance === null) return 1;
           if (b.distance === null) return -1;
           const distanceResult = a.distance - b.distance;
           return sortBy.direction === 'asc' ? distanceResult : -distanceResult;
+        }
       }
     });
 

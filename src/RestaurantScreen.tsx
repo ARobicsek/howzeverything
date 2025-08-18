@@ -394,7 +394,7 @@ const RestaurantScreen: React.FC = () => {
     return restaurantsWithScores
       .filter(restaurant => restaurant.similarityScore > similarityThreshold)
       .sort((a, b) => b.similarityScore - a.similarityScore)
-      .map(({ similarityScore: _unusedScore, ...restaurant }) => restaurant);
+      .map(({ similarityScore: _, ...restaurant }) => restaurant);
   }, [restaurants, searchTerm, searchResults.length]);
  
   const requestLocationPermission = useCallback(async () => {

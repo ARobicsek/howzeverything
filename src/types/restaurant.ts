@@ -1,5 +1,7 @@
 // src/types/restaurant.ts
 // Centralized interface for the Restaurant model
+import { Json } from './supabase';
+
 export interface Restaurant {
     id: string;
     name: string;
@@ -23,7 +25,7 @@ export interface Restaurant {
     rating: number | null; // Community rating, not personal
     price_tier: number | null;
     category: string | null;
-    opening_hours: Record<string, unknown> | null;
+    opening_hours: Json | null;
     created_by: string | null; // Who originally created this global restaurant
     total_unique_raters?: number;
     // Add dishCount and raterCount here to be populated by RPC

@@ -141,7 +141,7 @@ serve(async (req) => {
             query = query.order('created_at', { ascending: false }).range(from, to);
             break;
              
-        case 'comments':
+        case 'comments': {
             query = supabaseAdminClient
                 .from('dish_comments')
                 .select(`*, restaurant_dishes!inner(name, restaurant_id, restaurants!inner(name)), users!dish_comments_user_id_fkey(full_name, email)`, { count: 'exact' });
@@ -166,6 +166,7 @@ serve(async (req) => {
             }
             query = query.order('created_at', { ascending: false }).range(from, to);
             break;
+        }
 
         default:
             throw new Error('Invalid data type requested.');
