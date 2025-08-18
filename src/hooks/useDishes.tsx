@@ -240,6 +240,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   useEffect(() => {
     const getCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -495,9 +496,43 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
   const addComment = async (dishId: string, commentText: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    setIsSubmittingComment(true);
+
+    // Generate temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    const timestamp = new Date().toISOString();
+
+    // Create optimistic comment
+    const optimisticComment: DishComment = {
+      id: tempId,
+      dish_id: dishId,
+      user_id: user.id,
+      comment_text: commentText,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_hidden: false,
+      commenter_name: user.user_metadata?.full_name || 'You',
+      commenter_email: user.email || ''
+    };
+
+    // Optimistically add comment to UI
+    setDishes(prevDishes => {
+      return prevDishes.map(dish => {
+        if (dish.id === dishId) {
+          return {
+            ...dish,
+            comments: [...dish.comments, optimisticComment]
+          };
+        }
+        return dish;
+      });
+    });
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      // Make API call
       const { data, error } = await supabase
         .from('dish_comments')
         .insert({
@@ -513,77 +548,155 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           )
         `)
         .single();
+
       if (error) throw error;
-      const newComment: DishComment = {
+
+      const actualComment: DishComment = {
         ...data,
         commenter_name: data.users?.full_name || 'Unknown User',
         commenter_email: data.users?.email || ''
       };
+
+      // Replace optimistic comment with actual comment
       setDishes(prevDishes => {
         return prevDishes.map(dish => {
           if (dish.id === dishId) {
             return {
               ...dish,
-              comments: [...dish.comments, newComment]
+              comments: dish.comments.map(comment => 
+                comment.id === tempId ? actualComment : comment
+              )
             };
           }
           return dish;
         });
       });
     } catch (err) {
+      // Rollback optimistic update on failure
+      setDishes(prevDishes => {
+        return prevDishes.map(dish => {
+          if (dish.id === dishId) {
+            return {
+              ...dish,
+              comments: dish.comments.filter(comment => comment.id !== tempId)
+            };
+          }
+          return dish;
+        });
+      });
       throw err instanceof Error ? err : new Error('Failed to add comment');
+    } finally {
+      setIsSubmittingComment(false);
     }
   };
   const deleteComment = async (commentId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const allComments = dishes.flatMap(dish => dish.comments);
+    const comment = allComments.find(c => c.id === commentId);
+    if (!comment) throw new Error('Comment not found');
+    if (comment.user_id !== user.id) {
+      throw new Error('You can only delete your own comments');
+    }
+
+    setIsSubmittingComment(true);
+
+    // Store original comment for rollback
+    const originalComment = { ...comment };
+    let dishIdForComment = '';
+
+    // Optimistically remove the comment
+    setDishes(prevDishes => {
+      return prevDishes.map(dish => {
+        const hasComment = dish.comments.some(c => c.id === commentId);
+        if (hasComment) {
+          dishIdForComment = dish.id;
+          return {
+            ...dish,
+            comments: dish.comments.filter(c => c.id !== commentId)
+          };
+        }
+        return dish;
+      });
+    });
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-      const allComments = dishes.flatMap(dish => dish.comments);
-      const comment = allComments.find(c => c.id === commentId);
-      if (!comment) throw new Error('Comment not found');
-      if (comment.user_id !== user.id) {
-        throw new Error('You can only delete your own comments');
-      }
+      // Make API call
       const { error } = await supabase
         .from('dish_comments')
         .delete()
         .eq('id', commentId);
+
       if (error) throw error;
-      setDishes(prevDishes => {
-        return prevDishes.map(dish => ({
-          ...dish,
-          comments: dish.comments.filter(c => c.id !== commentId)
-        }));
-      });
     } catch (err) {
+      // Rollback optimistic update on failure
+      setDishes(prevDishes => {
+        return prevDishes.map(dish => {
+          if (dish.id === dishIdForComment) {
+            return {
+              ...dish,
+              comments: [...dish.comments, originalComment].sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+            };
+          }
+          return dish;
+        });
+      });
       throw err instanceof Error ? err : new Error('Failed to delete comment');
+    } finally {
+      setIsSubmittingComment(false);
     }
   };
   const updateComment = async (commentId: string, commentText: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const allComments = dishes.flatMap(dish => dish.comments);
+    const comment = allComments.find(c => c.id === commentId);
+    if (!comment) throw new Error('Comment not found');
+    if (comment.user_id !== user.id) {
+      throw new Error('You can only edit your own comments');
+    }
+
+    setIsSubmittingComment(true);
+
+    // Store original comment text for rollback
+    const originalText = comment.comment_text;
+    const timestamp = new Date().toISOString();
+
+    // Optimistically update the comment
+    setDishes(prevDishes => {
+      return prevDishes.map(dish => ({
+        ...dish,
+        comments: dish.comments.map(c =>
+          c.id === commentId ? { ...c, comment_text: commentText, updated_at: timestamp } : c
+        )
+      }));
+    });
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-      const allComments = dishes.flatMap(dish => dish.comments);
-      const comment = allComments.find(c => c.id === commentId);
-      if (!comment) throw new Error('Comment not found');
-      if (comment.user_id !== user.id) {
-        throw new Error('You can only edit your own comments');
-      }
+      // Make API call
       const { error } = await supabase
         .from('dish_comments')
-        .update({ comment_text: commentText, updated_at: new Date().toISOString() })
+        .update({ comment_text: commentText, updated_at: timestamp })
         .eq('id', commentId);
+
       if (error) throw error;
+    } catch (err) {
+      // Rollback optimistic update on failure
       setDishes(prevDishes => {
         return prevDishes.map(dish => ({
           ...dish,
           comments: dish.comments.map(c =>
-            c.id === commentId ? { ...c, comment_text: commentText, updated_at: new Date().toISOString() } : c
+            c.id === commentId ? { ...c, comment_text: originalText, updated_at: comment.updated_at } : c
           )
         }));
       });
-    } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to update comment');
+    } finally {
+      setIsSubmittingComment(false);
     }
   };
   const addPhoto = async (dishId: string, file: File, caption?: string) => {
@@ -747,7 +860,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     refetch,
     searchDishes,
     findSimilarDishesForDuplicate,
-    currentUserId
+    currentUserId,
+    isSubmittingComment
   };
 };
 export const updateRatingForDish = async (
