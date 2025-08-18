@@ -248,6 +248,45 @@ const MenuScreen: React.FC = () => {
     };
   };
 
+  // Get theme-specific styles for restaurant modal
+  const getRestaurantModalContainerStyle = () => ({
+    ...SCREEN_STYLES.menu.fullNameModal.content,
+    ...(theme.colors.restaurantModalContainer || {}),
+  });
+
+  const getRestaurantModalNameStyle = () => ({
+    ...SCREEN_STYLES.menu.fullNameModal.name,
+    ...(theme.colors.restaurantModalNameColor && {
+      color: theme.colors.restaurantModalNameColor,
+    }),
+    ...(theme.colors.restaurantModalNameTextShadow && {
+      textShadow: theme.colors.restaurantModalNameTextShadow,
+    }),
+  });
+
+  const getRestaurantModalAddressStyle = () => ({
+    ...SCREEN_STYLES.menu.fullNameModal.address,
+    ...(theme.colors.restaurantModalAddressColor && {
+      color: theme.colors.restaurantModalAddressColor,
+    }),
+  });
+
+  const getRestaurantModalCloseButtonStyle = () => ({
+    ...SCREEN_STYLES.menu.fullNameModal.closeButton,
+    ...(theme.colors.restaurantModalCloseButtonBackground && {
+      backgroundColor: theme.colors.restaurantModalCloseButtonBackground,
+    }),
+    ...(theme.colors.restaurantModalCloseButtonTextColor && {
+      color: theme.colors.restaurantModalCloseButtonTextColor,
+    }),
+    ...(theme.colors.restaurantModalCloseButtonBoxShadow && {
+      boxShadow: theme.colors.restaurantModalCloseButtonBoxShadow,
+    }),
+    ...(theme.colors.restaurantModalCloseButtonBorder && {
+      border: theme.colors.restaurantModalCloseButtonBorder,
+    }),
+  });
+
 // Track visit when the screen for a specific restaurant is loaded
   useEffect(() => {
     if (restaurant?.id) {
@@ -611,12 +650,32 @@ const MenuScreen: React.FC = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
             </button>
           <div
-            onClick={() => setShowFullRestaurantName(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowFullRestaurantName(true);
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowFullRestaurantName(true);
+            }}
             style={{
               flex: 1,
               minWidth: 0,
               cursor: 'pointer',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'manipulation'
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowFullRestaurantName(true);
+              }
             }}
           >
             <h1 style={{
@@ -803,20 +862,43 @@ const MenuScreen: React.FC = () => {
       
       {/* Modals */}
       {showFullRestaurantName && (
-          <div style={STYLES.modalOverlay} onClick={() => setShowFullRestaurantName(false)}>
-              <div style={SCREEN_STYLES.menu.fullNameModal.content} onClick={(e) => e.stopPropagation()}>
+          <div style={{
+            ...STYLES.modalOverlay,
+            alignItems: 'flex-start', // Position modal at top instead of center
+            paddingTop: '100px' // Add some space from the very top
+          }} onClick={() => {
+            setShowFullRestaurantName(false);
+          }}>
+              <div style={getRestaurantModalContainerStyle()} onClick={(e) => {
+                e.stopPropagation();
+              }}>
                   <p style={{
-                      ...SCREEN_STYLES.menu.fullNameModal.name,
+                      ...getRestaurantModalNameStyle(),
                       marginBottom: displayAddress ? SPACING[2] : SPACING[6],
                   }}>
                       {restaurant.name}
                   </p>
                   {displayAddress && (
-                      <p style={SCREEN_STYLES.menu.fullNameModal.address}>
+                      <p style={getRestaurantModalAddressStyle()}>
                           {displayAddress}
                       </p>
                   )}
-                  <button onClick={() => setShowFullRestaurantName(false)} style={SCREEN_STYLES.menu.fullNameModal.closeButton}>
+                  <button 
+                    onClick={() => {
+                      setShowFullRestaurantName(false);
+                    }} 
+                    style={getRestaurantModalCloseButtonStyle()}
+                    onMouseEnter={(e) => {
+                      if (theme.colors.restaurantModalCloseButtonHoverBackground) {
+                        e.currentTarget.style.backgroundColor = theme.colors.restaurantModalCloseButtonHoverBackground;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (theme.colors.restaurantModalCloseButtonBackground) {
+                        e.currentTarget.style.backgroundColor = theme.colors.restaurantModalCloseButtonBackground;
+                      }
+                    }}
+                  >
                       Close
                   </button>
               </div>

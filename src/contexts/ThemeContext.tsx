@@ -294,6 +294,21 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
       color: '#FFFFFF',
       boxShadow: '0 0 15px rgba(255, 0, 255, 0.4)',
     },
+    
+    // Restaurant name modal semantic tokens for 90s theme
+    restaurantModalContainer: {
+      backgroundColor: '#1A0D26',
+      border: '2px solid #ff00ff',
+      boxShadow: '0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1)',
+      borderRadius: '0px',
+    },
+    restaurantModalNameColor: '#fecd06',
+    restaurantModalNameTextShadow: '0 0 15px #ff00ff, 0 0 30px #ff00ff',
+    restaurantModalAddressColor: '#C2A6DE',
+    restaurantModalCloseButtonBackground: '#ff00ff',
+    restaurantModalCloseButtonHoverBackground: '#E600E6',
+    restaurantModalCloseButtonTextColor: '#FFFFFF',
+    restaurantModalCloseButtonBoxShadow: '0 0 20px #ff00ff, 0 4px 15px rgba(255, 0, 255, 0.4)',
   },
   
   victorian: {
@@ -610,6 +625,26 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
       color: '#ffffff',
       boxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
     },
+    
+    // Restaurant name modal semantic tokens for Grumpy Cat theme
+    restaurantModalContainer: {
+      backgroundColor: '#fbeedd',
+      border: '2px solid #dd5a14',
+      boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
+      borderRadius: '4px',
+      backgroundImage: `
+        repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.1) 14px, rgba(221, 90, 20, 0.1) 16px),
+        repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.08) 14px, rgba(238, 157, 42, 0.08) 16px)
+      `,
+    },
+    restaurantModalNameColor: '#482107',
+    restaurantModalNameTextShadow: 'none',
+    restaurantModalAddressColor: '#ca4719',
+    restaurantModalCloseButtonBackground: '#dd5a14',
+    restaurantModalCloseButtonHoverBackground: '#c54f11',
+    restaurantModalCloseButtonTextColor: '#ffffff',
+    restaurantModalCloseButtonBoxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
+    restaurantModalCloseButtonBorder: '2px solid #482107',
   },
 };
 

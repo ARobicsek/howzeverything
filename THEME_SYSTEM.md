@@ -168,6 +168,19 @@ theme.colors.loginFormCancelColor              // Cancel button color
 theme.colors.loginFormPasswordToggleColor      // Password visibility toggle color
 ```
 
+#### Restaurant Modal (Modal Components)
+```typescript
+theme.colors.restaurantModalContainer          // Container styling object with background, border, shadow, patterns
+theme.colors.restaurantModalNameColor          // Restaurant name text color
+theme.colors.restaurantModalNameTextShadow     // Restaurant name text effects
+theme.colors.restaurantModalAddressColor       // Address text color
+theme.colors.restaurantModalCloseButtonBackground       // Close button background
+theme.colors.restaurantModalCloseButtonHoverBackground  // Close button hover state
+theme.colors.restaurantModalCloseButtonTextColor        // Close button text color
+theme.colors.restaurantModalCloseButtonBoxShadow        // Close button shadow effects
+theme.colors.restaurantModalCloseButtonBorder           // Close button border color
+```
+
 #### MenuScreen Sort Options
 ```typescript
 theme.colors.menuSortOptionsContainer          // Sort container styling object with background, border, patterns
@@ -299,7 +312,36 @@ Theme-aware modal styling using semantic tokens:
 </div>
 ```
 
-**Pattern**: Modal components use component-specific semantic tokens (`loginForm*`) that can override default styling per theme. This allows for complex theming like 90s neon effects or Grumpy Cat argyle patterns without conditional logic.
+**Pattern**: Modal components use component-specific semantic tokens (`loginForm*`, `restaurantModal*`) that can override default styling per theme. This allows for complex theming like 90s neon effects or Grumpy Cat argyle patterns without conditional logic.
+
+### Restaurant Modal Example
+Theme-aware restaurant modal styling using semantic tokens:
+```typescript
+// Container with theme-specific styling object
+<div style={getRestaurantModalContainerStyle()}>
+  {/* Uses theme.colors.restaurantModalContainer which can include
+      backgroundColor, border, boxShadow, borderRadius, backgroundImage (argyle patterns) */}
+  
+  {/* Restaurant name with theme-specific text effects */}
+  <p style={{
+    color: theme.colors.restaurantModalNameColor,
+    textShadow: theme.colors.restaurantModalNameTextShadow
+  }}>
+    
+  {/* Address with theme-specific color */}
+  <p style={{
+    color: theme.colors.restaurantModalAddressColor
+  }}>
+  
+  {/* Close button with theme-specific styling and hover effects */}
+  <button style={{
+    backgroundColor: theme.colors.restaurantModalCloseButtonBackground,
+    color: theme.colors.restaurantModalCloseButtonTextColor,
+    border: theme.colors.restaurantModalCloseButtonBorder,
+    boxShadow: theme.colors.restaurantModalCloseButtonBoxShadow
+  }}>
+</div>
+```
 
 ### Interactive UI Components
 Theme-aware interactive elements like sort options:
