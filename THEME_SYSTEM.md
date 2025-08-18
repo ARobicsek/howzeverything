@@ -145,6 +145,29 @@ theme.colors.ratingsTitleTextShadow           // Title effects
 theme.colors.ratingsSearchBorder              // Search input borders
 ```
 
+#### LoginForm (Modal Components)
+```typescript
+theme.colors.loginFormContainer                // Container styling object with background, border, shadow
+theme.colors.loginFormHeaderTitleColor         // Header title text color
+theme.colors.loginFormHeaderTitleTextShadow    // Header title text effects
+theme.colors.loginFormHeaderSubtitleColor      // Subtitle text color
+theme.colors.loginFormErrorBackground          // Error container background
+theme.colors.loginFormErrorBorder              // Error container border
+theme.colors.loginFormErrorTextColor           // Error text color
+theme.colors.loginFormLabelColor               // Form label text color
+theme.colors.loginFormInputBackground          // Input field backgrounds
+theme.colors.loginFormInputBorder              // Input field borders
+theme.colors.loginFormInputBoxShadow           // Input field shadow effects
+theme.colors.loginFormInputColor               // Input text color
+theme.colors.loginFormSubmitButtonBackground   // Submit button background
+theme.colors.loginFormSubmitButtonHoverBackground // Submit button hover state
+theme.colors.loginFormSubmitButtonTextColor    // Submit button text color
+theme.colors.loginFormSubmitButtonBoxShadow    // Submit button shadow effects
+theme.colors.loginFormModeToggleColor          // Mode toggle button color
+theme.colors.loginFormCancelColor              // Cancel button color
+theme.colors.loginFormPasswordToggleColor      // Password visibility toggle color
+```
+
 ## Adding New Themes
 
 ### Method 1: Static Theme Definition (Current)
@@ -237,6 +260,39 @@ Consistent input styling:
   backgroundColor: theme.colors.inputBg
 }} />
 ```
+
+### Modal Components
+Theme-aware modal styling using semantic tokens:
+```typescript
+// Container with theme-specific styling object
+<div style={getContainerStyle()}>
+  {/* Uses theme.colors.loginFormContainer which can include
+      backgroundColor, border, boxShadow, borderRadius, backgroundImage */}
+  
+  {/* Header with theme-specific text effects */}
+  <h2 style={{
+    color: theme.colors.loginFormHeaderTitleColor,
+    textShadow: theme.colors.loginFormHeaderTitleTextShadow
+  }}>
+    
+  {/* Form inputs with theme-specific styling */}
+  <input style={{
+    backgroundColor: theme.colors.loginFormInputBackground,
+    border: theme.colors.loginFormInputBorder,
+    boxShadow: theme.colors.loginFormInputBoxShadow,
+    color: theme.colors.loginFormInputColor
+  }} />
+  
+  {/* Submit button with theme-specific effects */}
+  <button style={{
+    backgroundColor: theme.colors.loginFormSubmitButtonBackground,
+    color: theme.colors.loginFormSubmitButtonTextColor,
+    boxShadow: theme.colors.loginFormSubmitButtonBoxShadow
+  }}>
+</div>
+```
+
+**Pattern**: Modal components use component-specific semantic tokens (`loginForm*`) that can override default styling per theme. This allows for complex theming like 90s neon effects or Grumpy Cat argyle patterns without conditional logic.
 
 ## Common Gotchas & Implementation Notes
 
@@ -414,6 +470,21 @@ git commit -m "assets: add theme image files"
   // Screen-specific headers
   aboutHeaderBackground: '#color',
   findRestaurantHeaderBackground: '#color',
+  
+  // Modal component theming (example: LoginForm)
+  loginFormContainer: {
+    backgroundColor: '#modal-bg',
+    border: '2px solid #modal-border',
+    boxShadow: '0 0 20px rgba(color, 0.3)',
+    borderRadius: '8px',
+    // Can include backgroundImage for patterns (e.g., argyle)
+  },
+  loginFormHeaderTitleColor: '#title-color',
+  loginFormHeaderTitleTextShadow: '0 0 10px #glow-color', // For neon effects
+  loginFormInputBackground: '#input-bg',
+  loginFormInputBorder: '2px solid #input-border',
+  loginFormSubmitButtonBackground: '#button-bg',
+  loginFormSubmitButtonBoxShadow: '0 0 15px #button-glow',
   // ... etc
 }
 ```
@@ -531,6 +602,43 @@ if (themeId === 'your-theme') {
   };
 }
 ```
+
+### Modal Components Not Themed Correctly
+**Symptom**: Modal components (like LoginForm) don't show theme-specific styling
+**Common Causes & Solutions**:
+
+1. **Missing semantic tokens**: Component uses hardcoded styles instead of theme tokens
+   - **Fix**: Add component-specific semantic tokens to `THEME_COLOR_OVERRIDES`
+   - **Example**: Add `loginFormContainer`, `loginFormInputBackground`, etc.
+
+2. **Component not using theme functions**: Component still uses static `COMPONENT_STYLES`
+   - **Fix**: Create theme-aware style functions that merge base styles with theme tokens
+   ```typescript
+   const getInputStyle = () => ({
+     ...STYLES.input,
+     ...(theme.colors.loginFormInputBackground && {
+       backgroundColor: theme.colors.loginFormInputBackground,
+     }),
+   });
+   ```
+
+3. **Complex styling objects not applied**: Theme tokens for complex objects (like `loginFormContainer`) ignored
+   - **Fix**: Use object spread to merge complex styling objects
+   ```typescript
+   const getContainerStyle = () => ({
+     ...COMPONENT_STYLES.loginForm.container,
+     ...(theme.colors.loginFormContainer || {}),
+   });
+   ```
+
+4. **Pattern backgrounds not rendering**: Complex CSS patterns in React inline styles
+   - **Fix**: Use template literals for `backgroundImage` patterns
+   ```typescript
+   backgroundImage: `
+     repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.1) 14px, rgba(221, 90, 20, 0.1) 16px),
+     repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.08) 14px, rgba(238, 157, 42, 0.08) 16px)
+   `
+   ```
 
 ### Styling Issues
 - Use browser dev tools to inspect applied theme values
