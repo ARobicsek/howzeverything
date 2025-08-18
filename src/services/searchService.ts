@@ -6,6 +6,7 @@ import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { analyzeQuery } from '../utils/queryAnalysis';
 import { calculateEnhancedSimilarity } from '../utils/textUtils';
 
+
 export class SearchService {
   private abortController: AbortController | null = null;
   private cache = new Map<string, GeoapifyPlace[]>();
@@ -88,8 +89,10 @@ export class SearchService {
       }
       
       const apiPlaces: GeoapifyPlace[] = rawApiFeatures
-        .filter(f => f && f.properties && f.properties.place_id)
-        .map(f => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((f: any) => f && f.properties && f.properties.place_id)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((f: any) => {
           const props = f.properties;
 
           if (!props.name) {
@@ -140,12 +143,12 @@ export class SearchService {
       this.cache.set(cacheKey, combinedResults);
       return combinedResults;
     } catch (err: unknown) {
-      if (err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         console.log('Search aborted');
         return [];
       }
       console.error('Error searching restaurants:', err);
-      throw new Error(`Search failed: ${err.message}`);
+      throw new Error(`Search failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       this.abortController = null;
     }

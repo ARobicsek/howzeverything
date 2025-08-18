@@ -120,7 +120,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (permissionStatus.state === 'granted') {
         checkAndFetchLocation().catch(() => {});
       }
-    } catch (error) {
+    } catch {
       // This is a proactive check, so we can ignore errors.
     }
   }, [state.coordinates, state.status, checkAndFetchLocation]);
@@ -255,6 +255,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 };
 
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLocationService = (): LocationContextType => {
   const context = useContext(LocationContext);
   if (context === undefined) {

@@ -234,25 +234,25 @@ const MenuScreen: React.FC = () => {
   // Get theme-specific styles for sort options
   const getSortOptionsContainerStyle = () => ({
     ...SCREEN_STYLES.menu.advancedSort.container,
-    ...(theme.colors.menuSortOptionsContainer || {}),
+    backgroundColor: theme.colors.menuSortOptionsContainer || SCREEN_STYLES.menu.advancedSort.container.backgroundColor,
   });
 
   const getSortButtonStyle = (isActive: boolean) => {
     const baseStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
-    const themeOverride = isActive 
-      ? (theme.colors.menuSortButtonActive || {})
-      : (theme.colors.menuSortButtonDefault || {});
+    const themeBackgroundColor = isActive 
+      ? theme.colors.menuSortButtonActive
+      : theme.colors.menuSortButtonDefault;
     
     return {
       ...baseStyle,
-      ...themeOverride,
+      ...(themeBackgroundColor && { backgroundColor: themeBackgroundColor }),
     };
   };
 
   // Get theme-specific styles for restaurant modal
   const getRestaurantModalContainerStyle = () => ({
     ...SCREEN_STYLES.menu.fullNameModal.content,
-    ...(theme.colors.restaurantModalContainer || {}),
+    backgroundColor: theme.colors.restaurantModalContainer || SCREEN_STYLES.menu.fullNameModal.content.backgroundColor,
   });
 
   const getRestaurantModalNameStyle = () => ({
@@ -790,7 +790,7 @@ const MenuScreen: React.FC = () => {
                   const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
                   return (
                     <button key={option.value} onClick={() => { if (isActive) { setSortBy(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' })); } else { setSortBy({ criterion: option.value as typeof sortBy.criterion, direction: (option.value === 'your_rating' || option.value === 'community_rating') ? 'desc' : 'asc' }); } }} style={buttonStyle}>
-                      {option.value === 'your_rating' ? (<><span>My</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
+                      {option.value === 'your_rating' ? (<><span>My</span><span style={{ color: isActive ? theme.colors.white : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? theme.colors.white : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
                       {arrow && <span style={SCREEN_STYLES.menu.advancedSort.arrow}>{arrow}</span>}
                     </button>
                   );

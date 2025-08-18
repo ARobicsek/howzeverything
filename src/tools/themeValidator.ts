@@ -318,7 +318,7 @@ export async function validateThemeAssets(themeId: string): Promise<ValidationRe
         });
         score -= 12.5; // 100 / 8 assets
       }
-    } catch (error) {
+    } catch {
       issues.push({
         type: 'error',
         field: 'assets',

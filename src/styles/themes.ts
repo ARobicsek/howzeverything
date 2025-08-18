@@ -164,6 +164,23 @@ export type ColorPalette = {
   loginFormModeToggleColor: string;
   loginFormCancelColor: string;
   loginFormPasswordToggleColor: string;
+  // Missing properties used in components
+  signOutButtonText: string;
+  discoverySelectTextColor: string;
+  menuSortOptionsContainer: string;
+  menuSortButtonActive: string;
+  menuSortButtonDefault: string;
+  restaurantModalContainer: string;
+  restaurantModalNameColor: string;
+  restaurantModalNameTextShadow: string;
+  restaurantModalAddressColor: string;
+  restaurantModalCloseButtonBackground: string;
+  restaurantModalCloseButtonTextColor: string;
+  restaurantModalCloseButtonBoxShadow: string;
+  restaurantModalCloseButtonBorder: string;
+  restaurantModalCloseButtonHoverBackground: string;
+  iconButtonBorderActive: string;
+  iconButtonBorderInactive: string;
 };
 
 export type Themes = {
@@ -342,6 +359,23 @@ export const THEMES: Themes = {
     loginFormModeToggleColor: '#2563EB',
     loginFormCancelColor: '#6B7280',
     loginFormPasswordToggleColor: '#6B7280',
+    // Missing properties used in components
+    signOutButtonText: '#EF4444',
+    discoverySelectTextColor: '#374151',
+    menuSortOptionsContainer: '#FFFFFF',
+    menuSortButtonActive: '#2563EB',
+    menuSortButtonDefault: '#E5E7EB',
+    restaurantModalContainer: '#FFFFFF',
+    restaurantModalNameColor: '#111827',
+    restaurantModalNameTextShadow: 'none',
+    restaurantModalAddressColor: '#6B7280',
+    restaurantModalCloseButtonBackground: '#EF4444',
+    restaurantModalCloseButtonTextColor: '#FFFFFF',
+    restaurantModalCloseButtonBoxShadow: 'none',
+    restaurantModalCloseButtonBorder: 'none',
+    restaurantModalCloseButtonHoverBackground: '#DC2626',
+    iconButtonBorderActive: '#2563EB',
+    iconButtonBorderInactive: '#E5E7EB',
   },
   '90s': {
     // Primary Colors - Neon and Electric
@@ -514,5 +548,22 @@ export const THEMES: Themes = {
     loginFormModeToggleColor: '#ff00ff',
     loginFormCancelColor: '#C2A6DE',
     loginFormPasswordToggleColor: '#C2A6DE',
+    // Missing properties used in components
+    signOutButtonText: '#FF0040',
+    discoverySelectTextColor: '#fecd06',
+    menuSortOptionsContainer: 'rgba(255, 0, 255, 0.1)',
+    menuSortButtonActive: '#FF00FF',
+    menuSortButtonDefault: '#4D3664',
+    restaurantModalContainer: 'rgba(26, 13, 38, 0.95)',
+    restaurantModalNameColor: '#fecd06',
+    restaurantModalNameTextShadow: '0 0 10px #ff00ff',
+    restaurantModalAddressColor: '#C2A6DE',
+    restaurantModalCloseButtonBackground: '#FF0040',
+    restaurantModalCloseButtonTextColor: '#FFFFFF',
+    restaurantModalCloseButtonBoxShadow: '0 0 15px rgba(255, 0, 64, 0.5)',
+    restaurantModalCloseButtonBorder: '2px solid #FF0040',
+    restaurantModalCloseButtonHoverBackground: '#CC0033',
+    iconButtonBorderActive: '#FF00FF',
+    iconButtonBorderInactive: '#4D3664',
   },
 };

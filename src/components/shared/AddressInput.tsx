@@ -73,9 +73,28 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
 
 
   // --- Autocomplete State ---
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  interface AutocompleteSuggestion {
+    properties: {
+      formatted: string;
+      name?: string;
+      address_line1?: string;
+      address_line2?: string;
+      city?: string;
+      state?: string;
+      state_code?: string;
+      postcode?: string;
+      country?: string;
+      country_code?: string;
+      housenumber?: string;
+      street?: string;
+      lat?: number;
+      lon?: number;
+    };
+  }
+  
+  const [suggestions, setSuggestions] = useState<AutocompleteSuggestion[]>([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
-  const suggestionsCache = useRef(new Map<string, any[]>());
+  const suggestionsCache = useRef(new Map<string, AutocompleteSuggestion[]>());
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const skipSuggestionsEffect = useRef(false);
@@ -83,7 +102,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
 
 
 
-  const stableOnAddressChange = useCallback(onAddressChange, []);
+  const stableOnAddressChange = useCallback(onAddressChange, [onAddressChange]);
 
 
 
@@ -129,7 +148,7 @@ const AddressInput: React.FC<AddressInputProps> = ({ initialData, onAddressChang
 
 
 
-  const handleSuggestionClick = (suggestion: any) => {
+  const handleSuggestionClick = (suggestion: AutocompleteSuggestion) => {
     skipSuggestionsEffect.current = true;
     setSuggestions([]);
     setIsFetchingSuggestions(false);

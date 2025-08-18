@@ -127,7 +127,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
       backgroundColor: theme.colors.loginFormInputBackground,
     }),
     ...(theme.colors.loginFormInputBorder && {
-      border: theme.colors.loginFormInputBorder,
+      borderColor: theme.colors.loginFormInputBorder,
     }),
     ...(theme.colors.loginFormInputBoxShadow && {
       boxShadow: theme.colors.loginFormInputBoxShadow,

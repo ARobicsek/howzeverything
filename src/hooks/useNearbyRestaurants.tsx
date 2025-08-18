@@ -6,6 +6,12 @@ import { parseAddress } from '../utils/addressParser';
 import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { calculateEnhancedSimilarity } from '../utils/textUtils';
 
+interface RestaurantStats {
+  restaurant_id: string;
+  dish_count: number;
+  rater_count: number;
+}
+
 
 // Helper function to calculate distance in miles
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -122,7 +128,7 @@ export const useNearbyRestaurants = () => {
         if (statsError) {
             console.error('Error fetching nearby restaurant stats:', statsError);
         } else if (stats) {
-            const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
+            const statsMap = new Map(stats.map((s: RestaurantStats) => [s.restaurant_id, s]));
             nearbyDbRestaurants = nearbyDbRestaurants.map(r => {
                 const rStats = statsMap.get(r.id);
                 return {
@@ -222,9 +228,9 @@ export const useNearbyRestaurants = () => {
         console.warn("Failed to write to nearby cache", e);
       }
       setRestaurants(combinedResults);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error fetching nearby restaurants:', e);
-      setError(e.message || "An unknown error occurred.");
+      setError(e instanceof Error ? e.message : "An unknown error occurred.");
       setRestaurants([]);
     } finally {
       setLoading(false);

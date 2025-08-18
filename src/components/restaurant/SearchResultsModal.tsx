@@ -172,8 +172,8 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
                   category: Array.isArray(props.categories) ? props.categories.join(',') : null,
                   opening_hours: null,
                   created_by: null,
-                  dishCount: (props as any).dishCount,
-                  raterCount: (props as any).raterCount,
+                  dishCount: (props as { dishCount?: number }).dishCount,
+                  raterCount: (props as { raterCount?: number }).raterCount,
                 };
 
 

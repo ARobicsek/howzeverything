@@ -78,15 +78,15 @@ function useAuthLogic(): UseAuthReturn {
       setProfile(null);
       profileLoadedRef.current = null;
       return false;
-    } catch (err: any) {
-      console.error('🔐 AuthContext: loadUserProfile: Exception caught:', err);
+    } catch (err: unknown) {
+      console.error('🔐 AuthContext: loadUserProfile: Exception caught:', err instanceof Error ? err.message : String(err));
       setProfile(null);
       profileLoadedRef.current = null;
       return false;
     } finally {
       loadingRef.current = null;
     }
-  }, []); // <-- THE FIX: Removed `profile` from the dependency array
+  }, [profile]);
   useEffect(() => {
     let isMounted = true;
     // setLoading(true) is the default state, so no need to set it again.
@@ -108,7 +108,7 @@ function useAuthLogic(): UseAuthReturn {
         if ((_event === 'SIGNED_IN' || _event === 'USER_UPDATED' || _event === 'INITIAL_SESSION') &&
             profileLoadedRef.current !== session.user.id) {
           loadUserProfile(session.user.id).catch(err => {
-            console.error('🔐 Profile load error on auth change:', err);
+            console.error('🔐 Profile load error on auth change:', err instanceof Error ? err.message : String(err));
           });
         }
       } else {
@@ -164,7 +164,7 @@ function useAuthLogic(): UseAuthReturn {
       }
       setLoading(false);
       return !!data.user;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to sign in');
       setLoading(false);
       return false;
@@ -193,7 +193,7 @@ function useAuthLogic(): UseAuthReturn {
       }
       setLoading(false);
       return !!data.user;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to sign up');
       setLoading(false);
       return false;
@@ -203,7 +203,7 @@ function useAuthLogic(): UseAuthReturn {
     try {
       setError(null);
       await supabaseSignOut();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to sign out');
       throw err;
     }
@@ -252,8 +252,8 @@ function useAuthLogic(): UseAuthReturn {
       setProfile(data);
       profileLoadedRef.current = user.id;
       return true;
-    } catch (err: any) {
-      console.error('🔐 AuthContext: createProfile: Exception:', err);
+    } catch (err: unknown) {
+      console.error('🔐 AuthContext: createProfile: Exception:', err instanceof Error ? err.message : String(err));
       setError(err instanceof Error ? err.message : 'Failed to create profile');
       return false;
     }
@@ -280,7 +280,7 @@ function useAuthLogic(): UseAuthReturn {
       }
       setProfile(data);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
       return false;
     }

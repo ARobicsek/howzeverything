@@ -72,7 +72,7 @@ export const StarRating: React.FC<{
           return (
             <button
               key={star}
-              onClick={(e) => { e.stopPropagation(); !readonly && onRatingChange?.(star); }}
+              onClick={(e) => { e.stopPropagation(); if (!readonly) onRatingChange?.(star); }}
               disabled={readonly}
               className={`transition-all duration-200 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'}`}
               style={{

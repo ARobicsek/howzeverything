@@ -78,7 +78,19 @@ export interface DishSearchResultWithRestaurant extends DishWithDetails {
   };
 }
 // NEW: Standalone processor for useDishes hook to avoid dependency on restaurant data
-const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
+interface RawDishData {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description?: string;
+  price?: number;
+  dish_ratings: DishRating[];
+  dish_comments: unknown[];
+  dish_photos: unknown[];
+  [key: string]: unknown;
+}
+
+const processDishesForMenu = (rawData: RawDishData[]): DishWithDetails[] => {
   return (rawData || [])
     .map((d): DishWithDetails | null => {
       if (!d || !d.id || !d.restaurant_id) return null; // Basic validation
@@ -87,120 +99,136 @@ const processDishesForMenu = (rawData: any[]): DishWithDetails[] => {
       const actualAverageRating = actualTotalRatings > 0
         ? ratings.reduce((sum: number, r: DishRating) => sum + r.rating, 0) / actualTotalRatings
         : 0;
-      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || [])
-        .filter((comment: any) => comment.is_hidden !== true)
-        .map((comment: any): DishComment => ({
-          id: comment.id,
-          dish_id: comment.dish_id || d.id,
-          comment_text: comment.comment_text,
-          created_at: comment.created_at,
-          updated_at: comment.updated_at,
-          user_id: comment.user_id,
-          is_hidden: comment.is_hidden,
-          commenter_name: comment.users?.full_name || 'Anonymous User',
-          commenter_email: comment.users?.email,
-        }));
-      const photosWithInfo: DishPhoto[] = ((d.dish_photos as any[]) || [])
-        .map((photo: any): DishPhoto | null => {
-          const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(photo.storage_path);
-          if (!photo.user_id || !photo.created_at || !photo.id) return null;
+      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as unknown[]) || [])
+        .filter((comment: unknown) => {
+          const c = comment as { is_hidden?: boolean };
+          return c.is_hidden !== true;
+        })
+        .map((comment: unknown): DishComment => {
+          const c = comment as Record<string, unknown>;
+          const users = c.users as { full_name?: string } | undefined;
           return {
-            id: photo.id,
-            dish_id: photo.dish_id ?? d.id,
-            user_id: photo.user_id,
-            storage_path: photo.storage_path,
-            caption: photo.caption,
-            width: photo.width,
-            height: photo.height,
-            created_at: photo.created_at,
-            updated_at: photo.updated_at ?? photo.created_at,
-            photographer_name: photo.users?.full_name || 'Anonymous User',
-            photographer_email: photo.users?.email,
+            id: String(c.id || ''),
+            dish_id: String(c.dish_id || d.id || ''),
+            comment_text: String(c.comment_text || ''),
+            created_at: String(c.created_at || ''),
+            updated_at: String(c.updated_at || ''),
+            user_id: String(c.user_id || ''),
+            is_hidden: Boolean(c.is_hidden),
+            commenter_name: users?.full_name || 'Anonymous User',
+            commenter_email: (users as { email?: string })?.email,
+          };
+        });
+      const photosWithInfo: DishPhoto[] = ((d.dish_photos as unknown[]) || [])
+        .map((photo: unknown): DishPhoto | null => {
+          const p = photo as Record<string, unknown>;
+          const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(p.storage_path as string);
+          if (!p.user_id || !p.created_at || !p.id) return null;
+          const users = p.users as { full_name?: string; email?: string } | undefined;
+          return {
+            id: p.id as string,
+            dish_id: (p.dish_id as string) ?? d.id,
+            user_id: p.user_id as string,
+            storage_path: p.storage_path as string,
+            caption: p.caption as string | null,
+            width: p.width as number | null,
+            height: p.height as number | null,
+            created_at: p.created_at as string,
+            updated_at: (p.updated_at as string) ?? (p.created_at as string),
+            photographer_name: users?.full_name || 'Anonymous User',
+            photographer_email: users?.email,
             url: urlData?.publicUrl,
           };
         }).filter((p): p is DishPhoto => p !== null);
       const result: DishWithDetails = {
         id: d.id,
-        restaurant_id: d.restaurant_id,
+        restaurant_id: d.restaurant_id || '',
         name: d.name || '',
-        description: d.description,
-        category: d.category,
-        is_active: d.is_active ?? true,
-        created_by: d.created_by,
-        verified_by_restaurant: d.verified_by_restaurant ?? false,
-        created_at: d.created_at ?? new Date().toISOString(),
-        updated_at: d.updated_at ?? new Date().toISOString(),
+        description: d.description ? String(d.description) : null,
+        category: d.category ? String(d.category) : null,
+        is_active: Boolean(d.is_active ?? true),
+        created_by: d.created_by ? String(d.created_by) : null,
+        verified_by_restaurant: Boolean(d.verified_by_restaurant ?? false),
+        created_at: String(d.created_at ?? new Date().toISOString()),
+        updated_at: String(d.updated_at ?? new Date().toISOString()),
         comments: commentsWithUserInfo,
         ratings: ratings,
         photos: photosWithInfo,
         total_ratings: actualTotalRatings,
         average_rating: Math.round(actualAverageRating * 10) / 10,
-        dateAdded: d.created_at ?? new Date().toISOString(),
+        dateAdded: String(d.created_at ?? new Date().toISOString()),
       };
       return result;
     })
     .filter((d): d is DishWithDetails => d !== null);
 };
 // NEW: Helper to process raw dish data from Supabase into our detailed types
-const processRawDishes = (rawData: any[]): DishSearchResultWithRestaurant[] => {
+const processRawDishes = (rawData: unknown[]): DishSearchResultWithRestaurant[] => {
   return (rawData || [])
-    .map((d): DishSearchResultWithRestaurant | null => {
+    .map((item: unknown): DishSearchResultWithRestaurant | null => {
+      const d = item as Record<string, unknown>;
       if (!d || !d.restaurants || !d.id || !d.restaurant_id) return null;
       const ratings = (d.dish_ratings as DishRating[]) || [];
       const actualTotalRatings = ratings.length;
       const actualAverageRating = actualTotalRatings > 0
         ? ratings.reduce((sum: number, r: DishRating) => sum + r.rating, 0) / actualTotalRatings
         : 0;
-      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as any[]) || [])
-        .filter((comment: any) => comment.is_hidden !== true)
-        .map((comment: any): DishComment => ({
-            id: comment.id,
-            dish_id: comment.dish_id || d.id,
-            comment_text: comment.comment_text,
-            created_at: comment.created_at,
-            updated_at: comment.updated_at,
-            user_id: comment.user_id,
-            is_hidden: comment.is_hidden,
-            commenter_name: comment.users?.full_name || 'Anonymous User',
-            commenter_email: comment.users?.email,
-        }));
-      const photosWithInfo: DishPhoto[] = ((d.dish_photos as any[]) || [])
-        .map((photo: any): DishPhoto | null => {
-          const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(photo.storage_path);
-          if (!photo.user_id || !photo.created_at || !photo.id) return null;
+      const commentsWithUserInfo: DishComment[] = ((d.dish_comments as unknown[]) || [])
+        .filter((comment: unknown) => (comment as Record<string, unknown>).is_hidden !== true)
+        .map((comment: unknown): DishComment => {
+          const c = comment as Record<string, unknown>;
+          const users = c.users as { full_name?: string; email?: string } | undefined;
           return {
-            id: photo.id,
-            dish_id: photo.dish_id ?? d.id,
-            user_id: photo.user_id,
-            storage_path: photo.storage_path,
-            caption: photo.caption,
-            width: photo.width,
-            height: photo.height,
-            created_at: photo.created_at,
-            updated_at: photo.updated_at ?? photo.created_at,
-            photographer_name: photo.users?.full_name || 'Anonymous User',
-            photographer_email: photo.users?.email,
+            id: String(c.id || ''),
+            dish_id: String(c.dish_id || d.id || ''),
+            comment_text: String(c.comment_text || ''),
+            created_at: String(c.created_at || ''),
+            updated_at: String(c.updated_at || ''),
+            user_id: String(c.user_id || ''),
+            is_hidden: Boolean(c.is_hidden),
+            commenter_name: users?.full_name || 'Anonymous User',
+            commenter_email: users?.email,
+          };
+        });
+      const photosWithInfo: DishPhoto[] = ((d.dish_photos as unknown[]) || [])
+        .map((photo: unknown): DishPhoto | null => {
+          const p = photo as Record<string, unknown>;
+          const { data: urlData } = supabase.storage.from('dish-photos').getPublicUrl(String(p.storage_path || ''));
+          if (!p.user_id || !p.created_at || !p.id) return null;
+          const users = p.users as { full_name?: string; email?: string } | undefined;
+          return {
+            id: String(p.id),
+            dish_id: String(p.dish_id ?? d.id),
+            user_id: String(p.user_id),
+            storage_path: String(p.storage_path || ''),
+            caption: p.caption ? String(p.caption) : null,
+            width: p.width ? Number(p.width) : null,
+            height: p.height ? Number(p.height) : null,
+            created_at: String(p.created_at),
+            updated_at: String(p.updated_at ?? p.created_at),
+            photographer_name: users?.full_name || 'Anonymous User',
+            photographer_email: users?.email,
             url: urlData?.publicUrl,
           };
         }).filter((p): p is DishPhoto => p !== null);
       const result: DishSearchResultWithRestaurant = {
-        id: d.id,
-        restaurant_id: d.restaurant_id,
-        name: d.name || '',
-        description: d.description,
-        category: d.category,
-        is_active: d.is_active ?? true,
-        created_by: d.created_by,
-        verified_by_restaurant: d.verified_by_restaurant ?? false,
-        created_at: d.created_at ?? new Date().toISOString(),
-        updated_at: d.updated_at ?? new Date().toISOString(),
+        id: String(d.id || ''),
+        restaurant_id: String(d.restaurant_id || ''),
+        name: String(d.name || ''),
+        description: d.description ? String(d.description) : null,
+        category: d.category ? String(d.category) : null,
+        is_active: Boolean(d.is_active ?? true),
+        created_by: d.created_by ? String(d.created_by) : null,
+        verified_by_restaurant: Boolean(d.verified_by_restaurant ?? false),
+        created_at: String(d.created_at ?? new Date().toISOString()),
+        updated_at: String(d.updated_at ?? new Date().toISOString()),
         comments: commentsWithUserInfo,
         ratings: ratings,
         photos: photosWithInfo,
         total_ratings: actualTotalRatings,
         average_rating: Math.round(actualAverageRating * 10) / 10,
-        dateAdded: d.created_at ?? new Date().toISOString(),
-        restaurant: d.restaurants, // The joined restaurant data
+        dateAdded: String(d.created_at ?? new Date().toISOString()),
+        restaurant: (d.restaurants as { id: string; name: string; latitude?: number | null; longitude?: number | null }) || { id: '', name: '' }, // The joined restaurant data
       };
       return result;
     })
@@ -276,22 +304,22 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         const data = await response.json();
         
         // Sanitize data from the edge function to ensure it matches client-side types
-        const dishesWithDetails = (data || []).map((dish: any) => ({
+        const dishesWithDetails = (data || []).map((dish: RawDishData) => ({
             ...dish,
             ratings: dish.ratings || [],
             comments: dish.comments || [],
             photos: dish.photos || [],
         }));
         setDishes(sortDishesArray(dishesWithDetails, sortBy, currentUserId));
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching menu data:', err);
-        setError(`Failed to load menu: ${err.message}`);
+        setError(`Failed to load menu: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         setIsLoading(false);
       }
     };
     fetchDishes();
-  }, [restaurantId, sortBy.criterion, sortBy.direction, currentUserId]);
+  }, [restaurantId, sortBy, currentUserId]);
   const searchDishes = (searchTerm: string): DishSearchResult[] => {
     if (!searchTerm.trim()) {
       return dishes.map(dish => ({
@@ -351,8 +379,15 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             dish_id: dishData.id
           };
         }
+        const dishWithRelations = {
+          ...dishData,
+          description: dishData.description ?? undefined,
+          dish_ratings: tempRating ? [tempRating] : [],
+          dish_comments: [],
+          dish_photos: []
+        };
         const newDish: DishWithDetails = {
-          ...(processDishesForMenu([dishData])[0]),
+          ...(processDishesForMenu([dishWithRelations])[0]),
           ratings: tempRating ? [tempRating] : [],
           total_ratings: tempRating ? 1 : 0,
           average_rating: tempRating ? rating : 0,
@@ -360,9 +395,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         setDishes(prev => sortDishesArray([...prev, newDish], sortBy, currentUserId));
         return newDish;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error adding dish:', err);
-      setError(`Failed to add dish: ${err.message}`);
+      setError(`Failed to add dish: ${err instanceof Error ? err.message : String(err)}`);
       return null;
     }
     return null;
@@ -400,9 +435,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }
       setDishes(prev => prev.filter(d => d.id !== dishId));
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting dish:', err);
-      setError(`Failed to delete dish: ${err.message}`);
+      setError(`Failed to delete dish: ${err instanceof Error ? err.message : String(err)}`);
       return false;
     }
   };
@@ -424,9 +459,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
             return sortDishesArray(updatedDishes, sortBy, currentUserId);
         });
         return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error updating dish name:', err);
-        setError(`Failed to update dish name: ${err.message}`);
+        setError(`Failed to update dish name: ${err instanceof Error ? err.message : String(err)}`);
         return false;
     }
   };
@@ -959,12 +994,14 @@ export const searchAllDishes = async (
 
 
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: any[] = await response.json();
 
 
     // --- THE FIX: Client-side data sanitization ---
     // This is a safety net to ensure that the data shape from the edge function
     // is always what the client components expect, preventing crashes.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (results || []).map((dish: any) => ({
       ...dish,
       ratings: dish.ratings || [],

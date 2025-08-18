@@ -211,7 +211,7 @@ export function detectCountry(address: string): string {
 }
 
 
-export function validateUSParseResults(usResult: { state?: string }): boolean {
+export function validateUSParseResults(usResult: { state?: string; street?: string; city?: string; zip?: string }): boolean {
   if (usResult.state && !VALID_US_STATES.includes(usResult.state.toUpperCase()) && !US_STATE_NAME_TO_ABBR[usResult.state.toLowerCase()]) {
     console.log('Invalid US state detected:', usResult.state);
     return false;

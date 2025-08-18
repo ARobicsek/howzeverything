@@ -8,7 +8,7 @@ const SupabaseDebugTest: React.FC = () => {
   const [city, setCity] = useState('');
   const [bias, setBias] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [testUrl, setTestUrl] = useState('');
 
@@ -54,8 +54,8 @@ const SupabaseDebugTest: React.FC = () => {
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
       }
       setResults(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsLoading(false);
     }
@@ -151,7 +151,7 @@ const SupabaseDebugTest: React.FC = () => {
         </div>
       )}
 
-      {results && (
+      {results !== null && (
         <div style={{ marginTop: '2rem' }}>
           <h2 style={{ ...FONTS.elegant, fontSize: '1.2rem' }}>API Response:</h2>
           <pre style={{
@@ -162,7 +162,7 @@ const SupabaseDebugTest: React.FC = () => {
             maxHeight: '500px',
             overflowY: 'auto',
           }}>
-            {JSON.stringify(results, null, 2)}
+            {JSON.stringify(results, null, 2) || 'No data'}
           </pre>
         </div>
       )}

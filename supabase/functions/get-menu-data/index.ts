@@ -2,6 +2,37 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+interface RawDishData {
+  id: string;
+  name: string;
+  description?: string;
+  dish_ratings?: Array<{
+    rating: number;
+    user_id: string;
+  }>;
+  dish_comments?: Array<{
+    id: string;
+    comment_text: string;
+    created_at: string;
+    is_hidden?: boolean;
+    users?: {
+      full_name?: string;
+      email?: string;
+    };
+  }>;
+  dish_photos?: Array<{
+    id: string;
+    storage_path: string;
+    caption?: string;
+    created_at: string;
+    users?: {
+      full_name?: string;
+      email?: string;
+    };
+  }>;
+  [key: string]: unknown;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -46,8 +77,8 @@ serve(async (req) => {
 
     // This robust processing function ensures the data shape is always correct,
     // preventing client-side crashes by flattening user data and creating photo URLs.
-    const processRawDishes = (rawData: any[]) => {
-      return (rawData || []).map((d: any) => {
+    const processRawDishes = (rawData: RawDishData[]) => {
+      return (rawData || []).map((d: RawDishData) => {
         if (!d || !d.id) return null;
         
         const ratings = d.dish_ratings || [];
@@ -56,9 +87,9 @@ serve(async (req) => {
           ? ratings.reduce((sum: number, r: { rating: number; }) => sum + r.rating, 0) / totalRatings 
           : 0;
 
-        const commentsWithUserInfo = ((d.dish_comments as any[]) || [])
-          .filter((comment: any) => comment.is_hidden !== true)
-          .map((comment: any) => {
+        const commentsWithUserInfo = (d.dish_comments || [])
+          .filter((comment) => comment.is_hidden !== true)
+          .map((comment) => {
             const { users, ...restOfComment } = comment;
             return {
               ...restOfComment,
@@ -67,7 +98,7 @@ serve(async (req) => {
             };
           });
 
-        const photosWithInfo = ((d.dish_photos as any[]) || []).map((photo: any) => {
+        const photosWithInfo = (d.dish_photos || []).map((photo) => {
           const { users, ...restOfPhoto } = photo;
           return {
             ...restOfPhoto,
@@ -77,7 +108,7 @@ serve(async (req) => {
           };
         });
         
-        const { dish_ratings, dish_comments, dish_photos, ...dishData } = d;
+        const { ...dishData } = d;
 
         return {
           ...dishData,

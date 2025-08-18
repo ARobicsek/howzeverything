@@ -1,6 +1,23 @@
 // supabase/functions/dish-search/index.ts  
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+interface RawDishData {
+  id: string;
+  name: string;
+  description?: string;
+  restaurants?: {
+    id: string;
+    name: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  dish_ratings?: Array<{
+    rating: number;
+    user_id: string;
+  }>;
+  [key: string]: unknown;
+}
 import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
 
@@ -12,7 +29,7 @@ const corsHeaders = {
 
 
 // --- TYPE DEFINITIONS ---  
-interface DishSearchResultWithRestaurant {
+/* interface DishSearchResultWithRestaurant {
   id: string;
   restaurant_id: string;
   name: string;
@@ -32,7 +49,7 @@ interface DishSearchResultWithRestaurant {
     longitude?: number | null;
   };
   // other relations
-}
+} */
 
 
 const supabaseAdminClient = createClient(
@@ -53,8 +70,8 @@ serve(async (req) => {
 
     // --- THE FIX: This function is now much lighter ---
     // It calculates stats from a minimal ratings payload and returns empty arrays for heavy data.
-    const processRawDishes = (rawData: any[]) => {
-      return (rawData || []).map((d: any) => {
+    const processRawDishes = (rawData: RawDishData[]) => {
+      return (rawData || []).map((d: RawDishData) => {
         if (!d || !d.restaurants || !d.id) return null;
          
         // Destructure to separate the lightweight ratings from the main dish and restaurant data

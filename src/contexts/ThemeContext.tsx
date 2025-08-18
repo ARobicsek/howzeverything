@@ -251,12 +251,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     ratingsSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
     
     // LoginForm semantic tokens for 90s theme
-    loginFormContainer: {
-      backgroundColor: '#1A0D26',
-      border: '2px solid #ff00ff',
-      boxShadow: '0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1)',
-      borderRadius: '0px',
-    },
+    loginFormContainer: '#1A0D26',
     loginFormHeaderTitleColor: '#fecd06',
     loginFormHeaderTitleTextShadow: '0 0 15px #ff00ff, 0 0 30px #ff00ff',
     loginFormHeaderSubtitleColor: '#C2A6DE',
@@ -277,39 +272,24 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     loginFormPasswordToggleColor: '#C2A6DE',
     
     // MenuScreen sort options box for 90s theme
-    menuSortOptionsContainer: {
-      backgroundColor: '#1A0D26',
-      border: '2px solid #ff00ff',
-      boxShadow: '0 0 20px rgba(255, 0, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.1)',
-      borderRadius: '0px',
-    },
-    menuSortButtonDefault: {
-      backgroundColor: '#2D1B3D',
-      border: '2px solid #640464',
-      color: '#fecd06',
-      boxShadow: '0 0 10px rgba(255, 0, 255, 0.2)',
-    },
-    menuSortButtonActive: {
-      backgroundColor: '#ff00ff',
-      border: '2px solid #ff00ff',
-      color: '#FFFFFF',
-      boxShadow: '0 0 15px rgba(255, 0, 255, 0.4)',
-    },
+    menuSortOptionsContainer: 'rgba(255, 0, 255, 0.1)',
+    menuSortButtonDefault: '#4D3664',
+    menuSortButtonActive: '#FF00FF',
     
-    // Restaurant name modal semantic tokens for 90s theme
-    restaurantModalContainer: {
-      backgroundColor: '#1A0D26',
-      border: '2px solid #ff00ff',
-      boxShadow: '0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1)',
-      borderRadius: '0px',
-    },
+    // Restaurant name modal semantic tokens for 90s theme  
+    restaurantModalContainer: 'rgba(26, 13, 38, 0.95)',
     restaurantModalNameColor: '#fecd06',
-    restaurantModalNameTextShadow: '0 0 15px #ff00ff, 0 0 30px #ff00ff',
+    restaurantModalNameTextShadow: '0 0 10px #ff00ff',
     restaurantModalAddressColor: '#C2A6DE',
-    restaurantModalCloseButtonBackground: '#ff00ff',
-    restaurantModalCloseButtonHoverBackground: '#E600E6',
+    restaurantModalCloseButtonBackground: '#FF0040',
+    restaurantModalCloseButtonHoverBackground: '#CC0033',
     restaurantModalCloseButtonTextColor: '#FFFFFF',
-    restaurantModalCloseButtonBoxShadow: '0 0 20px #ff00ff, 0 4px 15px rgba(255, 0, 255, 0.4)',
+    restaurantModalCloseButtonBoxShadow: '0 0 15px rgba(255, 0, 64, 0.5)',
+    restaurantModalCloseButtonBorder: '2px solid #FF0040',
+    
+    // Missing properties for 90s theme
+    iconButtonBorderActive: '#FF00FF',
+    iconButtonBorderInactive: '#4D3664',
   },
   
   victorian: {
@@ -494,8 +474,6 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     gray200: '#e8dcc6', // Use cream border instead of gray for better visibility
     
     // Keep primary color for backgrounds but add specific border override
-    iconButtonBorderActive: '#e8dcc6', // Use cream border for active icon buttons instead of orange
-    iconButtonBorderInactive: '#e8dcc6', // Use cream border for inactive icon buttons
     
     // White text color for home screen (to match about screen)
     white: '#ca4719',
@@ -581,16 +559,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     signOutButtonText: '#ffffff', // White text for sign out button
     
     // LoginForm semantic tokens for Grumpy Cat theme
-    loginFormContainer: {
-      backgroundColor: '#fbeedd',
-      border: '2px solid #dd5a14',
-      boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
-      borderRadius: '4px',
-      backgroundImage: `
-        repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.1) 14px, rgba(221, 90, 20, 0.1) 16px),
-        repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.08) 14px, rgba(238, 157, 42, 0.08) 16px)
-      `,
-    },
+    loginFormContainer: '#fbeedd',
     loginFormHeaderTitleColor: '#482107',
     loginFormHeaderTitleTextShadow: 'none',
     loginFormHeaderSubtitleColor: '#ca4719',
@@ -611,40 +580,12 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     loginFormPasswordToggleColor: '#ca4719',
     
     // MenuScreen sort options box for Grumpy Cat theme
-    menuSortOptionsContainer: {
-      backgroundColor: '#fbeedd',
-      border: '2px solid #482107',
-      boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
-      borderRadius: '4px',
-      backgroundImage: `
-        repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.05) 14px, rgba(221, 90, 20, 0.05) 16px),
-        repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.04) 14px, rgba(238, 157, 42, 0.04) 16px)
-      `,
-    },
-    menuSortButtonDefault: {
-      backgroundColor: '#fbeedd',
-      border: '2px solid #e8dcc6',
-      color: '#482107',
-      boxShadow: 'none',
-    },
-    menuSortButtonActive: {
-      backgroundColor: '#dd5a14',
-      border: '2px solid #e8dcc6',
-      color: '#ffffff',
-      boxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
-    },
+    menuSortOptionsContainer: '#fbeedd',
+    menuSortButtonDefault: '#fbeedd',
+    menuSortButtonActive: '#dd5a14',
     
     // Restaurant name modal semantic tokens for Grumpy Cat theme
-    restaurantModalContainer: {
-      backgroundColor: '#fbeedd',
-      border: '2px solid #dd5a14',
-      boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
-      borderRadius: '4px',
-      backgroundImage: `
-        repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.1) 14px, rgba(221, 90, 20, 0.1) 16px),
-        repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.08) 14px, rgba(238, 157, 42, 0.08) 16px)
-      `,
-    },
+    restaurantModalContainer: '#fbeedd',
     restaurantModalNameColor: '#482107',
     restaurantModalNameTextShadow: 'none',
     restaurantModalAddressColor: '#ca4719',
@@ -653,6 +594,11 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     restaurantModalCloseButtonTextColor: '#ffffff',
     restaurantModalCloseButtonBoxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
     restaurantModalCloseButtonBorder: '2px solid #482107',
+    
+    // Missing properties for Grumpy Cat theme
+    discoverySelectTextColor: '#482107',
+    iconButtonBorderActive: '#dd5a14',
+    iconButtonBorderInactive: '#e8dcc6',
   },
 };
 
@@ -805,6 +751,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (!context) {

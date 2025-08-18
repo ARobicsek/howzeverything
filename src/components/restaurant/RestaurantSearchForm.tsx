@@ -58,7 +58,7 @@ const RestaurantSearchForm: React.FC<RestaurantSearchFormProps> = ({
 
 
     return () => clearTimeout(timeoutId);
-  }, [query, location]);
+  }, [query, location, onSearch]);
 
 
 

@@ -394,6 +394,7 @@ const RestaurantScreen: React.FC = () => {
     return restaurantsWithScores
       .filter(restaurant => restaurant.similarityScore > similarityThreshold)
       .sort((a, b) => b.similarityScore - a.similarityScore)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       .map(({ similarityScore: _, ...restaurant }) => restaurant);
   }, [restaurants, searchTerm, searchResults.length]);
  

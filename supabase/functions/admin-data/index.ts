@@ -15,7 +15,7 @@ const supabaseAdminClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
-const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey: string): Promise<{ user: any; error: string | null }> => {
+const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey: string): Promise<{ user: unknown; error: string | null }> => {
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
     return { user: null, error: 'Missing Authorization header.' };
@@ -36,7 +36,7 @@ const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey:
         return { user, error: null };
     }
      
-    const { data: profile, error: profileError } = await supabaseAdminClient
+    const { data: profile } = await supabaseAdminClient
         .from('users')
         .select('is_admin')
         .eq('id', user.id)
@@ -48,7 +48,7 @@ const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey:
      
     return { user: null, error: 'User is not an administrator.' };
 
-  } catch (e) {
+  } catch {
       return { user: null, error: 'An error occurred during authentication.' };
   }
 }
@@ -82,7 +82,6 @@ serve(async (req) => {
     const to = from + limit - 1;
 
     let query;
-    let count = 0;
 
     switch (dataType) {
         case 'restaurants':

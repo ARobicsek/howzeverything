@@ -27,8 +27,6 @@ export const useComments = () => {
 
       if (error) throw error;
       return data as DishComment;
-    } catch (err) {
-      throw err;
     } finally {
       setIsSubmitting(false);
     }

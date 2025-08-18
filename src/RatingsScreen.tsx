@@ -163,18 +163,18 @@ const RatingsScreen: React.FC = () => {
   // Get theme-specific styles for sort options - similar to MenuScreen
   const getSortOptionsContainerStyle = () => ({
     ...SCREEN_STYLES.menu.advancedSort.container,
-    ...(theme.colors.menuSortOptionsContainer || {}),
+    backgroundColor: theme.colors.menuSortOptionsContainer || SCREEN_STYLES.menu.advancedSort.container.backgroundColor,
   });
 
   const getSortButtonStyle = (isActive: boolean) => {
     const baseStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
-    const themeOverride = isActive 
-      ? (theme.colors.menuSortButtonActive || {})
-      : (theme.colors.menuSortButtonDefault || {});
+    const themeBackgroundColor = isActive 
+      ? theme.colors.menuSortButtonActive
+      : theme.colors.menuSortButtonDefault;
     
     return {
       ...baseStyle,
-      ...themeOverride,
+      ...(themeBackgroundColor && { backgroundColor: themeBackgroundColor }),
     };
   };
   const {
@@ -479,12 +479,12 @@ const RatingsScreen: React.FC = () => {
                       {option.value === 'my_rating' ? (
                         <>
                           <span>My</span>
-                          <span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.primary }}>★</span>
+                          <span style={{ color: isActive ? theme.colors.white : theme.colors.primary }}>★</span>
                         </>
                       ) : option.value === 'community_rating' ? (
                         <>
                           <span>Community</span>
-                          <span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.ratingGold }}>★</span>
+                          <span style={{ color: isActive ? theme.colors.white : theme.colors.ratingGold }}>★</span>
                         </>
                       ) : (
                         <span>{option.label}</span>

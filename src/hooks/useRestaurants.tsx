@@ -9,6 +9,12 @@ import { GeoapifyPlace, GeoapifyPlaceDetails, RestaurantWithStats, UseRestaurant
 import { calculateDistanceInMiles, formatDistanceMiles, sortRestaurantsArray } from '../utils/geolocation';
 import { calculateEnhancedSimilarity } from '../utils/textUtils';
 
+interface RestaurantStats {
+  restaurant_id: string;
+  dish_count: number;
+  rater_count: number;
+}
+
 
 const defaultSortBy = { criterion: 'name' as const, direction: 'asc' as const };
 
@@ -32,10 +38,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
   const searchService = useRef(new SearchService());
 
 
-  // --- THE FIX: Destructure sortBy into primitive values for the dependency array ---
-  // This prevents an infinite loop if the parent component creates a new `sortBy` object on every render.
-  // React will now compare strings ('name' === 'name') instead of object references.
-  const { criterion: sortCriterion, direction: sortDirection } = sortBy;
+  // sortBy object is used directly in the effect dependencies
 
 
   // --- DATA FETCHING ---
@@ -54,6 +57,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
 
         const restaurantDetails = await restaurantDataService.fetchUserRestaurantsWithStats(user.id);
        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const combinedData: RestaurantWithStats[] = (restaurantDetails as any[]).map((r: any) => {
           let distance: string | undefined = undefined;
           if (userLat != null && userLon != null && r.latitude != null && r.longitude != null) {
@@ -67,8 +71,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         });
         const sortedRestaurants = sortRestaurantsArray(combinedData, sortBy, userLat, userLon);
         setRestaurants(sortedRestaurants);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load restaurants.');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load restaurants.');
       } finally {
         setIsLoading(false);
       }
@@ -76,8 +80,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     if (initialFetch) {
         fetchRestaurants();
     }
-    // THE FIX: Use the primitive values in the dependency array.
-  }, [sortCriterion, sortDirection, userLat, userLon, initialFetch]);
+    // Use sortBy object directly since it's used inside the effect
+  }, [sortBy, userLat, userLon, initialFetch]);
 
 
   // --- SEARCH ---
@@ -104,7 +108,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         const restaurantIds = matchingDbRestaurants.map(r => r.id);
         const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
         if (stats && !statsError) {
-          const statsMap = new Map(stats.map((s: any) => [s.restaurant_id, s]));
+          const statsMap = new Map(stats.map((s: RestaurantStats) => [s.restaurant_id, s]));
           matchingDbRestaurants.forEach(r => {
             const rStats = statsMap.get(r.id);
             (r as RestaurantWithStats).dishCount = rStats?.dish_count ?? 0;
@@ -157,8 +161,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
       setSearchResults(combinedResults);
 
 
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== 'AbortError') {
         setSearchError(err.message);
       }
     } finally {
@@ -176,8 +180,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     });
     try {
       return await searchService.current.getRestaurantDetails(placeId);
-    } catch (err: any) {
-      setRestaurantErrors(prev => new Map(prev).set(placeId, err.message));
+    } catch (err: unknown) {
+      setRestaurantErrors(prev => new Map(prev).set(placeId, err instanceof Error ? err.message : 'Unknown error'));
       return null;
     } finally {
       setIsLoadingDetails(false);
@@ -257,8 +261,8 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
         return true;
       }
       return false;
-    } catch(err: any) {
-      setError(`Failed to update restaurant: ${err.message}`);
+    } catch(err: unknown) {
+      setError(`Failed to update restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
       return false;
     }
   }, [sortBy, userLat, userLon]);
