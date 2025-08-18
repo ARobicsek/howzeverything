@@ -274,6 +274,26 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     loginFormModeToggleColor: '#00FFFF',
     loginFormCancelColor: '#C2A6DE',
     loginFormPasswordToggleColor: '#C2A6DE',
+    
+    // MenuScreen sort options box for 90s theme
+    menuSortOptionsContainer: {
+      backgroundColor: '#1A0D26',
+      border: '2px solid #ff00ff',
+      boxShadow: '0 0 20px rgba(255, 0, 255, 0.3), inset 0 0 20px rgba(255, 0, 255, 0.1)',
+      borderRadius: '0px',
+    },
+    menuSortButtonDefault: {
+      backgroundColor: '#2D1B3D',
+      border: '2px solid #640464',
+      color: '#fecd06',
+      boxShadow: '0 0 10px rgba(255, 0, 255, 0.2)',
+    },
+    menuSortButtonActive: {
+      backgroundColor: '#ff00ff',
+      border: '2px solid #ff00ff',
+      color: '#FFFFFF',
+      boxShadow: '0 0 15px rgba(255, 0, 255, 0.4)',
+    },
   },
   
   victorian: {
@@ -566,6 +586,30 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     loginFormModeToggleColor: '#ee9d2a',
     loginFormCancelColor: '#ca4719',
     loginFormPasswordToggleColor: '#ca4719',
+    
+    // MenuScreen sort options box for Grumpy Cat theme
+    menuSortOptionsContainer: {
+      backgroundColor: '#fbeedd',
+      border: '2px solid #dd5a14',
+      boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
+      borderRadius: '4px',
+      backgroundImage: `
+        repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.05) 14px, rgba(221, 90, 20, 0.05) 16px),
+        repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.04) 14px, rgba(238, 157, 42, 0.04) 16px)
+      `,
+    },
+    menuSortButtonDefault: {
+      backgroundColor: '#fbeedd',
+      border: '2px solid #e8dcc6',
+      color: '#482107',
+      boxShadow: 'none',
+    },
+    menuSortButtonActive: {
+      backgroundColor: '#dd5a14',
+      border: '2px solid #dd5a14',
+      color: '#ffffff',
+      boxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
+    },
   },
 };
 

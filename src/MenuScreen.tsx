@@ -230,6 +230,23 @@ const MenuScreen: React.FC = () => {
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
 
+  // Get theme-specific styles for sort options
+  const getSortOptionsContainerStyle = () => ({
+    ...SCREEN_STYLES.menu.advancedSort.container,
+    ...(theme.colors.menuSortOptionsContainer || {}),
+  });
+
+  const getSortButtonStyle = (isActive: boolean) => {
+    const baseStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
+    const themeOverride = isActive 
+      ? (theme.colors.menuSortButtonActive || {})
+      : (theme.colors.menuSortButtonDefault || {});
+    
+    return {
+      ...baseStyle,
+      ...themeOverride,
+    };
+  };
 
 // Track visit when the screen for a specific restaurant is loaded
   useEffect(() => {
@@ -705,15 +722,15 @@ const MenuScreen: React.FC = () => {
         }}>
           {dishesError && (<div style={SCREEN_STYLES.menu.error.container}><p style={SCREEN_STYLES.menu.error.text}>{dishesError}</p></div>)}
           {showAdvancedSort && (
-            <div style={SCREEN_STYLES.menu.advancedSort.container}>
+            <div style={getSortOptionsContainerStyle()}>
               <div style={SCREEN_STYLES.menu.advancedSort.innerContainer}>
                 {[{ value: 'name', label: 'Name' }, { value: 'your_rating', label: 'Your rating' }, { value: 'community_rating', label: 'Community rating' }, { value: 'date', label: 'Date Added' }].map((option) => {
                   const isActive = sortBy.criterion === option.value;
-                  const buttonStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
+                  const buttonStyle = getSortButtonStyle(isActive);
                   const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
                   return (
                     <button key={option.value} onClick={() => { if (isActive) { setSortBy(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' })); } else { setSortBy({ criterion: option.value as typeof sortBy.criterion, direction: (option.value === 'your_rating' || option.value === 'community_rating') ? 'desc' : 'asc' }); } }} style={buttonStyle}>
-                      {option.value === 'your_rating' ? (<><span>Your</span><span style={{ color: isActive ? theme.colors.white : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? theme.colors.white : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
+                      {option.value === 'your_rating' ? (<><span>Your</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
                       {arrow && <span style={SCREEN_STYLES.menu.advancedSort.arrow}>{arrow}</span>}
                     </button>
                   );

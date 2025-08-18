@@ -168,6 +168,13 @@ theme.colors.loginFormCancelColor              // Cancel button color
 theme.colors.loginFormPasswordToggleColor      // Password visibility toggle color
 ```
 
+#### MenuScreen Sort Options
+```typescript
+theme.colors.menuSortOptionsContainer          // Sort container styling object with background, border, patterns
+theme.colors.menuSortButtonDefault            // Default sort button styling object
+theme.colors.menuSortButtonActive             // Active sort button styling object
+```
+
 ## Adding New Themes
 
 ### Method 1: Static Theme Definition (Current)
@@ -293,6 +300,24 @@ Theme-aware modal styling using semantic tokens:
 ```
 
 **Pattern**: Modal components use component-specific semantic tokens (`loginForm*`) that can override default styling per theme. This allows for complex theming like 90s neon effects or Grumpy Cat argyle patterns without conditional logic.
+
+### Interactive UI Components
+Theme-aware interactive elements like sort options:
+```typescript
+// Sort options container with theme-specific patterns
+<div style={getSortOptionsContainerStyle()}>
+  {/* Uses theme.colors.menuSortOptionsContainer which can include
+      backgroundColor, border, boxShadow, borderRadius, backgroundImage */}
+  
+  {/* Sort buttons with state-specific theming */}
+  <button style={getSortButtonStyle(isActive)}>
+    {/* Uses theme.colors.menuSortButtonDefault or menuSortButtonActive
+        depending on isActive state */}
+  </button>
+</div>
+```
+
+**Pattern**: Interactive components like sort buttons use state-specific semantic tokens (e.g., `menuSortButtonDefault` vs `menuSortButtonActive`) to provide different styling for different interaction states, maintaining visual consistency within each theme's aesthetic.
 
 ## Common Gotchas & Implementation Notes
 
@@ -485,6 +510,25 @@ git commit -m "assets: add theme image files"
   loginFormInputBorder: '2px solid #input-border',
   loginFormSubmitButtonBackground: '#button-bg',
   loginFormSubmitButtonBoxShadow: '0 0 15px #button-glow',
+  
+  // Sort options theming (example: MenuScreen)
+  menuSortOptionsContainer: {
+    backgroundColor: '#sort-container-bg',
+    border: '2px solid #sort-border',
+    boxShadow: '0 0 15px rgba(color, 0.2)',
+    borderRadius: '4px',
+    // Can include backgroundImage for complex patterns
+  },
+  menuSortButtonDefault: {
+    backgroundColor: '#button-default-bg',
+    border: '2px solid #button-default-border',
+    color: '#button-default-text',
+  },
+  menuSortButtonActive: {
+    backgroundColor: '#button-active-bg',
+    color: '#button-active-text',
+    boxShadow: '0 0 10px rgba(color, 0.3)',
+  },
   // ... etc
 }
 ```
