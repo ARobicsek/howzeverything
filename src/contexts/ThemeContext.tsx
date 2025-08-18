@@ -248,6 +248,32 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     ratingsTitleTextShadow: '0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff',
     ratingsSearchBorder: '2px solid #ff00ff',
     ratingsSearchShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
+    
+    // LoginForm semantic tokens for 90s theme
+    loginFormContainer: {
+      backgroundColor: '#1A0D26',
+      border: '2px solid #ff00ff',
+      boxShadow: '0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1)',
+      borderRadius: '0px',
+    },
+    loginFormHeaderTitleColor: '#fecd06',
+    loginFormHeaderTitleTextShadow: '0 0 15px #ff00ff, 0 0 30px #ff00ff',
+    loginFormHeaderSubtitleColor: '#C2A6DE',
+    loginFormErrorBackground: 'rgba(255, 0, 64, 0.2)',
+    loginFormErrorBorder: '1px solid #FF0040',
+    loginFormErrorTextColor: '#FF0040',
+    loginFormLabelColor: '#C2A6DE',
+    loginFormInputBackground: '#2D1B3D',
+    loginFormInputBorder: '2px solid #ff00ff',
+    loginFormInputBoxShadow: '0 0 10px rgba(255, 0, 255, 0.2)',
+    loginFormInputColor: '#fecd06',
+    loginFormSubmitButtonBackground: '#ff00ff',
+    loginFormSubmitButtonHoverBackground: '#E600E6',
+    loginFormSubmitButtonTextColor: '#FFFFFF',
+    loginFormSubmitButtonBoxShadow: '0 0 20px #ff00ff, 0 4px 15px rgba(255, 0, 255, 0.4)',
+    loginFormModeToggleColor: '#00FFFF',
+    loginFormCancelColor: '#C2A6DE',
+    loginFormPasswordToggleColor: '#C2A6DE',
   },
   
   victorian: {
@@ -510,6 +536,36 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     
     // Profile page sign out button - use white text for better visibility
     signOutButtonText: '#ffffff', // White text for sign out button
+    
+    // LoginForm semantic tokens for Grumpy Cat theme
+    loginFormContainer: {
+      backgroundColor: '#fbeedd',
+      border: '2px solid #dd5a14',
+      boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
+      borderRadius: '4px',
+      backgroundImage: `
+        repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(221, 90, 20, 0.1) 14px, rgba(221, 90, 20, 0.1) 16px),
+        repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(238, 157, 42, 0.08) 14px, rgba(238, 157, 42, 0.08) 16px)
+      `,
+    },
+    loginFormHeaderTitleColor: '#482107',
+    loginFormHeaderTitleTextShadow: 'none',
+    loginFormHeaderSubtitleColor: '#ca4719',
+    loginFormErrorBackground: 'rgba(221, 90, 20, 0.1)',
+    loginFormErrorBorder: '1px solid #dd5a14',
+    loginFormErrorTextColor: '#dd5a14',
+    loginFormLabelColor: '#482107',
+    loginFormInputBackground: '#fbeedd',
+    loginFormInputBorder: '2px solid #e8dcc6',
+    loginFormInputBoxShadow: 'none',
+    loginFormInputColor: '#482107',
+    loginFormSubmitButtonBackground: '#dd5a14',
+    loginFormSubmitButtonHoverBackground: '#c54f11',
+    loginFormSubmitButtonTextColor: '#ffffff',
+    loginFormSubmitButtonBoxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
+    loginFormModeToggleColor: '#ee9d2a',
+    loginFormCancelColor: '#ca4719',
+    loginFormPasswordToggleColor: '#ca4719',
   },
 };
 

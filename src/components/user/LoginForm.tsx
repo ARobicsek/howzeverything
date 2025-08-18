@@ -12,7 +12,7 @@ interface LoginFormProps {
 
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {  
-  const { theme } = useTheme();
+  const { theme, currentTheme } = useTheme();
   const { signIn, signUp, loading, error, clearError } = useAuth();  
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');  
   const [email, setEmail] = useState('');  
@@ -121,7 +121,110 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
   const getInputStyle = (fieldName: string) => ({  
     ...STYLES.input,  
     ...(focusedField === fieldName ? STYLES.inputFocus : {}),  
-    opacity: loading ? 0.5 : 1  
+    opacity: loading ? 0.5 : 1,
+    // Apply theme-specific styling
+    ...(theme.colors.loginFormInputBackground && {
+      backgroundColor: theme.colors.loginFormInputBackground,
+    }),
+    ...(theme.colors.loginFormInputBorder && {
+      border: theme.colors.loginFormInputBorder,
+    }),
+    ...(theme.colors.loginFormInputBoxShadow && {
+      boxShadow: theme.colors.loginFormInputBoxShadow,
+    }),
+    ...(theme.colors.loginFormInputColor && {
+      color: theme.colors.loginFormInputColor,
+    }),
+  });
+
+  // Get theme-specific container style
+  const getContainerStyle = () => ({
+    ...COMPONENT_STYLES.loginForm.container,
+    ...(theme.colors.loginFormContainer || {}),
+  });
+
+  // Get theme-specific header title style
+  const getHeaderTitleStyle = () => ({
+    ...COMPONENT_STYLES.loginForm.headerTitle,
+    ...(theme.colors.loginFormHeaderTitleColor && {
+      color: theme.colors.loginFormHeaderTitleColor,
+    }),
+    ...(theme.colors.loginFormHeaderTitleTextShadow && {
+      textShadow: theme.colors.loginFormHeaderTitleTextShadow,
+    }),
+  });
+
+  // Get theme-specific header subtitle style
+  const getHeaderSubtitleStyle = () => ({
+    ...COMPONENT_STYLES.loginForm.headerSubtitle,
+    ...(theme.colors.loginFormHeaderSubtitleColor && {
+      color: theme.colors.loginFormHeaderSubtitleColor,
+    }),
+  });
+
+  // Get theme-specific error container style
+  const getErrorContainerStyle = () => ({
+    ...COMPONENT_STYLES.loginForm.errorContainer,
+    ...(theme.colors.loginFormErrorBackground && {
+      backgroundColor: theme.colors.loginFormErrorBackground,
+    }),
+    ...(theme.colors.loginFormErrorBorder && {
+      border: theme.colors.loginFormErrorBorder,
+    }),
+  });
+
+  // Get theme-specific error text style
+  const getErrorTextStyle = () => ({
+    ...COMPONENT_STYLES.loginForm.errorText,
+    ...(theme.colors.loginFormErrorTextColor && {
+      color: theme.colors.loginFormErrorTextColor,
+    }),
+  });
+
+  // Get theme-specific label style
+  const getLabelStyle = () => ({
+    ...COMPONENT_STYLES.loginForm.label,
+    ...(theme.colors.loginFormLabelColor && {
+      color: theme.colors.loginFormLabelColor,
+    }),
+  });
+
+  // Get theme-specific submit button style
+  const getSubmitButtonStyle = () => ({
+    ...STYLE_FUNCTIONS.getSubmitButtonStyle(loading),
+    ...(theme.colors.loginFormSubmitButtonBackground && {
+      backgroundColor: theme.colors.loginFormSubmitButtonBackground,
+    }),
+    ...(theme.colors.loginFormSubmitButtonTextColor && {
+      color: theme.colors.loginFormSubmitButtonTextColor,
+    }),
+    ...(theme.colors.loginFormSubmitButtonBoxShadow && {
+      boxShadow: theme.colors.loginFormSubmitButtonBoxShadow,
+    }),
+  });
+
+  // Get theme-specific mode toggle button style
+  const getModeToggleButtonStyle = () => ({
+    ...STYLE_FUNCTIONS.getModeToggleButtonStyle(loading),
+    ...(theme.colors.loginFormModeToggleColor && {
+      color: theme.colors.loginFormModeToggleColor,
+    }),
+  });
+
+  // Get theme-specific cancel button style
+  const getCancelButtonStyle = () => ({
+    ...STYLE_FUNCTIONS.getCancelButtonStyle(loading),
+    ...(theme.colors.loginFormCancelColor && {
+      color: theme.colors.loginFormCancelColor,
+    }),
+  });
+
+  // Get theme-specific password toggle button style
+  const getPasswordToggleButtonStyle = () => ({
+    ...STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading),
+    ...(theme.colors.loginFormPasswordToggleColor && {
+      color: theme.colors.loginFormPasswordToggleColor,
+    }),
   });
 
 
@@ -159,13 +262,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
   return (  
     <div style={STYLES.modalOverlay}>  
-      <div style={COMPONENT_STYLES.loginForm.container}>
+      <div style={getContainerStyle()}>
         {/* Header */}  
         <div style={COMPONENT_STYLES.loginForm.headerContainer}>
-          <h2 style={COMPONENT_STYLES.loginForm.headerTitle}>
+          <h2 style={getHeaderTitleStyle()}>
             {mode === 'signin' ? 'Welcome Back' : 'Create Account'}  
           </h2>  
-          <p style={COMPONENT_STYLES.loginForm.headerSubtitle}>
+          <p style={getHeaderSubtitleStyle()}>
             {mode === 'signin'  
               ? 'Sign in to continue to Howzeverything'  
               : 'Join Howzeverything to start rating dishes'}  
@@ -175,8 +278,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
         {/* Error Display */}  
         {displayError && (  
-          <div style={COMPONENT_STYLES.loginForm.errorContainer}>
-            <p style={COMPONENT_STYLES.loginForm.errorText}>
+          <div style={getErrorContainerStyle()}>
+            <p style={getErrorTextStyle()}>
               {displayError}  
             </p>  
           </div>  
@@ -187,7 +290,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
         <form onSubmit={handleSubmit}>  
           {mode === 'signup' && (  
             <div style={COMPONENT_STYLES.loginForm.formFieldContainer}>
-              <label style={COMPONENT_STYLES.loginForm.label}>
+              <label style={getLabelStyle()}>
                 Username  
                 <span style={COMPONENT_STYLES.loginForm.usernameHint}>
                   (displayed with your comments)  
@@ -208,7 +311,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
 
           <div style={COMPONENT_STYLES.loginForm.formFieldContainer}>
-            <label style={COMPONENT_STYLES.loginForm.label}>
+            <label style={getLabelStyle()}>
               Email  
             </label>  
             <input  
@@ -226,7 +329,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
 
           <div style={{ marginBottom: mode === 'signup' ? SPACING[5] : SPACING[6] }}>  
-            <label style={COMPONENT_STYLES.loginForm.label}>
+            <label style={getLabelStyle()}>
               Password  
             </label>  
             <div style={COMPONENT_STYLES.loginForm.passwordInputContainer}>
@@ -248,7 +351,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
-                style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
+                style={getPasswordToggleButtonStyle()}
                 onMouseEnter={(e) => {
                   if (!loading) {
                     e.currentTarget.style.color = theme.colors.gray500;
@@ -267,7 +370,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
 
           {mode === 'signup' && (  
             <div style={{ marginBottom: SPACING[6] }}>  
-              <label style={COMPONENT_STYLES.loginForm.label}>
+              <label style={getLabelStyle()}>
                 Confirm Password  
               </label>  
               <div style={COMPONENT_STYLES.loginForm.passwordInputContainer}>
@@ -289,7 +392,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={loading}
-                  style={STYLE_FUNCTIONS.getPasswordToggleButtonStyle(loading)}
+                  style={getPasswordToggleButtonStyle()}
                   onMouseEnter={(e) => {
                     if (!loading) {
                       e.currentTarget.style.color = theme.colors.gray500;
@@ -311,15 +414,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           <button  
             type="submit"  
             disabled={loading}  
-            style={STYLE_FUNCTIONS.getSubmitButtonStyle(loading)}
+            style={getSubmitButtonStyle()}
             onMouseEnter={(e) => {  
               if (!loading) {  
-                e.currentTarget.style.backgroundColor = theme.colors.accent;  
+                e.currentTarget.style.backgroundColor = theme.colors.loginFormSubmitButtonHoverBackground || theme.colors.accent;  
               }  
             }}  
             onMouseLeave={(e) => {  
               if (!loading) {  
-                e.currentTarget.style.backgroundColor = theme.colors.accent;  
+                e.currentTarget.style.backgroundColor = theme.colors.loginFormSubmitButtonBackground || theme.colors.accent;  
               }  
             }}  
           >  
@@ -340,7 +443,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               type="button"  
               onClick={toggleMode}  
               disabled={loading}  
-              style={STYLE_FUNCTIONS.getModeToggleButtonStyle(loading)}
+              style={getModeToggleButtonStyle()}
               onMouseEnter={(e) => {  
                 if (!loading) {  
                   e.currentTarget.style.backgroundColor = `${theme.colors.accent}2A`;
@@ -363,7 +466,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
               type="button"  
               onClick={onCancel}  
               disabled={loading}  
-              style={STYLE_FUNCTIONS.getCancelButtonStyle(loading)}
+              style={getCancelButtonStyle()}
               onMouseEnter={(e) => {
                 if (!loading) {
                   e.currentTarget.style.backgroundColor = theme.colors.gray100;
