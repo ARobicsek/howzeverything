@@ -489,6 +489,13 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     inputBg: '#fbeedd',
     surface: '#fbeedd', // Ensure all surfaces use cream
     
+    // Override border colors for visibility in Grumpy Cat theme
+    gray200: '#e8dcc6', // Use cream border instead of gray for better visibility
+    
+    // Keep primary color for backgrounds but add specific border override
+    iconButtonBorderActive: '#e8dcc6', // Use cream border for active icon buttons instead of orange
+    iconButtonBorderInactive: '#e8dcc6', // Use cream border for inactive icon buttons
+    
     // White text color for home screen (to match about screen)
     white: '#ca4719',
     textWhite: '#ca4719', 
@@ -605,7 +612,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     // MenuScreen sort options box for Grumpy Cat theme
     menuSortOptionsContainer: {
       backgroundColor: '#fbeedd',
-      border: '2px solid #dd5a14',
+      border: '2px solid #482107',
       boxShadow: '0 4px 12px rgba(221, 90, 20, 0.15)',
       borderRadius: '4px',
       backgroundImage: `
@@ -621,7 +628,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     },
     menuSortButtonActive: {
       backgroundColor: '#dd5a14',
-      border: '2px solid #dd5a14',
+      border: '2px solid #e8dcc6',
       color: '#ffffff',
       boxShadow: '0 2px 4px rgba(221, 90, 20, 0.2)',
     },

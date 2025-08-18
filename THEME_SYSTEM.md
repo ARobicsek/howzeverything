@@ -143,6 +143,8 @@ theme.colors.ratingsHeaderBackground           // Header background
 theme.colors.ratingsHeroImageWidth            // Hero image size
 theme.colors.ratingsTitleTextShadow           // Title effects
 theme.colors.ratingsSearchBorder              // Search input borders
+theme.colors.iconButtonBorderActive           // Active sort button border color
+theme.colors.iconButtonBorderInactive         // Inactive sort button border color
 ```
 
 #### LoginForm (Modal Components)
@@ -449,6 +451,26 @@ color: theme.colors.signOutButtonText || theme.colors.text
   signOutButtonText: '#ffffff',
 }
 ```
+
+#### Real-World Example: Icon Button Border Visibility
+
+**Problem**: Sort button borders were invisible in Grumpy Cat theme (orange border on orange background).
+
+**Solution**: Create semantic tokens with fallbacks for cross-theme compatibility:
+```typescript
+// Component implementation with fallbacks
+border: showAdvancedSort 
+  ? `1px solid ${theme.colors.iconButtonBorderActive || theme.colors.primary}` 
+  : `1px solid ${theme.colors.iconButtonBorderInactive || theme.colors.gray200}`,
+
+// Theme override for problematic theme only
+'grumpy-cat': {
+  iconButtonBorderActive: '#e8dcc6',   // Cream border for visibility
+  iconButtonBorderInactive: '#e8dcc6', // Cream border for visibility
+}
+```
+
+**Pattern**: Always provide fallbacks (`||`) so other themes continue working unchanged.
 
 ## Best Practices
 

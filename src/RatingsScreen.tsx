@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoadingScreen from './components/LoadingScreen';
 import { StarRating } from './components/shared/StarRating';
-import { STYLES, SHADOWS } from './constants';
+import { STYLES, SHADOWS, SCREEN_STYLES } from './constants';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { DishRating, DishSearchResultWithRestaurant, fetchMyRatedDishes } from './hooks/useDishes';
@@ -154,9 +154,29 @@ const RatingsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<{ criterion: 'name' | 'my_rating' | 'community_rating' | 'date' | 'distance'; direction: 'asc' | 'desc' }>({ criterion: 'distance', direction: 'asc' });
+  const [showAdvancedSort, setShowAdvancedSort] = useState(false);
   const [rawRatedDishes, setRawRatedDishes] = useState<DishSearchResultWithRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Get theme-specific styles for sort options - similar to MenuScreen
+  const getSortOptionsContainerStyle = () => ({
+    ...SCREEN_STYLES.menu.advancedSort.container,
+    ...(theme.colors.menuSortOptionsContainer || {}),
+  });
+
+  const getSortButtonStyle = (isActive: boolean) => {
+    const baseStyle = isActive ? STYLES.sortButtonActive : STYLES.sortButtonDefault;
+    const themeOverride = isActive 
+      ? (theme.colors.menuSortButtonActive || {})
+      : (theme.colors.menuSortButtonDefault || {});
+    
+    return {
+      ...baseStyle,
+      ...themeOverride,
+    };
+  };
   const {
     coordinates: userLocation,
     status: locationStatus,
@@ -227,15 +247,40 @@ const RatingsScreen: React.FC = () => {
     });
 
 
+    // Apply sorting based on sortBy criterion
     withDistance.sort((a, b) => {
-        if (a.distance === null) return 1;
-        if (b.distance === null) return -1;
-        return a.distance - b.distance;
+      switch (sortBy.criterion) {
+        case 'name':
+          const nameResult = a.name.localeCompare(b.name);
+          return sortBy.direction === 'asc' ? nameResult : -nameResult;
+        
+        case 'my_rating': {
+          const aMyRating = a.ratings.find(r => r.user_id === user?.id)?.rating || 0;
+          const bMyRating = b.ratings.find(r => r.user_id === user?.id)?.rating || 0;
+          const ratingResult = aMyRating - bMyRating;
+          return sortBy.direction === 'asc' ? ratingResult : -ratingResult;
+        }
+        
+        case 'community_rating':
+          const communityResult = a.average_rating - b.average_rating;
+          return sortBy.direction === 'asc' ? communityResult : -communityResult;
+        
+        case 'date':
+          const dateResult = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          return sortBy.direction === 'asc' ? dateResult : -dateResult;
+        
+        case 'distance':
+        default:
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          const distanceResult = a.distance - b.distance;
+          return sortBy.direction === 'asc' ? distanceResult : -distanceResult;
+      }
     });
 
 
     return withDistance;
-  }, [rawRatedDishes, userLocation]);
+  }, [rawRatedDishes, userLocation, sortBy, user]);
 
 
   const filteredDishes = useMemo(() => {
@@ -303,60 +348,158 @@ const RatingsScreen: React.FC = () => {
           }}>
             My Ratings
           </h1>
-          <div style={{ width: '100%', position: 'relative' }}>
-             <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="e.g. pizza, Chez Frontenac"
-              style={{
-                width: '100%',
-                padding: '12px 40px 12px 16px',
-                borderRadius: '12px',
-                border: theme.colors.ratingsSearchBorder,
-                outline: 'none',
-                fontSize: '1rem',
-                ...theme.fonts.body,
-                backgroundColor: theme.colors.inputBg,
-                color: theme.colors.black,
-                boxShadow: theme.colors.ratingsSearchShadow,
-                boxSizing: 'border-box'
-              }}
-            />
-            {searchTerm.trim().length > 0 && (
-              <button
-                onClick={() => setSearchTerm('')}
+          <div style={{ 
+            width: '100%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px' 
+          }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="e.g. pizza, Chez Frontenac"
                 style={{
-                  position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  padding: '4px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  color: theme.colors.textSecondary,
-                  opacity: 0.7,
-                  transition: 'all 0.2s ease'
+                  width: '100%',
+                  padding: '12px 40px 12px 16px',
+                  borderRadius: '12px',
+                  border: theme.colors.ratingsSearchBorder,
+                  outline: 'none',
+                  fontSize: '1rem',
+                  ...theme.fonts.body,
+                  backgroundColor: theme.colors.inputBg,
+                  color: theme.colors.black,
+                  boxShadow: theme.colors.ratingsSearchShadow,
+                  boxSizing: 'border-box'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.15)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
-                aria-label="Reset search" title="Reset search"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
-              </button>
-            )}
+              />
+              {searchTerm.trim().length > 0 && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    padding: '4px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    color: theme.colors.textSecondary,
+                    opacity: 0.7,
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.15)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+                  aria-label="Reset search" title="Reset search"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" /></svg>
+                </button>
+              )}
+            </div>
+            <button 
+              onClick={() => { 
+                setShowAdvancedSort(!showAdvancedSort); 
+                if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); 
+              }} 
+              style={{ 
+                ...STYLES.iconButton, 
+                backgroundColor: showAdvancedSort ? theme.colors.primary : theme.colors.white, 
+                color: showAdvancedSort ? theme.colors.white : theme.colors.gray700, 
+                border: showAdvancedSort 
+                  ? `1px solid ${theme.colors.iconButtonBorderActive || theme.colors.primary}` 
+                  : `1px solid ${theme.colors.iconButtonBorderInactive || theme.colors.gray200}`,
+                flexShrink: 0
+              }} 
+              aria-label="Sort options"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" /></svg>
+            </button>
           </div>
         </div>
       </div>
 
+      {/* SORT OPTIONS */}
+      {showAdvancedSort && (
+        <div style={{
+          backgroundColor: theme.colors.background,
+          padding: '0 16px 12px 16px',
+          maxWidth: '100%',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            maxWidth: '448px',
+            margin: '0 auto',
+            width: '100%'
+          }}>
+            <div style={{
+              ...getSortOptionsContainerStyle(),
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                ...SCREEN_STYLES.menu.advancedSort.innerContainer,
+                flexWrap: 'wrap',
+                justifyContent: 'center'
+              }}>
+                {[
+                  { value: 'name', label: 'Name' }, 
+                  { value: 'my_rating', label: 'My rating' }, 
+                  { value: 'community_rating', label: 'Community rating' }, 
+                  { value: 'date', label: 'Date Added' },
+                  { value: 'distance', label: 'Distance' }
+                ].map((option) => {
+                  const isActive = sortBy.criterion === option.value;
+                  const buttonStyle = getSortButtonStyle(isActive);
+                  const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
+                  return (
+                    <button 
+                      key={option.value} 
+                      onClick={() => { 
+                        if (isActive) { 
+                          setSortBy(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' })); 
+                        } else { 
+                          setSortBy({ 
+                            criterion: option.value as typeof sortBy.criterion, 
+                            direction: (option.value === 'my_rating' || option.value === 'community_rating') ? 'desc' : 'asc' 
+                          }); 
+                        } 
+                      }} 
+                      style={{
+                        ...buttonStyle,
+                        minWidth: 'fit-content',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {option.value === 'my_rating' ? (
+                        <>
+                          <span>My</span>
+                          <span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.primary }}>★</span>
+                        </>
+                      ) : option.value === 'community_rating' ? (
+                        <>
+                          <span>Community</span>
+                          <span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.ratingGold }}>★</span>
+                        </>
+                      ) : (
+                        <span>{option.label}</span>
+                      )}
+                      {arrow && <span style={SCREEN_STYLES.menu.advancedSort.arrow}>{arrow}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* BODY SECTION */}
       <div style={{
         backgroundColor: theme.colors.background,
         minHeight: '100vh',
-        padding: '24px 0',
+        padding: showAdvancedSort ? '12px 0 24px 0' : '24px 0',
         width: '100vw',
         position: 'relative',
         left: '50%',

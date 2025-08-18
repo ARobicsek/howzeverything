@@ -789,7 +789,7 @@ const MenuScreen: React.FC = () => {
                   const arrow = isActive ? (sortBy.direction === 'asc' ? '▲' : '▼') : '';
                   return (
                     <button key={option.value} onClick={() => { if (isActive) { setSortBy(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' })); } else { setSortBy({ criterion: option.value as typeof sortBy.criterion, direction: (option.value === 'your_rating' || option.value === 'community_rating') ? 'desc' : 'asc' }); } }} style={buttonStyle}>
-                      {option.value === 'your_rating' ? (<><span>Your</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
+                      {option.value === 'your_rating' ? (<><span>My</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.primary }}>★</span></>) : option.value === 'community_rating' ? (<><span>Community</span><span style={{ color: isActive ? (theme.colors.menuSortButtonActive?.color || theme.colors.white) : theme.colors.ratingGold }}>★</span></>) : (<span>{option.label}</span>)}
                       {arrow && <span style={SCREEN_STYLES.menu.advancedSort.arrow}>{arrow}</span>}
                     </button>
                   );
