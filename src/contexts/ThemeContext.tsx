@@ -240,6 +240,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     discoverySearchInputBorder: '2px solid #ff00ff',
     discoverySearchInputBoxShadow: '0 0 20px rgba(255, 0, 255, 0.3)',
     discoverySelectBorder: '2px solid #640464',
+    discoverySelectTextColor: '#FF1493', // Hot pink text for filter buttons
     // RatingsScreen semantic tokens for 90s theme
     ratingsHeaderBackground: 'linear-gradient(135deg, #0D0515 0%, #2d1b69 50%, #0D0515 100%)',
     ratingsHeroImageWidth: '200px',
