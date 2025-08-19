@@ -206,6 +206,7 @@ const MenuScreen: React.FC = () => {
   const location = useLocation();
   const { user, profile } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -230,6 +231,7 @@ const MenuScreen: React.FC = () => {
   } = useDishes(restaurantId || '', sortBy);
   const { trackVisit } = useRestaurantVisits();
   const { pinnedRestaurantIds, togglePin } = usePinnedRestaurants();
+
 
   // Get theme-specific styles for sort options
   const getSortOptionsContainerStyle = () => ({
@@ -300,31 +302,19 @@ const MenuScreen: React.FC = () => {
     const params = new URLSearchParams(location.search);
     const dishToExpand = params.get('dish');
    
-    console.log('[MenuScreen] Processing URL parameters:', {
-      search: location.search,
-      dishToExpand: dishToExpand,
-      currentDishes: dishes.length,
-      isLoadingDishes: isLoadingDishes
-    });
    
     if (dishToExpand) {
       // If dishes haven't loaded yet, wait for them
       if (isLoadingDishes) {
-        console.log('[MenuScreen] Dishes still loading, will wait...');
         return;
       }
      
       // Check if the dish exists in the loaded dishes
       const foundDish = dishes.find(dish => dish.id === dishToExpand);
       if (foundDish) {
-        console.log('[MenuScreen] Found dish to expand:', foundDish.name);
         setExpandedDishId(dishToExpand);
       } else if (dishes.length > 0) {
         // Dishes have loaded but we didn't find the dish
-        console.warn('[MenuScreen] Dish not found in restaurant:', {
-          searchingFor: dishToExpand,
-          availableDishes: dishes.map(d => ({ id: d.id, name: d.name }))
-        });
         // Clear the invalid dish parameter
         const newParams = new URLSearchParams(location.search);
         newParams.delete('dish');
@@ -337,25 +327,13 @@ const MenuScreen: React.FC = () => {
   }, [location.search, location.pathname, dishes, isLoadingDishes, navigate]);
 
 
-  // Additional debugging useEffect - ADD this as a new useEffect after the dish parameter one
-  useEffect(() => {
-    console.log('[MenuScreen] State update:', {
-      restaurantId: restaurantId,
-      restaurant: restaurant?.name || 'not loaded',
-      dishesCount: dishes.length,
-      isLoadingRestaurant: isLoadingRestaurant,
-      isLoadingDishes: isLoadingDishes,
-      restaurantError: restaurantError,
-      dishesError: dishesError,
-      expandedDishId: expandedDishId
-    });
-  }, [restaurantId, restaurant, dishes.length, isLoadingRestaurant, isLoadingDishes, restaurantError, dishesError, expandedDishId]);
 
 
   useEffect(() => {
     // Reset scroll to top on mount to ensure search bar is visible below the sticky header
     window.scrollTo(0, 0);
   }, []);
+
 
 
   useEffect(() => {
@@ -608,29 +586,38 @@ const MenuScreen: React.FC = () => {
   };
 
 
-  if (isLoadingRestaurant || isLoadingDishes) return <LoadingScreen message="Loading menu..."/>;
+  if (isLoadingRestaurant || isLoadingDishes) {
+    return <LoadingScreen message="Loading menu..."/>;
+  }
   if (restaurantError) return <ErrorScreen error={restaurantError} onBack={() => navigate('/restaurants')} />;
   if (!restaurant) return <ErrorScreen error="Restaurant not found" onBack={() => navigate('/restaurants')} />;
+  
+  
   const displayAddress = [restaurant.address, restaurant.city].filter(Boolean).join(', ');
 
 
   return (
-    <div style={{ 
-      width: '100vw',
-      position: 'relative',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      backgroundColor: theme.colors.background,
-      minHeight: '100vh'
-    }}>
+    <div 
+      ref={containerRef}
+      style={{ 
+        width: '100vw',
+        position: 'relative',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        backgroundColor: theme.colors.background,
+        minHeight: '100vh'
+      }}>
       <header style={{
         position: 'sticky',
         top: '60px',
-        width: '100%',
         backgroundColor: theme.colors.menuHeaderBackground,
+        backdropFilter: 'blur(10px)',
         borderBottom: `1px solid ${theme.colors.gray200}`,
         zIndex: 10,
-        boxShadow: theme.colors.menuHeaderBoxShadow
+        boxShadow: theme.colors.menuHeaderBoxShadow,
+        width: '100%',
+        left: 0,
+        right: 0
       }}>
         <div style={{
           display: 'flex',
@@ -767,16 +754,16 @@ const MenuScreen: React.FC = () => {
         minHeight: '100vh'
       }}>
         <main style={{
-          backgroundColor: 'transparent',
-          minHeight: 'calc(100vh - 60px)',
-          paddingTop: '80px'
-        }}>
+            backgroundColor: 'transparent',
+            minHeight: 'calc(100vh - 60px)',
+            paddingTop: '80px'
+          }}>
         <div style={{
-          maxWidth: '800px',
-          margin: '0 auto',
-          padding: '0 16px 24px 16px',
-          backgroundColor: 'transparent'
-        }}>
+            maxWidth: '800px',
+            margin: '0 auto',
+            padding: '0 16px 24px 16px',
+            backgroundColor: 'transparent'
+          }}>
           {dishesError && (<div style={SCREEN_STYLES.menu.error.container}><p style={SCREEN_STYLES.menu.error.text}>{dishesError}</p></div>)}
           {showAdvancedSort && (
             <div style={getSortOptionsContainerStyle()}>

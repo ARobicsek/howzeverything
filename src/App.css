@@ -10,12 +10,18 @@
   padding: 0;
 }
 
-html, body {
+html {
   height: 100%;
+  overflow-y: scroll; /* Force scrollbar at html level */
   overflow-x: hidden;
+  scrollbar-gutter: stable; /* Reserve space for scrollbar */
 }
 
 body {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: visible; /* Let html handle scrolling */
+  width: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -29,6 +35,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Typography */

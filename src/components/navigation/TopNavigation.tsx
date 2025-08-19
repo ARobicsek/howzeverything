@@ -1,5 +1,5 @@
 // src/components/navigation/TopNavigation.tsx
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { SHADOWS, SPACING, Z_INDICES } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
@@ -54,13 +54,18 @@ const Avatar: React.FC = () => {
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
   const { theme } = useTheme();
+  const headerRef = useRef<HTMLElement>(null);
+  
   
   return (
-    <header style={{
+    <header 
+      ref={headerRef}
+      style={{
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
+      width: '100%',
       height: '60px',
       backgroundColor: theme.colors.navBarDark,
       border: 'none',
@@ -69,6 +74,8 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
+      overflow: 'hidden',
+      boxSizing: 'border-box',
     }}>
       <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
         <Link to="/home">
