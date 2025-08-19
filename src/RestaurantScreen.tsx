@@ -5,7 +5,7 @@ import LoadingScreen from './components/LoadingScreen';
 import AddRestaurantForm from './components/restaurant/AddRestaurantForm';
 import EditRestaurantForm from './components/restaurant/EditRestaurantForm';
 import RestaurantCard from './components/restaurant/RestaurantCard';
-import { RESTAURANT_CARD_MAX_WIDTH, SPACING, STYLES, TYPOGRAPHY } from './constants';
+import { SPACING, STYLES, TYPOGRAPHY } from './constants';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { useRestaurants } from './hooks/useRestaurants';
@@ -531,7 +531,7 @@ const RestaurantScreen: React.FC = () => {
  
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: theme.colors.background, paddingBottom: SPACING[8] }}>
-      <main style={{ flex: 1, maxWidth: RESTAURANT_CARD_MAX_WIDTH, width: '100%', margin: '0 auto' }}>
+      <main style={{ flex: 1, width: '100%', transition: 'none' }}>
         <div className="space-y-4" style={{ padding: `${SPACING[4]} ${SPACING.containerPadding}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING[4] }}>
             <h1 style={{ ...TYPOGRAPHY.h1, color: theme.colors.text, margin: 0 }}>My Restaurants</h1>
@@ -591,7 +591,7 @@ const RestaurantScreen: React.FC = () => {
           )}
           {showSearchAndResults && (
             <div className="space-y-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SPACING[6] }}>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4" style={{ marginBottom: SPACING[6], transition: 'none' }}>
                 <>
                   <div className="flex items-center justify-between mb-2">
                     <label style={{ ...theme.fonts.elegant, fontSize: '1.1rem', fontWeight: '600', color: theme.colors.text }}>{hasRestaurants ? "Search for a restaurant" : "Search for a restaurant to add"}</label>

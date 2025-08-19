@@ -626,14 +626,11 @@ const MenuScreen: React.FC = () => {
       <header style={{
         position: 'sticky',
         top: '60px',
+        width: '100%',
         backgroundColor: theme.colors.menuHeaderBackground,
-        backdropFilter: 'blur(10px)',
         borderBottom: `1px solid ${theme.colors.gray200}`,
         zIndex: 10,
-        boxShadow: theme.colors.menuHeaderBoxShadow,
-        width: '100%',
-        left: 0,
-        right: 0
+        boxShadow: theme.colors.menuHeaderBoxShadow
       }}>
         <div style={{
           display: 'flex',

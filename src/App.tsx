@@ -158,18 +158,11 @@ const AppRoutes: React.FC = () => {
             <NavigationModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} isAdmin={isAdmin} />
             <SharedContentHandler />
             <div style={{
-                // --- THIS IS THE FIX ---
-                // This value was LAYOUT_CONFIG.APP_CONTAINER.maxWidth ('448px'), which capped the width of everything.
-                // It's now set to a larger value to allow inner content to define its own width.
-                maxWidth: screenConfig.isFullBleed ? 'none' : '1280px',
+                maxWidth: screenConfig.isFullBleed ? 'none' : (screenConfig.maxWidth || '1280px'),
                 margin: '0 auto',
                 paddingLeft: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
                 paddingRight: screenConfig.isFullBleed ? 0 : LAYOUT_CONFIG.APP_CONTAINER.padding,
             }}>
-                <div style={{
-                    maxWidth: screenConfig.maxWidth,
-                    margin: '0 auto',
-                }}>
                     <Routes>
                         <Route path="/home" element={<HomeScreen />} />
                         <Route path="/find-restaurant" element={<FindRestaurantScreen />} />
@@ -182,7 +175,6 @@ const AppRoutes: React.FC = () => {
                         {isAdmin && <Route path="/admin" element={<AdminScreen user={user} />} />}
                         <Route path="*" element={<Navigate to="/home" replace />} />
                     </Routes>
-                </div>
             </div>
             {showProfileEdit && user && (
                 <UserForm onSuccess={() => setShowProfileEdit(false)} onCancel={() => setShowProfileEdit(false)} />

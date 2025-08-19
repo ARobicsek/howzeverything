@@ -36,7 +36,10 @@ interface RestaurantStats {
   rater_count: number;
 }
 
-const FindRestaurantScreen: React.FC = () => {
+const FindRestaurantScreen: React.FC = React.memo(() => {
+  // DEBUG: Component start timing
+  // console.log('🕐 FindRestaurantScreen: Component function start', performance.now());
+  
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -102,40 +105,56 @@ const FindRestaurantScreen: React.FC = () => {
 
   const loadInitialData = useCallback(async () => {
     if (user) {
+      // console.log('📊 FindRestaurantScreen: Starting loadInitialData at', performance.now());
       setAreInitialSectionsLoading(true);
+      const dataStart = performance.now();
       const [recents, pinned] = await Promise.all([getRecentVisits(), getPinnedRestaurants()]);
+      const dataEnd = performance.now();
+      // console.log('📊 FindRestaurantScreen: Data fetch took', dataEnd - dataStart, 'ms');
       setRecentRestaurants(recents as RestaurantWithPinStatus[]);
       setPinnedRestaurants(pinned as RestaurantWithPinStatus[]);
       setAreInitialSectionsLoading(false);
+      // console.log('📊 FindRestaurantScreen: loadInitialData complete at', performance.now());
     }
-  }, [user, getRecentVisits, getPinnedRestaurants]);
+  }, [user?.id]); // Only depend on user ID, not the entire user object or hook functions
 
   useEffect(() => {
+    // console.log('🔄 FindRestaurantScreen: loadInitialData useEffect triggered at', performance.now());
     loadInitialData();
-  }, [user, loadInitialData]);
+  }, [loadInitialData]); // Now safe since loadInitialData only depends on user.id
+
+  // Memoize restaurant IDs to prevent unnecessary stats re-fetching
+  const restaurantIds = useMemo(() => {
+    const allIds = [
+      ...recentRestaurants.map(r => r.id),
+      ...pinnedRestaurants.map(r => r.id),
+    ];
+    return [...new Set(allIds)].sort(); // Sort for stable comparison
+  }, [recentRestaurants, pinnedRestaurants]);
 
   // NEW: This effect fetches the expensive stats in the background after the initial data has loaded.
   useEffect(() => {
+    // console.log('📈 FindRestaurantScreen: Stats useEffect triggered at', performance.now());
     const fetchStats = async () => {
       // Don't run if there are no restaurants to process
-      if (recentRestaurants.length === 0 && pinnedRestaurants.length === 0) {
+      if (restaurantIds.length === 0) {
+        // console.log('📈 FindRestaurantScreen: No restaurants to process stats for');
         return;
       }
+      // console.log('📈 FindRestaurantScreen: Starting stats fetch at', performance.now());
       // Prevent re-fetching if stats are already present
       const firstItem = recentRestaurants[0] || pinnedRestaurants[0];
       if (firstItem && typeof firstItem.dishCount === 'number') {
+        // console.log('📈 FindRestaurantScreen: Stats already present, skipping fetch');
         return;
       }
 
-      const allRestaurantIds = [
-        ...recentRestaurants.map(r => r.id),
-        ...pinnedRestaurants.map(r => r.id),
-      ];
-      const uniqueIds = [...new Set(allRestaurantIds)];
+      if (restaurantIds.length === 0) return;
 
-      if (uniqueIds.length === 0) return;
-
-      const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: uniqueIds });
+      const statsStart = performance.now();
+      const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
+      const statsEnd = performance.now();
+      // console.log('📈 FindRestaurantScreen: Stats RPC took', statsEnd - statsStart, 'ms');
 
       if (statsError) {
         console.error('Error fetching restaurant stats:', statsError);
@@ -152,11 +171,31 @@ const FindRestaurantScreen: React.FC = () => {
           const rStats = statsMap.get(r.id);
           return rStats ? { ...r, dishCount: rStats.dish_count ?? 0, raterCount: rStats.rater_count ?? 0 } : r;
         }));
+        // console.log('📈 FindRestaurantScreen: Stats processing complete at', performance.now());
       }
     };
 
     fetchStats();
-  }, [recentRestaurants, pinnedRestaurants]);
+  }, [restaurantIds, recentRestaurants, pinnedRestaurants]); // Include recentRestaurants, pinnedRestaurants for stats update logic
+
+  // DEBUG: Track component mount completion
+  useEffect(() => {
+    // console.log('🏁 FindRestaurantScreen: Component mount complete at', performance.now());
+    
+    // Check layout stability after mount
+    const checkStability = () => {
+      const accordionContainer = document.querySelector('[data-accordion-container]');
+      if (accordionContainer) {
+        // console.log('📐 FindRestaurantScreen: Final accordion width check:', accordionContainer.getBoundingClientRect().width, 'at', performance.now());
+      }
+    };
+    
+    // Check at various intervals to track when width stabilizes
+    setTimeout(() => checkStability(), 100);
+    setTimeout(() => checkStability(), 500);
+    setTimeout(() => checkStability(), 1000);
+    setTimeout(() => checkStability(), 1500);
+  }, []);
 
   const addDistanceToRestaurants = useCallback((restaurants: RestaurantWithPinStatus[]) => {
     if (!userLocation) return restaurants;
@@ -402,24 +441,32 @@ const FindRestaurantScreen: React.FC = () => {
     }
   }, [nearbyLoading, locationStatus, hasLocationPermission, clearCacheForLocation, nearbyRadius, fetchNearbyRestaurants, refreshLocation]);
 
+  // DEBUG: Render timing and CSS calculations
+  // console.log('🎨 FindRestaurantScreen: Starting render at', performance.now());
+  const cssStart = performance.now();
+  const mainContainerStyle = {
+    width: '100vw',
+    position: 'relative' as const,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: theme.colors.background, 
+    minHeight: '100vh'
+  };
+  const headerStyle = {
+    background: theme.colors.findRestaurantHeaderBackground,
+    paddingTop: '84px',
+    paddingBottom: '32px',
+    minHeight: '400px',
+    display: 'flex' as const,
+    alignItems: 'center' as const
+  };
+  const cssEnd = performance.now();
+  // console.log('🎨 FindRestaurantScreen: CSS object creation took', cssEnd - cssStart, 'ms');
+
   return (
-    <div style={{ 
-      width: '100vw',
-      position: 'relative',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      backgroundColor: theme.colors.background, 
-      minHeight: '100vh'
-    }}>
+    <div style={mainContainerStyle}>
       <style>{SCREEN_STYLES.findRestaurant.spinAnimation}</style>
-      <div style={{
-        background: theme.colors.findRestaurantHeaderBackground,
-        paddingTop: '84px',
-        paddingBottom: '32px',
-        minHeight: '400px',
-        display: 'flex',
-        alignItems: 'center'
-      }}>
+      <div style={headerStyle}>
         <div style={{
           width: '100%',
           maxWidth: '512px',
@@ -482,18 +529,18 @@ const FindRestaurantScreen: React.FC = () => {
         backgroundColor: theme.colors.background,
         minHeight: '100vh',
         padding: '24px 0',
-        width: '100vw',
-        position: 'relative',
-        left: '50%',
-        transform: 'translateX(-50%)'
-      }}>
+        width: '100%'
+      }} 
+>
         <div style={{
           width: '100%',
           maxWidth: '448px',
           margin: '0 auto',
           padding: '0 16px',
           boxSizing: 'border-box'
-        }}>
+        }}
+        data-accordion-container
+>
           <div style={{
             width: '100%',
             overflowX: 'hidden',
@@ -669,5 +716,8 @@ const FindRestaurantScreen: React.FC = () => {
       />
     </div>
   );
-};
+});
+
+FindRestaurantScreen.displayName = 'FindRestaurantScreen';
+
 export default FindRestaurantScreen;

@@ -42,9 +42,18 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           cursor: isGrayedOut ? 'not-allowed' : 'pointer',
           textAlign: 'left',
           opacity: isGrayedOut ? 0.5 : 1,
+          minHeight: '60px', // Force consistent height to stabilize layout
+          boxSizing: 'border-box',
+          minWidth: '340px', // Force consistent width to prevent compression
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: SPACING[2],
+          flex: 1, // Take available space
+          minWidth: 0, // Allow text to wrap if needed
+        }}>
           <h3 style={{
             margin: 0,
             fontSize: '1.25rem',
@@ -70,10 +79,9 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             transition: 'transform 0.3s ease',
             color: theme.colors.textSecondary,
             flexShrink: 0, // Prevent icon from shrinking
-            // --- THIS IS THE FIX ---
-            // Adding a right margin pulls the chevron away from the edge.
-            // You can adjust this value (e.g., SPACING[3]) for more space.
-            marginRight: SPACING[12],
+            marginLeft: SPACING[4], // Space from text
+            width: '24px', // Fixed width
+            height: '24px', // Fixed height
           }}
         >
           <polyline points="6 9 12 15 18 9"></polyline>
@@ -81,7 +89,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
       </div>
       <div
         style={{
-          maxHeight: isExpanded && !isGrayedOut ? '60vh' : '0',
+          maxHeight: isExpanded && !isGrayedOut ? '400px' : '0',
           overflowY: 'auto',
           overflowX: 'hidden',
           transition: 'max-height 0.5s ease-in-out',
