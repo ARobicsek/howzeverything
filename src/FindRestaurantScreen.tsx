@@ -107,16 +107,14 @@ const FindRestaurantScreen: React.FC = React.memo(() => {
     if (user) {
       // console.log('📊 FindRestaurantScreen: Starting loadInitialData at', performance.now());
       setAreInitialSectionsLoading(true);
-      const dataStart = performance.now();
       const [recents, pinned] = await Promise.all([getRecentVisits(), getPinnedRestaurants()]);
-      const dataEnd = performance.now();
       // console.log('📊 FindRestaurantScreen: Data fetch took', dataEnd - dataStart, 'ms');
       setRecentRestaurants(recents as RestaurantWithPinStatus[]);
       setPinnedRestaurants(pinned as RestaurantWithPinStatus[]);
       setAreInitialSectionsLoading(false);
       // console.log('📊 FindRestaurantScreen: loadInitialData complete at', performance.now());
     }
-  }, [user?.id]); // Only depend on user ID, not the entire user object or hook functions
+  }, [user, getRecentVisits, getPinnedRestaurants]); // Include all dependencies used in the callback
 
   useEffect(() => {
     // console.log('🔄 FindRestaurantScreen: loadInitialData useEffect triggered at', performance.now());
@@ -151,9 +149,7 @@ const FindRestaurantScreen: React.FC = React.memo(() => {
 
       if (restaurantIds.length === 0) return;
 
-      const statsStart = performance.now();
       const { data: stats, error: statsError } = await supabase.rpc('get_restaurants_stats', { p_restaurant_ids: restaurantIds });
-      const statsEnd = performance.now();
       // console.log('📈 FindRestaurantScreen: Stats RPC took', statsEnd - statsStart, 'ms');
 
       if (statsError) {
@@ -443,7 +439,6 @@ const FindRestaurantScreen: React.FC = React.memo(() => {
 
   // DEBUG: Render timing and CSS calculations
   // console.log('🎨 FindRestaurantScreen: Starting render at', performance.now());
-  const cssStart = performance.now();
   const mainContainerStyle = {
     width: '100vw',
     position: 'relative' as const,
@@ -460,7 +455,6 @@ const FindRestaurantScreen: React.FC = React.memo(() => {
     display: 'flex' as const,
     alignItems: 'center' as const
   };
-  const cssEnd = performance.now();
   // console.log('🎨 FindRestaurantScreen: CSS object creation took', cssEnd - cssStart, 'ms');
 
   return (
