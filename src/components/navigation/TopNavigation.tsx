@@ -95,7 +95,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleMenu }) => {
         <LocationAwareButton />
         <Avatar />
         <button onClick={onToggleMenu} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: SPACING[2] }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color={theme.colors.white}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" color={theme.colors.iconPrimary}>
             <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
           </svg>
         </button>

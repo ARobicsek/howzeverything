@@ -476,7 +476,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     // Keep primary color for backgrounds but add specific border override
     
     // White text color for home screen (to match about screen)
-    white: '#ca4719',
+    white: '#ffffff', // Set dropdown background to white for better contrast
     textWhite: '#ca4719', 
     
     // Custom header background for all screen headers
@@ -599,6 +599,15 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     discoverySelectTextColor: '#482107',
     iconButtonBorderActive: '#dd5a14',
     iconButtonBorderInactive: '#e8dcc6',
+    
+    // Override text color for dialog/dropdown menus for better contrast
+    text: '#482107', // Use dark brown for primary text instead of orange
+    
+    // Use orange accent for delete actions instead of red
+    danger: '#dd5a14', // Use orange accent color for delete dish
+    
+    // Override icon colors in navigation for grumpy cat theme
+    iconPrimary: '#dd5a14', // Orange accent for hamburger menu and other primary icons
   },
 };
 
