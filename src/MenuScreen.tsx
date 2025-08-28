@@ -628,7 +628,13 @@ const MenuScreen: React.FC = () => {
           boxSizing: 'border-box',
           minWidth: 0
         }}>
-            <button onClick={() => navigate(-1)} style={{
+            <button onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/home');
+              }
+            }} style={{
               ...STYLES.iconButton,
               color: theme.colors.text
             }} aria-label="Go back">
