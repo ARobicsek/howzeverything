@@ -290,6 +290,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     // Missing properties for 90s theme
     iconButtonBorderActive: '#FF00FF',
     iconButtonBorderInactive: '#4D3664',
+    signOutButtonText: '#FF0040',       // Electric red for sign out button
   },
   
   victorian: {
@@ -375,6 +376,9 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     surface: '#FFFFFF',              // Maps to white/cardBg
     border: '#E5E7EB',               // Maps to gray200
     textPrimary: '#374151',          // Maps to text
+    
+    // Profile page sign out button - use danger color
+    signOutButtonText: '#EF4444',    // Red danger color for sign out button
     
     // Semantic tokens for component-specific needs
     ratingBreakdownBackground: '#F9FAFB', // Gray-50 background for Victorian rating breakdown
@@ -555,8 +559,8 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     // Navigation modal - use golden color for admin items
     ratingGold: '#ee9d2a', // Golden accent color for Admin Panel and My Restaurants
     
-    // Profile page sign out button - use white text for better visibility
-    signOutButtonText: '#ffffff', // White text for sign out button
+    // Profile page sign out button - use red for consistency across themes
+    signOutButtonText: '#EF4444', // Red danger color for sign out button
     
     // LoginForm semantic tokens for Grumpy Cat theme
     loginFormContainer: '#fbeedd',
