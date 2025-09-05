@@ -188,43 +188,55 @@ const DiscoveryScreen: React.FC = () => {
     }
     const dishToUpdate = [...filteredAndGrouped].flatMap(g => g.dishes).find(d => d.id === dishId);
     if (!dishToUpdate) return;
+    
+    // Store original state for potential rollback
+    const originalGroups = [...filteredAndGrouped];
+    
+    // Optimistic update - update UI immediately
+    setFilteredAndGrouped(prevGroups => prevGroups.map(group => ({
+        ...group,
+        dishes: group.dishes.map(dish => {
+            if (dish.id === dishId) {
+                const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
+                const newRatings: DishRating[] = [...dish.ratings];
+                if (existingRatingIndex > -1) {
+                    if (newRating === 0) {
+                        newRatings.splice(existingRatingIndex, 1);
+                    } else {
+                        newRatings[existingRatingIndex] = { ...newRatings[existingRatingIndex], rating: newRating };
+                    }
+                } else if (newRating > 0) {
+                    newRatings.push({
+                        id: `temp-${Date.now()}`, user_id: user.id, rating: newRating, dish_id: dishId,
+                        created_at: new Date().toISOString(), updated_at: new Date().toISOString(), date_tried: new Date().toISOString(),
+                        notes: null
+                    });
+                }
+                const total = newRatings.length;
+                const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+                return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
+            }
+            return dish;
+        })
+    })));
+    
     try {
+      // Handle favorite restaurant logic
       const isFavorite = favoriteRestaurantIds.has(dishToUpdate.restaurant.id);
       if (!isFavorite) {
         await addRestaurantToFavorites(dishToUpdate.restaurant.id);
         setFavoriteRestaurantIds(prev => new Set(prev).add(dishToUpdate.restaurant.id));
       }
+      
+      // Make server call
       const success = await updateRatingForDish(dishId, user.id, newRating);
       if (!success) {
         throw new Error("Failed to save rating to the database.");
       }
-      setFilteredAndGrouped(prevGroups => prevGroups.map(group => ({
-          ...group,
-          dishes: group.dishes.map(dish => {
-              if (dish.id === dishId) {
-                  const existingRatingIndex = dish.ratings.findIndex((r: DishRating) => r.user_id === user.id);
-                  const newRatings: DishRating[] = [...dish.ratings];
-                  if (existingRatingIndex > -1) {
-                      if (newRating === 0) {
-                          newRatings.splice(existingRatingIndex, 1);
-                      } else {
-                          newRatings[existingRatingIndex] = { ...newRatings[existingRatingIndex], rating: newRating };
-                      }
-                  } else if (newRating > 0) {
-                      newRatings.push({
-                          id: `temp-${Date.now()}`, user_id: user.id, rating: newRating, dish_id: dishId,
-                          created_at: new Date().toISOString(), updated_at: new Date().toISOString(), date_tried: new Date().toISOString(),
-                      });
-                  }
-                  const total = newRatings.length;
-                  const avg = total > 0 ? newRatings.reduce((sum, r) => sum + r.rating, 0) / total : 0;
-                  return { ...dish, ratings: newRatings, total_ratings: total, average_rating: Math.round(avg * 10) / 10 };
-              }
-              return dish;
-          })
-      })));
     } catch (error) {
       console.error("Error during rating update process:", error);
+      // Rollback optimistic update on error
+      setFilteredAndGrouped(originalGroups);
       alert("There was a problem saving your rating. Please try again.");
     }
   };
@@ -347,6 +359,7 @@ const DiscoveryScreen: React.FC = () => {
                 onUpdatePhotoCaption={() => Promise.resolve()}
                 onShare={() => handleShareDish(dish)} isSubmittingComment={false} isExpanded={expandedDishId === dish.id}
                 onToggleExpand={() => setExpandedDishId(prev => (prev === dish.id ? null : dish.id))}
+                allowInlineRating={true}
               />
             ))}
           </div>

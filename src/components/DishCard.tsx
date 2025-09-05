@@ -27,6 +27,7 @@ interface DishCardProps {
   isSubmittingComment: boolean;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  allowInlineRating?: boolean;
 }
 
 
@@ -35,7 +36,9 @@ interface DishCardProps {
 const RatingSummary: React.FC<{
   personalRating: number | null;
   communityAverage: number;
-}> = ({ personalRating, communityAverage }) => {
+  interactive?: boolean;
+  onRatingChange?: (rating: number) => void;
+}> = ({ personalRating, communityAverage, interactive = false, onRatingChange }) => {
   const { theme } = useTheme();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: SPACING[1] }}>
@@ -47,10 +50,19 @@ const RatingSummary: React.FC<{
           fontWeight: TYPOGRAPHY.medium
         }}>Me:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[1] }}>
-          <StarRating rating={personalRating || 0} readonly variant="personal" size="sm" />
-          <span style={{ color: theme.colors.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
-            {personalRating || '—'}
-          </span>
+          <StarRating 
+            rating={personalRating || 0} 
+            readonly={!interactive}
+            variant="personal" 
+            size="sm"
+            onRatingChange={interactive ? onRatingChange : undefined}
+            showClearButton={interactive}
+          />
+          {!interactive && (
+            <span style={{ color: theme.colors.text, fontWeight: TYPOGRAPHY.medium, fontSize: TYPOGRAPHY.sm.fontSize }}>
+              {personalRating || '—'}
+            </span>
+          )}
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[2] }}>
@@ -472,7 +484,8 @@ const DishCard: React.FC<DishCardProps> = ({
   onShare,
   isSubmittingComment,
   isExpanded,
-  onToggleExpand
+  onToggleExpand,
+  allowInlineRating = false
 }) => {
   const { theme } = useTheme();
   const [showComments, setShowComments] = useState(false);
@@ -624,6 +637,10 @@ const DishCard: React.FC<DishCardProps> = ({
     onToggleExpand();
   };
 
+  const handleInlineRating = (rating: number) => {
+    onUpdateRating(dish!.id, rating);
+  };
+
 
   if (!isExpanded) {
     return (
@@ -636,7 +653,15 @@ const DishCard: React.FC<DishCardProps> = ({
           borderColor: isHovering ? theme.colors.accent : theme.colors.gray200,
           boxShadow: isHovering ? SHADOWS.medium : SHADOWS.small,
         }}
-        onClick={onToggleExpand}
+        onClick={(e) => {
+          // Prevent card expansion when clicking on rating stars
+          const target = e.target as HTMLElement;
+          if (target.closest('[role="button"]') || target.closest('button')) {
+            e.stopPropagation();
+            return;
+          }
+          onToggleExpand();
+        }}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
@@ -654,6 +679,8 @@ const DishCard: React.FC<DishCardProps> = ({
             <RatingSummary
               personalRating={personalRating}
               communityAverage={dish.average_rating}
+              interactive={allowInlineRating}
+              onRatingChange={allowInlineRating ? handleInlineRating : undefined}
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3] }}>
