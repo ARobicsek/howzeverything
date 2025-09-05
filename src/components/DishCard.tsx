@@ -28,6 +28,7 @@ interface DishCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   allowInlineRating?: boolean;
+  isNewlyAdded?: boolean;
 }
 
 
@@ -485,7 +486,8 @@ const DishCard: React.FC<DishCardProps> = ({
   isSubmittingComment,
   isExpanded,
   onToggleExpand,
-  allowInlineRating = false
+  allowInlineRating = false,
+  isNewlyAdded = false
 }) => {
   const { theme } = useTheme();
   const [showComments, setShowComments] = useState(false);
@@ -502,6 +504,7 @@ const DishCard: React.FC<DishCardProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [showNewDishHighlight, setShowNewDishHighlight] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -516,6 +519,20 @@ const DishCard: React.FC<DishCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  // Handle new dish highlight animation
+  useEffect(() => {
+    if (isNewlyAdded && isExpanded) {
+      setShowNewDishHighlight(true);
+      const timer = setTimeout(() => {
+        setShowNewDishHighlight(false);
+      }, 3000); // Show highlight for 3 seconds
+      return () => clearTimeout(timer);
+    } else {
+      // Clear highlight when dish is collapsed or no longer newly added
+      setShowNewDishHighlight(false);
+    }
+  }, [isNewlyAdded, isExpanded]);
 
   if (!dish) {
     return null;
@@ -650,8 +667,8 @@ const DishCard: React.FC<DishCardProps> = ({
           ...STYLES.card,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
-          borderColor: isHovering ? theme.colors.accent : theme.colors.gray200,
-          boxShadow: isHovering ? SHADOWS.medium : SHADOWS.small,
+          borderColor: theme.colors.gray200,
+          boxShadow: SHADOWS.small,
         }}
         onClick={(e) => {
           // Prevent card expansion when clicking on rating stars
@@ -662,8 +679,6 @@ const DishCard: React.FC<DishCardProps> = ({
           }
           onToggleExpand();
         }}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1, minWidth: 0 }}>

@@ -315,16 +315,22 @@ const MenuScreen: React.FC = () => {
         setExpandedDishId(dishToExpand);
       } else if (dishes.length > 0) {
         // Dishes have loaded but we didn't find the dish
-        // Clear the invalid dish parameter
+        // Clear the invalid dish parameter and reset expanded state
         const newParams = new URLSearchParams(location.search);
         newParams.delete('dish');
         const newSearch = newParams.toString();
         const newUrl = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
         navigate(newUrl, { replace: true });
+        setExpandedDishId(null); // Ensure no dish is expanded if URL param was invalid
       }
       // If dishes.length === 0, we'll wait for them to load in the next render
+    } else {
+      // No dish parameter in URL, ensure no dish is expanded unless explicitly set
+      if (!justAddedDishId) {
+        setExpandedDishId(null);
+      }
     }
-  }, [location.search, location.pathname, dishes, isLoadingDishes, navigate]);
+  }, [location.search, location.pathname, dishes, isLoadingDishes, navigate, justAddedDishId]);
 
 
 
@@ -344,13 +350,20 @@ const MenuScreen: React.FC = () => {
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        if (justAddedDishId) {
-          setJustAddedDishId(null);
-        }
-      }, 150);
+      }, 300); // Increased delay to ensure dish is fully rendered
       return () => clearTimeout(scrollTimer);
     }
   }, [justAddedDishId, expandedDishId]);
+
+  // Clear justAddedDishId after highlight animation
+  useEffect(() => {
+    if (justAddedDishId) {
+      const clearTimer = setTimeout(() => {
+        setJustAddedDishId(null);
+      }, 4000); // Clear after 4 seconds
+      return () => clearTimeout(clearTimer);
+    }
+  }, [justAddedDishId]);
 
 
   useEffect(() => {
@@ -802,12 +815,12 @@ const MenuScreen: React.FC = () => {
           )}
           {!showAddForm ? (
             <div style={SCREEN_STYLES.menu.dishList.container}>
-              {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={isSubmittingComment} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} allowInlineRating={true} />))}</>) : (<div style={SCREEN_STYLES.menu.dishList.noResultsContainer}><p style={SCREEN_STYLES.menu.dishList.noResultsText}>No dishes found matching "{searchTerm}"</p></div>))}
+              {searchTerm.length > 0 && (searchResults.length > 0 ? (<>{searchResults.map((dish) => (<DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={isSubmittingComment} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} allowInlineRating={true} isNewlyAdded={justAddedDishId === dish.id} />))}</>) : (<div style={SCREEN_STYLES.menu.dishList.noResultsContainer}><p style={SCREEN_STYLES.menu.dishList.noResultsText}>No dishes found matching "{searchTerm}"</p></div>))}
               {searchTerm.length === 0 && (
                 hasDishes ? (
                   <>
                     {dishes.map((dish) => (
-                      <DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={isSubmittingComment} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} allowInlineRating={true} />
+                      <DishCard key={dish.id} dish={dish} currentUserId={currentUserId} onDelete={deleteDish} onUpdateRating={updateDishRating} onUpdateDishName={updateDishName} onAddComment={handleAddComment} onUpdateComment={handleUpdateComment} onDeleteComment={handleDeleteComment} onAddPhoto={handleAddPhoto} onDeletePhoto={handleDeletePhoto} onUpdatePhotoCaption={handleUpdatePhotoCaption} onShare={handleShareDish} isSubmittingComment={isSubmittingComment} isExpanded={expandedDishId === dish.id} onToggleExpand={() => setExpandedDishId(prev => prev === dish.id ? null : dish.id)} allowInlineRating={true} isNewlyAdded={justAddedDishId === dish.id} />
                     ))}
                   </>
                 ) : (
