@@ -100,26 +100,17 @@ const DiscoveryScreen: React.FC = () => {
       console.time(`DiscoveryScreen-search-${searchId}`);
       console.log(`[PERF] Starting search (${searchId}) at:`, new Date().toISOString());
       try {
-          // --- THE FIX: Removed the third argument 'searchId' to match the function definition ---
-          let results = await searchAllDishes(searchTerm.trim(), minRating);
+          let results = await searchAllDishes(
+            searchTerm.trim(), 
+            minRating, 
+            userLocation || undefined,
+            maxDistance > -1 ? maxDistance : undefined
+          );
           if (!isActive) {
             console.log(`[DISCOVERY] Search aborted (${searchId}), effect is no longer active.`);
             return;
           }
-          if (maxDistance > -1 && userLocation) {
-              results = results.filter(dish => {
-                  if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
-                      const distance = calculateDistanceInMiles(
-                          userLocation.latitude,
-                          userLocation.longitude,
-                          dish.restaurant.latitude,
-                          dish.restaurant.longitude
-                      );
-                      return distance <= maxDistance;
-                  }
-                  return false;
-              });
-          }
+          // Distance filtering is now handled by the edge function
           const grouped = results.reduce((acc: { [key: string]: RestaurantGroup }, dish) => {
               const restaurantId = dish.restaurant.id;
               if (!acc[restaurantId]) {

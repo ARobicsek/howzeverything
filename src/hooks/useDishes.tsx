@@ -970,7 +970,9 @@ export const fetchMyRatedDishes = async (userId: string): Promise<DishSearchResu
 };
 export const searchAllDishes = async (
   searchTerm?: string,
-  minRating?: number
+  minRating?: number,
+  userLocation?: { latitude: number; longitude: number },
+  maxDistance?: number
 ): Promise<DishSearchResultWithRestaurant[]> => {
   try {
     console.time('edge-function-dish-search');
@@ -992,6 +994,8 @@ export const searchAllDishes = async (
       body: JSON.stringify({
         searchTerm: searchTerm?.trim(),
         minRating: minRating,
+        userLocation: userLocation,
+        maxDistance: maxDistance
       }),
     });
 

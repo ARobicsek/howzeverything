@@ -11,7 +11,10 @@
       "Bash(git log:*)",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Read(//c/Users/ariro/OneDrive/Pictures/Screenshots 1/**)"
+      "Read(//c/Users/ariro/OneDrive/Pictures/Screenshots 1/**)",
+      "Bash(git commit:*)",
+      "Bash(npx supabase functions deploy:*)",
+      "Bash(supabase functions deploy:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -9,28 +9,38 @@
 
 ## 🐛 **IMMEDIATE BUG FIX REQUIRED**
 
-### **"Invalid Date" Issue in Dish Cards**
-- **Discovered**: End of previous session
-- **Issue**: All dish cards showing "Invalid Date" instead of proper dates
-- **Likely Cause**: Date field mapping lost during edge function refactoring
-- **Priority**: HIGH (affects user experience)
+### **"Search by Distance" Not Working in Discover Dishes Page**
+- **Discovered**: 2025-09-07 session
+- **Issue**: Discover dishes page showing empty results despite search filters being set
+- **Likely Cause**: Edge function authentication or location service integration broken after function redeployment
+- **Priority**: HIGH (core discovery feature not functional)
 
 **Investigation Steps:**
-1. **Check edge function data structure**: Compare `get-menu-data` response with what client expects
-2. **Review date field mapping**: Look for missing or renamed date fields (created_at, dateAdded, etc.)
-3. **Test API response**: Use curl to check actual date format returned by edge function
-4. **Client-side date parsing**: Check how DishCard component processes date fields
+1. **Check dish-search edge function**: Verify authentication and location-based filtering
+2. **Review geoapify-proxy integration**: Ensure location services are working
+3. **Test search functionality**: Check both text search and distance filtering
+4. **Console error analysis**: Review browser console for API errors or authentication issues
 
 **Files to Examine:**
-- `supabase/functions/get-menu-data/index.ts` - Check date field processing
-- `src/components/DishCard.tsx` - Check date display logic  
-- `src/hooks/useDishes.tsx` - Check data transformation
-- Compare API response structure before/after edge function changes
+- `supabase/functions/dish-search/index.ts` - Check search logic and location filtering
+- `supabase/functions/geoapify-proxy/index.ts` - Verify location service integration
+- `src/hooks/useDishSearch.tsx` - Check client-side search implementation
+- `src/components/DiscoveryScreen.tsx` - Check UI search integration
 
 **Quick Fix Approach:**
-1. Test the API endpoint directly to see date format
-2. Add proper date field mapping in edge function
-3. Ensure client-side date parsing handles the format correctly
+1. Test the dish-search endpoint directly to identify failures
+2. Check authentication tokens are being passed correctly
+3. Verify location permissions and coordinate handling
+4. Test distance calculations and restaurant filtering
+
+## ✅ **COMPLETED IN CURRENT SESSION**
+
+### **🐛 "Invalid Date" Issue in Dish Cards - FIXED ✅**
+- **Issue**: All dish cards showing "Invalid Date" instead of proper dates
+- **Root Cause**: Missing `created_at: string;` field in RawDishData interface in get-menu-data edge function
+- **Fix Applied**: Added `created_at` field to RawDishData interface in `supabase/functions/get-menu-data/index.ts`
+- **Result**: All dish cards now show proper dates like "Added 1/15/2024"
+- **Status**: VERIFIED WORKING ✅
 
 ## ✅ **COMPLETED IN PREVIOUS SESSION**
 
@@ -105,16 +115,18 @@ Based on `SECURITY_REMEDIATION_CHECKLIST.md`, the remaining high-priority items 
 
 ## 📋 **RECOMMENDED SESSION APPROACH**
 
-### **Phase 0: Fix "Invalid Date" Bug (15-20 min) - IMMEDIATE**
+### **Phase 0: Fix "Search by Distance" Bug (30-45 min) - IMMEDIATE**
 1. **Quick Investigation**:
-   - Test `curl` call to `get-menu-data` endpoint to see actual date fields returned
-   - Compare with `src/components/DishCard.tsx` date expectations
-   - Check for missing `dateAdded` or `created_at` field mapping
+   - Test the `dish-search` edge function directly to check for errors
+   - Verify authentication tokens are being passed correctly to edge functions
+   - Check browser console for API errors or authentication issues
+   - Test location services and coordinate handling
 
 2. **Quick Fix**:
-   - Add missing date field in edge function response
-   - Test dish card display immediately
-   - Verify dates show properly for all dishes
+   - Fix any authentication issues with dish-search edge function
+   - Ensure geoapify-proxy integration is working correctly
+   - Test distance filtering and restaurant location data
+   - Verify search results are displaying properly
 
 ### **Phase 1: Admin Authorization Fix (30-45 min)**
 1. **Analyze Current Admin Logic**:
@@ -181,11 +193,12 @@ Based on `SECURITY_REMEDIATION_CHECKLIST.md`, the remaining high-priority items 
 ## 🎯 **SUCCESS CRITERIA FOR NEXT SESSION**
 
 By the end of the next session:
-- [ ] **IMMEDIATE**: "Invalid Date" bug fixed - all dish cards show proper dates
-- [ ] Admin operations moved to server-side with proper authorization
-- [ ] SQL injection vulnerabilities eliminated
-- [ ] Comprehensive testing completed for both fixes
-- [ ] All high-priority security items marked as complete
+- [ ] **IMMEDIATE**: "Search by Distance" bug fixed - Discover dishes page shows results
+- [ ] Location-based search functionality fully working
+- [ ] All edge functions properly authenticated and responding
+- [ ] Admin operations moved to server-side with proper authorization (if time allows)
+- [ ] SQL injection vulnerabilities eliminated (if time allows)
+- [ ] Comprehensive testing completed for search fixes
 - [ ] Code committed and pushed to repository
 
 ## 🔧 **QUICK START COMMANDS**
@@ -197,14 +210,20 @@ npm run dev
 # Check TypeScript
 npm run type-check
 
-# Debug date issue - test edge function response
-curl -X POST "https://cjznbkcurzotvusorjec.supabase.co/functions/v1/get-menu-data" \
+# Debug search issue - test dish-search edge function
+curl -X POST "https://cjznbkcurzotvusorjec.supabase.co/functions/v1/dish-search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer [SESSION_TOKEN]" \
-  -d '{"restaurantId":"01ee9ef5-9f2d-445f-909d-1b8f9af53f9e"}' | jq '.[] | {name, created_at, dateAdded}'
+  -d '{"searchTerm": "pasta", "userLocation": {"latitude": 40.7128, "longitude": -74.0060}, "maxDistance": 5, "minRating": 0}'
+
+# Test geoapify-proxy
+curl -X POST "https://cjznbkcurzotvusorjec.supabase.co/functions/v1/geoapify-proxy" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer [SESSION_TOKEN]" \
+  -d '{"latitude": 40.7128, "longitude": -74.0060, "radius": 5000}'
 
 # Test the app
-# Open http://localhost:3003 and check dish card dates
+# Open http://localhost:3001 and test Discover dishes page search functionality
 ```
 
 ## 📝 **IMPORTANT CONTEXT**
@@ -227,6 +246,6 @@ curl -X POST "https://cjznbkcurzotvusorjec.supabase.co/functions/v1/get-menu-dat
 
 ---
 
-**Session Focus**: Complete high-priority security fixes (admin authorization & SQL injection prevention) to achieve comprehensive security posture.
+**Session Focus**: Fix critical "Search by Distance" functionality in Discover Dishes page, then proceed with high-priority security fixes (admin authorization & SQL injection prevention).
 
-**Remember**: The app is fully functional - focus is on hardening the remaining security vulnerabilities while maintaining all existing functionality!
+**Remember**: The app core functionality is mostly working (dish cards, photos, auth all fixed), but the main discovery feature (search by distance) is broken and needs immediate attention!

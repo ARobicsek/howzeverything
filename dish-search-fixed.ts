@@ -6,6 +6,7 @@ interface RawDishData {
   id: string;
   name: string;
   description?: string;
+  created_at?: string;
   restaurants?: {
     id: string;
     name: string;
@@ -18,7 +19,6 @@ interface RawDishData {
   }>;
   [key: string]: unknown;
 }
-import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
 // Distance calculation function
 function calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -32,6 +32,47 @@ function calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2
   return R * c;
 }
 
+// Basic search term expansion - simplified version
+function expandSearchTerm(term: string): string[] {
+  const normalizedTerm = term.toLowerCase().trim();
+  const searchTerms = [normalizedTerm];
+  
+  // Add basic plurals/singulars
+  if (normalizedTerm.endsWith('s') && normalizedTerm.length > 2) {
+    searchTerms.push(normalizedTerm.slice(0, -1));
+  } else if (!normalizedTerm.endsWith('s')) {
+    searchTerms.push(normalizedTerm + 's');
+  }
+  
+  // Basic synonyms for common food terms
+  const basicSynonyms: { [key: string]: string[] } = {
+    'pasta': ['spaghetti', 'linguine', 'fettuccine', 'penne', 'rigatoni', 'noodles'],
+    'pizza': ['pie', 'slice'],
+    'burger': ['hamburger', 'cheeseburger'],
+    'sandwich': ['sub', 'hoagie', 'grinder', 'hero', 'panini'],
+    'chicken': ['pollo', 'fowl'],
+    'beef': ['steak', 'meat'],
+    'fish': ['seafood', 'salmon', 'tuna', 'cod'],
+    'coffee': ['latte', 'cappuccino', 'espresso', 'americano'],
+    'tea': ['chai', 'green tea', 'black tea'],
+    'dessert': ['cake', 'ice cream', 'pie', 'cookie'],
+    'drink': ['beverage', 'drinks', 'beverages']
+  };
+  
+  if (basicSynonyms[normalizedTerm]) {
+    searchTerms.push(...basicSynonyms[normalizedTerm]);
+  }
+  
+  // Check if term is a synonym of something
+  for (const [key, synonyms] of Object.entries(basicSynonyms)) {
+    if (synonyms.includes(normalizedTerm)) {
+      searchTerms.push(key);
+      searchTerms.push(...synonyms.filter(s => s !== normalizedTerm));
+    }
+  }
+  
+  return [...new Set(searchTerms)];
+}
 
 // CORS headers for browser access  
 const corsHeaders = {
@@ -39,31 +80,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 }
-
-
-// --- TYPE DEFINITIONS ---  
-/* interface DishSearchResultWithRestaurant {
-  id: string;
-  restaurant_id: string;
-  name: string;
-  description: string | null;
-  category: string | null;
-  is_active: boolean;
-  created_by: string | null;
-  verified_by_restaurant: boolean;
-  total_ratings: number;
-  average_rating: number;
-  created_at: string;
-  updated_at: string;
-  restaurant: {
-    id: string;
-    name: string;
-    latitude?: number | null;
-    longitude?: number | null;
-  };
-  // other relations
-} */
-
 
 const supabaseAdminClient = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -107,11 +123,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
     const { searchTerm, minRating, userLocation, maxDistance } = await req.json();
 
-
-    // --- THE FIX: This function is now much lighter ---
-    // It calculates stats from a minimal ratings payload and returns empty arrays for heavy data.
+    // Process raw dishes function - optimized for performance
     const processRawDishes = (rawData: RawDishData[]) => {
       return (rawData || []).map((d: RawDishData) => {
         if (!d || !d.restaurants || !d.id) return null;
@@ -119,14 +134,12 @@ serve(async (req) => {
         // Destructure to separate the lightweight ratings from the main dish and restaurant data
         const { dish_ratings, restaurants, ...dishData } = d;
 
-
         // Calculate stats from the minimal ratings payload: [{rating: number}, ...]
         const ratings = dish_ratings || [];
         const totalRatings = ratings.length;
         const averageRating = totalRatings > 0
           ? ratings.reduce((sum: number, r: { rating: number; }) => sum + r.rating, 0) / totalRatings
           : 0;
-
 
         // Return a lightweight object. Comments and photos are not needed for discovery.
         return {
@@ -142,9 +155,7 @@ serve(async (req) => {
       }).filter(Boolean);
     };
      
-    // --- THE FIX: The query is now much more efficient ---
-    // It no longer fetches the full dish_comments or dish_photos tables.
-    // It only fetches the 'rating' column from dish_ratings to calculate the average.
+    // Build the query - much more efficient, only fetches needed data
     let query = supabaseAdminClient
       .from('restaurant_dishes')
       .select(`
@@ -155,52 +166,26 @@ serve(async (req) => {
       .eq('is_active', true)
       .not('restaurants.latitude', 'is', null);
 
-
+    // Handle search term processing
     const term = searchTerm?.trim();
     if (term && term.length > 1) {
-      const allSearchTerms = new Set<string>();
-      const exclusionTerms = new Set<string>();
-     
-      const isCategory = checkCategorySearch(term);
-     
-      const needsContextFiltering = term.toLowerCase() === 'roll' || term.toLowerCase() === 'rolls' || term.toLowerCase() === 'bakery';
-     
-      const synonymTerms = getAllRelatedTerms(term, needsContextFiltering || term.toLowerCase() === 'bakery');
-      synonymTerms.forEach(t => allSearchTerms.add(t));
-     
-      if (isCategory) {
-        const categoryTerms = getCategoryTerms(term);
-        categoryTerms.forEach(t => allSearchTerms.add(t));
-      }
-     
-      if (needsContextFiltering || isCategory) {
-        const excludeTerms = getExclusionTerms(term, allSearchTerms);
-        excludeTerms.forEach(t => exclusionTerms.add(t));
-      }
-     
-      const finalSearchTerms = Array.from(allSearchTerms).slice(0, 100);
-     
-      if (finalSearchTerms.length > 0) {
-        const orFilter = finalSearchTerms
-          .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
-          .join(',');
-       
-        query = query.or(orFilter);
-       
-        if (exclusionTerms.size > 0) {
-          Array.from(exclusionTerms).forEach(excludeTerm => {
-            query = query.not('name', 'ilike', `%${excludeTerm}%`);
-          });
-        }
+      const searchTerms = expandSearchTerm(term);
+      const searchFilters = searchTerms
+        .slice(0, 20) // Limit to prevent query overload
+        .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
+        .join(',');
+      
+      if (searchFilters) {
+        query = query.or(searchFilters);
       }
     }
 
-
+    // Apply rating filter
     if (minRating && minRating > 0) {
       query = query.gte('average_rating', minRating);
     }
 
-
+    // Order and limit results
     query = query.order('average_rating', { ascending: false }).limit(200);
 
     const { data, error } = await query;
@@ -223,7 +208,6 @@ serve(async (req) => {
         return false;
       });
     }
-
 
     return new Response(JSON.stringify(results), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

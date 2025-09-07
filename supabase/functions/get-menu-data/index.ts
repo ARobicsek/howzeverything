@@ -6,6 +6,7 @@ interface RawDishData {
   id: string;
   name: string;
   description?: string;
+  created_at: string;
   dish_ratings?: Array<{
     rating: number;
     user_id: string;
