@@ -5,7 +5,32 @@
 **Project**: HowzEverything Restaurant Rating Application  
 **Previous Session**: Console Error Resolution & Edge Function Deployment - COMPLETE ✅  
 **Date**: 2025-09-07  
-**Status**: Critical security vulnerabilities FIXED, app fully functional, ready for next phase
+**Status**: Critical security vulnerabilities FIXED, app functional, but new UI bug discovered
+
+## 🐛 **IMMEDIATE BUG FIX REQUIRED**
+
+### **"Invalid Date" Issue in Dish Cards**
+- **Discovered**: End of previous session
+- **Issue**: All dish cards showing "Invalid Date" instead of proper dates
+- **Likely Cause**: Date field mapping lost during edge function refactoring
+- **Priority**: HIGH (affects user experience)
+
+**Investigation Steps:**
+1. **Check edge function data structure**: Compare `get-menu-data` response with what client expects
+2. **Review date field mapping**: Look for missing or renamed date fields (created_at, dateAdded, etc.)
+3. **Test API response**: Use curl to check actual date format returned by edge function
+4. **Client-side date parsing**: Check how DishCard component processes date fields
+
+**Files to Examine:**
+- `supabase/functions/get-menu-data/index.ts` - Check date field processing
+- `src/components/DishCard.tsx` - Check date display logic  
+- `src/hooks/useDishes.tsx` - Check data transformation
+- Compare API response structure before/after edge function changes
+
+**Quick Fix Approach:**
+1. Test the API endpoint directly to see date format
+2. Add proper date field mapping in edge function
+3. Ensure client-side date parsing handles the format correctly
 
 ## ✅ **COMPLETED IN PREVIOUS SESSION**
 
@@ -80,6 +105,17 @@ Based on `SECURITY_REMEDIATION_CHECKLIST.md`, the remaining high-priority items 
 
 ## 📋 **RECOMMENDED SESSION APPROACH**
 
+### **Phase 0: Fix "Invalid Date" Bug (15-20 min) - IMMEDIATE**
+1. **Quick Investigation**:
+   - Test `curl` call to `get-menu-data` endpoint to see actual date fields returned
+   - Compare with `src/components/DishCard.tsx` date expectations
+   - Check for missing `dateAdded` or `created_at` field mapping
+
+2. **Quick Fix**:
+   - Add missing date field in edge function response
+   - Test dish card display immediately
+   - Verify dates show properly for all dishes
+
 ### **Phase 1: Admin Authorization Fix (30-45 min)**
 1. **Analyze Current Admin Logic**:
    - Review `src/hooks/useDishes.tsx` admin check implementation
@@ -145,6 +181,7 @@ Based on `SECURITY_REMEDIATION_CHECKLIST.md`, the remaining high-priority items 
 ## 🎯 **SUCCESS CRITERIA FOR NEXT SESSION**
 
 By the end of the next session:
+- [ ] **IMMEDIATE**: "Invalid Date" bug fixed - all dish cards show proper dates
 - [ ] Admin operations moved to server-side with proper authorization
 - [ ] SQL injection vulnerabilities eliminated
 - [ ] Comprehensive testing completed for both fixes
@@ -160,8 +197,14 @@ npm run dev
 # Check TypeScript
 npm run type-check
 
+# Debug date issue - test edge function response
+curl -X POST "https://cjznbkcurzotvusorjec.supabase.co/functions/v1/get-menu-data" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer [SESSION_TOKEN]" \
+  -d '{"restaurantId":"01ee9ef5-9f2d-445f-909d-1b8f9af53f9e"}' | jq '.[] | {name, created_at, dateAdded}'
+
 # Test the app
-# Open http://localhost:3003 and test admin functions
+# Open http://localhost:3003 and check dish card dates
 ```
 
 ## 📝 **IMPORTANT CONTEXT**
