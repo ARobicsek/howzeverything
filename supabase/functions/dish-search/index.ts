@@ -1,4 +1,11 @@
 // supabase/functions/dish-search/index.ts  
+// 
+// PERFORMANCE NOTE: For optimal database performance, ensure these indexes exist:
+// 1. CREATE INDEX idx_restaurant_dishes_name_gin ON restaurant_dishes USING gin(name gin_trgm_ops);
+// 2. CREATE INDEX idx_restaurant_dishes_active_rating ON restaurant_dishes(is_active, average_rating DESC);
+// 3. CREATE INDEX idx_restaurants_location ON restaurants(latitude, longitude) WHERE latitude IS NOT NULL;
+// 4. CREATE INDEX idx_dish_ratings_dish_id ON dish_ratings(dish_id);
+//
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -118,6 +125,10 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Set a timeout to prevent extremely long queries
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), 30000); // 30 second timeout
+
   try {
     // --- SECURITY CHECK ---  
     const { error: authError } = await securityCheck(req, Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
@@ -183,18 +194,21 @@ serve(async (req) => {
      
       const isCategory = checkCategorySearch(term);
      
-      // Performance optimization: limit expansion for partial/short terms
+      // Performance optimization: only limit expansion for very short terms
       const shouldLimitExpansion = term.length < 4 && !isCategory;
-      const maxTerms = shouldLimitExpansion ? 10 : (isCategory ? 50 : 25);
+      const maxTerms = shouldLimitExpansion ? 8 : (isCategory ? 50 : 30); // Increased limits to handle large cuisine families
      
       const needsContextFiltering = term.toLowerCase() === 'roll' || term.toLowerCase() === 'rolls' || term.toLowerCase() === 'bakery';
      
       const synonymTerms = getAllRelatedTerms(term, needsContextFiltering || term.toLowerCase() === 'bakery');
-      synonymTerms.slice(0, shouldLimitExpansion ? 5 : synonymTerms.length).forEach(t => allSearchTerms.add(t));
+      const synonymLimit = shouldLimitExpansion ? 6 : synonymTerms.length; // No artificial limits for full terms
+      synonymTerms.slice(0, synonymLimit).forEach(t => allSearchTerms.add(t));
      
       if (isCategory) {
         const categoryTerms = getCategoryTerms(term);
-        categoryTerms.slice(0, maxTerms - allSearchTerms.size).forEach(t => allSearchTerms.add(t));
+        // For categories, prioritize category terms over synonyms
+        const availableSlots = Math.max(maxTerms - synonymTerms.length, 20); // Ensure at least 20 slots for category terms
+        categoryTerms.slice(0, availableSlots).forEach(t => allSearchTerms.add(t));
       }
      
       if (needsContextFiltering || isCategory) {
@@ -206,12 +220,16 @@ serve(async (req) => {
       
       // Performance logging
       console.log(`[DISH-SEARCH] Term: "${term}" | Category: ${isCategory} | Terms: ${finalSearchTerms.length}/${allSearchTerms.size} | Max: ${maxTerms}`);
+      console.log(`[DISH-SEARCH-PERF] Final search terms: [${finalSearchTerms.join(', ')}]`);
      
       if (finalSearchTerms.length > 0) {
+        console.time(`[PERF] Building OR filter with ${finalSearchTerms.length} terms`);
         const orFilter = finalSearchTerms
           .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
           .join(',');
+        console.timeEnd(`[PERF] Building OR filter with ${finalSearchTerms.length} terms`);
        
+        console.time(`[PERF] Executing database query`);
         query = query.or(orFilter);
        
         if (exclusionTerms.size > 0) {
@@ -228,9 +246,12 @@ serve(async (req) => {
     }
 
 
-    query = query.order('average_rating', { ascending: false }).limit(200);
+    // Reduce query size for better performance - more aggressive limits to prevent timeouts
+    const queryLimit = (userLocation && maxDistance && maxDistance > 0) ? 40 : 60;
+    query = query.order('average_rating', { ascending: false }).limit(queryLimit);
 
     const { data, error } = await query;
+    console.timeEnd(`[PERF] Executing database query`);
     if (error) throw error;
      
     let results = processRawDishes(data || []);
@@ -258,9 +279,14 @@ serve(async (req) => {
     })
   } catch (error) {
     console.error('[EDGE FUNCTION ERROR]', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const isTimeout = error.name === 'AbortError';
+    return new Response(JSON.stringify({ 
+      error: isTimeout ? 'Search timed out - please try a more specific search term' : error.message 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+      status: isTimeout ? 408 : 500,
     })
+  } finally {
+    clearTimeout(timeoutId);
   }
 })

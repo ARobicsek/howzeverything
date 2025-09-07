@@ -1936,6 +1936,8 @@ export const SCREEN_STYLES: {
       alignItems: 'center',
       borderBottom: `1px solid ${COLORS.gray200}`,
       paddingBottom: SPACING[2],
+      paddingTop: SPACING[4], // Add more space above restaurant name
+      marginTop: SPACING[3],  // Add margin for additional separation from cards above
     },
     restaurantName: {
       ...FONTS.elegant,

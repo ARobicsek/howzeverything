@@ -363,6 +363,12 @@ export function getAllRelatedTerms(term: string, excludeContext?: boolean): stri
       FOOD_SYNONYMS[mainTerm].forEach(syn => relatedTerms.add(normalizeText(syn)));
     }
   }
+
+  // MISSING LOGIC: Check if this is a cuisine family term
+  const cuisineKey = Object.keys(CUISINE_FAMILIES).find(key => normalizeText(key) === normalizedTerm) as keyof typeof CUISINE_FAMILIES;
+  if (cuisineKey) {
+    CUISINE_FAMILIES[cuisineKey].forEach(dish => relatedTerms.add(normalizeText(dish)));
+  }
  
   return Array.from(relatedTerms);
 }

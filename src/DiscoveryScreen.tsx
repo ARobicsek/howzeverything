@@ -50,6 +50,8 @@ const DiscoveryScreen: React.FC = () => {
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const searchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
   const effectRunCount = useRef(0);
+  const lastSearchParams = useRef<string | null>(null);
+  const currentSearchController = useRef<AbortController | null>(null);
   const handleResetFilters = useCallback(() => {
     setSearchTerm('');
     setMinRating(0);
@@ -82,19 +84,45 @@ const DiscoveryScreen: React.FC = () => {
       hasUserLocation: !!userLocation,
       timestamp: new Date().toISOString()
     });
+
+    // Early exit if search term is too short and no filters
+    const hasSearchTerm = searchTerm.trim().length >= 3;
+    const hasActiveFilters = minRating > 0 || maxDistance > -1;
+    
+    if (!hasSearchTerm && !hasActiveFilters) {
+      setFilteredAndGrouped([]);
+      setIsLoading(false);
+      setError(null);
+      lastSearchParams.current = null;
+      return;
+    }
+
     let isActive = true;
     const runSearch = async () => {
       const searchId = `${searchTerm.trim()}-${Date.now()}`;
-      const hasSearchTerm = searchTerm.trim().length >= 3;
-      const hasActiveFilters = minRating > 0 || maxDistance > -1;
-      if (!hasSearchTerm && !hasActiveFilters) {
-          if (isActive) {
-            setFilteredAndGrouped([]);
-            setIsLoading(false);
-            setError(null);
-          }
-          return;
+      
+      // Create search parameters key to avoid duplicate searches
+      const searchParamsKey = JSON.stringify({
+        searchTerm: searchTerm.trim(),
+        minRating,
+        maxDistance,
+        userLocation
+      });
+
+      // Skip if this exact search was already performed
+      if (lastSearchParams.current === searchParamsKey) {
+        console.log(`[DISCOVERY] Skipping duplicate search for: ${searchTerm.trim()}`);
+        return;
       }
+
+      // Cancel previous search if still running
+      if (currentSearchController.current) {
+        currentSearchController.current.abort();
+      }
+
+      // Create new controller for this search
+      currentSearchController.current = new AbortController();
+      lastSearchParams.current = searchParamsKey;
       setIsLoading(true);
       setError(null);
       console.time(`DiscoveryScreen-search-${searchId}`);
@@ -152,13 +180,16 @@ const DiscoveryScreen: React.FC = () => {
     }
     searchDebounceTimer.current = setTimeout(() => {
         runSearch();
-    }, 500);
+    }, 1000);
 
     return () => {
         isActive = false;
         if (searchDebounceTimer.current) {
             console.log(`[CLEANUP] Clearing timer ${searchDebounceTimer.current} and disarming effect in DiscoveryScreen.`);
             clearTimeout(searchDebounceTimer.current);
+        }
+        if (currentSearchController.current) {
+            currentSearchController.current.abort();
         }
     }
   }, [searchTerm, minRating, maxDistance, userLocation]);
@@ -271,10 +302,42 @@ const DiscoveryScreen: React.FC = () => {
     }
   };
   const renderContent = () => {
-    const hasSearchTerm = searchTerm.trim().length >= 2;
+    const hasSearchTerm = searchTerm.trim().length >= 3;
     const hasActiveFilters = minRating > 0 || maxDistance > -1;
     if (isLoading) {
-      return <LoadingScreen message="Fetching dishes for you..." />;
+      return (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          paddingTop: '32px',
+          gap: '16px'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: `3px solid ${theme.colors.gray200}`,
+            borderTopColor: theme.colors.primary,
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite'
+          }}></div>
+          <p style={{
+            ...theme.fonts.body,
+            fontSize: '1.125rem',
+            color: theme.colors.textSecondary,
+            margin: 0
+          }}>
+            Fetching dishes for you...
+          </p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      );
     }
     if (error) {
       return (
@@ -537,7 +600,7 @@ const DiscoveryScreen: React.FC = () => {
       <main style={{
         backgroundColor: theme.colors.background,
         minHeight: '100vh',
-        paddingTop: '24px',
+        paddingTop: '12px', // Reduced from 24px to bring first restaurant closer to header
         width: '100vw',
         position: 'relative',
         left: '50%',
