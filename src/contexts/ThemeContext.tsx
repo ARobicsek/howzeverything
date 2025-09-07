@@ -610,8 +610,7 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     // Use orange accent for delete actions instead of red
     danger: '#dd5a14', // Use orange accent color for delete dish
     
-    // Override icon colors in navigation for grumpy cat theme
-    iconPrimary: '#dd5a14', // Orange accent for hamburger menu and other primary icons
+    // Override icon colors in navigation for grumpy cat theme - already defined above
   },
 };
 

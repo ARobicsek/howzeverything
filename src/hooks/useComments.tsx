@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from './useAuth';
+import DOMPurify from 'dompurify';
 
 interface DishComment { 
   id: string; 
@@ -17,11 +18,14 @@ export const useComments = () => {
   const addComment = async (dishId: string, commentText: string) => {
     if (!commentText.trim() || !user) return null;
     
+    // Sanitize comment text to prevent XSS attacks
+    const sanitizedCommentText = DOMPurify.sanitize(commentText.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase
         .from('dish_comments')
-        .insert({ dish_id: dishId, comment_text: commentText.trim(), user_id: user.id })
+        .insert({ dish_id: dishId, comment_text: sanitizedCommentText, user_id: user.id })
         .select()
         .single();
 
@@ -35,11 +39,14 @@ export const useComments = () => {
   const updateComment = async (commentId: string, newText: string) => {
     if (!newText.trim()) throw new Error("Comment text cannot be empty");
     
+    // Sanitize comment text to prevent XSS attacks
+    const sanitizedCommentText = DOMPurify.sanitize(newText.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase
         .from('dish_comments')
-        .update({ comment_text: newText.trim() })
+        .update({ comment_text: sanitizedCommentText })
         .eq('id', commentId)
         .select()
         .single();

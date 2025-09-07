@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { enhancedDishSearch, findSimilarDishes } from '../utils/dishSearch';
+import DOMPurify from 'dompurify';
 // Photo interface
 export interface DishPhoto {
   id: string;
@@ -286,14 +287,18 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       setIsLoading(true);
       setError(null);
       try {
+        // Get the current session for authentication
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+          throw new Error('Authentication required to load restaurant menu.');
+        }
+
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         const response = await fetch(`${supabaseUrl}/functions/v1/get-menu-data`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'apikey': supabaseAnonKey,
-                'Authorization': `Bearer ${supabaseAnonKey}`,
+                'Authorization': `Bearer ${session.access_token}`,
             },
             body: JSON.stringify({ restaurantId }),
         });
@@ -536,6 +541,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
 
     setIsSubmittingComment(true);
 
+    // Sanitize comment text to prevent XSS attacks
+    const sanitizedCommentText = DOMPurify.sanitize(commentText.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+
     // Generate temporary ID for optimistic update
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     const timestamp = new Date().toISOString();
@@ -545,7 +553,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       id: tempId,
       dish_id: dishId,
       user_id: user.id,
-      comment_text: commentText,
+      comment_text: sanitizedCommentText,
       created_at: timestamp,
       updated_at: timestamp,
       is_hidden: false,
@@ -573,7 +581,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         .insert({
           dish_id: dishId,
           user_id: user.id,
-          comment_text: commentText
+          comment_text: sanitizedCommentText
         })
         .select(`
           *,
@@ -695,6 +703,9 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       throw new Error('You can only edit your own comments');
     }
 
+    // Sanitize comment text to prevent XSS attacks
+    const sanitizedCommentText = DOMPurify.sanitize(commentText.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+
     setIsSubmittingComment(true);
 
     // Store original comment text for rollback
@@ -706,7 +717,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       return prevDishes.map(dish => ({
         ...dish,
         comments: dish.comments.map(c =>
-          c.id === commentId ? { ...c, comment_text: commentText, updated_at: timestamp } : c
+          c.id === commentId ? { ...c, comment_text: sanitizedCommentText, updated_at: timestamp } : c
         )
       }));
     });
@@ -715,7 +726,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       // Make API call
       const { error } = await supabase
         .from('dish_comments')
-        .update({ comment_text: commentText, updated_at: timestamp })
+        .update({ comment_text: sanitizedCommentText, updated_at: timestamp })
         .eq('id', commentId);
 
       if (error) throw error;
@@ -735,6 +746,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
     }
   };
   const addPhoto = async (dishId: string, file: File, caption?: string) => {
+    // Sanitize caption to prevent XSS attacks
+    const sanitizedCaption = caption ? DOMPurify.sanitize(caption.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) : undefined;
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -753,7 +766,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
           dish_id: dishId,
           user_id: user.id,
           storage_path: filename,
-          caption: caption || null,
+          caption: sanitizedCaption || null,
           width: 800,
           height: 800
         })
@@ -830,6 +843,8 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   };
 
   const updatePhotoCaption = async (photoId: string, caption: string) => {
+    // Sanitize caption to prevent XSS attacks
+    const sanitizedCaption = DOMPurify.sanitize(caption.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -844,7 +859,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
 
       const { data: updatedData, error } = await supabase
         .from('dish_photos')
-        .update({ caption: caption, updated_at: new Date().toISOString() })
+        .update({ caption: sanitizedCaption, updated_at: new Date().toISOString() })
         .eq('id', photoId)
         .select();
 
@@ -862,7 +877,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
         return prevDishes.map(dish => ({
           ...dish,
           photos: dish.photos.map(p =>
-            p.id === photoId ? { ...p, caption: caption, updated_at: new Date().toISOString() } : p
+            p.id === photoId ? { ...p, caption: sanitizedCaption, updated_at: new Date().toISOString() } : p
           )
         }));
       });
@@ -959,18 +974,20 @@ export const searchAllDishes = async (
 ): Promise<DishSearchResultWithRestaurant[]> => {
   try {
     console.time('edge-function-dish-search');
+    
+    // Get the current session for authentication
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      throw new Error('Authentication required to search dishes.');
+    }
+
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-
-
 
     const response = await fetch(`${supabaseUrl}/functions/v1/dish-search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         searchTerm: searchTerm?.trim(),

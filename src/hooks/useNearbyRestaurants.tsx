@@ -85,23 +85,38 @@ export const useNearbyRestaurants = () => {
     }
 
 
-    const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
-    if (!apiKey) {
-        setError("API key is not configured.");
-        setLoading(false);
-        return;
-    }
-   
-    const radiusInMeters = options.radiusInMiles * 1609.34;
-    const categories = 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub';
-    const url = `https://api.geoapify.com/v2/places?categories=${categories}&filter=circle:${options.longitude},${options.latitude},${radiusInMeters}&bias=proximity:${options.longitude},${options.latitude}&limit=50&apiKey=${apiKey}`;
-
-
     try {
       incrementGeoapifyCount();
       logGeoapifyCount();
+
+      // Get the current session for authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        setError("Authentication required to fetch nearby restaurants.");
+        setLoading(false);
+        return;
+      }
+
+      const radiusInMeters = options.radiusInMiles * 1609.34;
+      const categories = 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub';
+      
+      // Call our secure proxy edge function instead of direct API
       const [apiResponse, dbResponse] = await Promise.all([
-        fetch(url),
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/geoapify-proxy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            categories,
+            longitude: options.longitude,
+            latitude: options.latitude,
+            radiusInMeters,
+            bias: `proximity:${options.longitude},${options.latitude}`,
+            limit: 50
+          })
+        }),
         supabase.from('restaurants').select('*')
       ]);
 

@@ -28,7 +28,6 @@ interface DishCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   allowInlineRating?: boolean;
-  isNewlyAdded?: boolean;
 }
 
 
@@ -486,8 +485,7 @@ const DishCard: React.FC<DishCardProps> = ({
   isSubmittingComment,
   isExpanded,
   onToggleExpand,
-  allowInlineRating = false,
-  isNewlyAdded = false
+  allowInlineRating = false
 }) => {
   const { theme } = useTheme();
   const [showComments, setShowComments] = useState(false);
@@ -500,11 +498,9 @@ const DishCard: React.FC<DishCardProps> = ({
   const [editedDishName, setEditedDishName] = useState(dish?.name || '');
   const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [showNewDishHighlight, setShowNewDishHighlight] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -521,18 +517,6 @@ const DishCard: React.FC<DishCardProps> = ({
   }, [isMenuOpen]);
 
   // Handle new dish highlight animation
-  useEffect(() => {
-    if (isNewlyAdded && isExpanded) {
-      setShowNewDishHighlight(true);
-      const timer = setTimeout(() => {
-        setShowNewDishHighlight(false);
-      }, 3000); // Show highlight for 3 seconds
-      return () => clearTimeout(timer);
-    } else {
-      // Clear highlight when dish is collapsed or no longer newly added
-      setShowNewDishHighlight(false);
-    }
-  }, [isNewlyAdded, isExpanded]);
 
   if (!dish) {
     return null;

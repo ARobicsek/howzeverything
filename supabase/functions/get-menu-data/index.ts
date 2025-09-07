@@ -36,6 +36,7 @@ interface RawDishData {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
 const supabaseAdminClient = createClient(
@@ -43,12 +44,43 @@ const supabaseAdminClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
+const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey: string): Promise<{ user: unknown; error: string | null }> => {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return { user: null, error: 'Missing Authorization header.' };
+  }
+   
+  try {
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+     
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) {
+      return { user: null, error: 'Invalid token.' };
+    }
+
+    return { user, error: null };
+
+  } catch {
+      return { user: null, error: 'An error occurred during authentication.' };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    // --- SECURITY CHECK ---  
+    const { error: authError } = await securityCheck(req, Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
+    if (authError) {
+      return new Response(JSON.stringify({ error: authError }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const { restaurantId } = await req.json();
 
     if (!restaurantId) {
