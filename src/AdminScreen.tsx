@@ -391,9 +391,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     let query = supabase
         .from('restaurants')
         .select('*')
-        .ilike('name', `%${name.trim()}%`);
+        .ilike('name', `%${name.trim().replace(/[%_]/g, '\\$&')}%`);
     if (city) {
-        query = query.ilike('city', `%${city.trim()}%`);
+        query = query.ilike('city', `%${city.trim().replace(/[%_]/g, '\\$&')}%`);
     }
     const { data, error } = await query;
     if (error) {

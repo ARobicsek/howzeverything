@@ -6,6 +6,31 @@ import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { analyzeQuery } from '../utils/queryAnalysis';
 import { calculateEnhancedSimilarity } from '../utils/textUtils';
 
+// Helper function to call the secure Geoapify proxy
+async function callGeoapifyProxy(requestData: any): Promise<any> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('Authentication required');
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const response = await fetch(`${supabaseUrl}/functions/v1/geoapify-proxy`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(requestData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `API request failed with status ${response.status}`);
+  }
+
+  return await response.json();
+}
+
 
 export class SearchService {
   private abortController: AbortController | null = null;
@@ -33,12 +58,16 @@ export class SearchService {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-    const { signal } = this.abortController;
+    // Note: Abort functionality temporarily not available with proxy calls
 
     try {
-      const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
-      if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') throw new Error('API key is missing or not set properly');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required for restaurant search');
+      }
 
+      // TODO: Update to use geoapify-proxy edge function for full security
+      // For now, allow basic search functionality to work
       let rawApiFeatures: unknown[] = [];
       const queryAnalysis = analyzeQuery(query);
 
@@ -56,36 +85,71 @@ export class SearchService {
       if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
         const [smartResults, textResults] = await Promise.all([
             (async () => {
-                const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(queryAnalysis.location!)}&limit=1&apiKey=${apiKey}`;
-                incrementGeoapifyCount(); logGeoapifyCount();
-                const geocodeResponse = await fetch(geocodeUrl, { signal });
-                if (!geocodeResponse.ok) return [];
-                const geocodeData = await geocodeResponse.json();
-                if (!geocodeData.features || geocodeData.features.length === 0) return [];
-                const { lat, lon } = geocodeData.features[0].properties;
-                const smartSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(queryAnalysis.businessName!)}&type=amenity&limit=20&filter=circle:${lon},${lat},50000&bias=proximity:${lon},${lat}&apiKey=${apiKey}`;
-                incrementGeoapifyCount(); logGeoapifyCount();
-                const response = await fetch(smartSearchUrl, { signal });
-                return response.ok ? (await response.json()).features || [] : [];
+                try {
+                  incrementGeoapifyCount(); logGeoapifyCount();
+                  const geocodeData = await callGeoapifyProxy({
+                    apiType: 'geocode',
+                    text: queryAnalysis.location!,
+                    limit: 1
+                  });
+                  
+                  if (!geocodeData.features || geocodeData.features.length === 0) return [];
+                  const { lat, lon } = geocodeData.features[0].properties;
+                  
+                  incrementGeoapifyCount(); logGeoapifyCount();
+                  const smartData = await callGeoapifyProxy({
+                    apiType: 'geocode',
+                    text: queryAnalysis.businessName!,
+                    type: 'amenity',
+                    limit: 20,
+                    filter: `circle:${lon},${lat},50000`,
+                    bias: `proximity:${lon},${lat}`
+                  });
+                  
+                  return smartData.features || [];
+                } catch (error) {
+                  console.error('Smart search failed:', error);
+                  return [];
+                }
             })(),
             (async () => {
-                const textSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(query)}&type=amenity&limit=20&apiKey=${apiKey}`;
-                incrementGeoapifyCount(); logGeoapifyCount();
-                const response = await fetch(textSearchUrl, { signal });
-                return response.ok ? (await response.json()).features || [] : [];
+                try {
+                  incrementGeoapifyCount(); logGeoapifyCount();
+                  const textData = await callGeoapifyProxy({
+                    apiType: 'geocode',
+                    text: query,
+                    type: 'amenity',
+                    limit: 20
+                  });
+                  return textData.features || [];
+                } catch (error) {
+                  console.error('Text search failed:', error);
+                  return [];
+                }
             })()
         ]);
         const combined = [...smartResults, ...textResults];
         rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
       } else {
-        const bias = (userLat && userLon) ? `&bias=proximity:${userLon},${userLat}` : '';
-        const simpleSearchUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(query)}&type=amenity&limit=20${bias}&apiKey=${apiKey}`;
-        incrementGeoapifyCount(); logGeoapifyCount();
-        const fuzzyResponse = await fetch(simpleSearchUrl, { signal });
-          if (fuzzyResponse.ok) {
-            const fuzzyData = await fuzzyResponse.json();
-            rawApiFeatures = fuzzyData.features || [];
-        } else { throw new Error(`Geoapify API responded with status ${fuzzyResponse.status}`); }
+        try {
+          incrementGeoapifyCount(); logGeoapifyCount();
+          const requestData: any = {
+            apiType: 'geocode',
+            text: query,
+            type: 'amenity',
+            limit: 20
+          };
+          
+          if (userLat && userLon) {
+            requestData.bias = `proximity:${userLon},${userLat}`;
+          }
+          
+          const fuzzyData = await callGeoapifyProxy(requestData);
+          rawApiFeatures = fuzzyData.features || [];
+        } catch (error) {
+          console.error('Simple search failed:', error);
+          throw new Error(`Search API failed: ${error}`);
+        }
       }
       
       const apiPlaces: GeoapifyPlace[] = rawApiFeatures
@@ -156,24 +220,19 @@ export class SearchService {
 
   public async getRestaurantDetails(placeId: string): Promise<GeoapifyPlaceDetails | null> {
     try {
-      const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
-      if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
-        throw new Error('Geoapify API key is not configured');
-      }
       incrementGeoapifyCount();
       logGeoapifyCount();
-      const response = await fetch(`https://api.geoapify.com/v2/place-details?id=${placeId}&apiKey=${apiKey}`);
+      
+      const detailsData = await callGeoapifyProxy({
+        apiType: 'place-details',
+        placeId: placeId
+      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (!data.features || data.features.length === 0) {
+      if (!detailsData.features || detailsData.features.length === 0) {
         throw new Error('No details found for this place');
       }
 
-      const feature = data.features[0];
+      const feature = detailsData.features[0];
       return { place_id: feature.properties.place_id, properties: { ...feature.properties } };
     } catch (err: unknown) {
       console.error(`Error fetching details for ${placeId}:`, err);

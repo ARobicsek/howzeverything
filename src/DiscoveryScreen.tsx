@@ -100,7 +100,7 @@ const DiscoveryScreen: React.FC = () => {
       console.time(`DiscoveryScreen-search-${searchId}`);
       console.log(`[PERF] Starting search (${searchId}) at:`, new Date().toISOString());
       try {
-          let results = await searchAllDishes(
+          const results = await searchAllDishes(
             searchTerm.trim(), 
             minRating, 
             userLocation || undefined,

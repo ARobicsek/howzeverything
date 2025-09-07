@@ -410,34 +410,32 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   const deleteDish = async (dishId: string) => {
     setError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         setError('You must be logged in to delete dishes');
         return false;
       }
-      const dish = dishes.find(d => d.id === dishId);
-      if (dish && user && dish.created_by !== user.id) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('is_admin')
-          .eq('id', user.id)
-          .single();
-        if (!profile?.is_admin) {
-          setError('You can only delete dishes you created');
-          return false;
-        }
+
+      // Use secure server-side admin operation
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/admin-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          operation: 'deleteDish',
+          dishId: dishId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete dish');
       }
-      const { data: deletedData, error } = await supabase
-        .from('restaurant_dishes')
-        .delete()
-        .eq('id', dishId)
-        .select();
-      if (error) {
-        throw error;
-      }
-      if (!deletedData || deletedData.length === 0) {
-        throw new Error("Deletion failed. You may not have permission, or the dish does not exist.");
-      }
+
       setDishes(prev => prev.filter(d => d.id !== dishId));
       return true;
     } catch (err: unknown) {

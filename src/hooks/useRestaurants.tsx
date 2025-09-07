@@ -96,7 +96,7 @@ export const useRestaurants = (options: UseRestaurantsOptions = {}) => {
     try {
       const [apiResults, dbResponse] = await Promise.all([
         searchService.current.searchRestaurants(searchParams, lat, lon),
-        supabase.from('restaurants').select('*').ilike('name', `%${searchParams}%`)
+        supabase.from('restaurants').select('*').ilike('name', `%${searchParams.replace(/[%_]/g, '\\$&')}%`)
       ]);
 
 
