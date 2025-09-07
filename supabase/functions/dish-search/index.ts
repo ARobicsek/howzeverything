@@ -18,14 +18,27 @@ interface RawDishData {
   }>;
   [key: string]: unknown;
 }
-// Temporarily removed shared module dependency for deployment
-// import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
-// Simplified search logic for deployment
-const checkCategorySearch = (term: string): boolean => false;
-const getAllRelatedTerms = (term: string, excludeContext?: boolean): string[] => [term];
-const getCategoryTerms = (category: string): string[] => [];
-const getExclusionTerms = (searchTerm: string, expandedTerms?: Set<string>): string[] => [];
+interface ProcessedDishData {
+  id: string;
+  name: string;
+  description?: string;
+  restaurant?: {
+    id: string;
+    name: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  ratings: never[];
+  comments: never[];
+  photos: never[];
+  total_ratings: number;
+  average_rating: number;
+  dateAdded: string;
+  [key: string]: unknown;
+}
+// Import from shared search logic - using local copy to avoid Supabase deployment issues
+import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from './search-logic.ts';
 
 // Distance calculation function
 function calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -119,8 +132,8 @@ serve(async (req) => {
 
     // --- THE FIX: This function is now much lighter ---
     // It calculates stats from a minimal ratings payload and returns empty arrays for heavy data.
-    const processRawDishes = (rawData: RawDishData[]) => {
-      return (rawData || []).map((d: RawDishData) => {
+    const processRawDishes = (rawData: RawDishData[]): ProcessedDishData[] => {
+      return (rawData || []).map((d: RawDishData): ProcessedDishData | null => {
         if (!d || !d.restaurants || !d.id) return null;
          
         // Destructure to separate the lightweight ratings from the main dish and restaurant data
@@ -146,7 +159,7 @@ serve(async (req) => {
           average_rating: Math.round(averageRating * 10) / 10, // Use freshly calculated value
           dateAdded: d.created_at,
         };
-      }).filter(Boolean);
+      }).filter((dish): dish is ProcessedDishData => dish !== null);
     };
      
     // --- THE FIX: The query is now much more efficient ---
@@ -170,14 +183,18 @@ serve(async (req) => {
      
       const isCategory = checkCategorySearch(term);
      
+      // Performance optimization: limit expansion for partial/short terms
+      const shouldLimitExpansion = term.length < 4 && !isCategory;
+      const maxTerms = shouldLimitExpansion ? 10 : (isCategory ? 50 : 25);
+     
       const needsContextFiltering = term.toLowerCase() === 'roll' || term.toLowerCase() === 'rolls' || term.toLowerCase() === 'bakery';
      
       const synonymTerms = getAllRelatedTerms(term, needsContextFiltering || term.toLowerCase() === 'bakery');
-      synonymTerms.forEach(t => allSearchTerms.add(t));
+      synonymTerms.slice(0, shouldLimitExpansion ? 5 : synonymTerms.length).forEach(t => allSearchTerms.add(t));
      
       if (isCategory) {
         const categoryTerms = getCategoryTerms(term);
-        categoryTerms.forEach(t => allSearchTerms.add(t));
+        categoryTerms.slice(0, maxTerms - allSearchTerms.size).forEach(t => allSearchTerms.add(t));
       }
      
       if (needsContextFiltering || isCategory) {
@@ -185,7 +202,10 @@ serve(async (req) => {
         excludeTerms.forEach(t => exclusionTerms.add(t));
       }
      
-      const finalSearchTerms = Array.from(allSearchTerms).slice(0, 100);
+      const finalSearchTerms = Array.from(allSearchTerms).slice(0, maxTerms);
+      
+      // Performance logging
+      console.log(`[DISH-SEARCH] Term: "${term}" | Category: ${isCategory} | Terms: ${finalSearchTerms.length}/${allSearchTerms.size} | Max: ${maxTerms}`);
      
       if (finalSearchTerms.length > 0) {
         const orFilter = finalSearchTerms
@@ -217,7 +237,7 @@ serve(async (req) => {
 
     // Apply distance filtering if userLocation and maxDistance are provided
     if (userLocation && maxDistance && maxDistance > 0) {
-      results = results.filter((dish: any) => {
+      results = results.filter((dish: ProcessedDishData) => {
         if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
           const distance = calculateDistanceInMiles(
             userLocation.latitude,

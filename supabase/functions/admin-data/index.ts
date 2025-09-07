@@ -5,10 +5,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
 // Placeholder functions for now - these can be replaced with proper shared module later
-const checkCategorySearch = (term: string): boolean => false;
-const getAllRelatedTerms = (term: string, excludeContext?: boolean): string[] => [term];
-const getCategoryTerms = (category: string): string[] => [];
-const getExclusionTerms = (searchTerm: string, expandedTerms?: Set<string>): string[] => [];
+const checkCategorySearch = (_term: string): boolean => false;
+const getAllRelatedTerms = (term: string, _excludeContext?: boolean): string[] => [term];
+const getCategoryTerms = (_category: string): string[] => [];
+const getExclusionTerms = (_searchTerm: string, _expandedTerms?: Set<string>): string[] => [];
 
 // CORS headers for browser access  
 const corsHeaders = {
@@ -197,7 +197,7 @@ serve(async (req) => {
         case 'restaurants':
             query = supabaseAdminClient.from('restaurants').select('*', { count: 'exact' });
             if (restaurantSearchTerm) {
-                const term = restaurantSearchTerm.trim();
+                const term = restaurantSearchTerm.trim().replace(/[%_]/g, '\\$&');
                 query = query.or(`name.ilike.%${term}%,city.ilike.%${term}%,full_address.ilike.%${term}%`);
             }
             query = query.order('created_at', { ascending: false }).range(from, to);
@@ -234,7 +234,7 @@ serve(async (req) => {
                 
                 if (finalSearchTerms.length > 0) {
                     const orFilter = finalSearchTerms
-                        .map((t: string) => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
+                        .map((t: string) => `name.ilike.%${t.replace(/[%_]/g, '\\$&')}%`)
                         .join(',');
                     query = query.or(orFilter);
                     
@@ -242,7 +242,8 @@ serve(async (req) => {
                     if (exclusionTerms.size > 0) {
                         // Chain NOT filters for each exclusion term
                         Array.from(exclusionTerms).forEach(excludeTerm => {
-                            query = query.not('name', 'ilike', `%${excludeTerm}%`);
+                            const sanitizedTerm = excludeTerm.replace(/[%_]/g, '\\$&');
+                            query = query.not('name', 'ilike', `%${sanitizedTerm}%`);
                         });
                     }
                 }
@@ -260,11 +261,12 @@ serve(async (req) => {
             const foreignTableFilters: string[] = [];
 
             if (restaurantTerm) {
-              foreignTableFilters.push(`restaurants.name.ilike.%${restaurantTerm}%`);
+              const sanitizedRestaurantTerm = restaurantTerm.replace(/[%_]/g, '\\$&');
+              foreignTableFilters.push(`restaurants.name.ilike.%${sanitizedRestaurantTerm}%`);
             }
             if (dishTerm && dishTerm.length >= 2) {
               const expandedTerms = getAllRelatedTerms(dishTerm).slice(0, 10);
-              const dishOrFilter = expandedTerms.map(t => `name.ilike.%${t.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(',');
+              const dishOrFilter = expandedTerms.map(t => `name.ilike.%${t.replace(/[%_]/g, '\\$&')}%`).join(',');
               if (expandedTerms.length > 0) {
                 foreignTableFilters.push(`or(${dishOrFilter})`);
               }

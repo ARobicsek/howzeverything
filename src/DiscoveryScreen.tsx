@@ -85,7 +85,7 @@ const DiscoveryScreen: React.FC = () => {
     let isActive = true;
     const runSearch = async () => {
       const searchId = `${searchTerm.trim()}-${Date.now()}`;
-      const hasSearchTerm = searchTerm.trim().length >= 2;
+      const hasSearchTerm = searchTerm.trim().length >= 3;
       const hasActiveFilters = minRating > 0 || maxDistance > -1;
       if (!hasSearchTerm && !hasActiveFilters) {
           if (isActive) {
@@ -152,7 +152,7 @@ const DiscoveryScreen: React.FC = () => {
     }
     searchDebounceTimer.current = setTimeout(() => {
         runSearch();
-    }, 300);
+    }, 500);
 
     return () => {
         isActive = false;

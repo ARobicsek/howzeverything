@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "sync-search": "node sync-search-logic.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
