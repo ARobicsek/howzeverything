@@ -983,19 +983,25 @@ export const searchAllDishes = async (
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
+    const requestBody = {
+      searchTerm: searchTerm?.trim(),
+      minRating: minRating,
+      userLocation: userLocation,
+      maxDistance: maxDistance
+    };
+    
+    console.log('[CLIENT-DEBUG] Sending request to edge function:', requestBody);
+    
     const response = await fetch(`${supabaseUrl}/functions/v1/dish-search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({
-        searchTerm: searchTerm?.trim(),
-        minRating: minRating,
-        userLocation: userLocation,
-        maxDistance: maxDistance
-      }),
+      body: JSON.stringify(requestBody),
     });
+    
+    console.log('[CLIENT-DEBUG] Edge function response status:', response.status, response.statusText);
 
 
 
@@ -1015,6 +1021,11 @@ export const searchAllDishes = async (
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: any[] = await response.json();
+    
+    console.log('[CLIENT-DEBUG] Raw response from edge function:', {
+      resultsLength: results?.length || 0,
+      results: results?.slice(0, 2) // Show first 2 results for debugging
+    });
 
 
     // --- THE FIX: Client-side data sanitization ---

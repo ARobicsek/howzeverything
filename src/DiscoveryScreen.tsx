@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DishCard from './components/DishCard';
-import LoadingScreen from './components/LoadingScreen';
 import { SCREEN_STYLES } from './constants';
 import { useAuth } from './hooks/useAuth';
 import { useTheme } from './hooks/useTheme';
@@ -75,6 +74,13 @@ const DiscoveryScreen: React.FC = () => {
       sessionStorage.setItem(LOCATION_INTERACTION_KEY, 'true');
     }
   }, [locationStatus, user, openPermissionModal, requestLocation, initialCheckComplete]);
+
+  // Reset distance filter when location permission is lost
+  useEffect(() => {
+    if (!hasLocationPermission && maxDistance > -1) {
+      setMaxDistance(-1);
+    }
+  }, [hasLocationPermission, maxDistance]);
   useEffect(() => {
     effectRunCount.current++;
     console.log(`[DISCOVERY] Search Effect Run #${effectRunCount.current}`, {
@@ -87,7 +93,8 @@ const DiscoveryScreen: React.FC = () => {
 
     // Early exit if search term is too short and no filters
     const hasSearchTerm = searchTerm.trim().length >= 3;
-    const hasActiveFilters = minRating > 0 || maxDistance > -1;
+    const hasActiveDistanceFilter = hasLocationPermission && maxDistance > -1;
+    const hasActiveFilters = minRating > 0 || hasActiveDistanceFilter;
     
     if (!hasSearchTerm && !hasActiveFilters) {
       setFilteredAndGrouped([]);
@@ -128,12 +135,25 @@ const DiscoveryScreen: React.FC = () => {
       console.time(`DiscoveryScreen-search-${searchId}`);
       console.log(`[PERF] Starting search (${searchId}) at:`, new Date().toISOString());
       try {
+          // FIX: For distance-only searches, pass empty string to get ALL dishes for distance filtering
+          // Don't use artificial search terms that might exclude nearby restaurants
+          const effectiveSearchTerm = searchTerm.trim();
           const results = await searchAllDishes(
-            searchTerm.trim(), 
+            effectiveSearchTerm, 
             minRating, 
             userLocation || undefined,
-            maxDistance > -1 ? maxDistance : undefined
+            hasActiveDistanceFilter ? maxDistance : undefined
           );
+          console.log(`[DISCOVERY-DEBUG] Search results for ${searchId}:`, {
+            resultsCount: results.length,
+            originalSearchTerm: searchTerm.trim(),
+            effectiveSearchTerm,
+            minRating,
+            userLocation,
+            maxDistance: hasActiveDistanceFilter ? maxDistance : undefined,
+            hasActiveDistanceFilter,
+            results: results.slice(0, 3).map(r => ({ name: r.name, restaurant: r.restaurant?.name }))
+          });
           if (!isActive) {
             console.log(`[DISCOVERY] Search aborted (${searchId}), effect is no longer active.`);
             return;
@@ -192,7 +212,7 @@ const DiscoveryScreen: React.FC = () => {
             currentSearchController.current.abort();
         }
     }
-  }, [searchTerm, minRating, maxDistance, userLocation]);
+  }, [searchTerm, minRating, maxDistance, userLocation, hasLocationPermission]);
   const addRestaurantToFavorites = async (restaurantId: string) => {
     if (!user) return;
     const { error } = await supabase
@@ -303,7 +323,8 @@ const DiscoveryScreen: React.FC = () => {
   };
   const renderContent = () => {
     const hasSearchTerm = searchTerm.trim().length >= 3;
-    const hasActiveFilters = minRating > 0 || maxDistance > -1;
+    const hasActiveDistanceFilter = hasLocationPermission && maxDistance > -1;
+    const hasActiveFilters = minRating > 0 || hasActiveDistanceFilter;
     if (isLoading) {
       return (
         <div style={{

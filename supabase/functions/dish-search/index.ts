@@ -139,6 +139,12 @@ serve(async (req) => {
       });
     }
     const { searchTerm, minRating, userLocation, maxDistance } = await req.json();
+    console.log(`[EDGE-DEBUG] Received search request:`, {
+      searchTerm: searchTerm?.trim() || '[EMPTY]',
+      minRating,
+      userLocation: userLocation ? `${userLocation.latitude},${userLocation.longitude}` : null,
+      maxDistance
+    });
 
 
     // --- THE FIX: This function is now much lighter ---
@@ -173,6 +179,22 @@ serve(async (req) => {
       }).filter((dish): dish is ProcessedDishData => dish !== null);
     };
      
+    // --- DEBUG: Create a minimal test query first ---
+    console.log(`[EDGE-DEBUG] Testing basic query without complex joins...`);
+    
+    // Test 1: Simple query to check if restaurants have coordinates
+    const { data: testRestaurants, error: testError } = await supabaseAdminClient
+      .from('restaurants')
+      .select('id, name, latitude, longitude')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .limit(5);
+    
+    console.log(`[EDGE-DEBUG] Test restaurants with coordinates:`, {
+      count: testRestaurants?.length || 0,
+      restaurants: testRestaurants?.map(r => ({ name: r.name, lat: r.latitude, lng: r.longitude }))
+    });
+    
     // --- THE FIX: The query is now much more efficient ---
     // It no longer fetches the full dish_comments or dish_photos tables.
     // It only fetches the 'rating' column from dish_ratings to calculate the average.
@@ -184,7 +206,8 @@ serve(async (req) => {
         dish_ratings(rating)
       `)
       .eq('is_active', true)
-      .not('restaurants.latitude', 'is', null);
+      .not('restaurants.latitude', 'is', null)
+      .not('restaurants.longitude', 'is', null);
 
 
     const term = searchTerm?.trim();
@@ -238,6 +261,33 @@ serve(async (req) => {
           });
         }
       }
+    } else {
+      // No search term provided - this is a filter-only search (distance/rating)
+      // Don't apply any text search filters, just get all dishes for distance/rating filtering
+      console.log(`[EDGE-DEBUG] No search term - running filter-only search (returning ALL dishes)`);
+      
+      // DEBUG: Test a simple dish query without search terms
+      const { data: testDishes, error: testDishError } = await supabaseAdminClient
+        .from('restaurant_dishes')
+        .select(`
+          id, name, restaurant_id,
+          restaurants!inner(id, name, latitude, longitude)
+        `)
+        .eq('is_active', true)
+        .not('restaurants.latitude', 'is', null)
+        .not('restaurants.longitude', 'is', null)
+        .limit(10);
+      
+      console.log(`[EDGE-DEBUG] Test dishes with restaurant coordinates:`, {
+        count: testDishes?.length || 0,
+        error: testDishError?.message,
+        dishes: testDishes?.map(d => ({ 
+          dishName: d.name, 
+          restaurantName: d.restaurants?.name,
+          lat: d.restaurants?.latitude,
+          lng: d.restaurants?.longitude
+        }))
+      });
     }
 
 
@@ -247,17 +297,29 @@ serve(async (req) => {
 
 
     // Reduce query size for better performance - more aggressive limits to prevent timeouts
-    const queryLimit = (userLocation && maxDistance && maxDistance > 0) ? 40 : 60;
-    query = query.order('average_rating', { ascending: false }).limit(queryLimit);
+    // For distance searches, we need more results to ensure we capture nearby restaurants
+    const queryLimit = (userLocation && maxDistance && maxDistance > 0) ? 200 : 60;
+    
+    // For distance searches, don't order by rating first - we want geographic diversity
+    if (userLocation && maxDistance && maxDistance > 0) {
+      console.log(`[EDGE-DEBUG] Distance search - ordering by restaurant name for geographic diversity`);
+      query = query.order('restaurants(name)', { ascending: true }).limit(queryLimit);
+    } else {
+      query = query.order('average_rating', { ascending: false }).limit(queryLimit);
+    }
 
     const { data, error } = await query;
     console.timeEnd(`[PERF] Executing database query`);
     if (error) throw error;
+    
+    console.log(`[EDGE-DEBUG] Database returned ${data?.length || 0} dishes before distance filtering`);
      
     let results = processRawDishes(data || []);
 
     // Apply distance filtering if userLocation and maxDistance are provided
     if (userLocation && maxDistance && maxDistance > 0) {
+      console.log(`[EDGE-DEBUG] Applying distance filter: ${maxDistance} miles from ${userLocation.latitude},${userLocation.longitude}`);
+      const beforeCount = results.length;
       results = results.filter((dish: ProcessedDishData) => {
         if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
           const distance = calculateDistanceInMiles(
@@ -266,10 +328,16 @@ serve(async (req) => {
             dish.restaurant.latitude,
             dish.restaurant.longitude
           );
-          return distance <= maxDistance;
+          const withinRange = distance <= maxDistance;
+          if (!withinRange) {
+            console.log(`[EDGE-DEBUG] Filtered out ${dish.name} at ${dish.restaurant.name} (${distance.toFixed(2)} mi > ${maxDistance} mi)`);
+          }
+          return withinRange;
         }
+        console.log(`[EDGE-DEBUG] Filtered out ${dish.name} - missing restaurant location`);
         return false;
       });
+      console.log(`[EDGE-DEBUG] Distance filtering: ${beforeCount} -> ${results.length} dishes`);
     }
 
 
