@@ -51,27 +51,27 @@
 - [x] **Verification**: HTML tags and scripts are stripped/escaped properly
 
 ### 4. Authorization Security - ADMIN BYPASS
-- [ ] **Priority: HIGH**  
-- [ ] **File**: `src/hooks/useDishes.tsx` (lines 414-424)  
-- [ ] **Issue**: Admin checks performed client-side, can be bypassed  
-- [ ] **Actions**:
-  - [ ] Create server-side edge function for admin operations
-  - [ ] Move dish deletion authorization to server
-  - [ ] Remove client-side admin validation
-  - [ ] Implement proper server-side admin verification
-  - [ ] Test with manipulated client data
-- [ ] **Verification**: Admin operations fail when server doesn't verify admin status
+- [x] **Priority: HIGH**  
+- [x] **File**: `src/hooks/useDishes.tsx` (lines 414-424)  
+- [x] **Issue**: Admin checks performed client-side, can be bypassed  
+- [x] **Actions**:
+  - [x] Create server-side edge function for admin operations
+  - [x] Move dish deletion authorization to server
+  - [x] Remove client-side admin validation
+  - [x] Implement proper server-side admin verification
+  - [x] Test with manipulated client data
+- [x] **Verification**: Admin operations fail when server doesn't verify admin status
 
 ### 5. SQL Injection Prevention
-- [ ] **Priority: HIGH**  
-- [ ] **File**: `src/hooks/useRestaurants.tsx` (line 99)  
-- [ ] **Issue**: Raw user input in database queries  
-- [ ] **Actions**:
-  - [ ] Replace string interpolation with parameterized queries
-  - [ ] Implement input sanitization for search terms
-  - [ ] Add validation for special characters
-  - [ ] Test with SQL injection payloads
-- [ ] **Verification**: Malicious SQL inputs don't execute
+- [x] **Priority: HIGH**  
+- [x] **File**: `src/hooks/useRestaurants.tsx` (line 99)  
+- [x] **Issue**: Raw user input in database queries  
+- [x] **Actions**:
+  - [x] Replace string interpolation with parameterized queries
+  - [x] Implement input sanitization for search terms
+  - [x] Add validation for special characters
+  - [x] Test with SQL injection payloads
+- [x] **Verification**: Malicious SQL inputs don't execute
 
 ## 🔧 MEDIUM PRIORITY ISSUES (Fix within 2 weeks)
 
