@@ -87,6 +87,28 @@ const ThemeSelector: React.FC = () => {
           : '0 2px 6px rgba(238, 157, 42, 0.2)',
         transform: isSelected ? 'scale(1.02)' : 'scale(1)',
       };
+    } else if (themeId === 'copenhagen') {
+      return {
+        padding: SPACING[4],
+        borderRadius: '4px', // Subtle rounded corners matching theme geometry
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        backgroundColor: '#f6f5f1', // Warm cream surface
+        // Elegant Nordic-inspired subtle texture using minimal linear gradients
+        backgroundImage: `
+          linear-gradient(135deg, rgba(38, 55, 69, 0.03) 0%, transparent 50%, rgba(139, 111, 71, 0.02) 100%),
+          linear-gradient(45deg, rgba(38, 55, 69, 0.01) 25%, transparent 25%, transparent 75%, rgba(38, 55, 69, 0.01) 75%),
+          linear-gradient(-45deg, rgba(38, 55, 69, 0.01) 25%, transparent 25%, transparent 75%, rgba(38, 55, 69, 0.01) 75%)
+        `,
+        backgroundSize: '100% 100%, 20px 20px, 20px 20px',
+        border: isSelected 
+          ? `2px solid #263745` // Deep charcoal blue for selected
+          : `1px solid #8B6F47`, // Muted brass for unselected
+        boxShadow: isSelected 
+          ? `0 4px 16px rgba(38, 55, 69, 0.15), 0 2px 6px rgba(139, 111, 71, 0.1)` 
+          : '0 2px 8px rgba(38, 55, 69, 0.08)',
+        transform: isSelected ? 'scale(1.01)' : 'scale(1)', // Subtle scale for elegant feel
+      };
     }
     return {};
   };
@@ -121,6 +143,15 @@ const ThemeSelector: React.FC = () => {
         color: '#482107', // Dark brown to match hero image borders
         marginBottom: SPACING[2],
       };
+    } else if (themeId === 'copenhagen') {
+      return {
+        fontFamily: '"Playfair Display", Georgia, serif', // Elegant serif for headings
+        fontSize: '1.375rem',
+        fontWeight: '600',
+        color: '#263745', // Deep charcoal blue
+        letterSpacing: '-0.025em',
+        marginBottom: SPACING[2],
+      };
     }
     return {};
   };
@@ -148,6 +179,14 @@ const ThemeSelector: React.FC = () => {
         fontSize: '0.875rem',
         color: '#482107', // Dark brown to match hero image borders
         lineHeight: '1.4',
+      };
+    } else if (themeId === 'copenhagen') {
+      return {
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif', // Clean sans-serif for body text
+        fontSize: '0.875rem',
+        color: '#1A1A1A', // Rich near-black text
+        lineHeight: '1.5',
+        letterSpacing: '0.01em',
       };
     }
     return {};
@@ -214,6 +253,27 @@ const ThemeSelector: React.FC = () => {
           color: 'white',
           fontSize: '12px',
           fontWeight: 'bold'
+        }}>
+          ✓
+        </div>
+      );
+    } else if (themeId === 'copenhagen') {
+      return (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          width: '24px',
+          height: '24px',
+          backgroundColor: '#263745', // Deep charcoal blue
+          borderRadius: '4px', // Subtle rounded corners
+          border: '1px solid #8B6F47', // Brass accent border
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#f6f5f1', // Cream text
+          fontSize: '12px',
+          fontWeight: '600'
         }}>
           ✓
         </div>

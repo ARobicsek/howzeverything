@@ -29,5 +29,8 @@ pnpm-debug.log*
 !.vscode/extensions.json
 .idea
 
+# Supabase temporary files
+supabase/.temp/
+
 # Generated files - these are synced from _shared directory
 supabase/functions/dish-search/search-logic.ts

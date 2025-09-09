@@ -732,11 +732,25 @@ const MenuScreen: React.FC = () => {
                 <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
               </svg>
             </button>
-            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...STYLES.iconButton, backgroundColor: showAdvancedSort ? theme.colors.primary : theme.colors.white, color: showAdvancedSort ? theme.colors.white : theme.colors.gray700, border: showAdvancedSort ? `1px solid ${theme.colors.primary}` : `1px solid ${theme.colors.gray200}` }} aria-label="Sort options">
+            <button onClick={() => { setShowAdvancedSort(!showAdvancedSort); if (!showAdvancedSort) window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ 
+              ...STYLES.iconButton, 
+              backgroundColor: showAdvancedSort ? theme.colors.primary : theme.colors.white, 
+              color: showAdvancedSort ? theme.colors.white : theme.colors.text, 
+              border: showAdvancedSort 
+                ? (theme.colors.iconButtonBorderActive || `1px solid ${theme.colors.primary}`) 
+                : (theme.colors.iconButtonBorderInactive || `1px solid ${theme.colors.gray200}`)
+            }} aria-label="Sort options">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" /></svg>
             </button>
             <div style={SCREEN_STYLES.menu.actionMenu.container} ref={menuRef}>
-              <button onClick={toggleActionMenu} style={{ ...STYLES.iconButton, backgroundColor: isActionMenuOpen ? theme.colors.gray100 : 'transparent' }} aria-label="More options">
+              <button onClick={toggleActionMenu} style={{ 
+                ...STYLES.iconButton, 
+                backgroundColor: isActionMenuOpen ? theme.colors.gray100 : 'transparent',
+                border: isActionMenuOpen 
+                  ? (theme.colors.iconButtonBorderActive || 'none')
+                  : (theme.colors.iconButtonBorderInactive || 'none'),
+                color: theme.colors.text
+              }} aria-label="More options">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
               </button>
               {isActionMenuOpen && (

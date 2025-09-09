@@ -16,6 +16,27 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // Minimal theme specifications - Phase 2 engine-driven approach
 const THEME_SPECS: { [key: string]: ThemeSpec } = {
+  copenhagen: {
+    id: 'copenhagen',
+    name: 'Copenhagen',
+    description: 'Elegant and contemporary with sophisticated Nordic design',
+    colors: {
+      primary: '#263745',    // Deep charcoal blue - sophisticated and Nordic
+      surface: '#f6f5f1',   // Warm off-white - paper-like quality 
+      text: '#1A1A1A',      // Rich near-black - softer than pure black
+      accent: '#8B6F47',    // Muted brass/bronze - adds warmth and sophistication
+    },
+    typography: {
+      primaryFont: '"Inter", system-ui, -apple-system, sans-serif',
+      headingFont: '"Playfair Display", Georgia, serif',
+      fontScaleRatio: 1.25,  // Major third scale for clear hierarchy
+    },
+    geometry: {
+      baseSpacingUnit: 16,      // Standard spacing unit
+      baseBorderRadius: 4,      // Subtle rounded corners
+      shadowPreset: 'soft',     // Refined, subtle shadows
+    },
+  },
   victorian: {
     id: 'victorian',
     name: 'Nouveau Victorian',
@@ -612,6 +633,78 @@ const THEME_COLOR_OVERRIDES: { [themeId: string]: Partial<Theme['colors']> } = {
     
     // Override icon colors in navigation for grumpy cat theme - already defined above
   },
+  
+  copenhagen: {
+    // Header backgrounds - use primary color instead of gray900
+    aboutHeaderBackground: '#263745',
+    findRestaurantHeaderBackground: '#263745', 
+    discoveryHeaderBackground: '#263745',
+    ratingsHeaderBackground: '#263745',
+    menuHeaderBackground: 'rgba(246, 245, 241, 0.95)', // Cream color with transparency for distinction
+    
+    // Navigation dark background
+    navBarDark: '#263745', // Match primary color for consistency
+    
+    // Background colors - keep cream for all screens
+    // Profile page will use primary color directly when Copenhagen theme is selected
+    
+    // Card backgrounds - use cream color for text sections
+    cardBg: '#f6f5f1', // Use cream color instead of white for card backgrounds
+    
+    // Other elements that use gray900
+    aboutHeadingColor: '#2c3d4b',
+    restaurantModalNameColor: '#2c3d4b',
+    loginFormHeaderTitleColor: '#2c3d4b',
+    
+    // Hero image styling - thin white border with slight rounded effect
+    aboutHeroImageBorder: '1px solid #FFFFFF',
+    aboutHeroImageBorderRadius: '6px',
+    aboutHeroImageWidth: '180px',
+    
+    findRestaurantHeroImageBorder: '1px solid #FFFFFF',
+    findRestaurantHeroImageBorderRadius: '6px',
+    findRestaurantHeroImageWidth: '180px',
+    
+    ratingsHeroImageBorder: '1px solid #FFFFFF',
+    ratingsHeroImageBorderRadius: '6px',
+    ratingsHeroImageWidth: '180px',
+    
+    discoveryHeroImageStyle: {
+      width: '180px',
+      height: 'auto',
+      objectFit: 'contain' as const,
+      marginBottom: '24px',
+      border: '1px solid #FFFFFF',
+      borderRadius: '6px'
+    },
+    
+    // Clean typography - no text shadows for elegant look
+    aboutHeadingTextShadow: 'none',
+    findRestaurantTitleTextShadow: 'none',
+    discoveryHeadingTextShadow: 'none',
+    ratingsTitleTextShadow: 'none',
+    
+    // Menu header text colors - ensure good contrast on cream background  
+    text: '#263745', // Use primary color for main text on cream backgrounds
+    textSecondary: '#8B6F47', // Use accent brass color for secondary text
+    
+    // Button styling for better visibility
+    iconButtonBorderInactive: '1px solid rgba(38, 55, 69, 0.2)', // Subtle border for inactive buttons
+    iconButtonBorderActive: '1px solid #263745', // Darker border for active buttons
+    
+    // Icon colors for better visibility on dark navigation
+    iconPrimary: '#f6f5f1', // Use cream color for hamburger menu icon on dark nav background
+    
+    // Star colors to match dish card ratings
+    star: '#8B6F47', // Personal rating stars - use brass accent for warmth
+    starCommunity: '#263745', // Community rating stars - use primary charcoal blue
+    starEmpty: '#E0DDD6', // Empty stars - subtle cream-gray
+    starCommunityEmpty: '#E0DDD6', // Empty community stars - same subtle tone
+    
+    // Sort button styling for elegant Copenhagen look
+    menuSortButtonDefault: '#f6f5f1', // Cream background for inactive buttons
+    menuSortButtonActive: '#263745', // Charcoal blue for active buttons (no blue coloring)
+  },
 };
 
 // Font styling overrides for specific theme effects
@@ -690,6 +783,16 @@ const CUSTOM_IMAGES: { [themeId: string]: Partial<Theme['images']> } = {
     ratingsHero: '/cat_ratings_hero.JPG',
     aboutHero: '/cat_about_hero.JPG',
     restaurantDefault: '/cat_find_hero.JPG', // Reuse find hero for restaurant default
+  },
+  copenhagen: {
+    logo: '/copenhagen_logo.png',
+    homeFindRestaurants: '/copenhagen_home_find_hero.PNG',
+    homeDiscoverDishes: '/copenhagen_home_dish_hero.PNG',
+    discoveryHero: '/copenhagen_discovery_hero.PNG',
+    findRestaurantHero: '/copenhagen_find_hero.PNG',
+    ratingsHero: '/copenhagen_ratings_hero.PNG',
+    aboutHero: '/copenhagen_about_hero.PNG',
+    restaurantDefault: '/copenhagen_find_hero.PNG', // Reuse find hero for restaurant default
   },
 };
 

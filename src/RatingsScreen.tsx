@@ -175,6 +175,8 @@ const RatingsScreen: React.FC = () => {
     return {
       ...baseStyle,
       ...(themeBackgroundColor && { backgroundColor: themeBackgroundColor }),
+      // Override border color for active buttons to match background
+      ...(isActive && themeBackgroundColor && { border: `1px solid ${themeBackgroundColor}` }),
     };
   };
   const {
@@ -479,12 +481,12 @@ const RatingsScreen: React.FC = () => {
                       {option.value === 'my_rating' ? (
                         <>
                           <span>My</span>
-                          <span style={{ color: isActive ? theme.colors.white : theme.colors.primary }}>★</span>
+                          <span style={{ color: isActive ? theme.colors.white : theme.colors.star }}>★</span>
                         </>
                       ) : option.value === 'community_rating' ? (
                         <>
                           <span>Community</span>
-                          <span style={{ color: isActive ? theme.colors.white : theme.colors.ratingGold }}>★</span>
+                          <span style={{ color: isActive ? theme.colors.white : theme.colors.starCommunity }}>★</span>
                         </>
                       ) : (
                         <span>{option.label}</span>

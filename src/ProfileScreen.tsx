@@ -18,10 +18,14 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
   const { user, profile, loading: authLoading } = useAuth();
-  const { theme } = useTheme();
+  const { theme, currentTheme } = useTheme();
 
-
-
+  // Get background color - use primary color for Copenhagen theme on Profile page
+  const getBackgroundColor = () => {
+    return currentTheme === 'copenhagen' 
+      ? theme.colors.primary  // Use primary color for Copenhagen elegance
+      : theme.colors.background;
+  };
 
   if (authLoading) {
     return <LoadingScreen message="Loading profile..." />;
@@ -35,7 +39,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
       <div style={{
         ...UTILITIES.fullBleed,
         minHeight: '100vh',
-        backgroundColor: theme.colors.background,
+        backgroundColor: getBackgroundColor(),
         paddingTop: '60px', // Extend right up to bottom of top nav
         display: 'flex',
         flexDirection: 'column',
@@ -76,7 +80,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onEditProfile }) => {
     <div style={{
       ...UTILITIES.fullBleed,
       minHeight: '100vh',
-      backgroundColor: theme.colors.background,
+      backgroundColor: getBackgroundColor(),
       paddingTop: '60px', // Extend right up to bottom of top nav
       display: 'flex',
       flexDirection: 'column',
