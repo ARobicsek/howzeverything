@@ -45,6 +45,7 @@ const DiscoveryScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<Set<string>>(new Set());
+  const [hasSearchCompleted, setHasSearchCompleted] = useState(false);
   // UI States
   const [expandedDishId, setExpandedDishId] = useState<string | null>(null);
   const searchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -100,6 +101,7 @@ const DiscoveryScreen: React.FC = () => {
       setFilteredAndGrouped([]);
       setIsLoading(false);
       setError(null);
+      setHasSearchCompleted(false);
       lastSearchParams.current = null;
       return;
     }
@@ -132,6 +134,7 @@ const DiscoveryScreen: React.FC = () => {
       lastSearchParams.current = searchParamsKey;
       setIsLoading(true);
       setError(null);
+      setHasSearchCompleted(false);
       console.time(`DiscoveryScreen-search-${searchId}`);
       console.log(`[PERF] Starting search (${searchId}) at:`, new Date().toISOString());
       try {
@@ -182,10 +185,12 @@ const DiscoveryScreen: React.FC = () => {
           });
           if (isActive) {
             setFilteredAndGrouped(sortedGroups);
+            setHasSearchCompleted(true);
           }
       } catch (e) {
           if (isActive) {
             setError('Could not load dishes. Please try again later.');
+            setHasSearchCompleted(true);
           }
           console.error(e);
       } finally {
@@ -442,9 +447,8 @@ const DiscoveryScreen: React.FC = () => {
       ));
     }
     // Only show "No Dishes Found" if we've completed a search and found nothing
-    // Don't show it while a search is pending (debouncing)
-    const isSearchPending = (hasSearchTerm || hasActiveFilters) && searchDebounceTimer.current !== null;
-    if (!isSearchPending) {
+    // Don't show it while a search is pending (debouncing) or loading
+    if (hasSearchCompleted && !isLoading) {
       return (
         <div className="text-center py-12">
           <p style={{
@@ -465,7 +469,7 @@ const DiscoveryScreen: React.FC = () => {
       );
     }
 
-    // If search is pending, show nothing (blank state)
+    // If search is pending or loading, show nothing (blank state)
     return null;
   };
   return (
