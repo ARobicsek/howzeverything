@@ -42,12 +42,15 @@ interface ProcessedDishData {
   total_ratings: number;
   average_rating: number;
   dateAdded: string;
+  distance_miles?: number; // Added for PostGIS distance results
   [key: string]: unknown;
 }
 // Import from shared search logic - using local copy to avoid Supabase deployment issues
 import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from './search-logic.ts';
 
-// Distance calculation function
+// DEPRECATED: Distance calculation function 
+// This function is kept for non-distance searches but is no longer used for distance filtering
+// Distance searches now use PostGIS database functions for better performance and scalability
 function calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 3959; // Earth's radius in miles
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -146,6 +149,8 @@ serve(async (req) => {
       maxDistance
     });
 
+    // Define term early for use in PostGIS queries
+    const term = searchTerm?.trim();
 
     // --- THE FIX: This function is now much lighter ---
     // It calculates stats from a minimal ratings payload and returns empty arrays for heavy data.
@@ -195,9 +200,51 @@ serve(async (req) => {
       restaurants: testRestaurants?.map(r => ({ name: r.name, lat: r.latitude, lng: r.longitude }))
     });
     
-    // --- THE FIX: The query is now much more efficient ---
-    // It no longer fetches the full dish_comments or dish_photos tables.
-    // It only fetches the 'rating' column from dish_ratings to calculate the average.
+    // --- POSTGIS SOLUTION: Use database-level distance filtering ---
+    // Check if this is a distance search - if so, use PostGIS function
+    if (userLocation && maxDistance && maxDistance > 0) {
+      console.log(`[POSTGIS-DEBUG] Using database-level distance filtering: ${maxDistance} miles from ${userLocation.latitude},${userLocation.longitude}`);
+      
+      const { data, error } = await supabaseAdminClient.rpc('find_dishes_within_radius', {
+        user_lat: userLocation.latitude,
+        user_lng: userLocation.longitude,
+        radius_miles: maxDistance,
+        search_term: term || null,
+        min_rating: minRating || 0,
+        result_limit: 100
+      });
+      
+      if (error) throw error;
+      
+      console.log(`[POSTGIS-DEBUG] Database returned ${data?.length || 0} dishes with PostGIS filtering`);
+      
+      // Convert PostGIS results to expected format
+      const postgisResults = (data || []).map((d: any): ProcessedDishData => ({
+        id: d.dish_id,
+        name: d.dish_name,
+        description: d.dish_description,
+        restaurant: {
+          id: d.restaurant_id,
+          name: d.restaurant_name,
+          latitude: parseFloat(d.latitude),
+          longitude: parseFloat(d.longitude)
+        },
+        ratings: [],
+        comments: [],
+        photos: [],
+        total_ratings: d.total_ratings,
+        average_rating: parseFloat(d.average_rating),
+        dateAdded: d.created_at,
+        distance_miles: d.distance_miles // Include distance for sorting
+      }));
+      
+      return new Response(JSON.stringify(postgisResults), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+    
+    // --- FALLBACK: Non-distance searches use the original query ---
     let query = supabaseAdminClient
       .from('restaurant_dishes')
       .select(`
@@ -209,8 +256,6 @@ serve(async (req) => {
       .not('restaurants.latitude', 'is', null)
       .not('restaurants.longitude', 'is', null);
 
-
-    const term = searchTerm?.trim();
     if (term && term.length > 1) {
       const allSearchTerms = new Set<string>();
       const exclusionTerms = new Set<string>();
@@ -296,17 +341,8 @@ serve(async (req) => {
     }
 
 
-    // Reduce query size for better performance - more aggressive limits to prevent timeouts
-    // For distance searches, we need more results to ensure we capture nearby restaurants
-    const queryLimit = (userLocation && maxDistance && maxDistance > 0) ? 200 : 60;
-    
-    // For distance searches, don't order by rating first - we want geographic diversity
-    if (userLocation && maxDistance && maxDistance > 0) {
-      console.log(`[EDGE-DEBUG] Distance search - ordering by restaurant name for geographic diversity`);
-      query = query.order('restaurants(name)', { ascending: true }).limit(queryLimit);
-    } else {
-      query = query.order('average_rating', { ascending: false }).limit(queryLimit);
-    }
+    // For non-distance searches, order by rating
+    query = query.order('average_rating', { ascending: false }).limit(60);
 
     const { data, error } = await query;
     console.timeEnd(`[PERF] Executing database query`);
@@ -316,29 +352,8 @@ serve(async (req) => {
      
     let results = processRawDishes(data || []);
 
-    // Apply distance filtering if userLocation and maxDistance are provided
-    if (userLocation && maxDistance && maxDistance > 0) {
-      console.log(`[EDGE-DEBUG] Applying distance filter: ${maxDistance} miles from ${userLocation.latitude},${userLocation.longitude}`);
-      const beforeCount = results.length;
-      results = results.filter((dish: ProcessedDishData) => {
-        if (dish.restaurant?.latitude && dish.restaurant?.longitude) {
-          const distance = calculateDistanceInMiles(
-            userLocation.latitude,
-            userLocation.longitude,
-            dish.restaurant.latitude,
-            dish.restaurant.longitude
-          );
-          const withinRange = distance <= maxDistance;
-          if (!withinRange) {
-            console.log(`[EDGE-DEBUG] Filtered out ${dish.name} at ${dish.restaurant.name} (${distance.toFixed(2)} mi > ${maxDistance} mi)`);
-          }
-          return withinRange;
-        }
-        console.log(`[EDGE-DEBUG] Filtered out ${dish.name} - missing restaurant location`);
-        return false;
-      });
-      console.log(`[EDGE-DEBUG] Distance filtering: ${beforeCount} -> ${results.length} dishes`);
-    }
+    // Distance filtering is now handled by PostGIS function above
+    // This section only runs for non-distance searches
 
 
     return new Response(JSON.stringify(results), {
