@@ -441,24 +441,32 @@ const DiscoveryScreen: React.FC = () => {
         </div>
       ));
     }
-    return (
-      <div className="text-center py-12">
-        <p style={{
-          ...theme.fonts.heading,
-          fontSize: '1.5rem',
-          color: theme.colors.text,
-          fontWeight: '700',
-          marginBottom: '16px'
-        }}>No Dishes Found</p>
-        <p style={{
-          ...theme.fonts.body,
-          fontSize: '1.125rem',
-          color: theme.colors.text,
-          lineHeight: '1.6',
-          margin: 0
-        }}>Try adjusting your search or filters to find more results.</p>
-      </div>
-    );
+    // Only show "No Dishes Found" if we've completed a search and found nothing
+    // Don't show it while a search is pending (debouncing)
+    const isSearchPending = (hasSearchTerm || hasActiveFilters) && searchDebounceTimer.current !== null;
+    if (!isSearchPending) {
+      return (
+        <div className="text-center py-12">
+          <p style={{
+            ...theme.fonts.heading,
+            fontSize: '1.5rem',
+            color: theme.colors.text,
+            fontWeight: '700',
+            marginBottom: '16px'
+          }}>No Dishes Found</p>
+          <p style={{
+            ...theme.fonts.body,
+            fontSize: '1.125rem',
+            color: theme.colors.text,
+            lineHeight: '1.6',
+            margin: 0
+          }}>Try adjusting your search or filters to find more results.</p>
+        </div>
+      );
+    }
+
+    // If search is pending, show nothing (blank state)
+    return null;
   };
   return (
     <div style={{ 
