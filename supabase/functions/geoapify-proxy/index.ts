@@ -101,10 +101,10 @@ serve(async (req) => {
       const params = new URLSearchParams({
         categories: categories || 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub',
         filter: `circle:${longitude},${latitude},${radiusInMeters}`,
-        bias: bias || `proximity:${longitude},${latitude}`,
         limit: (limit || 50).toString(),
         apiKey: apiKey
       });
+       if (bias) params.append('bias', bias);
       geoapifyUrl = `${baseUrl}?${params.toString()}`;
       
     } else if (apiType === 'geocode') {

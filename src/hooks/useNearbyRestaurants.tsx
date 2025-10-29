@@ -109,6 +109,7 @@ export const useNearbyRestaurants = () => {
             'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
+            apiType: 'places',
             categories,
             longitude: options.longitude,
             latitude: options.latitude,
