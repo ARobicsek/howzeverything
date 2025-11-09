@@ -35,8 +35,8 @@ Restaurant search frequently fails to find known restaurants (success rate ~50% 
 **Commit:** `7dc5814`
 
 **Problem:** Automatically splitting multi-word restaurant names
-- "Cafe Landwer" ’ business="Cafe", location="Landwer" L
-- "Boston Market" ’ business="Boston", location="Market" L
+- "Cafe Landwer" ï¿½ business="Cafe", location="Landwer" L
+- "Boston Market" ï¿½ business="Boston", location="Market" L
 
 **Solution:** Removed automatic word splitting. Now only splits on:
 - Explicit location keywords: " in ", " at ", " near ", " on ", " by ", " around "
@@ -83,7 +83,7 @@ placesRequest: {
 #### 5. Location Permission Warning (SearchResultsModal.tsx)
 **Changes:**
 - Added yellow warning banner when location permissions not enabled
-- Prompts users: "=Í Tip: Enable location permissions for better search results near you!"
+- Prompts users: "=ï¿½ Tip: Enable location permissions for better search results near you!"
 
 ### Test Results After All Fixes
 
@@ -195,6 +195,208 @@ if (rawApiFeatures.length === 0 && userLat && userLon) {
 **Branch:** `claude/fix-broken-feature-011CUxMnV8vdfijzJJ7SVPup`
 **Status:** Needs to be merged to `main` (merge blocked by 403 permissions)
 
+---
+
+## Restaurant Search Ranking and Quality Improvements (November 9, 2025)
+
+### Problem Statement
+
+User reported three specific search quality issues:
+
+1. **"Cafe Landwer" search shows irrelevant results**
+   - Searching for "Cafe Landwer" (precise name) showed random cafes from database first
+   - Even though user was 60 miles away, exact name match should show actual Cafe Landwer locations
+   - Database matches with low similarity scores (60-70%) appeared before perfect API matches (100%)
+
+2. **"Cafe Landwer in Boston" shows 2 locations but should show 3**
+   - Boston area has 3 Cafe Landwer locations
+   - Search only returned 2 of them
+
+3. **"Starbucks in Skokie" misses 2 Starbucks branches on Dempster St**
+   - Search showed several Chicago area results
+   - But missed 2 Starbucks locations in the heart of Skokie on Dempster St
+
+### Root Cause Analysis
+
+**Issue 1: No Result Ranking**
+- Database matches always appeared first (line 321: `[...dbMatches, ...uniqueApiPlaces]`)
+- Similarity scores were calculated but never used for sorting
+- A database restaurant with "cafe" in the name (60% match) would appear before "Cafe Landwer" (100% match)
+
+**Issue 2: Limited Search Radius**
+- Location-based searches used 50km radius
+- Some metro area locations were outside this radius
+
+**Issue 3: Strict Name Filtering**
+- Name matching used strict substring matching: `name.includes(queryLower)`
+- Didn't handle word order variations or accents
+- Might filter out valid matches with different name formats
+
+### Fixes Implemented
+
+#### 1. Intelligent Relevance Scoring (searchService.ts)
+**Commit:** `ec31112`
+
+**Implementation:**
+- Created `calculateRelevanceScore()` function that considers:
+  * **Name similarity** (0-100): Higher is better
+  * **Source bonus** (+10): Small boost for database entries already in system
+  * **Distance penalty** (0-20): Closer results rank higher when user location available
+
+**Scoring Formula:**
+```javascript
+score = nameSimilarity + (isDatabase ? 10 : 0) - distancePenalty
+```
+
+**Distance Penalty:**
+- 0 penalty for restaurants <5km away
+- Up to 20 penalty for restaurants 40km+ away
+- Linear scaling between 5-40km
+
+**Result:**
+- All results (database + API) sorted by relevance score
+- "Cafe Landwer" with 100% similarity now appears before "Some Cafe" with 60% similarity
+- Nearby perfect matches rank highest
+
+#### 2. Expanded Search Radius (searchService.ts)
+**Changes:**
+- Increased radius from **50km â†’ 80km** (~50 miles)
+- Added Places API v2 to location-based searches (in addition to geocoding)
+- Captures full metro areas
+
+**For "Cafe Landwer in Boston":**
+```javascript
+// Old: 50km radius
+filter: `circle:${lon},${lat},50000`
+
+// New: 80km radius + Places API
+radiusInMeters: 80000 // Captures all Boston metro area
+```
+
+**Result:**
+- All 3 Cafe Landwer locations in Boston area should now be captured
+- Skokie Starbucks branches should appear (Chicago metro area)
+
+#### 3. Flexible Name Matching (searchService.ts)
+**Changes:**
+- Replaced strict substring matching with word-based matching
+- Uses `normalizeText()` for consistent comparisons (handles accents, apostrophes)
+- Matches individual words in any order
+
+**Algorithm:**
+```javascript
+// Split query into words: "Cafe Landwer" â†’ ["cafe", "landwer"]
+// Split name into words: "Landwer Cafe" â†’ ["landwer", "cafe"]
+// Check if query words appear in name words
+// Require 80% of query words to match
+```
+
+**Examples:**
+- âœ… "Cafe Landwer" matches "Landwer Cafe"
+- âœ… "Cafe Landwer" matches "CafÃ© Landwer" (handles accent)
+- âœ… "Cafe Landwer" matches "Landwer's Cafe"
+- âœ… "Starbucks" matches "Starbucks Coffee"
+
+#### 4. Enhanced Debugging (searchService.ts)
+**Added Console Logging:**
+```javascript
+[Search Ranking] Sorted 12 results by relevance
+{
+  query: "Cafe Landwer",
+  topResults: [
+    {
+      name: "Cafe Landwer",
+      score: "98.5",
+      nameSimilarity: 100,
+      source: "api",
+      distance: "8.2km"
+    },
+    ...
+  ]
+}
+```
+
+**Shows:**
+- Total results found
+- Top 5 results with scores
+- Name similarity, source, and distance for each
+
+### Expected Results
+
+**"Cafe Landwer" search:**
+- âœ… Actual Cafe Landwer locations appear first
+- âœ… Sorted by distance from user
+- âœ… Database cafes with "cafe" in name appear lower (if at all, depending on similarity)
+
+**"Cafe Landwer in Boston" search:**
+- âœ… All 3 Boston-area Cafe Landwer locations should appear
+- âœ… Sorted by distance from Boston center
+
+**"Starbucks in Skokie" search:**
+- âœ… Dempster St Starbucks locations should appear
+- âœ… All Skokie-area Starbucks sorted by distance
+
+### Files Modified
+
+**src/services/searchService.ts:**
+- Added `normalizeText` import
+- Added `calculateDistance()` helper function
+- Added `calculateRelevanceScore()` function
+- Created `ScoredPlace` interface
+- Updated database match creation to preserve scores
+- Updated API place deduplication to calculate scores
+- Added sorting by relevance score
+- Added debug logging for ranking
+- Increased search radius from 50km to 80km
+- Added Places API v2 to location-based searches
+- Improved name filtering with word-based matching
+
+**Line Changes:**
+- +180 insertions
+- -22 deletions
+
+### Deployment
+
+**Commit:** `ec31112`
+**Branch:** `claude/import-implementation-011CUxrSvrKFUndy3vxMwRam`
+**Status:** Pushed and ready for testing
+
+### Testing Recommendations
+
+1. **Test "Cafe Landwer" search from Newton, MA**
+   - Verify exact matches appear first
+   - Verify sorted by distance
+   - Check console for ranking details
+
+2. **Test "Cafe Landwer in Boston"**
+   - Verify all 3 locations appear:
+     * 383 Chestnut Hill Ave, Brookline
+     * 900 Beacon St, Boston (Cleveland Circle)
+     * 653 Boylston St, Boston (Back Bay)
+
+3. **Test "Starbucks in Skokie"**
+   - Verify Dempster St locations appear
+   - Check that all Skokie-area Starbucks are included
+
+4. **Test database priority**
+   - Search for a restaurant that exists in database
+   - Verify it gets +10 bonus but doesn't dominate if similarity is low
+
+5. **Check console logs**
+   - Look for `[Search Ranking]` logs
+   - Verify scores make sense
+   - Check that high similarity = high score
+
+### Notes
+
+- Database entries get +10 bonus but won't dominate if name match is poor
+- Distance penalty only applies when user location is available
+- Word matching is case-insensitive and handles accents/apostrophes
+- 80% word match threshold balances precision and recall
+- Places API v2 limit is 50 results per search
+
+---
+
 ### Critical Information for Next Session
 
 1. **The location discrepancy is suspicious:**
@@ -223,12 +425,12 @@ if (rawApiFeatures.length === 0 && userLat && userLon) {
 The search flow is now:
 
 ```
-User types query ’ SearchResultsModal
-  “
+User types query ï¿½ SearchResultsModal
+  ï¿½
   useRestaurants.searchRestaurants(query, lat, lon)
-  “
+  ï¿½
   SearchService.searchRestaurants()
-  “
+  ï¿½
                                        
    If user location available:         
    1. Places API v2 (50 results)       
@@ -236,13 +438,13 @@ User types query ’ SearchResultsModal
    3. Geocoding API broad (20)         
    All filtered by 40km radius         
                                        
-  “
+  ï¿½
   Filter Places API results by name.includes(query)
-  “
+  ï¿½
   Deduplicate by place_id
-  “
+  ï¿½
   Combine with local database results
-  “
+  ï¿½
   Return to UI
 ```
 
