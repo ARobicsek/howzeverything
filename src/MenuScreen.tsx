@@ -327,7 +327,10 @@ const MenuScreen: React.FC = () => {
     } else {
       // No dish parameter in URL, ensure no dish is expanded unless explicitly set
       if (!justAddedDishId) {
+        console.log('🔄 MenuScreen useEffect: No URL param and no justAddedDishId, setting expandedDishId to null');
         setExpandedDishId(null);
+      } else {
+        console.log('✅ MenuScreen useEffect: justAddedDishId exists, keeping current expandedDishId');
       }
     }
   }, [location.search, location.pathname, dishes, isLoadingDishes, navigate, justAddedDishId]);
@@ -341,6 +344,11 @@ const MenuScreen: React.FC = () => {
   }, []);
 
 
+
+  // Debug logging for expandedDishId changes
+  useEffect(() => {
+    console.log(`📊 expandedDishId changed to: ${expandedDishId || 'null'}`);
+  }, [expandedDishId]);
 
   useEffect(() => {
     const dishIdToScrollTo = justAddedDishId || expandedDishId;
@@ -433,13 +441,17 @@ const MenuScreen: React.FC = () => {
 
 
   const executeAddDish = async (name: string, rating: number) => {
+    console.log('🆕 executeAddDish: Starting to add dish');
     const newDish = await addDish(name, rating);
+    console.log('🆕 executeAddDish: addDish returned, newDish:', newDish?.id);
     if (newDish) {
       setShowAddForm(false);
       setDishInfoForConfirmation(null);
       setPotentialDuplicates([]);
       setSearchTerm('');
+      console.log('🆕 executeAddDish: Setting expandedDishId to', newDish.id);
       setExpandedDishId(newDish.id);
+      console.log('🆕 executeAddDish: Setting justAddedDishId to', newDish.id);
       setJustAddedDishId(newDish.id);
     }
   };
