@@ -4,7 +4,7 @@ import { GeoapifyPlace, GeoapifyPlaceDetails } from '../types/restaurantSearch';
 import { parseAddress } from '../utils/addressParser';
 import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { analyzeQuery } from '../utils/queryAnalysis';
-import { calculateEnhancedSimilarity } from '../utils/textUtils';
+import { calculateEnhancedSimilarity, normalizeText } from '../utils/textUtils';
 
 // Helper function to call the secure Geoapify proxy
 async function callGeoapifyProxy(requestData: any): Promise<any> {
@@ -103,21 +103,34 @@ export class SearchService {
                     text: queryAnalysis.location!,
                     limit: 1
                   });
-                  
+
                   if (!geocodeData.features || geocodeData.features.length === 0) return [];
                   const { lat, lon } = geocodeData.features[0].properties;
-                  
+
+                  // Use Places API v2 for better restaurant discovery in the specified location
                   incrementGeoapifyCount(); logGeoapifyCount();
-                  const smartData = await callGeoapifyProxy({
+                  const placesData = await callGeoapifyProxy({
+                    apiType: 'places',
+                    latitude: lat,
+                    longitude: lon,
+                    radiusInMeters: 80000, // 80km = ~50 miles to capture metro area
+                    categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub',
+                    limit: 50,
+                    bias: `proximity:${lon},${lat}`
+                  });
+
+                  // Also try geocoding API as fallback
+                  incrementGeoapifyCount(); logGeoapifyCount();
+                  const geocodeResults = await callGeoapifyProxy({
                     apiType: 'geocode',
                     text: queryAnalysis.businessName!,
                     type: 'amenity',
                     limit: 20,
-                    filter: `circle:${lon},${lat},50000`,
+                    filter: `circle:${lon},${lat},80000`, // Increased from 50km to 80km
                     bias: `proximity:${lon},${lat}`
                   });
-                  
-                  return smartData.features || [];
+
+                  return [...(placesData.features || []), ...(geocodeResults.features || [])];
                 } catch (error) {
                   console.error('Smart search failed:', error);
                   return [];
@@ -230,12 +243,30 @@ export class SearchService {
           }
 
           // Filter by query match for Places API results (which returns ALL nearby restaurants)
-          const queryLower = query.toLowerCase();
+          // Use flexible word-based matching instead of strict substring matching
+          const queryLower = normalizeText(query);
+          const queryWords = queryLower.split(/\s+/).filter(w => w.length > 0);
+
           const filteredFeatures = combinedFeatures.filter((feature: any) => {
-            const name = feature.properties?.name?.toLowerCase() || '';
-            // For Places API results, filter by name match
+            const name = normalizeText(feature.properties?.name || '');
+            const datasource = feature.properties?.datasource?.sourcename;
+
             // For Geocode API results, keep all (already filtered by query)
-            return name.includes(queryLower) || feature.properties?.datasource?.sourcename !== 'openstreetmap';
+            if (datasource && datasource !== 'openstreetmap') {
+              return true;
+            }
+
+            // For Places API and OpenStreetMap results, filter by name match
+            // Check if all query words appear in the name (flexible matching)
+            const nameWords = name.split(/\s+/);
+            const matchCount = queryWords.filter(queryWord =>
+              nameWords.some(nameWord => nameWord.includes(queryWord) || queryWord.includes(nameWord))
+            ).length;
+
+            // Require at least 80% of query words to match
+            // This allows "Cafe Landwer" to match "Landwer Cafe" or "Café Landwer"
+            const matchPercentage = (matchCount / queryWords.length) * 100;
+            return matchPercentage >= 80;
           });
 
           // Deduplicate by place_id
@@ -302,25 +333,152 @@ export class SearchService {
         .filter((p): p is GeoapifyPlace => p !== null);
       
       const { data: allDbRestaurants } = await supabase.from('restaurants').select('*');
-      const dbMatches = (allDbRestaurants || []).map(r => ({ restaurant: r, score: calculateEnhancedSimilarity(r.name, query) })).filter(item => item.score > 60).map(match => ({ place_id: `db_${match.restaurant.id}`, properties: { name: match.restaurant.name, formatted: match.restaurant.full_address || [match.restaurant.address, match.restaurant.city, match.restaurant.state, match.restaurant.zip_code].filter(Boolean).join(', '), address_line1: match.restaurant.address || undefined, city: match.restaurant.city || undefined, state: match.restaurant.state || undefined, postcode: match.restaurant.zip_code || undefined, country: match.restaurant.country || undefined, lat: match.restaurant.latitude || 0, lon: match.restaurant.longitude || 0, categories: ['database'], datasource: { sourcename: 'database', attribution: 'Our Database' } } }));
-      
-      const uniqueApiPlaces: GeoapifyPlace[] = [];
+
+      // Helper function to calculate distance in km between two points
+      const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+      };
+
+      // Helper function to calculate relevance score
+      const calculateRelevanceScore = (
+        nameSimilarity: number,
+        isFromDatabase: boolean,
+        distanceKm: number | null
+      ): number => {
+        // Start with name similarity (0-100)
+        let score = nameSimilarity;
+
+        // Add bonus for database entries (they're already in our system)
+        if (isFromDatabase) {
+          score += 10; // Small boost for existing restaurants
+        }
+
+        // Apply distance penalty if location is available
+        if (distanceKm !== null) {
+          // Closer is better: full score for <5km, decreasing penalty up to 40km
+          const distancePenalty = Math.min(20, (distanceKm / 40) * 20);
+          score -= distancePenalty;
+        }
+
+        return score;
+      };
+
+      // Create database matches with scores preserved
+      interface ScoredPlace extends GeoapifyPlace {
+        relevanceScore: number;
+        nameSimilarity: number;
+      }
+
+      const dbMatches: ScoredPlace[] = (allDbRestaurants || [])
+        .map(r => {
+          const nameSimilarity = calculateEnhancedSimilarity(r.name, query);
+          const distanceKm = (userLat && userLon && r.latitude && r.longitude)
+            ? calculateDistance(userLat, userLon, r.latitude, r.longitude)
+            : null;
+          const relevanceScore = calculateRelevanceScore(nameSimilarity, true, distanceKm);
+
+          return {
+            place_id: `db_${r.id}`,
+            properties: {
+              name: r.name,
+              formatted: r.full_address || [r.address, r.city, r.state, r.zip_code].filter(Boolean).join(', '),
+              address_line1: r.address || undefined,
+              city: r.city || undefined,
+              state: r.state || undefined,
+              postcode: r.zip_code || undefined,
+              country: r.country || undefined,
+              lat: r.latitude || 0,
+              lon: r.longitude || 0,
+              categories: ['database'],
+              datasource: { sourcename: 'database', attribution: 'Our Database' }
+            },
+            relevanceScore,
+            nameSimilarity
+          };
+        })
+        .filter(item => item.nameSimilarity > 60); // Only include decent matches
+
+      // Deduplicate API places and calculate scores
+      const uniqueApiPlaces: ScoredPlace[] = [];
       for (const apiPlace of apiPlaces) {
-          const isDuplicateOfDb = dbMatches.some(dbMatch => calculateEnhancedSimilarity(dbMatch.properties.name, apiPlace.properties.name) > 95 && calculateEnhancedSimilarity(dbMatch.properties.address_line1 || dbMatch.properties.formatted, apiPlace.properties.address_line1 || apiPlace.properties.formatted) > 70);
+          const isDuplicateOfDb = dbMatches.some(dbMatch =>
+            calculateEnhancedSimilarity(dbMatch.properties.name, apiPlace.properties.name) > 95 &&
+            calculateEnhancedSimilarity(
+              dbMatch.properties.address_line1 || dbMatch.properties.formatted,
+              apiPlace.properties.address_line1 || apiPlace.properties.formatted
+            ) > 70
+          );
           if (isDuplicateOfDb) continue;
-          const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace => calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) > 95 && calculateEnhancedSimilarity(uniquePlace.properties.address_line1 || uniquePlace.properties.formatted, apiPlace.properties.address_line1 || apiPlace.properties.formatted) > 80);
+
+          const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace =>
+            calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) > 95 &&
+            calculateEnhancedSimilarity(
+              uniquePlace.properties.address_line1 || uniquePlace.properties.formatted,
+              apiPlace.properties.address_line1 || apiPlace.properties.formatted
+            ) > 80
+          );
+
           if (existingMatchIndex !== -1) {
               const existingPlace = uniqueApiPlaces[existingMatchIndex];
-              const isNewPlaceBetter = (apiPlace.properties.address_line1 && !existingPlace.properties.address_line1) || (apiPlace.properties.formatted.length > existingPlace.properties.formatted.length);
-              if (isNewPlaceBetter) { uniqueApiPlaces[existingMatchIndex] = apiPlace; }
+              const isNewPlaceBetter = (apiPlace.properties.address_line1 && !existingPlace.properties.address_line1) ||
+                                       (apiPlace.properties.formatted.length > existingPlace.properties.formatted.length);
+              if (isNewPlaceBetter) {
+                uniqueApiPlaces[existingMatchIndex] = {
+                  ...apiPlace,
+                  relevanceScore: existingPlace.relevanceScore,
+                  nameSimilarity: existingPlace.nameSimilarity
+                } as ScoredPlace;
+              }
           } else {
-              uniqueApiPlaces.push(apiPlace);
+              // Calculate score for API place
+              const nameSimilarity = calculateEnhancedSimilarity(apiPlace.properties.name, query);
+              const distanceKm = (userLat && userLon && apiPlace.properties.lat && apiPlace.properties.lon)
+                ? calculateDistance(userLat, userLon, apiPlace.properties.lat, apiPlace.properties.lon)
+                : null;
+              const relevanceScore = calculateRelevanceScore(nameSimilarity, false, distanceKm);
+
+              uniqueApiPlaces.push({
+                ...apiPlace,
+                relevanceScore,
+                nameSimilarity
+              } as ScoredPlace);
           }
       }
 
-      const combinedResults = [...dbMatches, ...uniqueApiPlaces];
-      this.cache.set(cacheKey, combinedResults);
-      return combinedResults;
+      // Combine all results and sort by relevance score (highest first)
+      const combinedResults = [...dbMatches, ...uniqueApiPlaces]
+        .sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      // Log scoring for debugging
+      console.log(
+        `%c[Search Ranking] Sorted ${combinedResults.length} results by relevance`,
+        'color: #7c3aed; font-weight: bold; background-color: #faf5ff; padding: 2px 6px; border-radius: 4px;',
+        {
+          query,
+          topResults: combinedResults.slice(0, 5).map(r => ({
+            name: r.properties.name,
+            score: r.relevanceScore.toFixed(1),
+            nameSimilarity: r.nameSimilarity,
+            source: r.properties.datasource?.sourcename || 'api',
+            distance: userLat && userLon ?
+              calculateDistance(userLat, userLon, r.properties.lat, r.properties.lon).toFixed(1) + 'km' :
+              'unknown'
+          }))
+        }
+      );
+
+      // Remove scoring metadata before returning
+      const finalResults: GeoapifyPlace[] = combinedResults.map(({ relevanceScore, nameSimilarity, ...place }) => place);
+
+      this.cache.set(cacheKey, finalResults);
+      return finalResults;
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') {
         console.log('Search aborted');
