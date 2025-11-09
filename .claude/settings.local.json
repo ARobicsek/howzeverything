@@ -26,7 +26,10 @@
       "Bash(npm install:*)",
       "Bash(npx supabase:*)",
       "Read(//c/**)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git reflog:*)",
+      "Bash(git gc:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

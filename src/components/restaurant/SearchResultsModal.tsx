@@ -132,7 +132,7 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="e.g. Chez Frontenac, Seattle (3+ chars)"
+              placeholder="e.g. Dunkin in Newton"
               style={{ ...STYLES.input, width: '100%', backgroundColor: COLORS.white }}
               autoFocus
           />
