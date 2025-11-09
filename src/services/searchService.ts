@@ -71,7 +71,7 @@ export class SearchService {
       let rawApiFeatures: unknown[] = [];
       const queryAnalysis = analyzeQuery(query);
 
-      // --- ADDED: Log the output of the query analysis ---
+      // --- Log the output of the query analysis ---
       console.log(
         `%c[Query Analysis] -> Original: "${query}"`,
         'color: #2e6c6e; font-weight: bold; background-color: #f0f9ff; padding: 2px 6px; border-radius: 4px;',
@@ -79,8 +79,19 @@ export class SearchService {
           type: queryAnalysis.type,
           businessName: queryAnalysis.businessName,
           location: queryAnalysis.location,
+          hasUserLocation: !!(userLat && userLon),
+          userCoords: userLat && userLon ? { lat: userLat, lon: userLon } : 'Not available'
         }
       );
+
+      // Warn if searching without location
+      if (!userLat || !userLon) {
+        console.warn(
+          `%c[Search Warning] Searching without user location - results may be from anywhere in the world!`,
+          'color: #d97706; font-weight: bold; background-color: #fef3c7; padding: 2px 6px; border-radius: 4px;',
+          'Enable location permissions for better results.'
+        );
+      }
 
       if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
         const [smartResults, textResults] = await Promise.all([
@@ -115,12 +126,20 @@ export class SearchService {
             (async () => {
                 try {
                   incrementGeoapifyCount(); logGeoapifyCount();
-                  const textData = await callGeoapifyProxy({
+                  const textRequestData: any = {
                     apiType: 'geocode',
                     text: query,
                     type: 'amenity',
                     limit: 20
-                  });
+                  };
+
+                  // Add geographic filtering to the fallback text search too
+                  if (userLat && userLon) {
+                    textRequestData.filter = `circle:${userLon},${userLat},40000`;
+                    textRequestData.bias = `proximity:${userLon},${userLat}`;
+                  }
+
+                  const textData = await callGeoapifyProxy(textRequestData);
                   return textData.features || [];
                 } catch (error) {
                   console.error('Text search failed:', error);
@@ -132,22 +151,118 @@ export class SearchService {
         rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
       } else {
         try {
+          // Try multiple search strategies to find the restaurant
+          const searchStrategies = [];
+
+          // Strategy 1: Use Places API v2 (best for finding restaurants/cafes)
+          // This is specifically designed for POI discovery
+          if (userLat && userLon) {
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const placesRequest: any = {
+              apiType: 'places',
+              latitude: userLat,
+              longitude: userLon,
+              radiusInMeters: 40000, // 40km = 25 miles
+              categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub',
+              limit: 50,
+              bias: `proximity:${userLon},${userLat}`
+            };
+            searchStrategies.push(
+              callGeoapifyProxy(placesRequest)
+                .then(data => ({ source: 'places', data }))
+                .catch(error => {
+                  console.error('Places API search failed:', error);
+                  return { source: 'places', data: { features: [] } };
+                })
+            );
+          }
+
+          // Strategy 2: Geocoding API with type=amenity (fallback)
           incrementGeoapifyCount(); logGeoapifyCount();
-          const requestData: any = {
+          const amenityRequest: any = {
             apiType: 'geocode',
             text: query,
             type: 'amenity',
             limit: 20
           };
-          
           if (userLat && userLon) {
-            requestData.bias = `proximity:${userLon},${userLat}`;
+            amenityRequest.filter = `circle:${userLon},${userLat},40000`;
+            amenityRequest.bias = `proximity:${userLon},${userLat}`;
           }
-          
-          const fuzzyData = await callGeoapifyProxy(requestData);
-          rawApiFeatures = fuzzyData.features || [];
+          searchStrategies.push(
+            callGeoapifyProxy(amenityRequest)
+              .then(data => ({ source: 'geocode-amenity', data }))
+              .catch(error => {
+                console.error('Geocode amenity search failed:', error);
+                return { source: 'geocode-amenity', data: { features: [] } };
+              })
+          );
+
+          // Strategy 3: Broader geocoding search without type restriction
+          incrementGeoapifyCount(); logGeoapifyCount();
+          const broadRequest: any = {
+            apiType: 'geocode',
+            text: query,
+            limit: 20
+          };
+          if (userLat && userLon) {
+            broadRequest.filter = `circle:${userLon},${userLat},40000`;
+            broadRequest.bias = `proximity:${userLon},${userLat}`;
+          }
+          searchStrategies.push(
+            callGeoapifyProxy(broadRequest)
+              .then(data => ({ source: 'geocode-broad', data }))
+              .catch(error => {
+                console.error('Broad geocode search failed:', error);
+                return { source: 'geocode-broad', data: { features: [] } };
+              })
+          );
+
+          // Execute all strategies in parallel
+          const results = await Promise.all(searchStrategies);
+
+          // Combine and deduplicate results
+          const combinedFeatures: any[] = [];
+          for (const result of results) {
+            if (result.data.features) {
+              combinedFeatures.push(...result.data.features);
+            }
+          }
+
+          // Filter by query match for Places API results (which returns ALL nearby restaurants)
+          const queryLower = query.toLowerCase();
+          const filteredFeatures = combinedFeatures.filter((feature: any) => {
+            const name = feature.properties?.name?.toLowerCase() || '';
+            // For Places API results, filter by name match
+            // For Geocode API results, keep all (already filtered by query)
+            return name.includes(queryLower) || feature.properties?.datasource?.sourcename !== 'openstreetmap';
+          });
+
+          // Deduplicate by place_id
+          const seenPlaceIds = new Set();
+          rawApiFeatures = filteredFeatures.filter((feature: any) => {
+            if (seenPlaceIds.has(feature.properties.place_id)) {
+              return false;
+            }
+            seenPlaceIds.add(feature.properties.place_id);
+            return true;
+          });
+
+          console.log(
+            `%c[Search Strategy] Used Places API + Geocoding API for comprehensive search`,
+            'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
+            {
+              query,
+              lat: userLat,
+              lon: userLon,
+              radiusKm: 40,
+              strategiesUsed: searchStrategies.length,
+              totalResults: rawApiFeatures.length,
+              results: results.map(r => ({ source: r.source, count: r.data.features?.length || 0 }))
+            }
+          );
         } catch (error) {
-          console.error('Simple search failed:', error);
+          console.error('Search failed:', error);
           throw new Error(`Search API failed: ${error}`);
         }
       }
