@@ -151,31 +151,66 @@ export class SearchService {
         rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
       } else {
         try {
+          // Try multiple search strategies to find the restaurant
+          const searchStrategies = [];
+
+          // Strategy 1: Search with type=amenity (restaurants, cafes, etc.)
           incrementGeoapifyCount(); logGeoapifyCount();
-          const requestData: any = {
+          const amenityRequest: any = {
             apiType: 'geocode',
             text: query,
             type: 'amenity',
             limit: 20
           };
-
-          // Add geographic filtering when user location is available
           if (userLat && userLon) {
-            // Filter to results within 40km (25 miles) radius of user
-            // This prevents getting results from other countries/states
-            requestData.filter = `circle:${userLon},${userLat},40000`;
-            // Also bias results to prioritize closer locations
-            requestData.bias = `proximity:${userLon},${userLat}`;
-
-            console.log(
-              `%c[Geographic Filter] Searching within 25 miles of user location`,
-              'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
-              { lat: userLat, lon: userLon, radiusKm: 40 }
-            );
+            amenityRequest.filter = `circle:${userLon},${userLat},40000`;
+            amenityRequest.bias = `proximity:${userLon},${userLat}`;
           }
+          searchStrategies.push(callGeoapifyProxy(amenityRequest));
 
-          const fuzzyData = await callGeoapifyProxy(requestData);
-          rawApiFeatures = fuzzyData.features || [];
+          // Strategy 2: Broader search without type restriction (may catch more results)
+          incrementGeoapifyCount(); logGeoapifyCount();
+          const broadRequest: any = {
+            apiType: 'geocode',
+            text: query,
+            limit: 20
+          };
+          if (userLat && userLon) {
+            broadRequest.filter = `circle:${userLon},${userLat},40000`;
+            broadRequest.bias = `proximity:${userLon},${userLat}`;
+          }
+          searchStrategies.push(callGeoapifyProxy(broadRequest));
+
+          // Execute all strategies in parallel
+          const [amenityData, broadData] = await Promise.all(searchStrategies);
+
+          // Combine and deduplicate results
+          const combinedFeatures = [
+            ...(amenityData.features || []),
+            ...(broadData.features || [])
+          ];
+
+          // Deduplicate by place_id
+          const seenPlaceIds = new Set();
+          rawApiFeatures = combinedFeatures.filter((feature: any) => {
+            if (seenPlaceIds.has(feature.properties.place_id)) {
+              return false;
+            }
+            seenPlaceIds.add(feature.properties.place_id);
+            return true;
+          });
+
+          console.log(
+            `%c[Geographic Filter] Searched within 25 miles using multiple strategies`,
+            'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
+            {
+              lat: userLat,
+              lon: userLon,
+              radiusKm: 40,
+              strategiesUsed: 2,
+              totalResults: rawApiFeatures.length
+            }
+          );
         } catch (error) {
           console.error('Simple search failed:', error);
           throw new Error(`Search API failed: ${error}`);
