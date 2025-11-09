@@ -364,11 +364,13 @@ const MenuScreen: React.FC = () => {
   }, [justAddedDishId, expandedDishId]);
 
   // Clear justAddedDishId after highlight animation
+  // Extended to 15 seconds to allow time for photo upload without interruption
   useEffect(() => {
     if (justAddedDishId) {
       const clearTimer = setTimeout(() => {
+        console.log('⏰ Clearing justAddedDishId after 15 seconds');
         setJustAddedDishId(null);
-      }, 4000); // Clear after 4 seconds
+      }, 15000); // Clear after 15 seconds (was 4s, extended to prevent photo upload interruption)
       return () => clearTimeout(clearTimer);
     }
   }, [justAddedDishId]);
