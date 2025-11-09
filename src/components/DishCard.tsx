@@ -603,6 +603,24 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
   const handleDirectPhotoUpload = () => {
+    // Set protection BEFORE opening file picker to catch spurious clicks
+    // that fire when the picker closes (before the change event)
+    filePickerJustClosedRef.current = true;
+    console.log('📁 Opening file picker, setting protection guard');
+
+    // Clear any existing timer
+    if (filePickerProtectionTimerRef.current) {
+      clearTimeout(filePickerProtectionTimerRef.current);
+    }
+
+    // Set a longer timer (1000ms) since we don't know when user will select
+    // This will be reset/extended in handleFileSelect if a file is actually selected
+    filePickerProtectionTimerRef.current = setTimeout(() => {
+      filePickerJustClosedRef.current = false;
+      filePickerProtectionTimerRef.current = null;
+      console.log('✅ File picker protection expired (no file selected)');
+    }, 1000);
+
     fileInputRef.current?.click();
   };
 
@@ -619,15 +637,16 @@ const DishCard: React.FC<DishCardProps> = ({
         return;
       }
 
-      // Mark that file picker just closed to prevent spurious clicks
-      filePickerJustClosedRef.current = true;
-      console.log('📁 File selected, protecting card from collapse for 500ms');
+      // Extend protection period now that file is selected
+      // (Protection was already set in handleDirectPhotoUpload)
+      console.log('📁 File selected, extending protection for 500ms');
 
-      // Clear any existing timer
+      // Clear the initial timer
       if (filePickerProtectionTimerRef.current) {
         clearTimeout(filePickerProtectionTimerRef.current);
       }
 
+      // Extend protection for 500ms to handle any delayed spurious clicks
       filePickerProtectionTimerRef.current = setTimeout(() => {
         filePickerJustClosedRef.current = false;
         filePickerProtectionTimerRef.current = null;
