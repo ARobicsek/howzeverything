@@ -1,5 +1,5 @@
-// src/components/PhotoUpload.tsx      
-import React, { useEffect, useRef, useState } from 'react';
+// src/components/PhotoUpload.tsx
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BORDERS, COLORS, FONTS, IMAGE_COMPRESSION, SPACING } from '../constants';
 
 interface PhotoUploadProps {      
@@ -234,106 +234,171 @@ const compressImage = async (
     
     img.onerror = () => {
       clearTimeout(timeout);
+      const url = img.src;
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
       reject(new Error('Failed to load image for compression'));
     };
-    
-    img.src = URL.createObjectURL(file);
+
+    const objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
+
+    // Clean up the object URL after the image loads
+    img.addEventListener('load', () => {
+      URL.revokeObjectURL(objectUrl);
+    }, { once: true });
   });
 };
 
-const PhotoUpload: React.FC<PhotoUploadProps> = ({    
-  onUpload,    
-  onCancel,    
-  isUploading,    
-  initialFile,    
-  skipFileSelection = false    
-}) => {      
-  const [selectedFile, setSelectedFile] = useState<File | null>(initialFile || null);      
-  const [preview, setPreview] = useState<string | null>(null);      
-  const [caption, setCaption] = useState('');      
+const PhotoUpload: React.FC<PhotoUploadProps> = ({
+  onUpload,
+  onCancel,
+  isUploading,
+  initialFile,
+  skipFileSelection = false
+}) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [caption, setCaption] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('Preparing upload...');
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionError, setCompressionError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+  const processingRef = useRef<File | null>(null); // Track which file is being processed
 
-  // Handle initial file if provided (from camera or direct selection)      
-  useEffect(() => {      
-    if (initialFile) {      
-      setSelectedFile(initialFile);      
-      const reader = new FileReader();      
-      reader.onloadend = () => {      
-        setPreview(reader.result as string);      
-      };      
-      reader.readAsDataURL(initialFile);      
-    }      
-  }, [initialFile]);
+  // Cleanup preview URL on unmount or when preview changes
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    };
+  }, [preview]);
 
-  // Auto-trigger file selection if we're not skipping and don't have a file    
-  useEffect(() => {    
-    if (!skipFileSelection && !selectedFile && !initialFile) {    
-      fileInputRef.current?.click();    
-    }    
+  // Process file: compress first, then create memory-efficient preview
+  const handleFileProcessing = useCallback(async (file: File) => {
+    // Guard against processing the same file multiple times
+    if (processingRef.current === file) {
+      console.log('⚠️ Skipping duplicate file processing');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (check against max original size)
+    if (file.size > IMAGE_COMPRESSION.MAX_ORIGINAL_SIZE_MB * 1024 * 1024) {
+      alert(`File size must be less than ${IMAGE_COMPRESSION.MAX_ORIGINAL_SIZE_MB}MB`);
+      return;
+    }
+
+    // Mark this file as being processed
+    processingRef.current = file;
+    console.log(`📸 Starting image processing for ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
+
+    // Start compression immediately to reduce memory footprint
+    setIsCompressing(true);
+    setCompressionError(null);
+    setUploadStatus('Compressing image...');
+
+    try {
+      // Compress the image first
+      const compressedFile = await compressImage(file, (progress) => {
+        setUploadProgress(progress * 0.5); // Use first 50% for compression
+      });
+
+      // Store the compressed file
+      setSelectedFile(compressedFile);
+
+      // Create memory-efficient preview using createObjectURL
+      // This doesn't load the full image into memory like base64 does
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+
+      const objectUrl = URL.createObjectURL(compressedFile);
+      previewUrlRef.current = objectUrl;
+      setPreview(objectUrl);
+
+      setIsCompressing(false);
+      setUploadProgress(0);
+      setUploadStatus('Preparing upload...');
+
+      // Log compression success
+      const originalSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const compressedSizeMB = (compressedFile.size / (1024 * 1024)).toFixed(2);
+      const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
+
+      console.log(`✅ Image compressed and ready for preview:`);
+      console.log(`   Original: ${originalSizeMB}MB`);
+      console.log(`   Compressed: ${compressedSizeMB}MB`);
+      console.log(`   Reduction: ${compressionRatio}%`);
+    } catch (error) {
+      setIsCompressing(false);
+      setUploadProgress(0);
+      processingRef.current = null; // Clear the processing guard
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setCompressionError(errorMessage);
+      console.error('❌ Image processing failed:', errorMessage);
+      alert(`Failed to process image: ${errorMessage}\n\nPlease try a different photo or ensure your device has enough memory.`);
+
+      // Reset state on error
+      setSelectedFile(null);
+      setPreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, []);
+
+  // Handle initial file if provided (from camera or direct selection)
+  useEffect(() => {
+    if (initialFile && !processingRef.current) {
+      handleFileProcessing(initialFile);
+    }
+  }, [initialFile, handleFileProcessing]);
+
+  // Auto-trigger file selection if we're not skipping and don't have a file
+  useEffect(() => {
+    if (!skipFileSelection && !selectedFile && !initialFile) {
+      fileInputRef.current?.click();
+    }
   }, [skipFileSelection, selectedFile, initialFile]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {      
-    const file = event.target.files?.[0];      
-    if (file) {      
-      // Validate file type      
-      if (!file.type.startsWith('image/')) {      
-        alert('Please select an image file');      
-        return;      
-      }
-
-      // Validate file size (check against max original size)      
-      if (file.size > IMAGE_COMPRESSION.MAX_ORIGINAL_SIZE_MB * 1024 * 1024) {      
-        alert(`File size must be less than ${IMAGE_COMPRESSION.MAX_ORIGINAL_SIZE_MB}MB`);      
-        return;      
-      }
-
-      setSelectedFile(file);      
-           
-      // Create preview      
-      const reader = new FileReader();      
-      reader.onloadend = () => {      
-        setPreview(reader.result as string);      
-      };      
-      reader.readAsDataURL(file);      
-    }      
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileProcessing(file);
+    }
   };
 
-  const handleUpload = async () => {      
+  const handleUpload = async () => {
     if (!selectedFile) return;
 
     // Reset progress tracking
     setUploadProgress(0);
-    setUploadStatus('Validating image...');
+    setUploadStatus('Preparing upload...');
 
     try {
-      // Step 1: Compress the image (10-60% of progress)
-      setUploadStatus('Compressing image...');
+      // File is already compressed during selection, skip compression step
+      // This saves memory and prevents double-compression
+
+      // Step 1: Prepare for upload
       setUploadProgress(10);
-      
-      const compressedFile = await compressImage(selectedFile, (progress) => {
-        // Map compression progress to 10-60% of total progress
-        const mappedProgress = 10 + (progress * 0.5);
-        setUploadProgress(mappedProgress);
-      });
-
-      // Step 2: Prepare for upload (60-70% of progress)
-      setUploadProgress(60);
       setUploadStatus('Preparing upload...');
-      
-      // Log compression results
-      const originalSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
-      const compressedSizeMB = (compressedFile.size / (1024 * 1024)).toFixed(2);
-      const compressionRatio = ((1 - compressedFile.size / selectedFile.size) * 100).toFixed(1);
-      
-      console.log(`📸 Image compression complete:`);
-      console.log(`   Original: ${originalSizeMB}MB`);
-      console.log(`   Compressed: ${compressedSizeMB}MB`);
-      console.log(`   Reduction: ${compressionRatio}%`);
 
-      // Step 3: Upload (70-95% of progress)
-      setUploadProgress(70);
+      const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+      console.log(`📤 Uploading compressed image (${fileSizeMB}MB)...`);
+
+      // Step 2: Upload (10-95% of progress)
+      setUploadProgress(20);
       setUploadStatus('Uploading to cloud storage...');
 
       // Simulate upload progress
@@ -348,8 +413,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
 
       // Call the actual upload function with extended timeout handling
       await Promise.race([
-        onUpload(compressedFile, caption),
-        new Promise((_, reject) => 
+        onUpload(selectedFile, caption),
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Upload timeout - please check your connection and try again')), 60000) // 60 second timeout
         )
       ]);
@@ -361,27 +426,31 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
 
       // Give user a moment to see completion before cleanup
       setTimeout(() => {
-        // Reset form after successful upload      
-        setSelectedFile(null);      
-        setPreview(null);      
+        // Reset form after successful upload
+        setSelectedFile(null);
+        setPreview(null);
         setCaption('');
         setUploadProgress(0);
         setUploadStatus('Preparing upload...');
-        if (fileInputRef.current) {      
-          fileInputRef.current.value = '';      
+        setCompressionError(null);
+        processingRef.current = null; // Clear processing guard
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        // Clean up preview URL
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = null;
         }
       }, 1000);
 
     } catch (error: unknown) {
-      // Handle compression, timeout or other errors
+      // Handle upload or other errors
       setUploadProgress(0);
-      
-      if (error instanceof Error && (error.message.includes('compression') || error.message.includes('Canvas'))) {
-        setUploadStatus('Compression failed');
-        alert('Failed to compress image: ' + error.message);
-      } else if (error instanceof Error && error.message.includes('timeout')) {
+
+      if (error instanceof Error && error.message.includes('timeout')) {
         setUploadStatus('Upload failed - connection timeout');
-        alert('Upload timed out. The compressed image should upload faster - please try again.');
+        alert('Upload timed out. Please check your connection and try again.');
       } else {
         setUploadStatus('Upload failed');
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -390,28 +459,44 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
     }
   };
 
-  const handleCancel = () => {      
-    setSelectedFile(null);      
-    setPreview(null);      
+  const handleCancel = () => {
+    setSelectedFile(null);
+    setPreview(null);
     setCaption('');
     setUploadProgress(0);
     setUploadStatus('Preparing upload...');
-    if (fileInputRef.current) {      
-      fileInputRef.current.value = '';      
-    }      
-    onCancel();      
+    setIsCompressing(false);
+    setCompressionError(null);
+    processingRef.current = null; // Clear processing guard
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    // Clean up preview URL
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    onCancel();
   };
 
-  const resetSelection = () => {      
-    setPreview(null);      
-    setSelectedFile(null);      
-    if (fileInputRef.current) {      
-      fileInputRef.current.value = '';      
-    }      
-    // Auto-trigger file selection again if not skipping    
-    if (!skipFileSelection) {    
-      setTimeout(() => fileInputRef.current?.click(), 100);    
-    }    
+  const resetSelection = () => {
+    setPreview(null);
+    setSelectedFile(null);
+    setIsCompressing(false);
+    setCompressionError(null);
+    processingRef.current = null; // Clear processing guard
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    // Clean up preview URL
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    // Auto-trigger file selection again if not skipping
+    if (!skipFileSelection) {
+      setTimeout(() => fileInputRef.current?.click(), 100);
+    }
   };
 
   // Calculate and display file size info
@@ -434,39 +519,59 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         {preview ? 'Photo Preview' : 'Upload Photo'}      
       </h3>      
            
-      {!preview ? (      
-        <div className="text-center">      
-          <input      
-            ref={fileInputRef}      
-            type="file"      
-            accept="image/*"      
-            onChange={handleFileSelect}      
-            className="hidden"      
-            id="photo-upload"      
-          />      
-          {/* Only show the Choose Photo button if we're not skipping file selection */}    
-          {!skipFileSelection && (    
-            <label      
-              htmlFor="photo-upload"      
-              className="inline-block px-12 py-4 border border-black cursor-pointer transition-all duration-300 hover:bg-blue-600"      
-              style={{      
-                ...FONTS.elegant,      
-                backgroundColor: '#3B82F6',      
-                color: COLORS.textWhite,      
-                fontSize: '1rem',      
-                fontWeight: '500'      
-              }}      
-            >      
-              Choose Photo      
-            </label>      
-          )}    
-          {/* If skipping file selection, show a loading message while file is being processed */}    
-          {skipFileSelection && !selectedFile && (    
-            <div style={{ ...FONTS.elegant, color: COLORS.textWhite }}>    
-              Preparing photo upload...    
-            </div>    
-          )}    
-        </div>      
+      {!preview ? (
+        <div className="text-center">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+            id="photo-upload"
+            disabled={isCompressing}
+          />
+          {/* Only show the Choose Photo button if we're not skipping file selection */}
+          {!skipFileSelection && !isCompressing && (
+            <label
+              htmlFor="photo-upload"
+              className="inline-block px-12 py-4 border border-black cursor-pointer transition-all duration-300 hover:bg-blue-600"
+              style={{
+                ...FONTS.elegant,
+                backgroundColor: '#3B82F6',
+                color: COLORS.textWhite,
+                fontSize: '1rem',
+                fontWeight: '500'
+              }}
+            >
+              Choose Photo
+            </label>
+          )}
+          {/* Show compression progress */}
+          {isCompressing && (
+            <UploadProgressAnimation
+              progress={uploadProgress}
+              isIndeterminate={uploadProgress === 0}
+              status={uploadStatus}
+            />
+          )}
+          {/* If skipping file selection, show a loading message while file is being processed */}
+          {skipFileSelection && !selectedFile && !isCompressing && (
+            <div style={{ ...FONTS.elegant, color: COLORS.textWhite }}>
+              Preparing photo upload...
+            </div>
+          )}
+          {/* Show compression error if any */}
+          {compressionError && (
+            <div style={{
+              ...FONTS.elegant,
+              color: COLORS.danger,
+              marginTop: SPACING[3],
+              fontSize: '0.9rem'
+            }}>
+              Failed to process image. Please try again.
+            </div>
+          )}
+        </div>
       ) : (      
         <div className="space-y-3">      
           <div className="relative">      
@@ -500,7 +605,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
               borderRadius: BORDERS.radius.medium
             }}>
-              Original size: {formatFileSize(selectedFile.size)} → Will be compressed to ~{formatFileSize(IMAGE_COMPRESSION.MAX_FILE_SIZE_MB * 1024 * 1024)} max
+              ✓ Compressed and ready: {formatFileSize(selectedFile.size)}
             </div>
           )}
 
