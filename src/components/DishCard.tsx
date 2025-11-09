@@ -526,6 +526,8 @@ const DishCard: React.FC<DishCardProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const filePickerJustClosedRef = useRef(false);
+  const filePickerProtectionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -540,6 +542,15 @@ const DishCard: React.FC<DishCardProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  // Cleanup protection timer on unmount
+  useEffect(() => {
+    return () => {
+      if (filePickerProtectionTimerRef.current) {
+        clearTimeout(filePickerProtectionTimerRef.current);
+      }
+    };
+  }, []);
 
   // Handle new dish highlight animation
 
@@ -607,6 +618,22 @@ const DishCard: React.FC<DishCardProps> = ({
         alert('File size must be less than 10MB');
         return;
       }
+
+      // Mark that file picker just closed to prevent spurious clicks
+      filePickerJustClosedRef.current = true;
+      console.log('📁 File selected, protecting card from collapse for 500ms');
+
+      // Clear any existing timer
+      if (filePickerProtectionTimerRef.current) {
+        clearTimeout(filePickerProtectionTimerRef.current);
+      }
+
+      filePickerProtectionTimerRef.current = setTimeout(() => {
+        filePickerJustClosedRef.current = false;
+        filePickerProtectionTimerRef.current = null;
+        console.log('✅ Card collapse protection removed');
+      }, 500);
+
       setSelectedFileForUpload(file);
       setShowPhotoUpload(true);
     }
@@ -656,6 +683,12 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
   const handleCardClick = () => {
+    // Prevent card collapse if file picker just closed (spurious mobile click)
+    if (filePickerJustClosedRef.current) {
+      console.log('⚠️ Ignoring card click - file picker just closed');
+      return;
+    }
+
     if (isMenuOpen) {
       setIsMenuOpen(false);
       return;
