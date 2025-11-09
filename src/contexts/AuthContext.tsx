@@ -21,6 +21,8 @@ interface AuthActions {
   createProfile: (profileData: Partial<DatabaseUser>) => Promise<boolean>;
   clearError: () => void;
   refreshProfile: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<boolean>;
+  updatePassword: (newPassword: string) => Promise<boolean>;
 }
 export type UseAuthReturn = AuthState & AuthActions;
 const AuthContext = createContext<UseAuthReturn | null>(null);
@@ -294,6 +296,45 @@ function useAuthLogic(): UseAuthReturn {
   const clearError = useCallback(() => {
     setError(null);
   }, []);
+
+  const resetPasswordForEmail = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      setError(null);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (resetError) {
+        setError(resetError.message);
+        return false;
+      }
+
+      return true;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send password reset email');
+      return false;
+    }
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string): Promise<boolean> => {
+    try {
+      setError(null);
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        setError(updateError.message);
+        return false;
+      }
+
+      return true;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update password');
+      return false;
+    }
+  }, []);
+
   return {
     user,
     profile,
@@ -306,7 +347,9 @@ function useAuthLogic(): UseAuthReturn {
     updateProfile,
     createProfile,
     clearError,
-    refreshProfile
+    refreshProfile,
+    resetPasswordForEmail,
+    updatePassword
   };
 }
 export function AuthProvider({ children }: { children: React.ReactNode }) {

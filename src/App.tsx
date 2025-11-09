@@ -19,6 +19,8 @@ import RestaurantScreen from './RestaurantScreen';
 // User components
 import LoginForm from './components/user/LoginForm';
 import UserForm from './components/user/UserForm';
+import ForgotPasswordForm from './components/user/ForgotPasswordForm';
+import ResetPasswordForm from './components/user/ResetPasswordForm';
 // New Navigation
 import NavigationModal from './components/navigation/NavigationModal';
 import TopNavigation from './components/navigation/TopNavigation';
@@ -226,6 +228,60 @@ const AuthFlow: React.FC = () => {
     );
 };
 
+const ForgotPasswordFlow: React.FC = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    // If the user is already logged in, redirect them to home
+    if (user) {
+        return <Navigate to="/home" replace />;
+    }
+
+    const handleSuccess = () => {
+        // After email is sent, redirect back to login
+        navigate('/login', { replace: true });
+    };
+
+    const handleCancel = () => {
+        navigate('/login', { replace: true });
+    };
+
+    return (
+      <div style={SCREEN_STYLES.app.authFlowContainer}>
+        <div style={SCREEN_STYLES.app.authFlowInnerContainer}>
+          <div style={SCREEN_STYLES.app.authFlowLogoContainer}>
+            <img src="/logo.png" alt="Logo" style={SCREEN_STYLES.app.authFlowLogo} />
+          </div>
+          <div style={SCREEN_STYLES.app.authFlowFormContainer}>
+            <ForgotPasswordForm onSuccess={handleSuccess} onCancel={handleCancel} />
+          </div>
+        </div>
+      </div>
+    );
+};
+
+const ResetPasswordFlow: React.FC = () => {
+    const navigate = useNavigate();
+
+    const handleSuccess = () => {
+        // After password is reset, redirect to home
+        navigate('/home', { replace: true });
+    };
+
+    return (
+      <div style={SCREEN_STYLES.app.authFlowContainer}>
+        <div style={SCREEN_STYLES.app.authFlowInnerContainer}>
+          <div style={SCREEN_STYLES.app.authFlowLogoContainer}>
+            <img src="/logo.png" alt="Logo" style={SCREEN_STYLES.app.authFlowLogo} />
+          </div>
+          <div style={SCREEN_STYLES.app.authFlowFormContainer}>
+            <ResetPasswordForm onSuccess={handleSuccess} />
+          </div>
+        </div>
+      </div>
+    );
+};
+
 
 const App: React.FC = () => {
   return (
@@ -247,6 +303,8 @@ const AppWithTheme: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<AuthFlow />} />
+          <Route path="/forgot-password" element={<ForgotPasswordFlow />} />
+          <Route path="/reset-password" element={<ResetPasswordFlow />} />
           <Route path="/*" element={
               <ProtectedRoute>
                   <AppRoutes />

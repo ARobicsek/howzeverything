@@ -1,5 +1,6 @@
-// src/components/user/LoginForm.tsx  
+// src/components/user/LoginForm.tsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { COMPONENT_STYLES, SPACING, STYLES, STYLE_FUNCTIONS } from '../../constants';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,9 +12,10 @@ interface LoginFormProps {
 }
 
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {  
+const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
   const { theme } = useTheme();
-  const { signIn, signUp, loading, error, clearError } = useAuth();  
+  const { signIn, signUp, loading, error, clearError } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');  
   const [email, setEmail] = useState('');  
   const [password, setPassword] = useState('');  
@@ -370,25 +372,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
           </div>
 
 
-          {mode === 'signup' && (  
-            <div style={{ marginBottom: SPACING[6] }}>  
+          {mode === 'signup' && (
+            <div style={{ marginBottom: SPACING[6] }}>
               <label style={getLabelStyle()}>
-                Confirm Password  
-              </label>  
+                Confirm Password
+              </label>
               <div style={COMPONENT_STYLES.loginForm.passwordInputContainer}>
-                <input  
-                  type={showConfirmPassword ? "text" : "password"}  
-                  value={confirmPassword}  
-                  onChange={(e) => setConfirmPassword(e.target.value)}  
-                  onFocus={() => setFocusedField('confirmPassword')}  
-                  onBlur={() => setFocusedField(null)}  
-                  placeholder="Confirm your password"  
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onFocus={() => setFocusedField('confirmPassword')}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="Confirm your password"
                   style={{
                     ...getInputStyle('confirmPassword'),
                     paddingRight: '48px' // Make room for the eye icon
                   }}
-                  disabled={loading}  
-                  autoComplete="new-password"  
+                  disabled={loading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -408,7 +410,43 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onCancel }) => {
                   <EyeIcon isVisible={showConfirmPassword} />
                 </button>
               </div>
-            </div>  
+            </div>
+          )}
+
+          {/* Forgot Password Link - Only show in sign-in mode */}
+          {mode === 'signin' && (
+            <div style={{
+              marginBottom: SPACING[4],
+              textAlign: 'right'
+            }}>
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                disabled={loading}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: theme.colors.accent,
+                  fontSize: '14px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  textDecoration: 'underline',
+                  padding: 0,
+                  opacity: loading ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.color = theme.colors.primary;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.currentTarget.style.color = theme.colors.accent;
+                  }
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
           )}
 
 
