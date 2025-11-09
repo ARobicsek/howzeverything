@@ -136,6 +136,24 @@ const SearchResultsModal: React.FC<SearchResultsModalProps> = ({
               style={{ ...STYLES.input, width: '100%', backgroundColor: COLORS.white }}
               autoFocus
           />
+          {!userLocation && (
+            <div style={{
+              marginTop: SPACING[2],
+              padding: `${SPACING[2]} ${SPACING[3]}`,
+              backgroundColor: '#fef3c7',
+              borderRadius: '8px',
+              border: '1px solid #f59e0b'
+            }}>
+              <p style={{
+                ...FONTS.body,
+                fontSize: '0.875rem',
+                color: '#92400e',
+                margin: 0
+              }}>
+                📍 <strong>Tip:</strong> Enable location permissions for better search results near you!
+              </p>
+            </div>
+          )}
         </div>
        
         <div style={{ flex: 1, overflowY: 'auto', padding: SPACING[4], backgroundColor: COLORS.background }}>

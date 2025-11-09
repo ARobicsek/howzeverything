@@ -71,7 +71,7 @@ export class SearchService {
       let rawApiFeatures: unknown[] = [];
       const queryAnalysis = analyzeQuery(query);
 
-      // --- ADDED: Log the output of the query analysis ---
+      // --- Log the output of the query analysis ---
       console.log(
         `%c[Query Analysis] -> Original: "${query}"`,
         'color: #2e6c6e; font-weight: bold; background-color: #f0f9ff; padding: 2px 6px; border-radius: 4px;',
@@ -79,8 +79,19 @@ export class SearchService {
           type: queryAnalysis.type,
           businessName: queryAnalysis.businessName,
           location: queryAnalysis.location,
+          hasUserLocation: !!(userLat && userLon),
+          userCoords: userLat && userLon ? { lat: userLat, lon: userLon } : 'Not available'
         }
       );
+
+      // Warn if searching without location
+      if (!userLat || !userLon) {
+        console.warn(
+          `%c[Search Warning] Searching without user location - results may be from anywhere in the world!`,
+          'color: #d97706; font-weight: bold; background-color: #fef3c7; padding: 2px 6px; border-radius: 4px;',
+          'Enable location permissions for better results.'
+        );
+      }
 
       if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
         const [smartResults, textResults] = await Promise.all([
@@ -115,12 +126,20 @@ export class SearchService {
             (async () => {
                 try {
                   incrementGeoapifyCount(); logGeoapifyCount();
-                  const textData = await callGeoapifyProxy({
+                  const textRequestData: any = {
                     apiType: 'geocode',
                     text: query,
                     type: 'amenity',
                     limit: 20
-                  });
+                  };
+
+                  // Add geographic filtering to the fallback text search too
+                  if (userLat && userLon) {
+                    textRequestData.filter = `circle:${userLon},${userLat},40000`;
+                    textRequestData.bias = `proximity:${userLon},${userLat}`;
+                  }
+
+                  const textData = await callGeoapifyProxy(textRequestData);
                   return textData.features || [];
                 } catch (error) {
                   console.error('Text search failed:', error);
@@ -139,11 +158,22 @@ export class SearchService {
             type: 'amenity',
             limit: 20
           };
-          
+
+          // Add geographic filtering when user location is available
           if (userLat && userLon) {
+            // Filter to results within 40km (25 miles) radius of user
+            // This prevents getting results from other countries/states
+            requestData.filter = `circle:${userLon},${userLat},40000`;
+            // Also bias results to prioritize closer locations
             requestData.bias = `proximity:${userLon},${userLat}`;
+
+            console.log(
+              `%c[Geographic Filter] Searching within 25 miles of user location`,
+              'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
+              { lat: userLat, lon: userLon, radiusKm: 40 }
+            );
           }
-          
+
           const fuzzyData = await callGeoapifyProxy(requestData);
           rawApiFeatures = fuzzyData.features || [];
         } catch (error) {
