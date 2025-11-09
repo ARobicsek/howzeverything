@@ -151,33 +151,118 @@ export class SearchService {
         rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
       } else {
         try {
+          // Try multiple search strategies to find the restaurant
+          const searchStrategies = [];
+
+          // Strategy 1: Use Places API v2 (best for finding restaurants/cafes)
+          // This is specifically designed for POI discovery
+          if (userLat && userLon) {
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const placesRequest: any = {
+              apiType: 'places',
+              latitude: userLat,
+              longitude: userLon,
+              radiusInMeters: 40000, // 40km = 25 miles
+              categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub',
+              limit: 50,
+              bias: `proximity:${userLon},${userLat}`
+            };
+            searchStrategies.push(
+              callGeoapifyProxy(placesRequest)
+                .then(data => ({ source: 'places', data }))
+                .catch(error => {
+                  console.error('Places API search failed:', error);
+                  return { source: 'places', data: { features: [] } };
+                })
+            );
+          }
+
+          // Strategy 2: Geocoding API with type=amenity (fallback)
           incrementGeoapifyCount(); logGeoapifyCount();
-          const requestData: any = {
+          const amenityRequest: any = {
             apiType: 'geocode',
             text: query,
             type: 'amenity',
             limit: 20
           };
-
-          // Add geographic filtering when user location is available
           if (userLat && userLon) {
-            // Filter to results within 40km (25 miles) radius of user
-            // This prevents getting results from other countries/states
-            requestData.filter = `circle:${userLon},${userLat},40000`;
-            // Also bias results to prioritize closer locations
-            requestData.bias = `proximity:${userLon},${userLat}`;
+            amenityRequest.filter = `circle:${userLon},${userLat},40000`;
+            amenityRequest.bias = `proximity:${userLon},${userLat}`;
+          }
+          searchStrategies.push(
+            callGeoapifyProxy(amenityRequest)
+              .then(data => ({ source: 'geocode-amenity', data }))
+              .catch(error => {
+                console.error('Geocode amenity search failed:', error);
+                return { source: 'geocode-amenity', data: { features: [] } };
+              })
+          );
 
-            console.log(
-              `%c[Geographic Filter] Searching within 25 miles of user location`,
-              'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
-              { lat: userLat, lon: userLon, radiusKm: 40 }
-            );
+          // Strategy 3: Broader geocoding search without type restriction
+          incrementGeoapifyCount(); logGeoapifyCount();
+          const broadRequest: any = {
+            apiType: 'geocode',
+            text: query,
+            limit: 20
+          };
+          if (userLat && userLon) {
+            broadRequest.filter = `circle:${userLon},${userLat},40000`;
+            broadRequest.bias = `proximity:${userLon},${userLat}`;
+          }
+          searchStrategies.push(
+            callGeoapifyProxy(broadRequest)
+              .then(data => ({ source: 'geocode-broad', data }))
+              .catch(error => {
+                console.error('Broad geocode search failed:', error);
+                return { source: 'geocode-broad', data: { features: [] } };
+              })
+          );
+
+          // Execute all strategies in parallel
+          const results = await Promise.all(searchStrategies);
+
+          // Combine and deduplicate results
+          const combinedFeatures: any[] = [];
+          for (const result of results) {
+            if (result.data.features) {
+              combinedFeatures.push(...result.data.features);
+            }
           }
 
-          const fuzzyData = await callGeoapifyProxy(requestData);
-          rawApiFeatures = fuzzyData.features || [];
+          // Filter by query match for Places API results (which returns ALL nearby restaurants)
+          const queryLower = query.toLowerCase();
+          const filteredFeatures = combinedFeatures.filter((feature: any) => {
+            const name = feature.properties?.name?.toLowerCase() || '';
+            // For Places API results, filter by name match
+            // For Geocode API results, keep all (already filtered by query)
+            return name.includes(queryLower) || feature.properties?.datasource?.sourcename !== 'openstreetmap';
+          });
+
+          // Deduplicate by place_id
+          const seenPlaceIds = new Set();
+          rawApiFeatures = filteredFeatures.filter((feature: any) => {
+            if (seenPlaceIds.has(feature.properties.place_id)) {
+              return false;
+            }
+            seenPlaceIds.add(feature.properties.place_id);
+            return true;
+          });
+
+          console.log(
+            `%c[Search Strategy] Used Places API + Geocoding API for comprehensive search`,
+            'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
+            {
+              query,
+              lat: userLat,
+              lon: userLon,
+              radiusKm: 40,
+              strategiesUsed: searchStrategies.length,
+              totalResults: rawApiFeatures.length,
+              results: results.map(r => ({ source: r.source, count: r.data.features?.length || 0 }))
+            }
+          );
         } catch (error) {
-          console.error('Simple search failed:', error);
+          console.error('Search failed:', error);
           throw new Error(`Search API failed: ${error}`);
         }
       }
