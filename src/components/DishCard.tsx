@@ -702,6 +702,12 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
   const handleCardClick = () => {
+    // Prevent card collapse if photo upload modal is open
+    if (showPhotoUpload) {
+      console.log('⚠️ Ignoring card click - photo upload modal is open');
+      return;
+    }
+
     // Prevent card collapse if file picker just closed (spurious mobile click)
     if (filePickerJustClosedRef.current) {
       console.log('⚠️ Ignoring card click - file picker just closed');
