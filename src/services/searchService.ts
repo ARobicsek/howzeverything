@@ -124,7 +124,7 @@ export class SearchService {
                     latitude: lat,
                     longitude: lon,
                     radiusInMeters: 80000, // 80km = ~50 miles to capture metro area
-                    categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub',
+                    categories: 'catering', // Use parent category to include all food/dining establishments
                     limit: 50,
                     bias: `proximity:${lon},${lat}`
                   });
@@ -186,7 +186,7 @@ export class SearchService {
               latitude: userLat,
               longitude: userLon,
               radiusInMeters: 40000, // 40km = 25 miles
-              categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub',
+              categories: 'catering', // Use parent category to include all food/dining establishments
               limit: 50,
               bias: `proximity:${userLon},${userLat}`
             };
