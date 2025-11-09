@@ -436,10 +436,35 @@ const PortalModal: React.FC<{
   onClose: () => void;
   children: React.ReactNode;
 }> = ({ isOpen, onClose, children }) => {
+  const justOpenedRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Mark modal as just opened
+      justOpenedRef.current = true;
+
+      // After 300ms, allow closing
+      // This prevents spurious clicks from mobile file pickers from closing the modal
+      const timer = setTimeout(() => {
+        justOpenedRef.current = false;
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
 
+  const handleOverlayClick = () => {
+    // Don't close if modal was just opened (prevents spurious mobile clicks)
+    if (justOpenedRef.current) {
+      console.log('⚠️ Ignoring overlay click - modal just opened');
+      return;
+    }
+    onClose();
+  };
 
   // Get or create modal root to ensure modals can always be rendered.
   let modalRoot = document.getElementById('modal-root');
@@ -448,11 +473,11 @@ const PortalModal: React.FC<{
     modalRoot.id = 'modal-root';
     document.body.appendChild(modalRoot);
   }
- 
+
   return ReactDOM.createPortal(
     <div
       style={STYLES.modalOverlay}
-      onClick={onClose}
+      onClick={handleOverlayClick}
     >
       <div
         style={{
