@@ -71,6 +71,11 @@ export class SearchService {
       let rawApiFeatures: unknown[] = [];
       const queryAnalysis = analyzeQuery(query);
 
+      // Store target location for ranking (either from explicit mention or user location)
+      let targetLat: number | null = userLat;
+      let targetLon: number | null = userLon;
+      let mentionedLocation: string | null = null;
+
       // --- Log the output of the query analysis ---
       console.log(
         `%c[Query Analysis] -> Original: "${query}"`,
@@ -106,6 +111,11 @@ export class SearchService {
 
                   if (!geocodeData.features || geocodeData.features.length === 0) return [];
                   const { lat, lon } = geocodeData.features[0].properties;
+
+                  // Store the target location for ranking purposes
+                  targetLat = lat;
+                  targetLon = lon;
+                  mentionedLocation = queryAnalysis.location!.toLowerCase();
 
                   // Use Places API v2 for better restaurant discovery in the specified location
                   incrementGeoapifyCount(); logGeoapifyCount();
@@ -346,11 +356,29 @@ export class SearchService {
         return R * c;
       };
 
+      // Helper function to check if a place matches the mentioned location
+      const matchesLocation = (place: GeoapifyPlace, locationQuery: string | null): boolean => {
+        if (!locationQuery) return false;
+
+        const normalized = locationQuery.toLowerCase();
+        const city = place.properties.city?.toLowerCase() || '';
+        const state = place.properties.state?.toLowerCase() || '';
+        const formatted = place.properties.formatted?.toLowerCase() || '';
+
+        // Check if the mentioned location appears in city, state, or formatted address
+        return city.includes(normalized) ||
+               normalized.includes(city) ||
+               state.includes(normalized) ||
+               normalized.includes(state) ||
+               formatted.includes(normalized);
+      };
+
       // Helper function to calculate relevance score
       const calculateRelevanceScore = (
         nameSimilarity: number,
         isFromDatabase: boolean,
-        distanceKm: number | null
+        distanceKm: number | null,
+        locationMatch: boolean = false
       ): number => {
         // Start with name similarity (0-100)
         let score = nameSimilarity;
@@ -358,6 +386,11 @@ export class SearchService {
         // Add bonus for database entries (they're already in our system)
         if (isFromDatabase) {
           score += 10; // Small boost for existing restaurants
+        }
+
+        // Strong bonus for matching explicitly mentioned location
+        if (locationMatch) {
+          score += 30; // Significantly boost results in the mentioned location
         }
 
         // Apply distance penalty if location is available
@@ -379,12 +412,12 @@ export class SearchService {
       const dbMatches: ScoredPlace[] = (allDbRestaurants || [])
         .map(r => {
           const nameSimilarity = calculateEnhancedSimilarity(r.name, query);
-          const distanceKm = (userLat && userLon && r.latitude && r.longitude)
-            ? calculateDistance(userLat, userLon, r.latitude, r.longitude)
+          const distanceKm = (targetLat && targetLon && r.latitude && r.longitude)
+            ? calculateDistance(targetLat, targetLon, r.latitude, r.longitude)
             : null;
-          const relevanceScore = calculateRelevanceScore(nameSimilarity, true, distanceKm);
 
-          return {
+          // Create place object for location matching
+          const place: GeoapifyPlace = {
             place_id: `db_${r.id}`,
             properties: {
               name: r.name,
@@ -398,7 +431,14 @@ export class SearchService {
               lon: r.longitude || 0,
               categories: ['database'],
               datasource: { sourcename: 'database', attribution: 'Our Database' }
-            },
+            }
+          };
+
+          const locationMatch = matchesLocation(place, mentionedLocation);
+          const relevanceScore = calculateRelevanceScore(nameSimilarity, true, distanceKm, locationMatch);
+
+          return {
+            ...place,
             relevanceScore,
             nameSimilarity
           };
@@ -439,10 +479,11 @@ export class SearchService {
           } else {
               // Calculate score for API place
               const nameSimilarity = calculateEnhancedSimilarity(apiPlace.properties.name, query);
-              const distanceKm = (userLat && userLon && apiPlace.properties.lat && apiPlace.properties.lon)
-                ? calculateDistance(userLat, userLon, apiPlace.properties.lat, apiPlace.properties.lon)
+              const distanceKm = (targetLat && targetLon && apiPlace.properties.lat && apiPlace.properties.lon)
+                ? calculateDistance(targetLat, targetLon, apiPlace.properties.lat, apiPlace.properties.lon)
                 : null;
-              const relevanceScore = calculateRelevanceScore(nameSimilarity, false, distanceKm);
+              const locationMatch = matchesLocation(apiPlace, mentionedLocation);
+              const relevanceScore = calculateRelevanceScore(nameSimilarity, false, distanceKm, locationMatch);
 
               uniqueApiPlaces.push({
                 ...apiPlace,
@@ -462,13 +503,18 @@ export class SearchService {
         'color: #7c3aed; font-weight: bold; background-color: #faf5ff; padding: 2px 6px; border-radius: 4px;',
         {
           query,
+          mentionedLocation,
+          rankingBasedOn: mentionedLocation ? `Mentioned location: "${mentionedLocation}"` : 'User location',
           topResults: combinedResults.slice(0, 5).map(r => ({
             name: r.properties.name,
+            city: r.properties.city,
+            state: r.properties.state,
             score: r.relevanceScore.toFixed(1),
-            nameSimilarity: r.nameSimilarity,
+            nameSimilarity: r.nameSimilarity.toFixed(1),
             source: r.properties.datasource?.sourcename || 'api',
-            distance: userLat && userLon ?
-              calculateDistance(userLat, userLon, r.properties.lat, r.properties.lon).toFixed(1) + 'km' :
+            locationMatch: matchesLocation(r, mentionedLocation),
+            distance: targetLat && targetLon ?
+              calculateDistance(targetLat, targetLon, r.properties.lat, r.properties.lon).toFixed(1) + 'km' :
               'unknown'
           }))
         }
