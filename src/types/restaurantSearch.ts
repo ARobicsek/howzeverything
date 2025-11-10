@@ -70,6 +70,8 @@ export interface QueryAnalysis {
   type: 'business' | 'address' | 'business_location_proposal';
   businessName?: string;
   location?: string;
+  streetName?: string; // Extracted street name when 'on' is used (e.g., "on dempster" -> "dempster")
+  locationType?: 'street' | 'city' | 'general'; // Type of location specified
 }
 
 export interface UseRestaurantsOptions {

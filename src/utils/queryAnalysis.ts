@@ -5,12 +5,29 @@ import { normalizeText } from './textUtils';
 export function analyzeQuery(query: string): QueryAnalysis {
     const normalizedQuery = normalizeText(query);
 
-    // Check for explicit location indicators (in, at, near, etc.)
-    const locationKeywords = [' in ', ' at ', ' near ', ' on ', ' by ', ' around '];
-    for (const indicator of locationKeywords) {
+    // Check for "on" specifically - this indicates a street name
+    const onMatch = normalizedQuery.split(' on ');
+    if (onMatch.length === 2 && onMatch[0] && onMatch[1]) {
+        return {
+            type: 'business_location_proposal',
+            businessName: onMatch[0].trim(),
+            location: onMatch[1].trim(),
+            streetName: onMatch[1].trim(),
+            locationType: 'street'
+        };
+    }
+
+    // Check for other location indicators (in, at, near, etc.) - these are city/area searches
+    const cityKeywords = [' in ', ' at ', ' near ', ' by ', ' around '];
+    for (const indicator of cityKeywords) {
         const parts = normalizedQuery.split(indicator);
         if (parts.length === 2 && parts[0] && parts[1]) {
-            return { type: 'business_location_proposal', businessName: parts[0].trim(), location: parts[1].trim() };
+            return {
+                type: 'business_location_proposal',
+                businessName: parts[0].trim(),
+                location: parts[1].trim(),
+                locationType: 'city'
+            };
         }
     }
 
@@ -21,7 +38,12 @@ export function analyzeQuery(query: string): QueryAnalysis {
         const location = commaParts.slice(1).join(',').trim();
         // Only treat as location query if location part looks like a place (has 2+ chars)
         if (business && location && location.length >= 2) {
-            return { type: 'business_location_proposal', businessName: business, location: location };
+            return {
+                type: 'business_location_proposal',
+                businessName: business,
+                location: location,
+                locationType: 'general'
+            };
         }
     }
 

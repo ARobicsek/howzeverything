@@ -101,23 +101,78 @@ export class SearchService {
       if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
         // When user specifies location explicitly (e.g., "Starbucks in Boston"),
         // use targeted search around that location only
-        try {
-          incrementGeoapifyCount(); logGeoapifyCount();
-          const geocodeData = await callGeoapifyProxy({
-            apiType: 'geocode',
-            text: queryAnalysis.location!,
-            limit: 1
-          });
 
-          if (!geocodeData.features || geocodeData.features.length === 0) {
+        // SPECIAL CASE: Street-level search (e.g., "Starbucks on Dempster")
+        // If user specifies just a street name without city, and we have their location,
+        // search near them and filter by street name instead of trying to geocode the street alone
+        if (queryAnalysis.locationType === 'street' && userLat && userLon && queryAnalysis.streetName) {
+          console.log(
+            `%c[Street Search] Detected street-level search: "${queryAnalysis.streetName}"`,
+            'color: #0891b2; font-weight: bold; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;',
+            'Using user location + street name filter'
+          );
+
+          try {
+            // Use user's location as center and store street name for filtering/boosting
+            targetLat = userLat;
+            targetLon = userLon;
+            mentionedLocation = queryAnalysis.streetName.toLowerCase();
+
+            // Search for restaurants around user's location
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const placesData = await callGeoapifyProxy({
+              apiType: 'places',
+              latitude: userLat,
+              longitude: userLon,
+              radiusInMeters: 40000, // 40km = 25 miles
+              categories: 'catering',
+              limit: 100,
+              bias: `proximity:${userLon},${userLat}`
+            });
+
+            // Also search for the business name specifically
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const geocodeResults = await callGeoapifyProxy({
+              apiType: 'geocode',
+              text: queryAnalysis.businessName!,
+              type: 'amenity',
+              limit: 100,
+              filter: `circle:${userLon},${userLat},40000`,
+              bias: `proximity:${userLon},${userLat}`
+            });
+
+            const combined = [...(placesData.features || []), ...(geocodeResults.features || [])];
+            rawApiFeatures = combined.filter((result, index, self) =>
+              index === self.findIndex(r => r.properties.place_id === result.properties.place_id)
+            );
+
+            console.log(
+              `%c[Street Search] Found ${rawApiFeatures.length} results, will boost those on "${queryAnalysis.streetName}"`,
+              'color: #059669; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;'
+            );
+          } catch (error) {
+            console.error('Street search failed:', error);
             rawApiFeatures = [];
-          } else {
-            const { lat, lon } = geocodeData.features[0].properties;
+          }
+        } else {
+          // Regular city/area search - geocode the location first
+          try {
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const geocodeData = await callGeoapifyProxy({
+              apiType: 'geocode',
+              text: queryAnalysis.location!,
+              limit: 1
+            });
 
-            // Store the target location for ranking purposes
-            targetLat = lat;
-            targetLon = lon;
-            mentionedLocation = queryAnalysis.location!.toLowerCase();
+            if (!geocodeData.features || geocodeData.features.length === 0) {
+              rawApiFeatures = [];
+            } else {
+              const { lat, lon } = geocodeData.features[0].properties;
+
+              // Store the target location for ranking purposes
+              targetLat = lat;
+              targetLon = lon;
+              mentionedLocation = queryAnalysis.location!.toLowerCase();
 
             // Use Places API v2 for better restaurant discovery in the specified location
             incrementGeoapifyCount(); logGeoapifyCount();
@@ -144,10 +199,11 @@ export class SearchService {
 
             const combined = [...(placesData.features || []), ...(geocodeResults.features || [])];
             rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
+            }
+          } catch (error) {
+            console.error('Location-specific search failed:', error);
+            rawApiFeatures = [];
           }
-        } catch (error) {
-          console.error('Location-specific search failed:', error);
-          rawApiFeatures = [];
         }
       } else {
         try {
