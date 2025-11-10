@@ -355,20 +355,53 @@ export class SearchService {
       };
 
       // Helper function to check if a place matches the mentioned location
-      const matchesLocation = (place: GeoapifyPlace, locationQuery: string | null): boolean => {
-        if (!locationQuery) return false;
+      // Returns a score from 0-100 indicating strength of location match
+      const matchesLocation = (place: GeoapifyPlace, locationQuery: string | null): number => {
+        if (!locationQuery) return 0;
 
         const normalized = locationQuery.toLowerCase();
         const city = place.properties.city?.toLowerCase() || '';
         const state = place.properties.state?.toLowerCase() || '';
         const formatted = place.properties.formatted?.toLowerCase() || '';
+        const street = place.properties.address_line1?.toLowerCase() || '';
 
-        // Check if the mentioned location appears in city, state, or formatted address
-        return city.includes(normalized) ||
-               normalized.includes(city) ||
-               state.includes(normalized) ||
-               normalized.includes(state) ||
-               formatted.includes(normalized);
+        let matchScore = 0;
+
+        // Check for full location string match (strongest match)
+        if (city.includes(normalized) || normalized.includes(city)) {
+          matchScore += 100; // Perfect city match
+        } else if (formatted.includes(normalized)) {
+          matchScore += 80; // Full query appears in formatted address
+        }
+
+        // Check for partial matches by splitting location query into words
+        // This handles cases like "skokie on dempster" where we want to match:
+        // - "skokie" in the city
+        // - "dempster" in the street address
+        const locationWords = normalized.split(/\s+/).filter(word =>
+          word.length > 2 && !['in', 'at', 'on', 'near', 'by', 'the'].includes(word)
+        );
+
+        for (const word of locationWords) {
+          // City name match
+          if (city.includes(word) || word.includes(city)) {
+            matchScore = Math.max(matchScore, 100); // Promote to perfect match
+          }
+          // State match
+          if (state.includes(word) || word.includes(state)) {
+            matchScore = Math.max(matchScore, 90);
+          }
+          // Street name match (e.g., "dempster" in "4116 Dempster St")
+          if (street.includes(word)) {
+            matchScore = Math.max(matchScore, 70); // Good street-level match
+          }
+          // Formatted address contains the word
+          if (formatted.includes(word) && matchScore < 70) {
+            matchScore = Math.max(matchScore, 50); // Weak match, appears somewhere
+          }
+        }
+
+        return matchScore;
       };
 
       // Helper function to calculate relevance score
@@ -376,7 +409,8 @@ export class SearchService {
         nameSimilarity: number,
         isFromDatabase: boolean,
         distanceKm: number | null,
-        locationMatch: boolean = false
+        locationMatchScore: number = 0, // 0-100 score from matchesLocation
+        hasExplicitLocation: boolean = false // Whether user specified a location in query
       ): number => {
         // Start with name similarity (0-100)
         let score = nameSimilarity;
@@ -386,16 +420,33 @@ export class SearchService {
           score += 10; // Small boost for existing restaurants
         }
 
-        // Strong bonus for matching explicitly mentioned location
-        if (locationMatch) {
-          score += 30; // Significantly boost results in the mentioned location
+        // Scaled bonus based on location match strength
+        // Perfect city match (100): +50 points
+        // Street match (70): +35 points
+        // Weak match (50): +25 points
+        if (locationMatchScore > 0) {
+          const locationBonus = (locationMatchScore / 100) * 50;
+          score += locationBonus;
         }
 
-        // Apply distance penalty if location is available
+        // Apply distance penalty - but reduce it significantly when user specified explicit location
+        // If searching "Starbucks in Skokie" from Boston, we care about Skokie results, not Boston proximity
         if (distanceKm !== null) {
-          // Closer is better: full score for <5km, decreasing penalty up to 40km
-          const distancePenalty = Math.min(20, (distanceKm / 40) * 20);
-          score -= distancePenalty;
+          if (hasExplicitLocation && locationMatchScore >= 70) {
+            // User specified location AND result matches it well - minimal distance penalty
+            // Only penalize extreme distances (100km+)
+            const distancePenalty = Math.min(10, Math.max(0, (distanceKm - 100) / 50));
+            score -= distancePenalty;
+          } else if (hasExplicitLocation && locationMatchScore > 0) {
+            // User specified location, partial match - moderate distance penalty
+            const distancePenalty = Math.min(15, (distanceKm / 80) * 15);
+            score -= distancePenalty;
+          } else {
+            // No explicit location or no match - full distance penalty
+            // Closer is better: full score for <5km, decreasing penalty up to 40km
+            const distancePenalty = Math.min(20, (distanceKm / 40) * 20);
+            score -= distancePenalty;
+          }
         }
 
         return score;
@@ -432,8 +483,14 @@ export class SearchService {
             }
           };
 
-          const locationMatch = matchesLocation(place, mentionedLocation);
-          const relevanceScore = calculateRelevanceScore(nameSimilarity, true, distanceKm, locationMatch);
+          const locationMatchScore = matchesLocation(place, mentionedLocation);
+          const relevanceScore = calculateRelevanceScore(
+            nameSimilarity,
+            true, // isFromDatabase
+            distanceKm,
+            locationMatchScore,
+            !!mentionedLocation // hasExplicitLocation
+          );
 
           return {
             ...place,
@@ -480,8 +537,14 @@ export class SearchService {
               const distanceKm = (targetLat && targetLon && apiPlace.properties.lat && apiPlace.properties.lon)
                 ? calculateDistance(targetLat, targetLon, apiPlace.properties.lat, apiPlace.properties.lon)
                 : null;
-              const locationMatch = matchesLocation(apiPlace, mentionedLocation);
-              const relevanceScore = calculateRelevanceScore(nameSimilarity, false, distanceKm, locationMatch);
+              const locationMatchScore = matchesLocation(apiPlace, mentionedLocation);
+              const relevanceScore = calculateRelevanceScore(
+                nameSimilarity,
+                false, // isFromDatabase
+                distanceKm,
+                locationMatchScore,
+                !!mentionedLocation // hasExplicitLocation
+              );
 
               uniqueApiPlaces.push({
                 ...apiPlace,
@@ -503,18 +566,22 @@ export class SearchService {
           query,
           mentionedLocation,
           rankingBasedOn: mentionedLocation ? `Mentioned location: "${mentionedLocation}"` : 'User location',
-          topResults: combinedResults.slice(0, 5).map(r => ({
-            name: r.properties.name,
-            city: r.properties.city,
-            state: r.properties.state,
-            score: r.relevanceScore.toFixed(1),
-            nameSimilarity: r.nameSimilarity.toFixed(1),
-            source: r.properties.datasource?.sourcename || 'api',
-            locationMatch: matchesLocation(r, mentionedLocation),
-            distance: targetLat && targetLon ?
-              calculateDistance(targetLat, targetLon, r.properties.lat, r.properties.lon).toFixed(1) + 'km' :
-              'unknown'
-          }))
+          topResults: combinedResults.slice(0, 10).map(r => {
+            const locationMatchScore = matchesLocation(r, mentionedLocation);
+            const distance = targetLat && targetLon ?
+              calculateDistance(targetLat, targetLon, r.properties.lat, r.properties.lon) : null;
+            return {
+              name: r.properties.name,
+              address: r.properties.address_line1 || 'N/A',
+              city: r.properties.city,
+              state: r.properties.state,
+              score: r.relevanceScore.toFixed(1),
+              nameSimilarity: r.nameSimilarity.toFixed(1),
+              locationMatchScore: locationMatchScore.toFixed(0),
+              source: r.properties.datasource?.sourcename || 'api',
+              distance: distance ? distance.toFixed(1) + 'km' : 'unknown'
+            };
+          })
         }
       );
 
