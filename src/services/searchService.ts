@@ -429,14 +429,13 @@ export class SearchService {
           score += locationBonus;
         }
 
-        // Apply distance penalty - but reduce it significantly when user specified explicit location
-        // If searching "Starbucks in Skokie" from Boston, we care about Skokie results, not Boston proximity
+        // Apply distance penalty - but NOT when user explicitly specifies a matching location
+        // If searching "Pizza Hut in Amman" from Boston, we care about Amman results, not Boston proximity
         if (distanceKm !== null) {
           if (hasExplicitLocation && locationMatchScore >= 70) {
-            // User specified location AND result matches it well - minimal distance penalty
-            // Only penalize extreme distances (100km+)
-            const distancePenalty = Math.min(10, Math.max(0, (distanceKm - 100) / 50));
-            score -= distancePenalty;
+            // User specified location AND result matches it well - NO distance penalty
+            // They're intentionally searching for a place that might be far away
+            // No penalty applied
           } else if (hasExplicitLocation && locationMatchScore > 0) {
             // User specified location, partial match - moderate distance penalty
             const distancePenalty = Math.min(15, (distanceKm / 80) * 15);
