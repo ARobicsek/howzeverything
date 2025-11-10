@@ -99,79 +99,56 @@ export class SearchService {
       }
 
       if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
-        const [smartResults, textResults] = await Promise.all([
-            (async () => {
-                try {
-                  incrementGeoapifyCount(); logGeoapifyCount();
-                  const geocodeData = await callGeoapifyProxy({
-                    apiType: 'geocode',
-                    text: queryAnalysis.location!,
-                    limit: 1
-                  });
+        // When user specifies location explicitly (e.g., "Starbucks in Boston"),
+        // use targeted search around that location only
+        try {
+          incrementGeoapifyCount(); logGeoapifyCount();
+          const geocodeData = await callGeoapifyProxy({
+            apiType: 'geocode',
+            text: queryAnalysis.location!,
+            limit: 1
+          });
 
-                  if (!geocodeData.features || geocodeData.features.length === 0) return [];
-                  const { lat, lon } = geocodeData.features[0].properties;
+          if (!geocodeData.features || geocodeData.features.length === 0) {
+            rawApiFeatures = [];
+          } else {
+            const { lat, lon } = geocodeData.features[0].properties;
 
-                  // Store the target location for ranking purposes
-                  targetLat = lat;
-                  targetLon = lon;
-                  mentionedLocation = queryAnalysis.location!.toLowerCase();
+            // Store the target location for ranking purposes
+            targetLat = lat;
+            targetLon = lon;
+            mentionedLocation = queryAnalysis.location!.toLowerCase();
 
-                  // Use Places API v2 for better restaurant discovery in the specified location
-                  incrementGeoapifyCount(); logGeoapifyCount();
-                  const placesData = await callGeoapifyProxy({
-                    apiType: 'places',
-                    latitude: lat,
-                    longitude: lon,
-                    radiusInMeters: 80000, // 80km = ~50 miles to capture metro area
-                    categories: 'catering', // Use parent category to include all food/dining establishments
-                    limit: 50,
-                    bias: `proximity:${lon},${lat}`
-                  });
+            // Use Places API v2 for better restaurant discovery in the specified location
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const placesData = await callGeoapifyProxy({
+              apiType: 'places',
+              latitude: lat,
+              longitude: lon,
+              radiusInMeters: 80000, // 80km = ~50 miles to capture metro area
+              categories: 'catering', // Use parent category to include all food/dining establishments
+              limit: 50,
+              bias: `proximity:${lon},${lat}`
+            });
 
-                  // Also try geocoding API as fallback
-                  incrementGeoapifyCount(); logGeoapifyCount();
-                  const geocodeResults = await callGeoapifyProxy({
-                    apiType: 'geocode',
-                    text: queryAnalysis.businessName!,
-                    type: 'amenity',
-                    limit: 20,
-                    filter: `circle:${lon},${lat},80000`, // Increased from 50km to 80km
-                    bias: `proximity:${lon},${lat}`
-                  });
+            // Also try geocoding API for the business name around the specified location
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const geocodeResults = await callGeoapifyProxy({
+              apiType: 'geocode',
+              text: queryAnalysis.businessName!,
+              type: 'amenity',
+              limit: 20,
+              filter: `circle:${lon},${lat},80000`, // Search within 80km of mentioned location
+              bias: `proximity:${lon},${lat}`
+            });
 
-                  return [...(placesData.features || []), ...(geocodeResults.features || [])];
-                } catch (error) {
-                  console.error('Smart search failed:', error);
-                  return [];
-                }
-            })(),
-            (async () => {
-                try {
-                  incrementGeoapifyCount(); logGeoapifyCount();
-                  const textRequestData: any = {
-                    apiType: 'geocode',
-                    text: query,
-                    type: 'amenity',
-                    limit: 20
-                  };
-
-                  // Add geographic filtering to the fallback text search too
-                  if (userLat && userLon) {
-                    textRequestData.filter = `circle:${userLon},${userLat},40000`;
-                    textRequestData.bias = `proximity:${userLon},${userLat}`;
-                  }
-
-                  const textData = await callGeoapifyProxy(textRequestData);
-                  return textData.features || [];
-                } catch (error) {
-                  console.error('Text search failed:', error);
-                  return [];
-                }
-            })()
-        ]);
-        const combined = [...smartResults, ...textResults];
-        rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
+            const combined = [...(placesData.features || []), ...(geocodeResults.features || [])];
+            rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
+          }
+        } catch (error) {
+          console.error('Location-specific search failed:', error);
+          rawApiFeatures = [];
+        }
       } else {
         try {
           // Try multiple search strategies to find the restaurant
@@ -257,6 +234,16 @@ export class SearchService {
           const queryLower = normalizeText(query);
           const queryWords = queryLower.split(/\s+/).filter(w => w.length > 0);
 
+          // Debug: Log Places API results for "landwer" searches
+          if (queryLower.includes('landwer')) {
+            const placesApiResults = combinedFeatures.filter(f => f.properties?.datasource?.sourcename === 'openstreetmap');
+            console.log(
+              `%c[Places API] Found ${placesApiResults.length} results from Places API (before name filtering)`,
+              'color: #0891b2; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;',
+              placesApiResults.map(f => ({ name: f.properties.name, address: f.properties.formatted, categories: f.properties.categories }))
+            );
+          }
+
           const filteredFeatures = combinedFeatures.filter((feature: any) => {
             const name = normalizeText(feature.properties?.name || '');
             const datasource = feature.properties?.datasource?.sourcename;
@@ -276,7 +263,18 @@ export class SearchService {
             // Require at least 80% of query words to match
             // This allows "Cafe Landwer" to match "Landwer Cafe" or "Café Landwer"
             const matchPercentage = (matchCount / queryWords.length) * 100;
-            return matchPercentage >= 80;
+            const matches = matchPercentage >= 80;
+
+            // Debug logging for filtering
+            if (!matches && name.includes('landwer')) {
+              console.log(
+                `%c[Name Filter] Excluded: "${feature.properties?.name}" at ${feature.properties?.formatted}`,
+                'color: #dc2626; background-color: #fee2e2; padding: 2px 6px; border-radius: 4px;',
+                { matchPercentage: matchPercentage.toFixed(1), queryWords, nameWords, datasource }
+              );
+            }
+
+            return matches;
           });
 
           // Deduplicate by place_id
