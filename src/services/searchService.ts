@@ -127,7 +127,7 @@ export class SearchService {
               longitude: lon,
               radiusInMeters: 80000, // 80km = ~50 miles to capture metro area
               categories: 'catering', // Use parent category to include all food/dining establishments
-              limit: 50,
+              limit: 100, // Increased from 50 to ensure we capture all locations in the area
               bias: `proximity:${lon},${lat}`
             });
 
@@ -137,7 +137,7 @@ export class SearchService {
               apiType: 'geocode',
               text: queryAnalysis.businessName!,
               type: 'amenity',
-              limit: 20,
+              limit: 100, // Increased from 20 to ensure comprehensive coverage
               filter: `circle:${lon},${lat},80000`, // Search within 80km of mentioned location
               bias: `proximity:${lon},${lat}`
             });
@@ -164,7 +164,7 @@ export class SearchService {
               longitude: userLon,
               radiusInMeters: 40000, // 40km = 25 miles
               categories: 'catering', // Use parent category to include all food/dining establishments
-              limit: 50,
+              limit: 100, // Increased from 50 to ensure comprehensive results
               bias: `proximity:${userLon},${userLat}`
             };
             searchStrategies.push(
@@ -183,7 +183,7 @@ export class SearchService {
             apiType: 'geocode',
             text: query,
             type: 'amenity',
-            limit: 20
+            limit: 100 // Increased from 20 to ensure comprehensive results
           };
           if (userLat && userLon) {
             amenityRequest.filter = `circle:${userLon},${userLat},40000`;
@@ -203,7 +203,7 @@ export class SearchService {
           const broadRequest: any = {
             apiType: 'geocode',
             text: query,
-            limit: 20
+            limit: 100 // Increased from 20 to ensure comprehensive results
           };
           if (userLat && userLon) {
             broadRequest.filter = `circle:${userLon},${userLat},40000`;
