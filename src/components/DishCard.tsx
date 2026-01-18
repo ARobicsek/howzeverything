@@ -528,6 +528,7 @@ const DishCard: React.FC<DishCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const filePickerJustClosedRef = useRef(false);
   const filePickerProtectionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const filePickerOpenRef = useRef(false);  // Track if file picker is currently open
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -551,6 +552,27 @@ const DishCard: React.FC<DishCardProps> = ({
       }
     };
   }, []);
+
+  // Handle picker cancellation via window focus detection
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      // When window regains focus and picker was open but no file was selected
+      if (filePickerOpenRef.current) {
+        console.log('📁 Window focused, checking for file selection');
+        // Give a moment for change event to fire first
+        setTimeout(() => {
+          if (filePickerOpenRef.current && !selectedFileForUpload) {
+            console.log('✅ No file selected (picker cancelled), removing protection');
+            filePickerJustClosedRef.current = false;
+            filePickerOpenRef.current = false;
+          }
+        }, 300);
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
+  }, [selectedFileForUpload]);
 
   // Handle new dish highlight animation
 
@@ -603,23 +625,18 @@ const DishCard: React.FC<DishCardProps> = ({
 
 
   const handleDirectPhotoUpload = () => {
-    // Set protection BEFORE opening file picker to catch spurious clicks
-    // that fire when the picker closes (before the change event)
+    // Set permanent protection until file is selected or picker is cancelled
+    // This replaces the old timeout-based approach which failed when users
+    // took longer than 1 second to browse their photo library
     filePickerJustClosedRef.current = true;
-    console.log('📁 Opening file picker, setting protection guard');
+    filePickerOpenRef.current = true;
+    console.log('📁 Opening file picker, setting permanent protection until selection');
 
-    // Clear any existing timer
+    // Clear any existing timer from previous attempts
     if (filePickerProtectionTimerRef.current) {
       clearTimeout(filePickerProtectionTimerRef.current);
-    }
-
-    // Set a longer timer (1000ms) since we don't know when user will select
-    // This will be reset/extended in handleFileSelect if a file is actually selected
-    filePickerProtectionTimerRef.current = setTimeout(() => {
-      filePickerJustClosedRef.current = false;
       filePickerProtectionTimerRef.current = null;
-      console.log('✅ File picker protection expired (no file selected)');
-    }, 1000);
+    }
 
     fileInputRef.current?.click();
   };
@@ -627,34 +644,40 @@ const DishCard: React.FC<DishCardProps> = ({
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    filePickerOpenRef.current = false;  // Mark picker as closed
+    
     if (file) {
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
+        filePickerJustClosedRef.current = false;
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
         alert('File size must be less than 10MB');
+        filePickerJustClosedRef.current = false;
         return;
       }
 
       // Extend protection period now that file is selected
-      // (Protection was already set in handleDirectPhotoUpload)
-      console.log('📁 File selected, extending protection for 500ms');
+      console.log('📁 File selected, extending protection for 800ms');
 
-      // Clear the initial timer
+      // Clear any existing timer
       if (filePickerProtectionTimerRef.current) {
         clearTimeout(filePickerProtectionTimerRef.current);
       }
 
-      // Extend protection for 500ms to handle any delayed spurious clicks
+      // Extend protection for 800ms to handle any delayed spurious clicks
       filePickerProtectionTimerRef.current = setTimeout(() => {
         filePickerJustClosedRef.current = false;
         filePickerProtectionTimerRef.current = null;
         console.log('✅ Card collapse protection removed');
-      }, 500);
+      }, 800);
 
       setSelectedFileForUpload(file);
       setShowPhotoUpload(true);
+    } else {
+      // No file selected (cancelled)
+      filePickerJustClosedRef.current = false;
     }
   };
 
