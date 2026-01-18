@@ -1,5 +1,113 @@
 **NEW ENTRIES MUST GO AT THE TOP OF THIS DOCUMENT**
 
+# Implementation Log: Supabase Keep-Alive to Prevent Project Pausing
+
+**Date:** January 18, 2026
+
+**Developer:** Claude (Gemini)
+
+**Task:** Prevent Supabase free tier from automatically pausing due to inactivity
+
+## Problem Statement
+
+Supabase free tier projects are automatically paused after 1 week of inactivity. This causes the database and Edge Functions to become unavailable until manually unpaused from the dashboard.
+
+For projects with sporadic usage (like howzeverything), this can create a poor user experience when the first visitor after an idle period finds the app non-functional.
+
+## Solution Overview
+
+Implemented a two-part keep-alive solution:
+1. **Edge Function** - A minimal function that pings the database
+2. **GitHub Actions workflow** - Runs twice weekly to call the Edge Function
+
+---
+
+## Implementation Details
+
+### 1. Keep-Alive Edge Function
+
+**File:** `supabase/functions/keep-alive/index.ts`
+
+**Purpose:** Makes a simple database query to register activity and prevent project pausing.
+
+**Features:**
+- Queries `restaurants` table (`SELECT id LIMIT 1`)
+- Returns JSON status with timestamp
+- Follows existing CORS pattern from other Edge Functions
+
+**Deployment:**
+```bash
+npx supabase functions deploy keep-alive --project-ref cjznbkcurzotvusorjec
+```
+
+---
+
+### 2. GitHub Actions Workflow
+
+**File:** `.github/workflows/supabase-keepalive.yml`
+
+**Schedule:** Runs at 12:00 UTC every Monday and Thursday (cron: `0 12 * * 1,4`)
+
+**Features:**
+- Uses `curl` to call the Edge Function
+- Requires `SUPABASE_URL` and `SUPABASE_ANON_KEY` secrets
+- Supports manual trigger via `workflow_dispatch`
+- Logs success/failure for visibility
+
+---
+
+## Configuration Required
+
+### GitHub Repository Secrets
+Added to https://github.com/ARobicsek/howzeverything/settings/secrets/actions:
+
+| Secret | Value |
+|--------|-------|
+| `SUPABASE_URL` | `https://cjznbkcurzotvusorjec.supabase.co` |
+| `SUPABASE_ANON_KEY` | (anon key from Supabase dashboard) |
+
+---
+
+## Verification
+
+- ✅ Edge Function deployed successfully
+- ✅ GitHub Action runs #1 and #2 completed successfully (manual trigger)
+- ✅ Workflow scheduled for Monday and Thursday at 12:00 UTC
+
+---
+
+## How It Works
+
+```
+GitHub Actions (Mon/Thu 12:00 UTC)
+        │
+        ▼
+  curl → Edge Function (/functions/v1/keep-alive)
+        │
+        ▼
+  SELECT id FROM restaurants LIMIT 1
+        │
+        ▼
+  Database activity registered → Project stays awake
+```
+
+---
+
+## Analogous Solution
+
+This approach is similar to the UptimeRobot keep-alive used for Tzafun on Render, but with a key difference: Supabase requires **actual database activity** (not just HTTP requests) to count as usage.
+
+---
+
+## Files Created
+
+1. `supabase/functions/keep-alive/index.ts` - Edge Function
+2. `.github/workflows/supabase-keepalive.yml` - GitHub Actions workflow
+
+**Commit:** `9f7c40c` - "Add Supabase keep-alive to prevent project pausing"
+
+---
+
 # Implementation Log: Restaurant Search Optimization Attempt - Session 2
 
  
