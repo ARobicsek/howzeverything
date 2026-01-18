@@ -1,5 +1,71 @@
 **NEW ENTRIES MUST GO AT THE TOP OF THIS DOCUMENT**
 
+# Implementation Log: Photo Upload Modal Intermittent Failure Fix (Session 2)
+
+**Date:** January 18, 2026
+
+**Developer:** Gemini
+
+**Task:** Fix remaining edge case in photo upload modal protection
+
+## Problem Statement
+
+Despite the November 2025 fix for photo upload modal failures, users still experienced ~50% failure rate. When adding a photo to a dish:
+1. User clicks "Add Photo" → file picker opens
+2. User browses photo library and selects photo
+3. **Issue:** Modal doesn't appear; user returns to collapsed dish card
+
+## Root Cause Analysis
+
+The Nov 2025 fix used a **1000ms timeout-based protection** that started when "Add Photo" was clicked. The protection expired if the user took longer than 1 second browsing their photo library.
+
+**Failure sequence:**
+1. User clicks "Add Photo" → protection timer starts (1000ms)
+2. Native photo picker opens
+3. User browses photos for 2-3+ seconds → **protection expires**
+4. User selects photo → native picker fires phantom click events
+5. Phantom clicks arrive BEFORE `handleFileSelect` can re-arm protection
+6. Card collapses due to unprotected click
+
+## Solution
+
+Replaced timeout-based protection with **permanent protection** that stays active until file selection or picker cancellation:
+
+### Changes to `src/components/DishCard.tsx`
+
+1. **Added `filePickerOpenRef`** - Tracks whether native picker is currently open
+2. **Added window focus listener** - Detects picker cancellation when window regains focus without file selection
+3. **Removed timeout-based approach** - Protection no longer expires after 1 second
+4. **Extended post-selection protection** - Increased from 500ms to 800ms
+
+### Key Code Changes
+
+**Before (timeout-based):**
+```typescript
+filePickerProtectionTimerRef.current = setTimeout(() => {
+  filePickerJustClosedRef.current = false;
+}, 1000);  // Expires after 1 second!
+```
+
+**After (permanent until selection):**
+```typescript
+filePickerJustClosedRef.current = true;
+filePickerOpenRef.current = true;
+// No timeout - stays protected until file selection or cancellation
+```
+
+## Verification
+
+- ✅ TypeScript type-check passed
+- ✅ Build successful
+- ✅ User tested on mobile device - photo upload now works reliably
+
+## Commits
+
+- `9555e68` - fix: resolve photo upload modal intermittent failure on mobile
+
+---
+
 # Implementation Log: Project Directory Cleanup & Reorganization
 
 **Date:** January 18, 2026
