@@ -1,3 +1,742 @@
+**NEW ENTRIES MUST GO AT THE TOP OF THIS DOCUMENT**
+
+# Implementation Log: Restaurant Search Optimization Attempt - Session 2
+
+ 
+
+**Date:** November 9, 2025 evening
+
+**Developer:** Claude Code
+
+**Branch:** `claude/optimize-restaurant-search-011CUyQtcmaQucdY4Gp6dZkb`
+
+**Task:** Optimize restaurant search to capture all matching locations and improve street-level searches
+
+**Status:** ⚠️ In Progress - Partial completion, investigation needed
+
+ 
+
+## Problem Statement
+
+ 
+
+After previous location search fixes were deployed, users reported two new issues:
+
+ 
+
+### Issue 1: Missing Locations in Complete Results
+
+When searching "starbucks in skokie", some Skokie locations were missing from results despite API returning 127 results total.
+
+ 
+
+**Specific Example:**
+
+- Search: "starbucks in skokie"
+
+- Results: 127 total, including 5001 W Dempster St and 5211 W Touhy Ave
+
+- **Missing:** 4116 Dempster St (known to exist in area)
+
+- Observation: Searching "starbucks in skokie on dempster" would include BOTH Dempster locations
+
+ 
+
+**Pattern:**
+
+- Query with street name → All locations found
+
+- Query without street name → Some locations missing
+
+- Suggested geocoding center point issue
+
+ 
+
+### Issue 2: Street-Only Searches Producing Poor Results
+
+When searching "starbucks on dempster" (without city), results were "really garbagey" and location-influenced.
+
+ 
+
+**Problem:**
+
+- Searching "starbucks on dempster" from Boston → Boston results
+
+- Searching "starbucks on dempster" from Skokie → Should find Skokie Dempster locations
+
+- System was trying to geocode "dempster" alone (street without city) which failed
+
+ 
+
+---
+
+ 
+
+## Implementation Details
+
+ 
+
+### Fix 1: Increased API Result Limits
+
+ 
+
+**Files Modified:** `src/services/searchService.ts`
+
+ 
+
+**Problem:** API limits of 20-50 results per call might exclude locations based on proximity to geocoded center point.
+
+ 
+
+**Solution:** Increased all API result limits to ensure comprehensive coverage:
+
+ 
+
+**Changes:**
+
+- **Line 130, 185:** Places API limit: 50 → 100
+
+- **Line 140, 195:** Geocode API (amenity) limit: 20 → 100
+
+- **Line 167, 223:** Geocode API (generic search) limit: 50 → 100
+
+- **Line 186, 206:** Geocode API (broad search) limit: 20 → 100
+
+ 
+
+**Rationale:**
+
+When geocoding "skokie" returns center of city, locations at edges might not make top 50 results sorted by proximity. Increasing limits ensures we capture all locations in the target area before ranking algorithm sorts them.
+
+ 
+
+**Commit:** `781ac75`
+
+```
+
+feat: increase API result limits to capture all location matches
+
+ 
+
+Increased all API result limits from 20/50 to 100:
+
+- Places API: 50 → 100
+
+- Geocode API (both amenity and broad searches): 20 → 100
+
+ 
+
+This ensures comprehensive coverage of all restaurants in the target
+
+location before the scoring algorithm ranks them.
+
+```
+
+ 
+
+**API Cost Impact:**
+
+- ✅ No additional API calls (same number of requests)
+
+- ⚠️ Higher data transfer per call (more results returned)
+
+- ⚠️ Slightly increased cost per call
+
+ 
+
+---
+
+ 
+
+### Fix 2: Street-Level Search Detection
+
+ 
+
+**Files Modified:**
+
+- `src/types/restaurantSearch.ts` (Lines 73-74)
+
+- `src/utils/queryAnalysis.ts` (Lines 8-18, 20-31, 44)
+
+- `src/services/searchService.ts` (Lines 105-156)
+
+ 
+
+**Problem:** Queries like "starbucks on dempster" tried to geocode "dempster" alone, which either failed or returned wrong locations (Dempster in another city/state).
+
+ 
+
+**Solution:** Detect "on" keyword as street indicator and handle differently from city searches.
+
+ 
+
+#### Type Changes
+
+ 
+
+**Added to QueryAnalysis interface:**
+
+```typescript
+
+export interface QueryAnalysis {
+
+  type: 'business' | 'address' | 'business_location_proposal';
+
+  businessName?: string;
+
+  location?: string;
+
+  streetName?: string;        // NEW: Extracted street name when 'on' is used
+
+  locationType?: 'street' | 'city' | 'general';  // NEW: Type of location
+
+}
+
+```
+
+ 
+
+#### Query Analysis Logic
+
+ 
+
+**Enhanced analyzeQuery() function:**
+
+```typescript
+
+// Check for "on" specifically - this indicates a street name
+
+const onMatch = normalizedQuery.split(' on ');
+
+if (onMatch.length === 2 && onMatch[0] && onMatch[1]) {
+
+    return {
+
+        type: 'business_location_proposal',
+
+        businessName: onMatch[0].trim(),
+
+        location: onMatch[1].trim(),
+
+        streetName: onMatch[1].trim(),
+
+        locationType: 'street'
+
+    };
+
+}
+
+ 
+
+// Check for other location indicators (in, at, near, etc.) - city/area searches
+
+const cityKeywords = [' in ', ' at ', ' near ', ' by ', ' around '];
+
+// ... mark as locationType: 'city'
+
+```
+
+ 
+
+**Processing Order:**
+
+1. Check for "on" → street search
+
+2. Check for "in", "at", "near", etc. → city search
+
+3. Check for comma-separated → general search
+
+4. Default → business name only
+
+ 
+
+#### Search Service Handling
+
+ 
+
+**Street Search Logic (Lines 108-156):**
+
+```typescript
+
+if (queryAnalysis.locationType === 'street' && userLat && userLon) {
+
+  // Use USER's location as center (not geocoding street alone)
+
+  targetLat = userLat;
+
+  targetLon = userLon;
+
+  mentionedLocation = queryAnalysis.streetName.toLowerCase();
+
+ 
+
+  // Search for business around user location
+
+  // Results with street name in address get boosted by scoring algorithm
+
+ 
+
+  const placesData = await callGeoapifyProxy({
+
+    apiType: 'places',
+
+    latitude: userLat,
+
+    longitude: userLon,
+
+    radiusInMeters: 40000,
+
+    categories: 'catering',
+
+    limit: 100
+
+  });
+
+ 
+
+  const geocodeResults = await callGeoapifyProxy({
+
+    apiType: 'geocode',
+
+    text: queryAnalysis.businessName!,
+
+    type: 'amenity',
+
+    limit: 100,
+
+    filter: `circle:${userLon},${userLat},40000`
+
+  });
+
+}
+
+```
+
+ 
+
+**How It Works:**
+
+1. Detect "starbucks on dempster" → locationType: 'street'
+
+2. Search around user's current location (not geocoding "dempster")
+
+3. Store "dempster" as mentionedLocation
+
+4. Ranking algorithm (matchesLocation function) boosts results with "dempster" in address
+
+ 
+
+**Commit:** `cbb23fe`
+
+```
+
+feat: detect 'on' keyword for street-level searches
+
+ 
+
+Enhanced query analysis and search logic to:
+
+1. Detect "on" keyword specifically as a street-level indicator
+
+2. When user searches "{business} on {street}" with location available:
+
+   - Skip geocoding the street name alone
+
+   - Use user's current location as search center
+
+   - Boost results that have the street name in their address
+
+3. Mark location type as 'street', 'city', or 'general'
+
+ 
+
+Example: "starbucks on dempster" (from Skokie) will:
+
+- Search for Starbucks near user's location
+
+- Prioritize results with "dempster" in their street address
+
+```
+
+ 
+
+---
+
+ 
+
+### Attempted Fix 3: Remove Places API (REVERTED)
+
+ 
+
+**Problem Hypothesis:** For location-specific searches like "starbucks in skokie", calling Places API returns ALL restaurants (not just Starbucks), potentially crowding out specific matches.
+
+ 
+
+**Attempted Solution:** Remove Places API call and rely only on Geocoding API with business name filter.
+
+ 
+
+**Changes Made:**
+
+- Lines 177-187: Removed Places API call from location-specific searches
+
+- Lines 180-187: Increased Geocoding API limit to 200 (from 100)
+
+- Lines 121-131: Same changes for street searches
+
+ 
+
+**Result:** ❌ **Made things worse**
+
+- "starbucks in skokie" returned NO Skokie locations (only Chicago)
+
+- "starbucks on dempster" totally didn't work
+
+- Reverted via `git reset --hard HEAD~1`
+
+ 
+
+**Why It Failed:**
+
+Removing Places API eliminated an important data source. The combined approach (Places API + Geocoding API) provides better coverage than either alone:
+
+- Places API: Broad restaurant discovery, may miss specific chains
+
+- Geocoding API: Targeted business name search, may miss small establishments
+
+- Together: Comprehensive coverage
+
+ 
+
+**Lesson Learned:** The dual-API approach is necessary for comprehensive results, despite seeming redundant.
+
+ 
+
+---
+
+ 
+
+## Current State
+
+ 
+
+### What's Working
+
+- ✅ Street-level searches detect "on" keyword
+
+- ✅ Street searches use user location + street name filtering
+
+- ✅ API limits increased to 100 for better coverage
+
+- ✅ Location-specific searches use both Places API + Geocoding API
+
+ 
+
+### What's Not Working
+
+- ❌ "starbucks in skokie" still missing 4116 Dempster St location
+
+- ❌ "starbucks on dempster" behavior not yet tested after revert
+
+ 
+
+### What Was Reverted
+
+- ❌ Removal of Places API from location searches (made things worse)
+
+- ❌ Increase of limits to 200 (reverted back to 100)
+
+ 
+
+---
+
+ 
+
+## Root Cause Still Unknown
+
+ 
+
+The original problem persists: **Why is 4116 Dempster St missing from "starbucks in skokie" results when it appears with "starbucks in skokie on dempster"?**
+
+ 
+
+### Theories
+
+ 
+
+**Theory 1: Geocoding Center Point**
+
+- Geocoding "skokie" returns city center coordinates
+
+- Geocoding "skokie on dempster" returns coordinates ON Dempster Street
+
+- 4116 Dempster St might be at edge of search radius from city center
+
+- ❓ **Needs investigation:** What coordinates are returned for each query?
+
+ 
+
+**Theory 2: API Ranking Before We See Results**
+
+- Geoapify APIs may rank/filter results internally before returning
+
+- Even with limit=100, API might not return all matches
+
+- Some locations might be excluded by API's internal relevance scoring
+
+- ❓ **Needs investigation:** Are we getting all results from API or is API pre-filtering?
+
+ 
+
+**Theory 3: Name Filtering Too Strict**
+
+- Name matching algorithm (80% word match) might exclude some results
+
+- Lines 254-268 filter results based on query word matches
+
+- ❓ **Needs investigation:** Is 4116 Dempster St in raw API results but filtered out by name matching?
+
+ 
+
+**Theory 4: Data Quality**
+
+- Location might be miscategorized in OpenStreetMap/Geoapify
+
+- Might have incorrect name or address data
+
+- ❓ **Needs investigation:** Check if location exists in Geoapify database
+
+ 
+
+---
+
+ 
+
+## Next Steps for Investigation
+
+ 
+
+### Required User Testing
+
+1. **Search "starbucks in skokie"** and provide FULL console output including:
+
+   - `[Location Search] Found X results` message
+
+   - Whether 4116 Dempster appears in any of the 127 results
+
+   - What coordinates were used for search center
+
+ 
+
+2. **Search "starbucks on dempster"** from Skokie area:
+
+   - Does it find Dempster Street Starbucks locations?
+
+   - What does console show for street search?
+
+ 
+
+3. **Direct API query:** Could manually query Geoapify to see if location exists
+
+ 
+
+### Potential Solutions to Try Next Session
+
+ 
+
+1. **Increase search radius**
+
+   - Currently 80km for location searches
+
+   - Try 120km or 150km to see if it captures edge locations
+
+ 
+
+2. **Change geocoding strategy**
+
+   - Instead of geocoding "skokie" → Try geocoding "skokie, illinois"
+
+   - More specific query might return better center point
+
+ 
+
+3. **Add diagnostic logging**
+
+   - Log exact coordinates from geocoding
+
+   - Log distances from search center to all results
+
+   - Determine if 4116 Dempster is outside radius
+
+ 
+
+4. **Check if result is in raw API data**
+
+   - Add logging to show ALL results before name filtering
+
+   - See if location is being filtered out by our code vs not returned by API
+
+ 
+
+5. **Try different API strategy**
+
+   - Use text search instead of Places API for location queries
+
+   - Might be more inclusive
+
+ 
+
+---
+
+ 
+
+## Files Modified
+
+ 
+
+### src/services/searchService.ts
+
+- Lines 130, 185: Increased Places API limit to 100
+
+- Lines 140, 167, 195, 206, 223: Increased Geocoding API limits to 100
+
+- Lines 108-156: Added street search special handling
+
+ 
+
+### src/types/restaurantSearch.ts
+
+- Lines 73-74: Added streetName and locationType to QueryAnalysis
+
+ 
+
+### src/utils/queryAnalysis.ts
+
+- Lines 8-18: Added "on" keyword detection for street searches
+
+- Lines 20-31: Updated city keyword handling to mark locationType
+
+ 
+
+---
+
+ 
+
+## Commits on Branch
+
+ 
+
+**Branch:** `claude/optimize-restaurant-search-011CUyQtcmaQucdY4Gp6dZkb`
+
+ 
+
+1. **`781ac75`** - feat: increase API result limits to capture all location matches
+
+2. **`cbb23fe`** - feat: detect 'on' keyword for street-level searches
+
+ 
+
+**Note:** One commit (`d2d57e4` - optimize location searches) was created then immediately reverted.
+
+ 
+
+---
+
+ 
+
+## Pull Request
+
+ 
+
+**URL:** https://github.com/ARobicsek/howzeverything/compare/claude/optimize-restaurant-search-011CUyQtcmaQucdY4Gp6dZkb
+
+ 
+
+**Status:** Ready for testing, awaiting user feedback on behavior
+
+ 
+
+---
+
+ 
+
+## Key Learnings
+
+ 
+
+1. **Don't remove seemingly redundant API calls without testing**
+
+   - Places API + Geocoding API complement each other
+
+   - Each captures different types of establishments
+
+   - Combined approach provides best coverage
+
+ 
+
+2. **Increasing limits isn't a silver bullet**
+
+   - Helped with coverage but didn't solve core issue
+
+   - Root cause is likely about WHERE we're searching, not HOW MANY results
+
+ 
+
+3. **Street-level searches need special handling**
+
+   - Geocoding a street name alone doesn't work well
+
+   - Better to search around user location + filter by street name
+
+ 
+
+4. **User testing is essential**
+
+   - Need console logs from actual searches to diagnose
+
+   - Theory != reality with external APIs
+
+ 
+
+---
+
+ 
+
+## Conclusion
+
+ 
+
+Made progress on street-level search detection and increased API coverage, but the core issue of missing locations in "business in city" searches remains unresolved.
+
+ 
+
+**Next Session Goals:**
+
+1. Get detailed console logs from user searches
+
+2. Investigate geocoding coordinates and search radii
+
+3. Determine if missing locations are in API results or being filtered
+
+4. Try one of the proposed solutions based on investigation findings
+
+ 
+
+**Status:** ✅ Code pushed, ⏳ Awaiting user testing and investigation
+
+ 
+
+---
+
+ 
+
+**GitHub Branch:** `claude/optimize-restaurant-search-011CUyQtcmaQucdY4Gp6dZkb`
+
+**Latest Commits:** `781ac75`, `cbb23fe` (Reverted commit `d2d57e4` not on remote)
+
+
+
+
 # Implementation Log: Password Reset Feature
 
 **Date:** November 8, 2025
@@ -1365,730 +2104,3 @@ Successfully identified and resolved a timer-based race condition that caused ph
 The fix ensures users can reliably upload photos to newly created dishes on the first attempt, eliminating a frustrating workflow interruption.
 
 **Status:** ✅ Deployed, tested on mobile, and confirmed working
-
----
----
-
-# Implementation Log: Location-Based Restaurant Search Improvements
-
-**Date:** November 10, 2025
-**Developer:** Claude Code
-**Branch:** `claude/debug-location-search-results-011CUxuQ2qykdf2NZy45416t`
-**Task:** Debug and fix location-based restaurant search ranking and API category filtering issues
-
-## Problem Statement
-
-Users reported multiple issues with restaurant search functionality:
-
-### Issue 1: Incorrect Location Ranking
-When searching for "Business in Location" (e.g., "Starbucks in Skokie"), results near the user's current location were ranking higher than results in the explicitly mentioned location.
-
-**User Test Case:**
-- User in Newport, RI searches "Starbucks in Skokie"
-- Expected: Skokie Starbucks locations at top
-- Actual: Newport-area Starbucks ranked higher, Skokie locations buried in results
-
-### Issue 2: Missing Locations Due to Category Filtering
-Some café locations (e.g., Cafe Landwer at 651 Boylston St, Boston) were missing from search results despite being in the area.
-
-**User Observation:**
-- Location shown with coffee cup icon in Apple Maps (not restaurant icon)
-- Suggested different API categorization (coffee shop vs. café)
-- Only found 2 of 3 Boston locations for "Cafe Landwer"
-
-### Issue 3: Foreign Results Appearing in Location Searches
-When searching "Cafe Landwer in Boston", results from France and Italy would briefly flash, then replace correct Boston results.
-
-**Console Evidence:**
-- "Detected country: FRANCE" messages flooding logs
-- "Detected country: ITALY" appearing in searches
-- Correct results appeared momentarily before being replaced
-
----
-
-## Root Cause Analysis
-
-### Issue 1: Location Ranking Logic Error
-
-**File:** `src/services/searchService.ts:440-445`
-
-**Problem:**
-The ranking algorithm used `userLat`/`userLon` for distance calculations even when the user explicitly mentioned a different location.
-
-**Code Flow:**
-```typescript
-// When user searches "Starbucks in Skokie"
-1. ✅ Correctly geocoded "Skokie" → (lat: X, lon: Y)
-2. ✅ Correctly fetched results around Skokie coordinates
-3. ❌ INCORRECTLY used user's location (Newport, RI) for ranking
-4. Result: Newport Starbucks ranked higher due to proximity
-```
-
-**Root Cause:**
-Distance calculations always used `userLat`/`userLon` instead of the geocoded target location coordinates.
-
-### Issue 2: Overly Restrictive Category Filter
-
-**File:** `src/services/searchService.ts:127, 189`
-
-**Problem:**
-Places API was using a hardcoded list of specific categories:
-```javascript
-categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub'
-```
-
-If a location was categorized as:
-- `catering.coffee_shop` (not `catering.cafe`)
-- `catering.bakery`
-- Any other catering subcategory
-
-It would be **excluded** from results, even if the name matched perfectly.
-
-**Evidence:**
-Missing Cafe Landwer location had coffee cup icon in Apple Maps, indicating `catering.coffee_shop` categorization instead of `catering.cafe`.
-
-### Issue 3: Redundant Text Search
-
-**File:** `src/services/searchService.ts:149-171`
-
-**Problem:**
-For `business_location_proposal` queries, the code ran TWO parallel searches:
-
-1. **Smart search** (lines 103-147):
-   - ✅ Geocoded "Boston" → Boston, MA coordinates
-   - ✅ Searched around Boston, MA
-
-2. **Text fallback search** (lines 149-171):
-   - ❌ Searched for literal string "Cafe Landwer in Boston"
-   - ❌ Could match Boston, France or Boston, UK
-   - ❌ Used user's location as filter (not mentioned location)
-
-Results from the fallback search included foreign locations, causing the replacement behavior.
-
----
-
-## Solution Overview
-
-Implemented three targeted fixes:
-
-1. **Location-Aware Ranking** - Use mentioned location coordinates for distance calculations
-2. **Inclusive Category Filtering** - Use parent `catering` category to capture all food establishments
-3. **Remove Redundant Search** - Eliminate problematic text fallback for location-specific queries
-
----
-
-## Implementation Details
-
-### Fix 1: Location-Aware Ranking System
-
-**File:** `src/services/searchService.ts`
-
-#### Added Target Location Tracking (Lines 74-77)
-
-```typescript
-// Store target location for ranking (either from explicit mention or user location)
-let targetLat: number | null = userLat;
-let targetLon: number | null = userLon;
-let mentionedLocation: string | null = null;
-```
-
-#### Store Mentioned Location Coordinates (Lines 115-118)
-
-```typescript
-// When location is explicitly mentioned in query
-if (queryAnalysis.type === 'business_location_proposal') {
-  const { lat, lon } = geocodeData.features[0].properties;
-
-  // Store the target location for ranking purposes
-  targetLat = lat;
-  targetLon = lon;
-  mentionedLocation = queryAnalysis.location!.toLowerCase();
-}
-```
-
-#### Location Matching Helper (Lines 350-364)
-
-```typescript
-const matchesLocation = (place: GeoapifyPlace, locationQuery: string | null): boolean => {
-  if (!locationQuery) return false;
-
-  const normalized = locationQuery.toLowerCase();
-  const city = place.properties.city?.toLowerCase() || '';
-  const state = place.properties.state?.toLowerCase() || '';
-  const formatted = place.properties.formatted?.toLowerCase() || '';
-
-  // Check if mentioned location appears in city, state, or formatted address
-  return city.includes(normalized) ||
-         normalized.includes(city) ||
-         state.includes(normalized) ||
-         normalized.includes(state) ||
-         formatted.includes(normalized);
-};
-```
-
-#### Enhanced Scoring (Lines 367-394)
-
-```typescript
-const calculateRelevanceScore = (
-  nameSimilarity: number,
-  isFromDatabase: boolean,
-  distanceKm: number | null,
-  locationMatch: boolean = false  // NEW PARAMETER
-): number => {
-  let score = nameSimilarity;
-
-  if (isFromDatabase) {
-    score += 10;
-  }
-
-  // NEW: Strong bonus for matching explicitly mentioned location
-  if (locationMatch) {
-    score += 30; // Significantly boost results in mentioned location
-  }
-
-  if (distanceKm !== null) {
-    const distancePenalty = Math.min(20, (distanceKm / 40) * 20);
-    score -= distancePenalty;
-  }
-
-  return score;
-};
-```
-
-#### Updated Distance Calculations (Lines 415-417, 442-444)
-
-```typescript
-// Database results - use TARGET location, not user location
-const distanceKm = (targetLat && targetLon && r.latitude && r.longitude)
-  ? calculateDistance(targetLat, targetLon, r.latitude, r.longitude)
-  : null;
-
-// API results - use TARGET location, not user location
-const distanceKm = (targetLat && targetLon && apiPlace.properties.lat && apiPlace.properties.lon)
-  ? calculateDistance(targetLat, targetLon, apiPlace.properties.lat, apiPlace.properties.lon)
-  : null;
-```
-
-#### Enhanced Debug Logging (Lines 460-480)
-
-```typescript
-console.log(
-  `%c[Search Ranking] Sorted ${combinedResults.length} results by relevance`,
-  'color: #7c3aed; font-weight: bold; background-color: #faf5ff; padding: 2px 6px; border-radius: 4px;',
-  {
-    query,
-    mentionedLocation,
-    rankingBasedOn: mentionedLocation ? `Mentioned location: "${mentionedLocation}"` : 'User location',
-    topResults: combinedResults.slice(0, 5).map(r => ({
-      name: r.properties.name,
-      city: r.properties.city,
-      state: r.properties.state,
-      score: r.relevanceScore.toFixed(1),
-      nameSimilarity: r.nameSimilarity.toFixed(1),
-      source: r.properties.datasource?.sourcename || 'api',
-      locationMatch: matchesLocation(r, mentionedLocation),  // NEW
-      distance: targetLat && targetLon ?
-        calculateDistance(targetLat, targetLon, r.properties.lat, r.properties.lon).toFixed(1) + 'km' :
-        'unknown'
-    }))
-  }
-);
-```
-
-### Fix 2: Inclusive Category Filtering
-
-**File:** `src/services/searchService.ts`
-
-#### Changed Category Filter (Lines 127, 161)
-
-**Before:**
-```javascript
-categories: 'catering.restaurant,catering.cafe,catering.fast_food,catering.bar,catering.pub'
-```
-
-**After:**
-```javascript
-categories: 'catering'  // Use parent category to include all food/dining establishments
-```
-
-#### Why This Works
-
-Geoapify's category hierarchy:
-```
-catering (parent)
-├── catering.restaurant
-├── catering.cafe
-├── catering.coffee_shop  ← Was missing!
-├── catering.bakery       ← Was missing!
-├── catering.fast_food
-├── catering.bar
-├── catering.pub
-├── catering.ice_cream    ← Was missing!
-└── ... other subcategories
-```
-
-Using the parent category includes ALL subcategories, ensuring no locations are missed due to specific categorization.
-
-**Safeguard:** Name-based filtering (80% word match requirement, lines 254-268) still ensures only relevant results are shown.
-
-### Fix 3: Remove Redundant Text Search
-
-**File:** `src/services/searchService.ts:101-151`
-
-#### Simplified Location Query Flow
-
-**Before - Dual Parallel Searches:**
-```typescript
-const [smartResults, textResults] = await Promise.all([
-  // Smart search around mentioned location
-  (async () => { ... })(),
-
-  // Text fallback search (PROBLEM)
-  (async () => {
-    const textData = await callGeoapifyProxy({
-      apiType: 'geocode',
-      text: query,  // "Cafe Landwer in Boston" → matches France!
-      filter: `circle:${userLon},${userLat},40000`  // Wrong location!
-    });
-  })()
-]);
-```
-
-**After - Single Targeted Search:**
-```typescript
-try {
-  // Geocode the mentioned location
-  const geocodeData = await callGeoapifyProxy({
-    apiType: 'geocode',
-    text: queryAnalysis.location!,  // "Boston"
-    limit: 1
-  });
-
-  const { lat, lon } = geocodeData.features[0].properties;
-
-  // Search for restaurants around that location
-  const placesData = await callGeoapifyProxy({
-    apiType: 'places',
-    latitude: lat,
-    longitude: lon,
-    radiusInMeters: 80000,
-    categories: 'catering',
-    bias: `proximity:${lon},${lat}`
-  });
-
-  // Search for business name around that location
-  const geocodeResults = await callGeoapifyProxy({
-    apiType: 'geocode',
-    text: queryAnalysis.businessName!,  // "Cafe Landwer"
-    type: 'amenity',
-    filter: `circle:${lon},${lat},80000`,  // Correct location!
-    bias: `proximity:${lon},${lat}`
-  });
-
-  // Combine and deduplicate
-  rawApiFeatures = [...placesData.features, ...geocodeResults.features];
-} catch (error) {
-  console.error('Location-specific search failed:', error);
-  rawApiFeatures = [];
-}
-```
-
-**Benefits:**
-- No more foreign location matches
-- Simpler, more maintainable code
-- Faster (one less API call)
-- More predictable results
-
-### Fix 4: Enhanced Debug Logging
-
-**File:** `src/services/searchService.ts`
-
-#### Added Diagnostic Logs (Lines 237-245, 259-265)
-
-```typescript
-// Debug: Log Places API results for "landwer" searches
-if (queryLower.includes('landwer')) {
-  const placesApiResults = combinedFeatures.filter(
-    f => f.properties?.datasource?.sourcename === 'openstreetmap'
-  );
-  console.log(
-    `%c[Places API] Found ${placesApiResults.length} results from Places API (before name filtering)`,
-    'color: #0891b2; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;',
-    placesApiResults.map(f => ({
-      name: f.properties.name,
-      address: f.properties.formatted,
-      categories: f.properties.categories
-    }))
-  );
-}
-
-// Debug logging for filtering
-if (!matches && name.includes('landwer')) {
-  console.log(
-    `%c[Name Filter] Excluded: "${feature.properties?.name}" at ${feature.properties?.formatted}`,
-    'color: #dc2626; background-color: #fee2e2; padding: 2px 6px; border-radius: 4px;',
-    { matchPercentage: matchPercentage.toFixed(1), queryWords, nameWords, datasource }
-  );
-}
-```
-
-These logs help diagnose:
-- Whether missing locations are returned by Places API
-- If results are being filtered by name matching
-- What categories locations have
-- Why specific results are excluded
-
----
-
-## API Call Optimization
-
-### Current API Usage
-
-**For "Business in Location" query (e.g., "Cafe Landwer in Boston"):**
-
-1. **Geocode location** (1 call): `boston` → coordinates
-2. **Places API search** (1 call): Find restaurants near coordinates
-3. **Geocode business name** (1 call): Find "Cafe Landwer" near coordinates
-
-**Total: 3 API calls per search**
-
-### Why Multiple Calls Are Necessary
-
-Each API serves a different purpose:
-- **Geocode location:** Converts "Boston" to lat/lon coordinates
-- **Places API:** Finds all restaurants in area (may miss specific chains)
-- **Geocode business:** Finds specific business by name (may miss small establishments)
-
-Using both search strategies ensures maximum coverage.
-
-### Debouncing Reduces Calls
-
-The search input has 800ms debounce (SearchResultsModal.tsx:54), so rapid typing doesn't trigger multiple searches.
-
----
-
-## Files Modified
-
-### src/services/searchService.ts
-
-**Major Changes:**
-- Lines 74-77: Added target location tracking variables
-- Lines 101-151: Simplified business_location_proposal search (removed redundant text search)
-- Lines 127, 161: Changed category filter from specific list to parent `catering`
-- Lines 237-245: Added debug logging for Places API results
-- Lines 259-265: Added debug logging for filtered results
-- Lines 350-364: Added `matchesLocation()` helper function
-- Lines 367-394: Enhanced `calculateRelevanceScore()` with location matching bonus
-- Lines 415-417: Updated database ranking to use target location
-- Lines 442-444: Updated API ranking to use target location
-- Lines 460-480: Enhanced ranking debug logs with location info
-
-**Impact:**
-- Location-specific searches now prioritize mentioned location
-- All food establishment types captured
-- No more foreign location contamination
-- Better debugging capabilities
-
----
-
-## Testing Performed
-
-### Test Case 1: "Starbucks in Skokie"
-
-**Before Fix:**
-- ❌ Showed Starbucks near Newport, RI at top
-- ❌ Skokie locations buried in results
-- ❌ Distance calculated from Newport
-
-**After Fix:**
-- ✅ Skokie Starbucks at top of results
-- ✅ +30 point bonus for matching "Skokie"
-- ✅ Distance calculated from Skokie coordinates
-- ✅ Console shows: `rankingBasedOn: "Mentioned location: skokie"`
-
-### Test Case 2: "Cafe Landwer in Boston"
-
-**Before Fix:**
-- ❌ French/Italian results appearing
-- ❌ Results flashing then being replaced
-- ❌ Missing 651 Boylston St location
-
-**After Fix:**
-- ✅ Only Boston results shown
-- ✅ No foreign location contamination
-- ⏳ 651 Boylston St - Awaiting testing (category filter expanded)
-
-### Test Case 3: "Cafe Landwer" (Generic Search)
-
-**Before Fix:**
-- ❌ Missing some locations
-- ❌ Only found 2 of 3 Boston locations
-
-**After Fix:**
-- ⏳ Awaiting user testing with new category filter
-- ✅ Debug logs added to diagnose if location still missing
-
-### Build Verification
-
-```bash
-npm run type-check  # ⚠️ Unrelated pre-existing errors in other files
-npm run build       # ⚠️ Not tested yet (requires clean environment)
-```
-
-**Note:** Type check shows errors unrelated to changes (missing React types, etc.)
-
----
-
-## Deployment
-
-### Branch Information
-
-**Branch:** `claude/debug-location-search-results-011CUxuQ2qykdf2NZy45416t`
-**Base:** `main`
-**Status:** ✅ Pushed to remote, ready for PR
-
-### Commits
-
-**Commit 1:** `88cda68`
-```
-fix: prioritize explicitly mentioned locations in search ranking
-
-When users search for "Business in Location" (e.g., "Starbucks in Skokie"),
-the ranking algorithm now:
-
-1. Uses the mentioned location's coordinates (not user's location) for
-   distance calculations
-2. Applies a +30 point bonus to results that match the mentioned location
-3. Provides detailed logging showing which location is used for ranking
-
-This fixes the issue where nearby results were incorrectly ranked higher
-than results in the explicitly mentioned location.
-```
-
-**Commit 2:** `f2f5b5a`
-```
-fix: expand Places API category filter to include all food establishments
-
-Changed from specific category list (restaurant, cafe, fast_food, bar, pub)
-to parent 'catering' category. This ensures we capture ALL food and dining
-establishments including:
-- Coffee shops (may be categorized separately from cafés)
-- Bakeries with café services
-- Specialty food establishments
-- Any other catering subcategories
-
-This fixes the issue where some café locations were missing from search
-results because they were categorized as coffee shops rather than cafés.
-
-The name-based filtering (80% word match) still ensures we only show
-relevant results matching the search query.
-```
-
-**Commit 3:** `f5ca064`
-```
-fix: remove redundant text search causing French results in location queries
-
-When searching "Business in Location" (e.g., "Cafe Landwer in Boston"),
-the code was running two parallel searches:
-1. Smart search around the mentioned location (correct)
-2. Text fallback search using the full query string (incorrect)
-
-The fallback search was causing issues:
-- Searched for literal text "Cafe Landwer in Boston"
-- Could match locations in Boston, France or other countries
-- Results would briefly flash correct, then get replaced by foreign results
-
-Changes:
-- Removed the redundant parallel text search for business_location_proposal
-- Now only uses targeted search around explicitly mentioned location
-- Added debug logging to diagnose which results are being filtered
-- Added logging to show Places API results before name filtering
-
-This ensures location-specific searches only return results from the
-mentioned location, not similarly-named places worldwide.
-```
-
-### Pull Request
-
-**URL:** https://github.com/ARobicsek/howzeverything/pull/new/claude/debug-location-search-results-011CUxuQ2qykdf2NZy45416t
-
-**Title:** Fix location-based search ranking and expand category filtering
-
-**Description:**
-Fixes three critical issues with restaurant search:
-1. Location ranking now prioritizes explicitly mentioned locations
-2. Category filter expanded to include all food establishments
-3. Removed redundant search causing foreign location contamination
-
----
-
-## Console Log Examples
-
-### Successful Location Search
-
-```
-[Query Analysis] -> Original: "Starbucks in Skokie"
-Object {
-  type: "business_location_proposal",
-  businessName: "starbucks",
-  location: "skokie",
-  hasUserLocation: true,
-  userCoords: {lat: 41.491, lon: -71.313}
-}
-
-Geoapify API Calls (session): 1
-Geoapify API Calls (session): 2
-Geoapify API Calls (session): 3
-
-[Search Ranking] Sorted 28 results by relevance
-Object {
-  query: "Starbucks in Skokie",
-  mentionedLocation: "skokie",
-  rankingBasedOn: "Mentioned location: \"skokie\"",
-  topResults: [
-    {
-      name: "Starbucks",
-      city: "Skokie",
-      state: "IL",
-      score: "115.2",
-      nameSimilarity: "95.0",
-      source: "openstreetmap",
-      locationMatch: true,  ← +30 point bonus
-      distance: "0.8km"
-    },
-    {
-      name: "Starbucks",
-      city: "Skokie",
-      state: "IL",
-      score: "113.5",
-      nameSimilarity: "95.0",
-      source: "openstreetmap",
-      locationMatch: true,  ← +30 point bonus
-      distance: "1.2km"
-    }
-  ]
-}
-```
-
-### Missing Location Diagnosis
-
-```
-[Places API] Found 45 results from Places API (before name filtering)
-[
-  {name: "Cafe Landwer", address: "1234 Beacon St, Boston, MA", categories: ["catering.restaurant"]},
-  {name: "Cafe Landwer", address: "567 Harvard Ave, Boston, MA", categories: ["catering.cafe"]},
-  {name: "Cafe Landwer", address: "651 Boylston St, Boston, MA", categories: ["catering.coffee_shop"]}  ← Found!
-]
-
-[Name Filter] Excluded: "Landwer Bakery" at 890 Main St, Boston, MA
-Object {
-  matchPercentage: "50.0",
-  queryWords: ["cafe", "landwer"],
-  nameWords: ["landwer", "bakery"],
-  datasource: "openstreetmap"
-}
-```
-
----
-
-## Known Issues & Next Steps
-
-### Remaining Issues
-
-1. **Missing Location Still Not Found**
-   - If 651 Boylston St still missing after category expansion
-   - Debug logs will show if it's in Places API response
-   - May need to investigate Geoapify data quality
-
-2. **API Call Volume**
-   - 3 calls per location-specific search
-   - Consider caching geocoded locations
-   - May want to reduce to 2 calls (remove one search strategy)
-
-3. **Address Parser Overhead**
-   - `parseAddress()` called on every search result
-   - Causing "Country detection scores" flood in console
-   - Not API calls, but wastes CPU
-   - Should be removed from search results rendering
-
-### Future Enhancements
-
-1. **Location Caching**
-   - Cache geocoded locations (Boston → coordinates)
-   - Reduce API calls for repeated searches
-   - Clear cache periodically
-
-2. **Smart Query Detection**
-   - Better disambiguation between business names and locations
-   - Handle edge cases: "Boston Market" (restaurant chain vs. location)
-
-3. **Result Deduplication**
-   - More sophisticated duplicate detection
-   - Handle chain restaurants with multiple nearby locations
-   - Group by distance threshold
-
-4. **User Feedback**
-   - "Not what you're looking for?" button
-   - Report missing locations
-   - Suggest corrections
-
----
-
-## Monitoring & Support
-
-### Debug Mode
-
-Users can enable enhanced logging by adding to console logs or checking Network tab for API calls.
-
-**Key Indicators:**
-- `[Query Analysis]` - Shows how query was interpreted
-- `[Search Strategy]` - Shows which APIs were called
-- `[Search Ranking]` - Shows top results with scores
-- `[Places API]` - Shows results before filtering (for specific searches)
-- `[Name Filter]` - Shows excluded results and why
-
-### Performance Metrics
-
-**API Calls:**
-- Generic search: 3 calls
-- Location-specific search: 3 calls
-- Debounce prevents excessive calls
-
-**Typical Response Times:**
-- Geocoding: 200-500ms
-- Places API: 300-800ms
-- Total: ~1-2 seconds
-
-**Memory Impact:**
-- Minimal (no base64 encoding)
-- Results cached in SearchService
-- No memory leaks detected
-
----
-
-## Conclusion
-
-Successfully debugged and resolved three interconnected issues with location-based restaurant search:
-
-1. **Location Ranking** - Now correctly prioritizes explicitly mentioned locations with +30 point bonus
-2. **Category Filtering** - Expanded to include all food establishment types
-3. **Foreign Results** - Eliminated by removing redundant text search
-
-**Key Improvements:**
-- ✅ Location-specific searches work as expected
-- ✅ More comprehensive coverage of establishments
-- ✅ No foreign location contamination
-- ✅ Better debugging capabilities for future issues
-
-**Impact:**
-- Users searching "Business in Location" get accurate, relevant results
-- Missing locations should now appear (coffee shops, bakeries, etc.)
-- Search behavior is consistent and predictable
-
-**Status:** ✅ Code complete, pushed to branch, awaiting user testing and PR creation
-
----
-
-**GitHub Branch:** `claude/debug-location-search-results-011CUxuQ2qykdf2NZy45416t`
-**Pull Request URL:** https://github.com/ARobicsek/howzeverything/pull/new/claude/debug-location-search-results-011CUxuQ2qykdf2NZy45416t
-**Latest Commit:** `f5ca064` - Remove redundant text search causing French results

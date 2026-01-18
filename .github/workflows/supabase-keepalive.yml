@@ -1,0 +1,33 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Run at 12:00 UTC on Monday and Thursday (twice weekly prevents 7-day pause)
+    - cron: '0 12 * * 1,4'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Keep-Alive Function
+        run: |
+          echo "🔄 Pinging Supabase to prevent project pausing..."
+          
+          response=$(curl -s -w "\n%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n 1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::Keep-alive ping failed with status $http_code"
+            exit 1
+          fi
+          
+          echo "✅ Supabase keep-alive ping successful!"
