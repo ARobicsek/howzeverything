@@ -1,6 +1,6 @@
 # HowzEverything - Project Progress
 
-> **Last Updated:** January 18, 2026  
+> **Last Updated:** March 21, 2026
 > **Status:** Active Development
 
 ## Current State
@@ -22,14 +22,15 @@ None blocking currently.
 
 ## Next Priorities
 
-1. Continue monitoring push notification behavior
-2. Address any user-reported bugs
+See [WORKPLAN.md](../WORKPLAN.md) for the full improvement roadmap.
+
+Next up: Phase 1 (session management cleanup) and Phase 2 (PWA conversion).
 
 ---
 
 ## Session Notes
 
-_Add notes for the next developer session here. Clear this section at the start of each major work session._
+**March 21, 2026 (Claude Opus 4.6):** Comprehensive codebase review completed. Created WORKPLAN.md with 5 phases of improvements. Key findings: no PWA support, search quality limited by Geoapify/OSM data coverage, CORS wildcards on edge functions, SELECT * on every search, bloated session history. RLS was previously tried and disabled - not revisiting unless app goes public.
 
 ---
 
