@@ -7,71 +7,26 @@ This document tracks planned improvements identified during a comprehensive code
 
 ---
 
-## Phase 1: Session Management Cleanup
+## Phase 1: Session Management Cleanup ✅ COMPLETED (Mar 21, 2026)
 
 **Goal:** Streamline documentation so sessions start fast and work across Claude and Gemini.
 
-### 1A. Trim SESSION_HISTORY.md
-- Current: 2,336 lines of verbose implementation logs with full code snippets
-- Action: Replace with a concise summary (~100 lines) of session dates, one-line descriptions, and commit hashes
-- The git log IS the real implementation history - no need to duplicate it
-
-### 1B. Create root-level CLAUDE.md
-- Currently only exists inside `app/` - Claude Code won't auto-find it from the project root
-- Create `howzeverything/CLAUDE.md` that points to app/CLAUDE.md and includes key context
-- Keep it compatible with Gemini (plain markdown, no tool-specific syntax)
-
-### 1C. Simplify start-session workflow
-- Current workflow loads ~3,000 lines before any work begins
-- Reduce to: load scriptReferences.md + PROGRESS.md (skip SESSION_HISTORY.md and README.md)
-- SESSION_HISTORY.md should be opt-in ("read if you need historical context")
-
-### 1D. Clean up dead files
-- Delete `src/components/SupabaseDebugTest.tsx` (unused, not imported anywhere)
-- Remove empty component directories: auth/, common/, layout/, menu/, rating/
-- Remove orphaned `src/src/` directory
+- ✅ 1A. Trimmed SESSION_HISTORY.md from 2,337 lines to ~25-line summary table
+- ✅ 1B. Created root-level CLAUDE.md pointing to app/CLAUDE.md
+- ✅ 1C. Simplified start-session workflow (loads scriptReferences.md + PROGRESS.md only)
+- ✅ 1D. Deleted SupabaseDebugTest.tsx, 5 empty component dirs, orphaned src/src/
 
 ---
 
-## Phase 2: PWA Conversion
+## Phase 2: PWA Conversion ✅ COMPLETED (Mar 21, 2026)
 
 **Goal:** Make the app installable on iPhones with a native-like experience.
 
-### 2A. Install and configure vite-plugin-pwa
-- `npm install -D vite-plugin-pwa`
-- Add plugin to vite.config.ts with manifest configuration:
-  - App name: "HowzEverything"
-  - Theme color matching Copenhagen theme primary
-  - Display: standalone (fullscreen, no Safari chrome)
-  - registerType: autoUpdate (service worker auto-updates)
-
-### 2B. Create app icons
-- Generate from existing logo.png:
-  - 192x192 (Android/PWA standard)
-  - 512x512 (Android/PWA standard)
-  - 180x180 (apple-touch-icon)
-- Place in public/ directory
-
-### 2C. Update index.html
-- Add `<meta name="theme-color">`
-- Add `<meta name="apple-mobile-web-app-capable" content="yes">`
-- Add `<meta name="apple-mobile-web-app-status-bar-style">`
-- Add `<link rel="apple-touch-icon">`
-- Add `<meta name="description">`
-- Replace vite.svg favicon with proper app icon
-
-### 2D. Configure service worker caching strategy
-- Static assets (JS, CSS, fonts, images): cache-first
-- API calls (Supabase, Geoapify): network-first (app needs connectivity for data)
-- Offline fallback: show a "You're offline" message rather than blank screen
-
-### 2E. Test on iPhone
-- Verify "Add to Home Screen" works
-- Verify standalone mode (no Safari URL bar)
-- Verify splash screen appears
-- Verify app icon on home screen
-
-**Estimated effort:** 1 session
+- ✅ 2A. Installed vite-plugin-pwa with generateSW mode, autoUpdate
+- ✅ 2B. Generated PWA icons from logo.png (192x192, 512x512, 180x180 apple-touch-icon)
+- ✅ 2C. Updated index.html with theme-color, apple-mobile-web-app-capable, description, apple-touch-icon
+- ✅ 2D. Configured service worker: fonts cache-first, Supabase API network-first, JS/CSS/HTML precached
+- ⏳ 2E. Test on iPhone - needs manual verification after deploy
 
 ---
 
@@ -161,8 +116,8 @@ RLS was previously implemented but disabled due to issues with views (user_resta
 
 | Phase | Item | Effort | Risk |
 |-------|------|--------|------|
-| 1 | Session management cleanup | Low | None |
-| 2 | PWA conversion | Low | None |
+| 1 | Session management cleanup | ✅ Done | None |
+| 2 | PWA conversion | ✅ Done | Test on iPhone |
 | 3A | CORS restriction | Trivial | Low (test after deploy) |
 | 3B | Fix SELECT * per search | Low | Low (test search) |
 | 3C | Search cache TTL | Trivial | None |
