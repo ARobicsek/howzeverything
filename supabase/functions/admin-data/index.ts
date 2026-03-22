@@ -1,18 +1,11 @@
 // supabase/functions/admin-data/index.ts  
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-// Temporarily removed shared module dependency for deployment
-// import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
-
-// Placeholder functions for now - these can be replaced with proper shared module later
-const checkCategorySearch = (_term: string): boolean => false;
-const getAllRelatedTerms = (term: string, _excludeContext?: boolean): string[] => [term];
-const getCategoryTerms = (_category: string): string[] => [];
-const getExclusionTerms = (_searchTerm: string, _expandedTerms?: Set<string>): string[] => [];
+import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
 // CORS headers for browser access  
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://howzeverything.netlify.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -133,17 +126,12 @@ const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey:
       return { user: null, error: 'Invalid token.' };
     }
 
-    const superAdminEmails = ['admin@howzeverything.com', 'ari.robicsek@gmail.com'];
-    if (user.email && superAdminEmails.includes(user.email)) {
-        return { user, error: null };
-    }
-     
     const { data: profile } = await supabaseAdminClient
         .from('users')
         .select('is_admin')
         .eq('id', user.id)
         .single();
-     
+
     if (profile && profile.is_admin) {
         return { user, error: null };
     }

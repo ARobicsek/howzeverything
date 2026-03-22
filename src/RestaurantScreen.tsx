@@ -246,7 +246,7 @@ const calculateRestaurantSimilarity = (restaurantName: string, searchTerm: strin
 
 
 const RestaurantScreen: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
  
@@ -267,7 +267,7 @@ const RestaurantScreen: React.FC = () => {
   const [isRequestingLocationPermission, setIsRequestingLocationPermission] = useState(false);
   const [shouldShowLocationBanner, setShouldShowLocationBanner] = useState(true);
   const [isLocationPermissionBlocked, setIsLocationPermissionBlocked] = useState(false);
-  const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
+  const isAdmin = profile?.is_admin === true;
 
 
 

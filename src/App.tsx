@@ -146,7 +146,7 @@ const AppRoutes: React.FC = () => {
     }, [user, profile, authLoading, createProfile]);
    
     const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
-    const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
+    const isAdmin = profile?.is_admin === true;
     const screenConfig = getScreenConfig(location.pathname);
 
 

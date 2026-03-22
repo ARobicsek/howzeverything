@@ -65,7 +65,7 @@ function calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2
 
 // CORS headers for browser access  
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://howzeverything.netlify.app',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 }

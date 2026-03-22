@@ -4,6 +4,7 @@
 
 | Date | Developer | Summary | Key Commits |
 |------|-----------|---------|-------------|
+| Mar 21, 2026 | Claude Code | Phase 3: CORS restriction, SELECT * fix, cache TTL, admin email hardcoding fix, admin search fix | (pending) |
 | Jan 18, 2026 | Gemini | Fixed photo upload modal intermittent failure - replaced timeout-based protection with permanent picker-open tracking | `9555e68` |
 | Jan 18, 2026 | Gemini | Project directory cleanup - reorganized 311 files into app/, archive/, assets/, docs/ structure | (no code changes) |
 | Jan 18, 2026 | Gemini | Added Supabase keep-alive edge function + GitHub Actions workflow (Mon/Thu) to prevent project pausing | `9f7c40c` |

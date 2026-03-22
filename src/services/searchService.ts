@@ -32,9 +32,17 @@ async function callGeoapifyProxy(requestData: any): Promise<any> {
 }
 
 
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_MAX_ENTRIES = 50;
+
+interface CacheEntry {
+  data: GeoapifyPlace[];
+  timestamp: number;
+}
+
 export class SearchService {
   private abortController: AbortController | null = null;
-  private cache = new Map<string, GeoapifyPlace[]>();
+  private cache = new Map<string, CacheEntry>();
 
   public async searchRestaurants(
     searchParams: string,
@@ -50,8 +58,9 @@ export class SearchService {
     const lonKey = userLon?.toFixed(4) || 'null';
     const cacheKey = `search_${query}_${latKey}_${lonKey}`;
 
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey)!;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
     }
 
     if (this.abortController) {
@@ -396,7 +405,10 @@ export class SearchService {
         })
         .filter((p): p is GeoapifyPlace => p !== null);
       
-      const { data: allDbRestaurants } = await supabase.from('restaurants').select('*');
+      const { data: allDbRestaurants } = await supabase
+        .from('restaurants')
+        .select('id, name, full_address, address, city, state, zip_code, country, latitude, longitude')
+        .ilike('name', `%${query}%`);
 
       // Helper function to calculate distance in km between two points
       const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -643,7 +655,12 @@ export class SearchService {
       // Remove scoring metadata before returning
       const finalResults: GeoapifyPlace[] = combinedResults.map(({ relevanceScore, nameSimilarity, ...place }) => place);
 
-      this.cache.set(cacheKey, finalResults);
+      // Evict oldest entries if cache is full
+      if (this.cache.size >= CACHE_MAX_ENTRIES) {
+        const oldest = [...this.cache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+        if (oldest) this.cache.delete(oldest[0]);
+      }
+      this.cache.set(cacheKey, { data: finalResults, timestamp: Date.now() });
       return finalResults;
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') {

@@ -42,7 +42,7 @@ const FindRestaurantScreen: React.FC = React.memo(() => {
   
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const {
     coordinates: userLocation,
     isAvailable: hasLocationPermission,
@@ -82,7 +82,7 @@ const FindRestaurantScreen: React.FC = React.memo(() => {
   const [areInitialSectionsLoading, setAreInitialSectionsLoading] = useState(true);
   const [similarRestaurants, setSimilarRestaurants] = useState<RestaurantType[]>([]);
   const [newRestaurantData, setNewRestaurantData] = useState<Omit<RestaurantType, 'id' | 'created_at' | 'updated_at'> | null>(null);
-  const isAdmin = !!(user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email));
+  const isAdmin = profile?.is_admin === true;
 
   useEffect(() => {
     // This effect handles showing the permission modal automatically ONCE per session.

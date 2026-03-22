@@ -6,6 +6,7 @@ import DuplicateDishModal from './components/DuplicateDishModal';
 import DuplicateRestaurantModal from './components/restaurant/DuplicateRestaurantModal';
 import AddressInput from './components/shared/AddressInput';
 import { COLORS, SCREEN_STYLES, SPACING, STYLES, TYPOGRAPHY, STYLE_FUNCTIONS } from './constants';
+import { useAuth } from './hooks/useAuth';
 import { DishSearchResult, DishWithDetails } from './hooks/useDishes';
 import { supabase } from './supabaseClient';
 import type { AddressFormData } from './types/address';
@@ -155,6 +156,7 @@ const PaginationControls: React.FC<{
 };
 
 const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes' | 'comments' | 'analytics'>('restaurants');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -189,7 +191,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [newDishName, setNewDishName] = useState('');
   const [similarDishesForModal, setSimilarDishesForModal] = useState<DishSearchResult[]>([]);
   const [dishDataForModal, setDishDataForModal] = useState<{name: string, restaurantId: string} | null>(null);
-  const isAdmin = user?.email && ['admin@howzeverything.com', 'ari.robicsek@gmail.com'].includes(user.email);
+  const isAdmin = profile?.is_admin === true;
   // Analytics State
   const [analyticsStartDate, setAnalyticsStartDate] = useState(() => {
       const date = new Date();

@@ -30,38 +30,15 @@ This document tracks planned improvements identified during a comprehensive code
 
 ---
 
-## Phase 3: Low-Risk Security & Performance Fixes
+## Phase 3: Low-Risk Security & Performance Fixes ✅ COMPLETED (Mar 21, 2026)
 
 **Goal:** Quick wins that don't touch auth/RLS.
 
-### 3A. Restrict CORS to app domain
-- All 5 edge functions use `Access-Control-Allow-Origin: *`
-- Change to `https://howzeverything.netlify.app`
-- Files: geoapify-proxy, admin-data, dish-search, get-menu-data, keep-alive
-- Test: verify app still works after deploy
-
-### 3B. Fix SELECT * on all restaurants per search
-- `searchService.ts:399` fetches entire restaurants table on every search
-- Replace with a name-filtered query: `.ilike('name', `%${query}%`)`
-- Or use PostGIS proximity if available (check if PostGIS extension exists)
-- Test: verify search results are unchanged for common queries
-
-### 3C. Add TTL to search cache
-- `searchService.ts:37` uses a Map with no eviction
-- Add timestamp to cache entries, expire after 5 minutes
-- Or use a simple LRU with max 50 entries
-
-### 3D. Fix admin hardcoded emails
-- Remove email checks from App.tsx:149, AdminScreen.tsx:192, FindRestaurantScreen.tsx:85, RestaurantScreen.tsx:270
-- Use the `is_admin` field from the user's profile (already available via `useAuth().profile`)
-- Single source of truth: the database `users.is_admin` column
-
-### 3E. Fix broken admin search (placeholder functions)
-- `admin-data/index.ts:8-11` has commented-out import and stub functions
-- Re-enable the shared search-logic import or inline the needed logic
-- Test: verify admin dish search returns expected results
-
-**Estimated effort:** 1 session
+- ✅ 3A. Restricted CORS to `https://howzeverything.netlify.app` in all 5 edge functions
+- ✅ 3B. Fixed SELECT * → name-filtered query with specific columns in searchService.ts
+- ✅ 3C. Added 5-minute TTL + 50-entry max to search cache in searchService.ts
+- ✅ 3D. Replaced hardcoded admin emails with `profile.is_admin` in App.tsx, AdminScreen.tsx, FindRestaurantScreen.tsx, RestaurantScreen.tsx, and admin-data edge function
+- ✅ 3E. Re-enabled shared search-logic import in admin-data edge function
 
 ---
 
@@ -118,11 +95,11 @@ RLS was previously implemented but disabled due to issues with views (user_resta
 |-------|------|--------|------|
 | 1 | Session management cleanup | ✅ Done | None |
 | 2 | PWA conversion | ✅ Done | Test on iPhone |
-| 3A | CORS restriction | Trivial | Low (test after deploy) |
-| 3B | Fix SELECT * per search | Low | Low (test search) |
-| 3C | Search cache TTL | Trivial | None |
-| 3D | Admin email hardcoding | Low | Low (test admin access) |
-| 3E | Admin search fix | Low | Low (test admin search) |
+| 3A | CORS restriction | ✅ Done | Low (test after deploy) |
+| 3B | Fix SELECT * per search | ✅ Done | Low (test search) |
+| 3C | Search cache TTL | ✅ Done | None |
+| 3D | Admin email hardcoding | ✅ Done | Low (test admin access) |
+| 3E | Admin search fix | ✅ Done | Low (test admin search) |
 | 4A | Search quality tweaks | Low | Low (test known queries) |
 | 4B | Foursquare evaluation | Medium | None (additive) |
 | 4C | Nearby cache TTL | Trivial | None |
