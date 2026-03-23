@@ -127,19 +127,7 @@ export class SearchService {
             targetLon = userLon;
             mentionedLocation = queryAnalysis.streetName.toLowerCase();
 
-            // Search for restaurants around user's location
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const placesData = await callGeoapifyProxy({
-              apiType: 'places',
-              latitude: userLat,
-              longitude: userLon,
-              radiusInMeters: 40000, // 40km = 25 miles
-              categories: 'catering',
-              limit: 100,
-              bias: `proximity:${userLon},${userLat}`
-            });
-
-            // Also search for the business name specifically
+            // Search for the business name around user's location
             incrementGeoapifyCount(); logGeoapifyCount();
             const geocodeResults = await callGeoapifyProxy({
               apiType: 'geocode',
@@ -150,10 +138,36 @@ export class SearchService {
               bias: `proximity:${userLon},${userLat}`
             });
 
-            const combined = [...(placesData.features || []), ...(geocodeResults.features || [])];
-            rawApiFeatures = combined.filter((result, index, self) =>
-              index === self.findIndex(r => r.properties.place_id === result.properties.place_id)
-            );
+            // Also search nearby catering places for broader POI coverage
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const placesData = await callGeoapifyProxy({
+              apiType: 'places',
+              latitude: userLat,
+              longitude: userLon,
+              radiusInMeters: 40000,
+              categories: 'catering',
+              limit: 100,
+              bias: `proximity:${userLon},${userLat}`
+            });
+
+            // Combine, deduplicate by place_id, and filter Places API results by business name
+            const streetBusinessWords = normalizeText(queryAnalysis.businessName!).split(/\s+/).filter(w => w.length > 0);
+            const streetCombined = [...(geocodeResults.features || []), ...(placesData.features || [])];
+            rawApiFeatures = streetCombined
+              .filter((feature: any, index: number, self: any[]) =>
+                index === self.findIndex(r => r.properties?.place_id === feature.properties?.place_id)
+              )
+              .filter((feature: any) => {
+                if (!feature.properties?.name || typeof feature.properties.name !== 'string') return false;
+                const datasource = feature.properties?.datasource?.sourcename;
+                if (datasource && datasource !== 'openstreetmap') return true;
+                const name = normalizeText(feature.properties.name);
+                const nameWords = name.split(/\s+/);
+                const matchCount = streetBusinessWords.filter((qw: string) =>
+                  nameWords.some((nw: string) => nw.includes(qw) || qw.includes(nw))
+                ).length;
+                return (matchCount / streetBusinessWords.length) * 100 >= 50;
+              });
 
             console.log(
               `%c[Street Search] Found ${rawApiFeatures.length} results, will boost those on "${queryAnalysis.streetName}"`,
@@ -183,31 +197,49 @@ export class SearchService {
               targetLon = lon;
               mentionedLocation = queryAnalysis.location!.toLowerCase();
 
-            // Use Places API v2 for better restaurant discovery in the specified location
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const placesData = await callGeoapifyProxy({
-              apiType: 'places',
-              latitude: lat,
-              longitude: lon,
-              radiusInMeters: 80000, // 80km = ~50 miles to capture metro area
-              categories: 'catering', // Use parent category to include all food/dining establishments
-              limit: 100, // Increased from 50 to ensure we capture all locations in the area
-              bias: `proximity:${lon},${lat}`
-            });
-
-            // Also try geocoding API for the business name around the specified location
+            // Search for the business name around the specified location
             incrementGeoapifyCount(); logGeoapifyCount();
             const geocodeResults = await callGeoapifyProxy({
               apiType: 'geocode',
               text: queryAnalysis.businessName!,
               type: 'amenity',
-              limit: 100, // Increased from 20 to ensure comprehensive coverage
-              filter: `circle:${lon},${lat},80000`, // Search within 80km of mentioned location
+              limit: 100,
+              filter: `circle:${lon},${lat},30000`,
               bias: `proximity:${lon},${lat}`
             });
 
-            const combined = [...(placesData.features || []), ...(geocodeResults.features || [])];
-            rawApiFeatures = combined.filter((result, index, self) => index === self.findIndex(r => r.properties.place_id === result.properties.place_id));
+            // Also search nearby catering places for broader POI coverage
+            incrementGeoapifyCount(); logGeoapifyCount();
+            const placesData = await callGeoapifyProxy({
+              apiType: 'places',
+              latitude: lat,
+              longitude: lon,
+              radiusInMeters: 30000,
+              categories: 'catering',
+              limit: 100,
+              bias: `proximity:${lon},${lat}`
+            });
+
+            // Combine, deduplicate by place_id, and filter Places API results by business name
+            const businessWords = normalizeText(queryAnalysis.businessName!).split(/\s+/).filter(w => w.length > 0);
+            const combined = [...(geocodeResults.features || []), ...(placesData.features || [])];
+            rawApiFeatures = combined
+              .filter((feature: any, index: number, self: any[]) =>
+                index === self.findIndex(r => r.properties?.place_id === feature.properties?.place_id)
+              )
+              .filter((feature: any) => {
+                if (!feature.properties?.name || typeof feature.properties.name !== 'string') return false;
+                const datasource = feature.properties?.datasource?.sourcename;
+                // Keep geocode results (already filtered by query text)
+                if (datasource && datasource !== 'openstreetmap') return true;
+                // Filter Places API/OSM results by business name match
+                const name = normalizeText(feature.properties.name);
+                const nameWords = name.split(/\s+/);
+                const matchCount = businessWords.filter((qw: string) =>
+                  nameWords.some((nw: string) => nw.includes(qw) || qw.includes(nw))
+                ).length;
+                return (matchCount / businessWords.length) * 100 >= 50;
+              });
             }
           } catch (error) {
             console.error('Location-specific search failed:', error);
@@ -325,10 +357,10 @@ export class SearchService {
               nameWords.some(nameWord => nameWord.includes(queryWord) || queryWord.includes(nameWord))
             ).length;
 
-            // Require at least 80% of query words to match
-            // This allows "Cafe Landwer" to match "Landwer Cafe" or "Café Landwer"
+            // Require at least 50% of query words to match
+            // This allows partial matches like "Cafe Landwer" matching by just "Landwer"
             const matchPercentage = (matchCount / queryWords.length) * 100;
-            const matches = matchPercentage >= 80;
+            const matches = matchPercentage >= 50;
 
             // Debug logging for filtering
             if (!matches && name.includes('landwer')) {
@@ -570,22 +602,30 @@ export class SearchService {
       // Deduplicate API places and calculate scores
       const uniqueApiPlaces: ScoredPlace[] = [];
       for (const apiPlace of apiPlaces) {
-          const isDuplicateOfDb = dbMatches.some(dbMatch =>
-            calculateEnhancedSimilarity(dbMatch.properties.name, apiPlace.properties.name) > 95 &&
-            calculateEnhancedSimilarity(
+          const isDuplicateOfDb = dbMatches.some(dbMatch => {
+            if (calculateEnhancedSimilarity(dbMatch.properties.name, apiPlace.properties.name) <= 95) return false;
+            // Use distance if both have coordinates: >200m apart = different location
+            if (dbMatch.properties.lat && dbMatch.properties.lon && apiPlace.properties.lat && apiPlace.properties.lon) {
+              return calculateDistance(dbMatch.properties.lat, dbMatch.properties.lon, apiPlace.properties.lat, apiPlace.properties.lon) <= 0.2;
+            }
+            return calculateEnhancedSimilarity(
               dbMatch.properties.address_line1 || dbMatch.properties.formatted,
               apiPlace.properties.address_line1 || apiPlace.properties.formatted
-            ) > 70
-          );
+            ) > 70;
+          });
           if (isDuplicateOfDb) continue;
 
-          const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace =>
-            calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) > 95 &&
-            calculateEnhancedSimilarity(
+          const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace => {
+            if (calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) <= 95) return false;
+            // Use distance if both have coordinates: >200m apart = different location
+            if (uniquePlace.properties.lat && uniquePlace.properties.lon && apiPlace.properties.lat && apiPlace.properties.lon) {
+              return calculateDistance(uniquePlace.properties.lat, uniquePlace.properties.lon, apiPlace.properties.lat, apiPlace.properties.lon) <= 0.2;
+            }
+            return calculateEnhancedSimilarity(
               uniquePlace.properties.address_line1 || uniquePlace.properties.formatted,
               apiPlace.properties.address_line1 || apiPlace.properties.formatted
-            ) > 80
-          );
+            ) > 80;
+          });
 
           if (existingMatchIndex !== -1) {
               const existingPlace = uniqueApiPlaces[existingMatchIndex];

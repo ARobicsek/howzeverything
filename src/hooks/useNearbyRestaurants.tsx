@@ -37,7 +37,7 @@ interface NearbyRestaurantsOptions {
 
 
 // Cache configuration
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL = 3 * 60 * 60 * 1000; // 3 hours
 const CACHE_INVALIDATION_DISTANCE_MILES = 0.31; // ~500 meters
 
 

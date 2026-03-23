@@ -34,11 +34,7 @@ interface RawDishData {
   [key: string]: unknown;
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://howzeverything.netlify.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-};
+const ALLOWED_ORIGINS = ['https://howzeverything.netlify.app', 'http://localhost:3000'];
 
 const supabaseAdminClient = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -69,6 +65,13 @@ const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey:
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin') || '';
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  };
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

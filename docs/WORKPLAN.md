@@ -46,11 +46,14 @@ This document tracks planned improvements identified during a comprehensive code
 
 **Goal:** Improve search results without switching APIs (first), then evaluate Foursquare.
 
-### 4A. Quick search improvements (Geoapify)
-- Lower word-match filter from 80% to 50% (`searchService.ts:322`)
-- Make deduplication compare lat/lon distance (>200m apart = different location) instead of text similarity
-- Remove the `catering` category filter when the user has typed a specific restaurant name
-- Test with known problem queries: "starbucks in skokie", "starbucks on dempster"
+### 4A. Quick search improvements (Geoapify) ✅ COMPLETED (Mar 22, 2026)
+- ✅ Lowered word-match filter from 80% to 50% (`searchService.ts`)
+- ✅ Deduplication now uses lat/lon distance (>200m apart = different location), falls back to text similarity when no coordinates
+- ✅ Location-specific searches (city/street): kept Places API + Geocode API but added business name filtering to Places API results — eliminates noise while preserving POI coverage
+- ✅ Reduced city search radius from 80km to 30km for tighter results
+- ✅ Added type guard for non-string feature names (fixed crash on "dunkin in santa fe")
+- ✅ CORS: all 5 edge functions now use dynamic origin allowlist (production + localhost:3000)
+- Tested: "dunkin in newton" ✓, "dunkin in santa fe" ✓
 
 ### 4B. Evaluate Foursquare Places API
 - Sign up for free tier (200K calls/month)
@@ -59,11 +62,10 @@ This document tracks planned improvements identified during a comprehensive code
 - If better: create a foursquare-proxy edge function alongside the existing geoapify-proxy
 - Migration plan: swap search service to use Foursquare, keep Geoapify as fallback
 
-### 4C. Reduce nearby restaurants cache TTL
-- `useNearbyRestaurants.tsx:50`: Change from 24 hours to 2-4 hours
-- Ensures newly added restaurants appear sooner
+### 4C. Reduce nearby restaurants cache TTL ✅ COMPLETED (Mar 22, 2026)
+- ✅ Changed from 24 hours to 3 hours in `useNearbyRestaurants.tsx`
 
-**Estimated effort:** 1-2 sessions
+**Estimated effort:** 1-2 sessions (4A+4C done in 1 session)
 
 ---
 
@@ -100,7 +102,7 @@ RLS was previously implemented but disabled due to issues with views (user_resta
 | 3C | Search cache TTL | ✅ Done | None |
 | 3D | Admin email hardcoding | ✅ Done | Low (test admin access) |
 | 3E | Admin search fix | ✅ Done | Low (test admin search) |
-| 4A | Search quality tweaks | Low | Low (test known queries) |
+| 4A | Search quality tweaks | ✅ Done | Test known queries |
 | 4B | Foursquare evaluation | Medium | None (additive) |
-| 4C | Nearby cache TTL | Trivial | None |
+| 4C | Nearby cache TTL | ✅ Done | None |
 | 5 | RLS | High | High (previous issues) |

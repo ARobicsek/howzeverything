@@ -4,6 +4,7 @@
 
 | Date | Developer | Summary | Key Commits |
 |------|-----------|---------|-------------|
+| Mar 22, 2026 | Claude Code | Phase 4A+4C: Search quality — word-match 80%→50%, lat/lon dedup, name-filtered Places API for location searches, radius 80→30km, nearby cache 24h→3h, CORS dynamic allowlist, deployed all edge functions | pending |
 | Mar 21, 2026 | Claude Code | Phase 3: CORS restriction, SELECT * fix, cache TTL, admin email hardcoding fix, admin search fix | `c8f6c5c` |
 | Jan 18, 2026 | Gemini | Fixed photo upload modal intermittent failure - replaced timeout-based protection with permanent picker-open tracking | `9555e68` |
 | Jan 18, 2026 | Gemini | Project directory cleanup - reorganized 311 files into app/, archive/, assets/, docs/ structure | (no code changes) |

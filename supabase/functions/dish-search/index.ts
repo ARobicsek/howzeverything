@@ -63,12 +63,7 @@ function calculateDistanceInMiles(lat1: number, lon1: number, lat2: number, lon2
 }
 
 
-// CORS headers for browser access  
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://howzeverything.netlify.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-}
+const ALLOWED_ORIGINS = ['https://howzeverything.netlify.app', 'http://localhost:3000'];
 
 
 // --- TYPE DEFINITIONS ---  
@@ -124,6 +119,13 @@ const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey:
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin') || '';
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  };
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }

@@ -3,11 +3,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkCategorySearch, getAllRelatedTerms, getCategoryTerms, getExclusionTerms } from '../_shared/search-logic.ts';
 
-// CORS headers for browser access  
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://howzeverything.netlify.app',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const ALLOWED_ORIGINS = ['https://howzeverything.netlify.app', 'http://localhost:3000'];
 
 // Initialize the Admin client ONCE for connection pooling  
 const supabaseAdminClient = createClient(
@@ -144,12 +140,18 @@ const securityCheck = async (req: Request, supabaseUrl: string, supabaseAnonKey:
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin') || '';
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // --- SECURITY CHECK ---  
+    // --- SECURITY CHECK ---
     const { user, error: authError } = await securityCheck(req, Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
     if (authError) {
       return new Response(JSON.stringify({ error: authError }), {
