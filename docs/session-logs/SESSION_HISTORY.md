@@ -4,6 +4,7 @@
 
 | Date | Developer | Summary | Key Commits |
 |------|-----------|---------|-------------|
+| Mar 23, 2026 | Claude Code | Phase 4B: Foursquare evaluation — signed up, created+deployed foursquare-proxy edge function, tested 5 queries. Foursquare significantly better than Geoapify. New API: places-api.foursquare.com with Bearer auth. Migration next. | pending |
 | Mar 22, 2026 | Claude Code | Phase 4A+4C: Search quality — word-match 80%→50%, lat/lon dedup, name-filtered Places API for location searches, radius 80→30km, nearby cache 24h→3h, CORS dynamic allowlist, deployed all edge functions | `3444565` |
 | Mar 21, 2026 | Claude Code | Phase 3: CORS restriction, SELECT * fix, cache TTL, admin email hardcoding fix, admin search fix | `c8f6c5c` |
 | Jan 18, 2026 | Gemini | Fixed photo upload modal intermittent failure - replaced timeout-based protection with permanent picker-open tracking | `9555e68` |

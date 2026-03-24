@@ -11,6 +11,7 @@
 - **Git Branch**: `main`
 
 ### Recent Work
+- ✅ Phase 4B: Foursquare evaluation complete - signed up, created foursquare-proxy edge function, tested 5 queries. Foursquare significantly better than Geoapify (accurate names, full addresses, better POI coverage). Ready for migration. (Mar 23)
 - ✅ Phase 4A+4C: Search quality improvements - lowered word-match filter (80%→50%), lat/lon dedup (>200m=different), removed broad catering search for name queries, nearby cache TTL 24h→3h (Mar 22)
 - ✅ Phase 3: Low-risk security/perf fixes - CORS restriction, SELECT * fix, cache TTL, admin email hardcoding, admin search fix (Mar 21)
 - ✅ Phase 1: Session management cleanup - trimmed SESSION_HISTORY.md, created root CLAUDE.md, simplified start-session workflow, deleted dead files (Mar 21)
@@ -28,7 +29,7 @@ None blocking currently.
 
 See [WORKPLAN.md](../WORKPLAN.md) for the full improvement roadmap.
 
-Next up: Phase 4B (Foursquare evaluation).
+Next up: Phase 4B migration (swap searchService.ts to use Foursquare as primary).
 
 ---
 

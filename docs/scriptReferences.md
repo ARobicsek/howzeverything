@@ -126,6 +126,7 @@
 | Script | Namespace | Description | Link |
 |--------|-----------|-------------|------|
 | dish-search/index.ts | - | Edge function for server-side dish search. | [index.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/supabase/functions/dish-search/index.ts) |
+| foursquare-proxy/index.ts | - | Secure proxy for Foursquare Places API (Bearer auth, places-api.foursquare.com). | [index.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/supabase/functions/foursquare-proxy/index.ts) |
 | geoapify-proxy/index.ts | - | Secure proxy for Geoapify API calls (hides API key). | [index.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/supabase/functions/geoapify-proxy/index.ts) |
 | get-menu-data/index.ts | - | Edge function to fetch menu data for a restaurant. | [index.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/supabase/functions/get-menu-data/index.ts) |
 | admin-data/index.ts | - | Edge function for admin dashboard data operations. | [index.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/supabase/functions/admin-data/index.ts) |
