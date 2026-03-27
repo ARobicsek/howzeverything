@@ -61,7 +61,7 @@
 
 | Script | Namespace | Description | Link |
 |--------|-----------|-------------|------|
-| searchService.ts | `SearchService` | Restaurant search service with Geoapify integration, caching, and relevance scoring. | [searchService.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/src/services/searchService.ts) |
+| searchService.ts | `SearchService` | Restaurant search service. Foursquare primary (with `near` param for city searches, retry-with-near fallback), Geoapify fallback. Caching and relevance scoring. | [searchService.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/src/services/searchService.ts) |
 | restaurantDataService.ts | `restaurantDataService` | Restaurant data operations with Supabase including CRUD and search. | [restaurantDataService.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/src/services/restaurantDataService.ts) |
 | geocodingService.ts | `geocodingService` | Address geocoding service using Geoapify. | [geocodingService.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/src/services/geocodingService.ts) |
 | favoritesService.ts | `favoritesService` | Manages user favorites/pins in Supabase. | [favoritesService.ts](file:///c:/Users/ariro/OneDrive/Documents/howzeverything/app/src/services/favoritesService.ts) |

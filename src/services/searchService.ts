@@ -6,7 +6,7 @@ import { incrementGeoapifyCount, logGeoapifyCount } from '../utils/apiCounter';
 import { analyzeQuery } from '../utils/queryAnalysis';
 import { calculateEnhancedSimilarity, normalizeText } from '../utils/textUtils';
 
-// Helper function to call the secure Geoapify proxy
+// Helper function to call the secure Geoapify proxy (used for geocoding + fallback)
 async function callGeoapifyProxy(requestData: any): Promise<any> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
@@ -29,6 +29,173 @@ async function callGeoapifyProxy(requestData: any): Promise<any> {
   }
 
   return await response.json();
+}
+
+// Helper function to call the secure Foursquare proxy
+async function callFoursquareProxy(requestData: any): Promise<any> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('Authentication required');
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const response = await fetch(`${supabaseUrl}/functions/v1/foursquare-proxy`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': supabaseAnonKey,
+    },
+    body: JSON.stringify(requestData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `Foursquare API request failed with status ${response.status}`);
+  }
+
+  return await response.json();
+}
+
+// Convert a Foursquare result to our internal GeoapifyPlace format
+function convertFoursquareResult(result: any): GeoapifyPlace | null {
+  if (!result.name) return null;
+
+  const loc = result.location || {};
+
+  // New API: lat/lon at top level; old API: nested under geocodes.main
+  const lat = result.latitude ?? result.geocodes?.main?.latitude ?? 0;
+  const lon = result.longitude ?? result.geocodes?.main?.longitude ?? 0;
+
+  // Build formatted address from location parts
+  const formatted = loc.formatted_address
+    || [loc.address, loc.locality, loc.region, loc.postcode, loc.country].filter(Boolean).join(', ')
+    || result.name;
+
+  return {
+    place_id: result.fsq_place_id || result.fsq_id,
+    properties: {
+      name: result.name,
+      formatted,
+      address_line1: loc.address || undefined,
+      city: loc.locality || undefined,
+      state: loc.region || undefined,
+      postcode: loc.postcode || undefined,
+      country: loc.country || undefined,
+      country_code: loc.country_code || undefined,
+      lat,
+      lon,
+      categories: (result.categories || []).map((c: any) => c.name || 'Restaurant'),
+      website: result.website || undefined,
+      phone: result.tel || undefined,
+      contact: {
+        website: result.website || undefined,
+        phone: result.tel || undefined,
+      },
+      datasource: {
+        sourcename: 'foursquare',
+        attribution: 'Foursquare',
+      },
+    },
+  };
+}
+
+// Fallback: run the old Geoapify multi-strategy search
+async function geoapifyFallbackSearch(
+  query: string,
+  userLat: number | null,
+  userLon: number | null
+): Promise<GeoapifyPlace[]> {
+  console.log(
+    '%c[Fallback] Using Geoapify search',
+    'color: #d97706; font-weight: bold; background-color: #fef3c7; padding: 2px 6px; border-radius: 4px;'
+  );
+
+  const rawFeatures: any[] = [];
+
+  // Strategy 1: Geocode API with type=amenity
+  incrementGeoapifyCount(); logGeoapifyCount();
+  const amenityRequest: any = {
+    apiType: 'geocode',
+    text: query,
+    type: 'amenity',
+    limit: 100,
+  };
+  if (userLat && userLon) {
+    amenityRequest.filter = `circle:${userLon},${userLat},40000`;
+    amenityRequest.bias = `proximity:${userLon},${userLat}`;
+  }
+
+  try {
+    const amenityData = await callGeoapifyProxy(amenityRequest);
+    if (amenityData.features) rawFeatures.push(...amenityData.features);
+  } catch (e) {
+    console.error('Geoapify amenity fallback failed:', e);
+  }
+
+  // Strategy 2: Broad geocoding
+  incrementGeoapifyCount(); logGeoapifyCount();
+  const broadRequest: any = {
+    apiType: 'geocode',
+    text: query,
+    limit: 100,
+  };
+  if (userLat && userLon) {
+    broadRequest.filter = `circle:${userLon},${userLat},40000`;
+    broadRequest.bias = `proximity:${userLon},${userLat}`;
+  }
+
+  try {
+    const broadData = await callGeoapifyProxy(broadRequest);
+    if (broadData.features) rawFeatures.push(...broadData.features);
+  } catch (e) {
+    console.error('Geoapify broad fallback failed:', e);
+  }
+
+  // Deduplicate by place_id and filter by name
+  const queryWords = normalizeText(query).split(/\s+/).filter(w => w.length > 0);
+  const seen = new Set<string>();
+
+  return rawFeatures
+    .filter((f: any) => {
+      if (!f?.properties?.place_id || !f.properties.name) return false;
+      if (seen.has(f.properties.place_id)) return false;
+      seen.add(f.properties.place_id);
+
+      const name = normalizeText(f.properties.name);
+      const nameWords = name.split(/\s+/);
+      const matchCount = queryWords.filter(qw =>
+        nameWords.some(nw => nw.includes(qw) || qw.includes(nw))
+      ).length;
+      return (matchCount / queryWords.length) * 100 >= 50;
+    })
+    .map((f: any) => {
+      const props = f.properties;
+      let cleanAddress = props.address_line1;
+      let cleanCity = props.city;
+
+      if (cleanAddress && calculateEnhancedSimilarity(cleanAddress, props.name) > 90) {
+        cleanAddress = null;
+      }
+      if (!cleanAddress) {
+        const addressToParseFrom = props.address_line2 || props.formatted;
+        if (addressToParseFrom) {
+          const namePattern = new RegExp(`^${props.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[, ]*`, 'i');
+          const addressToParse = addressToParseFrom.replace(namePattern, '');
+          const parsed = parseAddress(addressToParse);
+          if (parsed.data) {
+            cleanAddress = parsed.data.address || cleanAddress;
+            cleanCity = parsed.data.city || cleanCity;
+          }
+        }
+      }
+      return {
+        place_id: props.place_id,
+        properties: { ...props, address_line1: cleanAddress, city: cleanCity },
+      } as GeoapifyPlace;
+    })
+    .filter((p): p is GeoapifyPlace => p !== null);
 }
 
 
@@ -67,7 +234,6 @@ export class SearchService {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-    // Note: Abort functionality temporarily not available with proxy calls
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -75,17 +241,13 @@ export class SearchService {
         throw new Error('Authentication required for restaurant search');
       }
 
-      // TODO: Update to use geoapify-proxy edge function for full security
-      // For now, allow basic search functionality to work
-      let rawApiFeatures: unknown[] = [];
       const queryAnalysis = analyzeQuery(query);
 
-      // Store target location for ranking (either from explicit mention or user location)
+      // Store target location for ranking
       let targetLat: number | null = userLat;
       let targetLon: number | null = userLon;
       let mentionedLocation: string | null = null;
 
-      // --- Log the output of the query analysis ---
       console.log(
         `%c[Query Analysis] -> Original: "${query}"`,
         'color: #2e6c6e; font-weight: bold; background-color: #f0f9ff; padding: 2px 6px; border-radius: 4px;',
@@ -98,353 +260,133 @@ export class SearchService {
         }
       );
 
-      // Warn if searching without location
       if (!userLat || !userLon) {
         console.warn(
-          `%c[Search Warning] Searching without user location - results may be from anywhere in the world!`,
-          'color: #d97706; font-weight: bold; background-color: #fef3c7; padding: 2px 6px; border-radius: 4px;',
-          'Enable location permissions for better results.'
+          `%c[Search Warning] Searching without user location - results may be less relevant`,
+          'color: #d97706; font-weight: bold; background-color: #fef3c7; padding: 2px 6px; border-radius: 4px;'
         );
       }
 
+      // --- Determine search strategy ---
+      let searchQuery = query;
+      let searchNear: string | null = null; // Foursquare `near` param (text location)
+      let searchLat = userLat;
+      let searchLon = userLon;
+      let searchRadius = 40000; // 40km default
+
       if (queryAnalysis.type === 'business_location_proposal' && queryAnalysis.location && queryAnalysis.businessName) {
-        // When user specifies location explicitly (e.g., "Starbucks in Boston"),
-        // use targeted search around that location only
+        searchQuery = queryAnalysis.businessName;
+        mentionedLocation = queryAnalysis.location.toLowerCase();
 
-        // SPECIAL CASE: Street-level search (e.g., "Starbucks on Dempster")
-        // If user specifies just a street name without city, and we have their location,
-        // search near them and filter by street name instead of trying to geocode the street alone
-        if (queryAnalysis.locationType === 'street' && userLat && userLon && queryAnalysis.streetName) {
+        if (queryAnalysis.locationType === 'street') {
+          // Street-level search: include street name in query so Foursquare matches across address fields
+          searchQuery = `${queryAnalysis.businessName} ${queryAnalysis.streetName || queryAnalysis.location}`;
+          mentionedLocation = queryAnalysis.streetName?.toLowerCase() || mentionedLocation;
           console.log(
-            `%c[Street Search] Detected street-level search: "${queryAnalysis.streetName}"`,
-            'color: #0891b2; font-weight: bold; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;',
-            'Using user location + street name filter'
+            `%c[Street Search] query="${searchQuery}" (business + street name)`,
+            'color: #0891b2; font-weight: bold; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;'
           );
-
-          try {
-            // Use user's location as center and store street name for filtering/boosting
-            targetLat = userLat;
-            targetLon = userLon;
-            mentionedLocation = queryAnalysis.streetName.toLowerCase();
-
-            // Search for the business name around user's location
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const geocodeResults = await callGeoapifyProxy({
-              apiType: 'geocode',
-              text: queryAnalysis.businessName!,
-              type: 'amenity',
-              limit: 100,
-              filter: `circle:${userLon},${userLat},40000`,
-              bias: `proximity:${userLon},${userLat}`
-            });
-
-            // Also search nearby catering places for broader POI coverage
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const placesData = await callGeoapifyProxy({
-              apiType: 'places',
-              latitude: userLat,
-              longitude: userLon,
-              radiusInMeters: 40000,
-              categories: 'catering',
-              limit: 100,
-              bias: `proximity:${userLon},${userLat}`
-            });
-
-            // Combine, deduplicate by place_id, and filter Places API results by business name
-            const streetBusinessWords = normalizeText(queryAnalysis.businessName!).split(/\s+/).filter(w => w.length > 0);
-            const streetCombined = [...(geocodeResults.features || []), ...(placesData.features || [])];
-            rawApiFeatures = streetCombined
-              .filter((feature: any, index: number, self: any[]) =>
-                index === self.findIndex(r => r.properties?.place_id === feature.properties?.place_id)
-              )
-              .filter((feature: any) => {
-                if (!feature.properties?.name || typeof feature.properties.name !== 'string') return false;
-                const datasource = feature.properties?.datasource?.sourcename;
-                if (datasource && datasource !== 'openstreetmap') return true;
-                const name = normalizeText(feature.properties.name);
-                const nameWords = name.split(/\s+/);
-                const matchCount = streetBusinessWords.filter((qw: string) =>
-                  nameWords.some((nw: string) => nw.includes(qw) || qw.includes(nw))
-                ).length;
-                return (matchCount / streetBusinessWords.length) * 100 >= 50;
-              });
-
-            console.log(
-              `%c[Street Search] Found ${rawApiFeatures.length} results, will boost those on "${queryAnalysis.streetName}"`,
-              'color: #059669; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;'
-            );
-          } catch (error) {
-            console.error('Street search failed:', error);
-            rawApiFeatures = [];
-          }
         } else {
-          // Regular city/area search - geocode the location first
-          try {
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const geocodeData = await callGeoapifyProxy({
-              apiType: 'geocode',
-              text: queryAnalysis.location!,
-              limit: 1
-            });
-
-            if (!geocodeData.features || geocodeData.features.length === 0) {
-              rawApiFeatures = [];
-            } else {
-              const { lat, lon } = geocodeData.features[0].properties;
-
-              // Store the target location for ranking purposes
-              targetLat = lat;
-              targetLon = lon;
-              mentionedLocation = queryAnalysis.location!.toLowerCase();
-
-            // Search for the business name around the specified location
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const geocodeResults = await callGeoapifyProxy({
-              apiType: 'geocode',
-              text: queryAnalysis.businessName!,
-              type: 'amenity',
-              limit: 100,
-              filter: `circle:${lon},${lat},30000`,
-              bias: `proximity:${lon},${lat}`
-            });
-
-            // Also search nearby catering places for broader POI coverage
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const placesData = await callGeoapifyProxy({
-              apiType: 'places',
-              latitude: lat,
-              longitude: lon,
-              radiusInMeters: 30000,
-              categories: 'catering',
-              limit: 100,
-              bias: `proximity:${lon},${lat}`
-            });
-
-            // Combine, deduplicate by place_id, and filter Places API results by business name
-            const businessWords = normalizeText(queryAnalysis.businessName!).split(/\s+/).filter(w => w.length > 0);
-            const combined = [...(geocodeResults.features || []), ...(placesData.features || [])];
-            rawApiFeatures = combined
-              .filter((feature: any, index: number, self: any[]) =>
-                index === self.findIndex(r => r.properties?.place_id === feature.properties?.place_id)
-              )
-              .filter((feature: any) => {
-                if (!feature.properties?.name || typeof feature.properties.name !== 'string') return false;
-                const datasource = feature.properties?.datasource?.sourcename;
-                // Keep geocode results (already filtered by query text)
-                if (datasource && datasource !== 'openstreetmap') return true;
-                // Filter Places API/OSM results by business name match
-                const name = normalizeText(feature.properties.name);
-                const nameWords = name.split(/\s+/);
-                const matchCount = businessWords.filter((qw: string) =>
-                  nameWords.some((nw: string) => nw.includes(qw) || qw.includes(nw))
-                ).length;
-                return (matchCount / businessWords.length) * 100 >= 50;
-              });
-            }
-          } catch (error) {
-            console.error('Location-specific search failed:', error);
-            rawApiFeatures = [];
-          }
-        }
-      } else {
-        try {
-          // Try multiple search strategies to find the restaurant
-          const searchStrategies = [];
-
-          // Strategy 1: Use Places API v2 (best for finding restaurants/cafes)
-          // This is specifically designed for POI discovery
-          if (userLat && userLon) {
-            incrementGeoapifyCount(); logGeoapifyCount();
-            const placesRequest: any = {
-              apiType: 'places',
-              latitude: userLat,
-              longitude: userLon,
-              radiusInMeters: 40000, // 40km = 25 miles
-              categories: 'catering', // Use parent category to include all food/dining establishments
-              limit: 100, // Increased from 50 to ensure comprehensive results
-              bias: `proximity:${userLon},${userLat}`
-            };
-            searchStrategies.push(
-              callGeoapifyProxy(placesRequest)
-                .then(data => ({ source: 'places', data }))
-                .catch(error => {
-                  console.error('Places API search failed:', error);
-                  return { source: 'places', data: { features: [] } };
-                })
-            );
-          }
-
-          // Strategy 2: Geocoding API with type=amenity (fallback)
-          incrementGeoapifyCount(); logGeoapifyCount();
-          const amenityRequest: any = {
-            apiType: 'geocode',
-            text: query,
-            type: 'amenity',
-            limit: 100 // Increased from 20 to ensure comprehensive results
-          };
-          if (userLat && userLon) {
-            amenityRequest.filter = `circle:${userLon},${userLat},40000`;
-            amenityRequest.bias = `proximity:${userLon},${userLat}`;
-          }
-          searchStrategies.push(
-            callGeoapifyProxy(amenityRequest)
-              .then(data => ({ source: 'geocode-amenity', data }))
-              .catch(error => {
-                console.error('Geocode amenity search failed:', error);
-                return { source: 'geocode-amenity', data: { features: [] } };
-              })
-          );
-
-          // Strategy 3: Broader geocoding search without type restriction
-          incrementGeoapifyCount(); logGeoapifyCount();
-          const broadRequest: any = {
-            apiType: 'geocode',
-            text: query,
-            limit: 100 // Increased from 20 to ensure comprehensive results
-          };
-          if (userLat && userLon) {
-            broadRequest.filter = `circle:${userLon},${userLat},40000`;
-            broadRequest.bias = `proximity:${userLon},${userLat}`;
-          }
-          searchStrategies.push(
-            callGeoapifyProxy(broadRequest)
-              .then(data => ({ source: 'geocode-broad', data }))
-              .catch(error => {
-                console.error('Broad geocode search failed:', error);
-                return { source: 'geocode-broad', data: { features: [] } };
-              })
-          );
-
-          // Execute all strategies in parallel
-          const results = await Promise.all(searchStrategies);
-
-          // Combine and deduplicate results
-          const combinedFeatures: any[] = [];
-          for (const result of results) {
-            if (result.data.features) {
-              combinedFeatures.push(...result.data.features);
-            }
-          }
-
-          // Filter by query match for Places API results (which returns ALL nearby restaurants)
-          // Use flexible word-based matching instead of strict substring matching
-          const queryLower = normalizeText(query);
-          const queryWords = queryLower.split(/\s+/).filter(w => w.length > 0);
-
-          // Debug: Log Places API results for "landwer" searches
-          if (queryLower.includes('landwer')) {
-            const placesApiResults = combinedFeatures.filter(f => f.properties?.datasource?.sourcename === 'openstreetmap');
-            console.log(
-              `%c[Places API] Found ${placesApiResults.length} results from Places API (before name filtering)`,
-              'color: #0891b2; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;',
-              placesApiResults.map(f => ({ name: f.properties.name, address: f.properties.formatted, categories: f.properties.categories }))
-            );
-          }
-
-          const filteredFeatures = combinedFeatures.filter((feature: any) => {
-            const name = normalizeText(feature.properties?.name || '');
-            const datasource = feature.properties?.datasource?.sourcename;
-
-            // For Geocode API results, keep all (already filtered by query)
-            if (datasource && datasource !== 'openstreetmap') {
-              return true;
-            }
-
-            // For Places API and OpenStreetMap results, filter by name match
-            // Check if all query words appear in the name (flexible matching)
-            const nameWords = name.split(/\s+/);
-            const matchCount = queryWords.filter(queryWord =>
-              nameWords.some(nameWord => nameWord.includes(queryWord) || queryWord.includes(nameWord))
-            ).length;
-
-            // Require at least 50% of query words to match
-            // This allows partial matches like "Cafe Landwer" matching by just "Landwer"
-            const matchPercentage = (matchCount / queryWords.length) * 100;
-            const matches = matchPercentage >= 50;
-
-            // Debug logging for filtering
-            if (!matches && name.includes('landwer')) {
-              console.log(
-                `%c[Name Filter] Excluded: "${feature.properties?.name}" at ${feature.properties?.formatted}`,
-                'color: #dc2626; background-color: #fee2e2; padding: 2px 6px; border-radius: 4px;',
-                { matchPercentage: matchPercentage.toFixed(1), queryWords, nameWords, datasource }
-              );
-            }
-
-            return matches;
-          });
-
-          // Deduplicate by place_id
-          const seenPlaceIds = new Set();
-          rawApiFeatures = filteredFeatures.filter((feature: any) => {
-            if (seenPlaceIds.has(feature.properties.place_id)) {
-              return false;
-            }
-            seenPlaceIds.add(feature.properties.place_id);
-            return true;
-          });
-
+          // City/area search: let Foursquare geocode via `near` param (no Geoapify call needed)
+          searchNear = queryAnalysis.location;
+          searchLat = null;
+          searchLon = null;
           console.log(
-            `%c[Search Strategy] Used Places API + Geocoding API for comprehensive search`,
-            'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
-            {
-              query,
-              lat: userLat,
-              lon: userLon,
-              radiusKm: 40,
-              strategiesUsed: searchStrategies.length,
-              totalResults: rawApiFeatures.length,
-              results: results.map(r => ({ source: r.source, count: r.data.features?.length || 0 }))
-            }
+            `%c[Location Search] Using Foursquare near="${searchNear}"`,
+            'color: #0891b2; font-weight: bold; background-color: #cffafe; padding: 2px 6px; border-radius: 4px;'
           );
-        } catch (error) {
-          console.error('Search failed:', error);
-          throw new Error(`Search API failed: ${error}`);
         }
       }
-      
-      const apiPlaces: GeoapifyPlace[] = rawApiFeatures
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .filter((f: any) => f && f.properties && f.properties.place_id)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((f: any) => {
-          const props = f.properties;
 
-          if (!props.name) {
-            return null;
-          }
+      // --- Primary search: Foursquare ---
+      let apiPlaces: GeoapifyPlace[] = [];
 
-          let cleanAddress = props.address_line1; 
-          let cleanCity = props.city;
+      const doFoursquareSearch = async (fsqQuery: string, near: string | null, lat: number | null, lon: number | null, radius: number): Promise<GeoapifyPlace[]> => {
+        const fsqRequest: any = {
+          apiType: 'search',
+          query: fsqQuery,
+          categories: '13000', // Dining and Drinking
+          limit: 50,
+        };
 
-          if (cleanAddress && calculateEnhancedSimilarity(cleanAddress, props.name) > 90) { 
-            cleanAddress = null; 
-          }
+        if (near) {
+          fsqRequest.near = near;
+        } else if (lat && lon) {
+          fsqRequest.ll = `${lat},${lon}`;
+          fsqRequest.radius = radius;
+        }
 
-          if (!cleanAddress) {
-              const addressToParseFrom = props.address_line2 || props.formatted;
-              if (addressToParseFrom) {
-                  const namePattern = new RegExp(`^${props.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[, ]*`, 'i');
-                  const addressToParse = addressToParseFrom.replace(namePattern, '');
-                  const parsed = parseAddress(addressToParse);
-                  if (parsed.data) { 
-                    cleanAddress = parsed.data.address || cleanAddress; 
-                    cleanCity = parsed.data.city || cleanCity; 
-                  }
+        console.log(
+          `%c[Foursquare Search] query="${fsqQuery}"${near ? ` near="${near}"` : ` ll=${lat},${lon} radius=${radius}`}`,
+          'color: #7c3aed; font-weight: bold; background-color: #faf5ff; padding: 2px 6px; border-radius: 4px;'
+        );
+
+        const fsqData = await callFoursquareProxy(fsqRequest);
+        const fsqResults = fsqData.results || [];
+
+        const places = fsqResults
+          .map(convertFoursquareResult)
+          .filter((p: GeoapifyPlace | null): p is GeoapifyPlace => p !== null);
+
+        console.log(
+          `%c[Foursquare Search] Found ${places.length} results`,
+          'color: #059669; font-weight: bold; background-color: #f0fdf4; padding: 2px 6px; border-radius: 4px;',
+          { query: fsqQuery, near, lat, lon, resultCount: places.length }
+        );
+
+        return places;
+      };
+
+      try {
+        apiPlaces = await doFoursquareSearch(searchQuery, searchNear, searchLat, searchLon, searchRadius);
+
+        // Retry: if few results and query has 2+ words without a detected location,
+        // split off the last word as a `near` hint and retry
+        if (apiPlaces.length < 3 && !searchNear && queryAnalysis.type === 'business') {
+          const words = query.trim().split(/\s+/);
+          if (words.length >= 2) {
+            const retryQuery = words.slice(0, -1).join(' ');
+            const retryNear = words[words.length - 1];
+            console.log(
+              `%c[Foursquare Retry] Few results, trying query="${retryQuery}" near="${retryNear}"`,
+              'color: #d97706; font-weight: bold; background-color: #fef3c7; padding: 2px 6px; border-radius: 4px;'
+            );
+            try {
+              const retryPlaces = await doFoursquareSearch(retryQuery, retryNear, null, null, searchRadius);
+              if (retryPlaces.length > apiPlaces.length) {
+                apiPlaces = retryPlaces;
+                mentionedLocation = retryNear.toLowerCase();
               }
+            } catch (retryError) {
+              console.warn('Foursquare retry failed, keeping original results:', retryError);
+            }
           }
-          return { place_id: props.place_id, properties: { ...props, address_line1: cleanAddress, city: cleanCity }};
-        })
-        .filter((p): p is GeoapifyPlace => p !== null);
-      
+        }
+
+      } catch (fsqError) {
+        console.error('Foursquare search failed, falling back to Geoapify:', fsqError);
+        apiPlaces = await geoapifyFallbackSearch(query, userLat, userLon);
+      }
+
+      // When we used `near` instead of coordinates, derive target location from results for scoring
+      if (searchNear && apiPlaces.length > 0 && !targetLat) {
+        const firstWithCoords = apiPlaces.find(p => p.properties.lat && p.properties.lon);
+        if (firstWithCoords) {
+          targetLat = firstWithCoords.properties.lat;
+          targetLon = firstWithCoords.properties.lon;
+        }
+      }
+
+      // --- Database search ---
       const { data: allDbRestaurants } = await supabase
         .from('restaurants')
         .select('id, name, full_address, address, city, state, zip_code, country, latitude, longitude')
         .ilike('name', `%${query}%`);
 
-      // Helper function to calculate distance in km between two points
+      // --- Scoring and ranking ---
+
       const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-        const R = 6371; // Earth's radius in km
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -454,8 +396,6 @@ export class SearchService {
         return R * c;
       };
 
-      // Helper function to check if a place matches the mentioned location
-      // Returns a score from 0-100 indicating strength of location match
       const matchesLocation = (place: GeoapifyPlace, locationQuery: string | null): number => {
         if (!locationQuery) return 0;
 
@@ -467,82 +407,59 @@ export class SearchService {
 
         let matchScore = 0;
 
-        // Check for full location string match (strongest match)
         if (city.includes(normalized) || normalized.includes(city)) {
-          matchScore += 100; // Perfect city match
+          matchScore += 100;
         } else if (formatted.includes(normalized)) {
-          matchScore += 80; // Full query appears in formatted address
+          matchScore += 80;
         }
 
-        // Check for partial matches by splitting location query into words
-        // This handles cases like "skokie on dempster" where we want to match:
-        // - "skokie" in the city
-        // - "dempster" in the street address
         const locationWords = normalized.split(/\s+/).filter(word =>
           word.length > 2 && !['in', 'at', 'on', 'near', 'by', 'the'].includes(word)
         );
 
         for (const word of locationWords) {
-          // City name match
           if (city.includes(word) || word.includes(city)) {
-            matchScore = Math.max(matchScore, 100); // Promote to perfect match
+            matchScore = Math.max(matchScore, 100);
           }
-          // State match
           if (state.includes(word) || word.includes(state)) {
             matchScore = Math.max(matchScore, 90);
           }
-          // Street name match (e.g., "dempster" in "4116 Dempster St")
           if (street.includes(word)) {
-            matchScore = Math.max(matchScore, 70); // Good street-level match
+            matchScore = Math.max(matchScore, 70);
           }
-          // Formatted address contains the word
           if (formatted.includes(word) && matchScore < 70) {
-            matchScore = Math.max(matchScore, 50); // Weak match, appears somewhere
+            matchScore = Math.max(matchScore, 50);
           }
         }
 
         return matchScore;
       };
 
-      // Helper function to calculate relevance score
       const calculateRelevanceScore = (
         nameSimilarity: number,
         isFromDatabase: boolean,
         distanceKm: number | null,
-        locationMatchScore: number = 0, // 0-100 score from matchesLocation
-        hasExplicitLocation: boolean = false // Whether user specified a location in query
+        locationMatchScore: number = 0,
+        hasExplicitLocation: boolean = false
       ): number => {
-        // Start with name similarity (0-100)
         let score = nameSimilarity;
 
-        // Add bonus for database entries (they're already in our system)
         if (isFromDatabase) {
-          score += 10; // Small boost for existing restaurants
+          score += 10;
         }
 
-        // Scaled bonus based on location match strength
-        // Perfect city match (100): +50 points
-        // Street match (70): +35 points
-        // Weak match (50): +25 points
         if (locationMatchScore > 0) {
           const locationBonus = (locationMatchScore / 100) * 50;
           score += locationBonus;
         }
 
-        // Apply distance penalty - but NOT when user explicitly specifies a matching location
-        // If searching "Pizza Hut in Amman" from Boston, we care about Amman results, not Boston proximity
         if (distanceKm !== null) {
           if (hasExplicitLocation && locationMatchScore >= 70) {
-            // User specified location AND result matches it well - NO distance penalty
-            // They're intentionally searching for a place that might be far away
-            // No penalty applied
+            // No distance penalty - user explicitly wants results in this location
           } else if (hasExplicitLocation && locationMatchScore > 0) {
-            // User specified location, partial match - moderate distance penalty
             const distancePenalty = Math.min(15, (distanceKm / 80) * 15);
             score -= distancePenalty;
           } else {
-            // No explicit location or no match - full distance penalty
-            // Closer is better: full score for <5km, decreasing penalty up to 40km
             const distancePenalty = Math.min(20, (distanceKm / 40) * 20);
             score -= distancePenalty;
           }
@@ -551,7 +468,6 @@ export class SearchService {
         return score;
       };
 
-      // Create database matches with scores preserved
       interface ScoredPlace extends GeoapifyPlace {
         relevanceScore: number;
         nameSimilarity: number;
@@ -564,7 +480,6 @@ export class SearchService {
             ? calculateDistance(targetLat, targetLon, r.latitude, r.longitude)
             : null;
 
-          // Create place object for location matching
           const place: GeoapifyPlace = {
             place_id: `db_${r.id}`,
             properties: {
@@ -585,10 +500,10 @@ export class SearchService {
           const locationMatchScore = matchesLocation(place, mentionedLocation);
           const relevanceScore = calculateRelevanceScore(
             nameSimilarity,
-            true, // isFromDatabase
+            true,
             distanceKm,
             locationMatchScore,
-            !!mentionedLocation // hasExplicitLocation
+            !!mentionedLocation
           );
 
           return {
@@ -597,14 +512,13 @@ export class SearchService {
             nameSimilarity
           };
         })
-        .filter(item => item.nameSimilarity > 60); // Only include decent matches
+        .filter(item => item.nameSimilarity > 60);
 
-      // Deduplicate API places and calculate scores
+      // Deduplicate API places against DB and each other
       const uniqueApiPlaces: ScoredPlace[] = [];
       for (const apiPlace of apiPlaces) {
           const isDuplicateOfDb = dbMatches.some(dbMatch => {
             if (calculateEnhancedSimilarity(dbMatch.properties.name, apiPlace.properties.name) <= 95) return false;
-            // Use distance if both have coordinates: >200m apart = different location
             if (dbMatch.properties.lat && dbMatch.properties.lon && apiPlace.properties.lat && apiPlace.properties.lon) {
               return calculateDistance(dbMatch.properties.lat, dbMatch.properties.lon, apiPlace.properties.lat, apiPlace.properties.lon) <= 0.2;
             }
@@ -617,7 +531,6 @@ export class SearchService {
 
           const existingMatchIndex = uniqueApiPlaces.findIndex(uniquePlace => {
             if (calculateEnhancedSimilarity(uniquePlace.properties.name, apiPlace.properties.name) <= 95) return false;
-            // Use distance if both have coordinates: >200m apart = different location
             if (uniquePlace.properties.lat && uniquePlace.properties.lon && apiPlace.properties.lat && apiPlace.properties.lon) {
               return calculateDistance(uniquePlace.properties.lat, uniquePlace.properties.lon, apiPlace.properties.lat, apiPlace.properties.lon) <= 0.2;
             }
@@ -639,7 +552,6 @@ export class SearchService {
                 } as ScoredPlace;
               }
           } else {
-              // Calculate score for API place
               const nameSimilarity = calculateEnhancedSimilarity(apiPlace.properties.name, query);
               const distanceKm = (targetLat && targetLon && apiPlace.properties.lat && apiPlace.properties.lon)
                 ? calculateDistance(targetLat, targetLon, apiPlace.properties.lat, apiPlace.properties.lon)
@@ -647,10 +559,10 @@ export class SearchService {
               const locationMatchScore = matchesLocation(apiPlace, mentionedLocation);
               const relevanceScore = calculateRelevanceScore(
                 nameSimilarity,
-                false, // isFromDatabase
+                false,
                 distanceKm,
                 locationMatchScore,
-                !!mentionedLocation // hasExplicitLocation
+                !!mentionedLocation
               );
 
               uniqueApiPlaces.push({
@@ -661,11 +573,10 @@ export class SearchService {
           }
       }
 
-      // Combine all results and sort by relevance score (highest first)
+      // Combine and sort by relevance
       const combinedResults = [...dbMatches, ...uniqueApiPlaces]
         .sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-      // Log scoring for debugging
       console.log(
         `%c[Search Ranking] Sorted ${combinedResults.length} results by relevance`,
         'color: #7c3aed; font-weight: bold; background-color: #faf5ff; padding: 2px 6px; border-radius: 4px;',
@@ -692,7 +603,6 @@ export class SearchService {
         }
       );
 
-      // Remove scoring metadata before returning
       const finalResults: GeoapifyPlace[] = combinedResults.map(({ relevanceScore, nameSimilarity, ...place }) => place);
 
       // Evict oldest entries if cache is full
@@ -716,12 +626,63 @@ export class SearchService {
 
   public async getRestaurantDetails(placeId: string): Promise<GeoapifyPlaceDetails | null> {
     try {
+      // Use Foursquare details for Foursquare place IDs, Geoapify for legacy IDs
+      // Geoapify IDs contain dots; Foursquare IDs are hex strings or fsq_ prefixed
+      const isGeoapifyId = placeId.includes('.');
+      const isDbId = placeId.startsWith('db_');
+      if (!isGeoapifyId && !isDbId) {
+        // Foursquare place ID
+        const data = await callFoursquareProxy({
+          apiType: 'details',
+          place_id: placeId,
+        });
+
+        if (!data || !data.name) {
+          throw new Error('No details found for this place');
+        }
+
+        const loc = data.location || {};
+        const lat = data.latitude ?? data.geocodes?.main?.latitude ?? 0;
+        const lon = data.longitude ?? data.geocodes?.main?.longitude ?? 0;
+        const formatted = loc.formatted_address
+          || [loc.address, loc.locality, loc.region, loc.postcode, loc.country].filter(Boolean).join(', ')
+          || data.name;
+
+        return {
+          place_id: data.fsq_place_id || data.fsq_id || placeId,
+          properties: {
+            name: data.name,
+            formatted,
+            address_line1: loc.address || undefined,
+            city: loc.locality || undefined,
+            state: loc.region || undefined,
+            postcode: loc.postcode || undefined,
+            country: loc.country || undefined,
+            lat,
+            lon,
+            categories: (data.categories || []).map((c: any) => c.name || 'Restaurant'),
+            website: data.website || undefined,
+            phone: data.tel || undefined,
+            opening_hours: data.hours || undefined,
+            contact: {
+              website: data.website || undefined,
+              phone: data.tel || undefined,
+            },
+            datasource: {
+              sourcename: 'foursquare',
+              attribution: 'Foursquare',
+            },
+          },
+        };
+      }
+
+      // Legacy Geoapify place ID
       incrementGeoapifyCount();
       logGeoapifyCount();
-      
+
       const detailsData = await callGeoapifyProxy({
         apiType: 'place-details',
-        placeId: placeId
+        placeId: placeId,
       });
 
       if (!detailsData.features || detailsData.features.length === 0) {

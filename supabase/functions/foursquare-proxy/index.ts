@@ -50,7 +50,7 @@ serve(async (req) => {
     }
 
     const requestBody = await req.json();
-    const { apiType, query, ll, radius, categories, limit, place_id } = requestBody;
+    const { apiType, query, ll, near, radius, categories, limit, place_id } = requestBody;
 
     const apiKey = Deno.env.get('FOURSQUARE_API_KEY');
     if (!apiKey) {
@@ -69,9 +69,9 @@ serve(async (req) => {
     let fsqUrl: string;
 
     if (apiType === 'search') {
-      // Places Search: https://docs.foursquare.com/reference/place-search
-      if (!query && !ll) {
-        return new Response(JSON.stringify({ error: 'Missing required parameter: query or ll' }), {
+      // Places Search v3: https://docs.foursquare.com/reference/place-search
+      if (!query && !ll && !near) {
+        return new Response(JSON.stringify({ error: 'Missing required parameter: query, ll, or near' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -79,15 +79,20 @@ serve(async (req) => {
 
       const params = new URLSearchParams();
       if (query) params.append('query', query);
-      if (ll) params.append('ll', ll);
-      if (radius) params.append('radius', radius.toString());
+      // near and ll are mutually exclusive in Foursquare API; prefer near when provided
+      if (near) {
+        params.append('near', near);
+      } else if (ll) {
+        params.append('ll', ll);
+      }
+      if (radius && !near) params.append('radius', radius.toString());
       if (categories) params.append('categories', categories);
       params.append('limit', (limit || 50).toString());
 
       fsqUrl = `https://places-api.foursquare.com/places/search?${params.toString()}`;
 
     } else if (apiType === 'details') {
-      // Place Details: https://docs.foursquare.com/reference/get-place-details
+      // Place Details v3: https://docs.foursquare.com/reference/get-place-details
       if (!place_id) {
         return new Response(JSON.stringify({ error: 'Missing required parameter: place_id' }), {
           status: 400,
@@ -95,11 +100,7 @@ serve(async (req) => {
         });
       }
 
-      const params = new URLSearchParams();
-      // Request useful fields
-      params.append('fields', 'fsq_id,name,geocodes,location,categories,chains,hours,rating,price,tel,website,social_media');
-
-      fsqUrl = `https://places-api.foursquare.com/place-details?fsq_id=${place_id}&${params.toString()}`;
+      fsqUrl = `https://places-api.foursquare.com/places/${place_id}`;
 
     } else {
       return new Response(JSON.stringify({ error: 'Invalid apiType. Must be "search" or "details"' }), {
@@ -111,9 +112,17 @@ serve(async (req) => {
     const response = await fetch(fsqUrl, { headers });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'API response was not valid JSON.' }));
+      const rawText = await response.text();
+      console.error(`[FSQ ERROR] Status: ${response.status}, URL: ${fsqUrl}, Body: ${rawText.substring(0, 500)}`);
+      let errorMessage: string;
+      try {
+        const errorData = JSON.parse(rawText);
+        errorMessage = errorData.message || errorData.error || rawText.substring(0, 200);
+      } catch {
+        errorMessage = rawText.substring(0, 200) || 'Empty response';
+      }
       return new Response(JSON.stringify({
-        error: `Foursquare API failed with status ${response.status}: ${errorData.message || 'Unknown error'}`
+        error: `Foursquare API failed with status ${response.status}: ${errorMessage}`
       }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

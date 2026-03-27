@@ -53,18 +53,18 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
 
 
   const getCategoryDisplay = (categories: string[]) => {
+    // Geoapify uses dot notation (catering.restaurant), Foursquare uses plain names (Restaurant)
     const categoryMap: { [key: string]: string } = {
       'catering.restaurant': 'Restaurant',
       'catering.fast_food': 'Fast Food',
       'catering.cafe': 'Cafe',
       'catering.bar': 'Bar',
-      'catering.pub': 'Pub'
+      'catering.pub': 'Pub',
     };
-
 
     return categories
       .slice(0, 2)
-      .map(cat => categoryMap[cat] || cat.split('.').pop() || 'Restaurant')
+      .map(cat => categoryMap[cat] || (cat.includes('.') ? cat.split('.').pop() : cat) || 'Restaurant')
       .join(', ');
   };
 
@@ -214,7 +214,7 @@ const RestaurantSearchResults: React.FC<RestaurantSearchResultsProps> = ({
      
       <div className="text-center pt-2">
         <p style={{...FONTS.elegant, color: COLORS.text, opacity: 0.6, fontSize: '0.7rem'}}>
-          Powered by Geoapify • Data from OpenStreetMap
+          Powered by Foursquare
         </p>
       </div>
     </div>

@@ -55,18 +55,16 @@ This document tracks planned improvements identified during a comprehensive code
 - ✅ CORS: all 5 edge functions now use dynamic origin allowlist (production + localhost:3000)
 - Tested: "dunkin in newton" ✓, "dunkin in santa fe" ✓
 
-### 4B. Evaluate Foursquare Places API - EVALUATION COMPLETE (Mar 23, 2026)
+### 4B. Foursquare Migration ✅ COMPLETED (Mar 26, 2026)
 - Signed up for Foursquare developer account ($200 free Sandbox credit)
-- API uses new Places API: `places-api.foursquare.com` with Bearer auth + `X-Places-Api-Version` header
-- Created and deployed `foursquare-proxy` edge function
-- **Test results (Foursquare vs Geoapify):**
-  - "Dunkin in Newton": 5 exact Dunkin' locations with full addresses (Geoapify required tuning)
-  - "Cafe Landwer in Boston": 2 exact locations found (Geoapify: known problem area)
-  - "Restaurants near Skokie": 10 real restaurants - Pita Inn, Kaufman's, Taboun Grill etc (Geoapify: known problem area)
-  - "Starbucks in Santa Fe": 5 exact locations (Geoapify required crash fix)
-  - "Pizza near Skokie": 10 results including Jet's, Pequod's, Giordano's (untested on Geoapify)
-- **Verdict: Foursquare is significantly better** - accurate names, full addresses, much better POI coverage
-- Next: migrate searchService.ts to use Foursquare as primary, keep Geoapify as fallback
+- Evaluation (Mar 23): Foursquare significantly better than Geoapify across all test queries
+- Client migration (Mar 24): searchService.ts rewritten — Foursquare primary, Geoapify fallback
+- API migration (Mar 26): Foursquare deprecated `api.foursquare.com/v3/` (410 Gone). Migrated to new Places API:
+  - Base URL: `places-api.foursquare.com`
+  - Auth: `Bearer <service_key>` (legacy `fsq3` keys no longer accepted)
+  - Required header: `X-Places-Api-Version: 2025-06-17`
+  - Response format: `fsq_place_id` (was `fsq_id`), top-level `latitude`/`longitude` (was `geocodes.main`)
+- Edge function + client code updated, deployed, builds clean
 
 ### 4C. Reduce nearby restaurants cache TTL ✅ COMPLETED (Mar 22, 2026)
 - ✅ Changed from 24 hours to 3 hours in `useNearbyRestaurants.tsx`
@@ -109,6 +107,6 @@ RLS was previously implemented but disabled due to issues with views (user_resta
 | 3D | Admin email hardcoding | ✅ Done | Low (test admin access) |
 | 3E | Admin search fix | ✅ Done | Low (test admin search) |
 | 4A | Search quality tweaks | ✅ Done | Test known queries |
-| 4B | Foursquare evaluation | ✅ Done (verdict: much better) | Migration next |
+| 4B | Foursquare migration | ✅ Done (primary search) | Test in app |
 | 4C | Nearby cache TTL | ✅ Done | None |
 | 5 | RLS | High | High (previous issues) |
