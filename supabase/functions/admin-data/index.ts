@@ -21,7 +21,7 @@ interface User {
   email?: string;
 }
 
-const handleAdminOperation = async (requestBody: AdminOperationRequest, user: User) => {
+const handleAdminOperation = async (requestBody: AdminOperationRequest, user: User, corsHeaders: Record<string, string>) => {
   const { operation, dishId } = requestBody;
 
   try {
@@ -164,7 +164,7 @@ serve(async (req) => {
 
     // Handle admin operations (DELETE, UPDATE)
     if (requestBody.operation) {
-      return await handleAdminOperation(requestBody, user as User);
+      return await handleAdminOperation(requestBody, user as User, corsHeaders);
     }
 
     // Handle data retrieval (existing logic)

@@ -693,6 +693,9 @@ const DishCard: React.FC<DishCardProps> = ({
       }
     } catch (error) {
       console.error('Error uploading photo:', error);
+      // Re-throw so PhotoUpload surfaces the failure (instead of showing
+      // "Upload complete!") and keeps the modal open for a retry.
+      throw error;
     } finally {
       setIsUploadingPhoto(false);
     }

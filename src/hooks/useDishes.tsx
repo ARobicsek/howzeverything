@@ -1049,24 +1049,61 @@ export const searchAllDishes = async (
   }
 };
 const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const cleanup = () => URL.revokeObjectURL(objectUrl);
+
+    // Guard against the canvas pipeline silently hanging. On iOS Safari, decoding
+    // and re-encoding an already-compressed photo can stall under memory pressure.
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('Image processing timed out. Please try again.'));
+    }, 20000);
+
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      clearTimeout(timeout);
+      cleanup();
+      reject(new Error('Canvas is not supported on this device.'));
+      return;
+    }
+
     const img = new Image();
     img.onload = () => {
-      const { width, height } = img;
-      const scale = Math.min(maxWidth / width, maxHeight / height);
-      canvas.width = width * scale;
-      canvas.height = height * scale;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        const resizedFile = new File([blob!], file.name, {
-          type: file.type,
-          lastModified: Date.now()
-        });
-        resolve(resizedFile);
-      }, file.type, 0.8);
+      try {
+        const { width, height } = img;
+        // Only ever scale down; never upscale a smaller image.
+        const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          clearTimeout(timeout);
+          cleanup();
+          // Previously this built a File from a null blob (`new File([blob!], ...)`),
+          // which uploaded "successfully" but produced a corrupt, blank photo with no
+          // error. Reject instead so the upload fails visibly and can be retried.
+          if (!blob) {
+            reject(new Error('Failed to process image. Please try a different photo.'));
+            return;
+          }
+          resolve(new File([blob], file.name, {
+            type: file.type,
+            lastModified: Date.now()
+          }));
+        }, file.type, 0.8);
+      } catch (err) {
+        clearTimeout(timeout);
+        cleanup();
+        reject(err instanceof Error ? err : new Error('Failed to process image.'));
+      }
     };
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      clearTimeout(timeout);
+      cleanup();
+      reject(new Error('Failed to load image for processing.'));
+    };
+    img.src = objectUrl;
   });
 };
