@@ -1,6 +1,7 @@
 // src/hooks/useDishes.tsx
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from './useAuth';
 import { enhancedDishSearch, findSimilarDishes } from '../utils/dishSearch';
 import DOMPurify from 'dompurify';
 // Photo interface
@@ -268,15 +269,14 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
   const [dishes, setDishes] = useState<DishWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  // Take the user id from AuthContext (already resolved before protected screens
+  // render). Looking it up separately here made the menu load twice on open, and
+  // the second load swapped the whole list for a loading screen, unmounting any
+  // dish card that was mid-interaction (e.g. a photo upload).
+  const { user } = useAuth();
+  const currentUserId = user?.id ?? null;
+  const [reloadKey, setReloadKey] = useState(0);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getCurrentUser();
-  }, []);
   useEffect(() => {
     const fetchDishes = async () => {
       if (!restaurantId) {
@@ -324,7 +324,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
       }
     };
     fetchDishes();
-  }, [restaurantId, sortBy, currentUserId]);
+  }, [restaurantId, sortBy, currentUserId, reloadKey]);
   const searchDishes = (searchTerm: string): DishSearchResult[] => {
     if (!searchTerm.trim()) {
       return dishes.map(dish => ({
@@ -886,9 +886,7 @@ export const useDishes = (restaurantId: string, sortBy: { criterion: 'name' | 'y
 
   const refetch = async () => {
     if (!restaurantId) return;
-    setIsLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    setCurrentUserId(user?.id || null);
+    setReloadKey(prev => prev + 1);
   };
   return {
     dishes,

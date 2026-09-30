@@ -1,6 +1,6 @@
 # HowzEverything - Project Progress
 
-> **Last Updated:** March 26, 2026
+> **Last Updated:** September 30, 2026
 > **Status:** Active Development
 
 ## Current State
@@ -11,6 +11,7 @@
 - **Git Branch**: `main`
 
 ### Recent Work
+- ✅ Fixed intermittent photo upload failure (root cause, not another timing guard): MenuScreen collapsed the expanded dish card whenever `dishes` changed (and when the 15s `justAddedDishId` timer expired), and a collapsed DishCard didn't render the file input or upload modal, so the picked photo was silently dropped. Card now only reacts to `?dish=` URL changes, the input/modal render in both collapsed and expanded states, the upload modal ignores stray overlay taps, and `useDishes` uses the AuthContext user id instead of a second lookup that reloaded the menu. Also: loading screen no longer hangs forever when Supabase is unreachable. (Sep 30)
 - ✅ Phase 4B: Foursquare migration COMPLETE. Migrated to new Foursquare Places API (`places-api.foursquare.com`) with service key auth, `Bearer` prefix, and `X-Places-Api-Version` header. Updated edge function + client converter for new response format (`fsq_place_id`, top-level lat/lon). Edge function deployed, client builds clean. (Mar 26)
 - ~~**BLOCKED** Phase 4B migration~~ — resolved by migrating to new Foursquare API (old `api.foursquare.com/v3/` returned 410 Gone). (Mar 24)
 - ✅ Phase 4B: Foursquare evaluation complete - signed up, created foursquare-proxy edge function, tested 5 queries. Foursquare significantly better than Geoapify (accurate names, full addresses, better POI coverage). Ready for migration. (Mar 23)

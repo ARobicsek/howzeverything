@@ -297,43 +297,48 @@ const MenuScreen: React.FC = () => {
     }
   }, [restaurant?.id, trackVisit]);
  
-  // Enhanced dish parameter handling - REPLACE the existing dish parameter useEffect with this
+  // Expand the dish named by the ?dish= URL param (e.g. from a share link).
+  // Only react when the param itself changes. Re-running on every `dishes` update
+  // used to collapse (or re-expand) cards whenever the list changed, which
+  // unmounted an in-progress photo upload mid-flow.
+  const handledDishParamRef = useRef<string | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dishToExpand = params.get('dish');
-   
-   
-    if (dishToExpand) {
-      // If dishes haven't loaded yet, wait for them
-      if (isLoadingDishes) {
-        return;
-      }
-     
-      // Check if the dish exists in the loaded dishes
-      const foundDish = dishes.find(dish => dish.id === dishToExpand);
-      if (foundDish) {
-        setExpandedDishId(dishToExpand);
-      } else if (dishes.length > 0) {
-        // Dishes have loaded but we didn't find the dish
-        // Clear the invalid dish parameter and reset expanded state
-        const newParams = new URLSearchParams(location.search);
-        newParams.delete('dish');
-        const newSearch = newParams.toString();
-        const newUrl = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
-        navigate(newUrl, { replace: true });
-        setExpandedDishId(null); // Ensure no dish is expanded if URL param was invalid
-      }
-      // If dishes.length === 0, we'll wait for them to load in the next render
-    } else {
-      // No dish parameter in URL, ensure no dish is expanded unless explicitly set
-      if (!justAddedDishId) {
-        console.log('🔄 MenuScreen useEffect: No URL param and no justAddedDishId, setting expandedDishId to null');
-        setExpandedDishId(null);
-      } else {
-        console.log('✅ MenuScreen useEffect: justAddedDishId exists, keeping current expandedDishId');
-      }
+
+    if (dishToExpand === handledDishParamRef.current) {
+      return;
     }
-  }, [location.search, location.pathname, dishes, isLoadingDishes, navigate, justAddedDishId]);
+
+    if (!dishToExpand) {
+      // The param was removed from the URL, so collapse the dish it had expanded
+      handledDishParamRef.current = null;
+      setExpandedDishId(null);
+      return;
+    }
+
+    // If dishes haven't loaded yet, wait for them
+    if (isLoadingDishes) {
+      return;
+    }
+
+    // Check if the dish exists in the loaded dishes
+    const foundDish = dishes.find(dish => dish.id === dishToExpand);
+    if (foundDish) {
+      handledDishParamRef.current = dishToExpand;
+      setExpandedDishId(dishToExpand);
+    } else if (dishes.length > 0) {
+      // Dishes have loaded but we didn't find the dish
+      // Clear the invalid dish parameter and reset expanded state
+      const newParams = new URLSearchParams(location.search);
+      newParams.delete('dish');
+      const newSearch = newParams.toString();
+      const newUrl = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+      navigate(newUrl, { replace: true });
+      setExpandedDishId(null); // Ensure no dish is expanded if URL param was invalid
+    }
+    // If dishes.length === 0, we'll wait for them to load in the next render
+  }, [location.search, location.pathname, dishes, isLoadingDishes, navigate]);
 
 
 
@@ -350,8 +355,10 @@ const MenuScreen: React.FC = () => {
     console.log(`📊 expandedDishId changed to: ${expandedDishId || 'null'}`);
   }, [expandedDishId]);
 
+  // Depend on the resolved id (not its two inputs) so clearing justAddedDishId
+  // doesn't re-scroll to a dish that's still expanded
+  const dishIdToScrollTo = justAddedDishId || expandedDishId;
   useEffect(() => {
-    const dishIdToScrollTo = justAddedDishId || expandedDishId;
     if (dishIdToScrollTo) {
       const scrollTimer = setTimeout(() => {
         const element = document.getElementById(`dish-card-${dishIdToScrollTo}`);
@@ -361,16 +368,15 @@ const MenuScreen: React.FC = () => {
       }, 300); // Increased delay to ensure dish is fully rendered
       return () => clearTimeout(scrollTimer);
     }
-  }, [justAddedDishId, expandedDishId]);
+  }, [dishIdToScrollTo]);
 
   // Clear justAddedDishId after highlight animation
-  // Extended to 15 seconds to allow time for photo upload without interruption
   useEffect(() => {
     if (justAddedDishId) {
       const clearTimer = setTimeout(() => {
         console.log('⏰ Clearing justAddedDishId after 15 seconds');
         setJustAddedDishId(null);
-      }, 15000); // Clear after 15 seconds (was 4s, extended to prevent photo upload interruption)
+      }, 15000);
       return () => clearTimeout(clearTimer);
     }
   }, [justAddedDishId]);
