@@ -93,6 +93,14 @@ function useAuthLogic(): UseAuthReturn {
     let isMounted = true;
     // setLoading(true) is the default state, so no need to set it again.
     // We will now only set it to false after the initial session is handled.
+    // Safety net: if Supabase is unreachable, supabase-js keeps retrying the token
+    // refresh and INITIAL_SESSION may never fire, leaving the app on a spinner forever.
+    const initialSessionTimeout = setTimeout(() => {
+      if (!isMounted) return;
+      console.warn('🔐 AuthContext: Initial session not received in time; continuing without it.');
+      setError('Unable to reach the server. Please check your connection and try again.');
+      setLoading(false);
+    }, 10000);
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       console.log('[AUTH] Session state change:', {
@@ -122,6 +130,7 @@ function useAuthLogic(): UseAuthReturn {
       // **THE FIX**: Only set loading to false after the initial session has been retrieved.
       // This ensures the app shows a loading screen until we know for sure if a user is logged in.
       if (_event === 'INITIAL_SESSION') {
+        clearTimeout(initialSessionTimeout);
         if (isMounted) {
           console.log('🔐 AuthContext: Initial session processed. Auth is ready.');
           setLoading(false);
@@ -130,6 +139,7 @@ function useAuthLogic(): UseAuthReturn {
     });
     return () => {
       isMounted = false;
+      clearTimeout(initialSessionTimeout);
       subscription.unsubscribe();
     };
   }, [loadUserProfile]);
