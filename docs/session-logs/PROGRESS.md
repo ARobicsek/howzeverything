@@ -1,6 +1,6 @@
 # HowzEverything - Project Progress
 
-> **Last Updated:** March 26, 2026
+> **Last Updated:** September 30, 2026
 > **Status:** Active Development
 
 ## Current State
@@ -11,6 +11,9 @@
 - **Git Branch**: `main`
 
 ### Recent Work
+- ✅ Fixed intermittent photo upload failure at the root: MenuScreen collapsed the expanded dish card whenever `dishes` changed (or the 15s `justAddedDishId` timer expired), and a collapsed DishCard didn't render the file input or upload modal, so the picked photo was silently dropped. See Session 7 notes. (Sep 30)
+- ✅ App no longer hangs forever on "Loading..." when Supabase is unreachable (10s fallback in AuthContext) (Sep 30)
+- ⚠️ Supabase project was paused (site down) — restored by user. Cause: GitHub auto-disabled the keep-alive workflow for repo inactivity. (Sep 30)
 - ✅ Phase 4B: Foursquare migration COMPLETE. Migrated to new Foursquare Places API (`places-api.foursquare.com`) with service key auth, `Bearer` prefix, and `X-Places-Api-Version` header. Updated edge function + client converter for new response format (`fsq_place_id`, top-level lat/lon). Edge function deployed, client builds clean. (Mar 26)
 - ~~**BLOCKED** Phase 4B migration~~ — resolved by migrating to new Foursquare API (old `api.foursquare.com/v3/` returned 410 Gone). (Mar 24)
 - ✅ Phase 4B: Foursquare evaluation complete - signed up, created foursquare-proxy edge function, tested 5 queries. Foursquare significantly better than Geoapify (accurate names, full addresses, better POI coverage). Ready for migration. (Mar 23)
@@ -25,17 +28,22 @@
 
 ## Known Issues
 
+- **Keep-alive workflow disabled (ACTION NEEDED)**: GitHub disables scheduled workflows after 60 days with no repo activity. `supabase-keepalive.yml` is in state `disabled_inactivity` (last run Aug 3, 2026; last commit before that was Jun 2), which is why Supabase paused. New commits do NOT re-enable it — go to GitHub → Actions → "Supabase Keep-Alive" → **Enable workflow**. It will get disabled again after any future 60-day quiet stretch, so re-check it whenever the site goes down.
+- **Photo upload on mobile camera**: if a phone's OS kills the browser tab while the camera app is open (low memory, mostly Android), the page reloads and the photo is lost. Can't be fixed in app code; if photo failures continue after the Sep 30 fix, check whether the page is reloading.
+- **Loading-timeout error not displayed**: the AuthContext 10s fallback sets `error` but no screen currently shows it, so during an outage the app renders with failing data rather than a clear message.
 - **Street search from afar**: "X on Y" (e.g., "starbucks on dempster") only works when user is near the street. Foursquare requires coordinates and doesn't search globally. Workaround: use "X in Y" with a city name instead.
 
 ## Next Priorities
 
 See [WORKPLAN.md](../WORKPLAN.md) for the full improvement roadmap.
 
-Next up: Deploy client to Netlify (push to main), then consider Phase 5 if needed.
+Next up: Re-enable the keep-alive workflow (see Known Issues), confirm photo uploads are reliable on mobile, then consider Phase 5 if needed.
 
 ---
 
 ## Session Notes
+
+**September 30, 2026 (Claude Code) - Session 7:** (1) **Site down**: app stuck on "Loading..." with `ERR_NAME_NOT_RESOLVED` for the Supabase host — the project had been paused (host returned NXDOMAIN). User restored it from the Supabase dashboard. Root cause: the keep-alive GitHub Action was auto-disabled for inactivity (see Known Issues). Also added a 10s safety timeout in `AuthContext` so `loading` ends even if `INITIAL_SESSION` never fires (supabase-js retries the token refresh indefinitely when the server is unreachable). (2) **Photo upload intermittent failure — actual root cause found** after several earlier timing-guard fixes (Nov 2025, Jan 2026) only narrowed the window. MenuScreen's `?dish=` effect re-ran on every `dishes` change and, with no URL param, called `setExpandedDishId(null)`; the 15s `justAddedDishId` timer only postponed this for new dishes. A collapsed DishCard returned early without the hidden `<input type=file>` and the upload `PortalModal`, so a collapse while the picker was open, or after a photo was chosen, dropped the photo. Fixes: the effect now acts only when the `?dish=` param changes (tracked via `handledDishParamRef`); DishCard renders the input + upload modal in both collapsed and expanded layouts at the same tree position so they survive a collapse; the upload modal no longer closes on overlay taps (`closeOnOverlayClick={false}`; Cancel closes it); `useDishes` takes `currentUserId` from AuthContext instead of its own `getUser()` call, which had caused a second menu fetch that briefly swapped the list for the LoadingScreen and unmounted every card. Verified with a headless-Chromium harness around the real DishCard: old code lost the photo on collapse, new code keeps the modal and uploads. Behavior changes: card stays expanded after a photo upload; tapping outside the upload modal no longer dismisses it. The old picker-protection refs and 15s timer are now belt-and-braces, not load-bearing.
 
 **March 26, 2026 (Claude Opus 4.6) - Session 6:** Unblocked Phase 4B Foursquare migration and improved search intelligence. (1) **Foursquare API migration**: old `api.foursquare.com/v3/` returned 410 Gone. Updated foursquare-proxy edge function to new Places API (`places-api.foursquare.com`), `Bearer` auth, `X-Places-Api-Version: 2025-06-17` header. Updated `convertFoursquareResult` and `getRestaurantDetails` for new response format (`fsq_place_id`, top-level lat/lon). Set new service key in Supabase secrets. Tested — "dunkin in newton" returns 50 results. (2) **Foursquare `near` parameter**: replaced Geoapify geocoding with Foursquare's native `near` param for city-level searches ("starbucks in skokie"). Saves an API call per location search. Added `near` passthrough to edge function. (3) **Zero-result retry**: when a plain query like "starbucks skokie" (no keyword) returns < 3 results, automatically retries by splitting last word as `near` param. Only costs an extra Foursquare call on failure. (4) **Street search**: "X on Y" now sends full query "X Y" to Foursquare so it can match across name + address fields (works when user is near the street). Attempted global retry for distant street searches but Foursquare requires coordinates — reverted. (5) All edge functions deployed, client builds clean.
 

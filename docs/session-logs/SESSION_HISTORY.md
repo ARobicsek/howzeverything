@@ -4,6 +4,7 @@
 
 | Date | Developer | Summary | Key Commits |
 |------|-----------|---------|-------------|
+| Sep 30, 2026 | Claude Code | Site down: Supabase paused because GitHub auto-disabled the keep-alive workflow (needs manual re-enable). Added AuthContext loading timeout. Found real root cause of intermittent photo upload failure (card collapse on `dishes` change unmounted the upload modal/input) and fixed it structurally. | `77675b7`, `f01ab04` |
 | Mar 23, 2026 | Claude Code | Phase 4B: Foursquare evaluation — signed up, created+deployed foursquare-proxy edge function, tested 5 queries. Foursquare significantly better than Geoapify. New API: places-api.foursquare.com with Bearer auth. Migration next. | pending |
 | Mar 22, 2026 | Claude Code | Phase 4A+4C: Search quality — word-match 80%→50%, lat/lon dedup, name-filtered Places API for location searches, radius 80→30km, nearby cache 24h→3h, CORS dynamic allowlist, deployed all edge functions | `3444565` |
 | Mar 21, 2026 | Claude Code | Phase 3: CORS restriction, SELECT * fix, cache TTL, admin email hardcoding fix, admin search fix | `c8f6c5c` |
@@ -19,5 +20,5 @@
 
 - **Dual API strategy**: Places API + Geocoding API together provide best restaurant search coverage. Removing either makes results worse (tested Nov 9).
 - **Eruda debugger**: Left in production, activated via `?debug=true` URL param. OK per user preference.
-- **Photo upload protection**: Uses permanent file-picker-open ref + window focus listener instead of timeout-based approach.
-- **justAddedDishId timer**: 15 seconds (was 4s) to allow time for photo selection on new dishes.
+- **Photo upload robustness (Sep 30, 2026)**: The file input and upload modal render regardless of the card's expanded state, and MenuScreen only changes `expandedDishId` from the URL when the `?dish=` param changes. Don't reintroduce effects that reset `expandedDishId` on data changes. The older picker-protection refs and the 15s `justAddedDishId` timer remain but are no longer what keeps uploads working.
+- **Keep-alive workflow**: GitHub disables scheduled workflows after 60 days without repo activity; re-enable manually in the Actions tab if Supabase pauses again.

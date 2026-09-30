@@ -435,7 +435,8 @@ const PortalModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-}> = ({ isOpen, onClose, children }) => {
+  closeOnOverlayClick?: boolean;
+}> = ({ isOpen, onClose, children, closeOnOverlayClick = true }) => {
   const justOpenedRef = useRef(false);
 
   useEffect(() => {
@@ -458,6 +459,9 @@ const PortalModal: React.FC<{
   }
 
   const handleOverlayClick = () => {
+    if (!closeOnOverlayClick) {
+      return;
+    }
     // Don't close if modal was just opened (prevents spurious mobile clicks)
     if (justOpenedRef.current) {
       console.log('⚠️ Ignoring overlay click - modal just opened');
@@ -752,77 +756,119 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
 
+  const closePhotoUpload = () => {
+    setShowPhotoUpload(false);
+    setSelectedFileForUpload(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+
+  // Rendered in both the collapsed and expanded layouts, at the same position,
+  // so a card collapse can never unmount the file input while the picker is open
+  // or the upload modal after a photo is chosen. The modal ignores overlay taps
+  // (mobile file pickers can fire stray clicks); Cancel closes it.
+  const photoUploadElements = (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        style={{ display: 'none' }}
+      />
+      <PortalModal
+        isOpen={showPhotoUpload}
+        onClose={closePhotoUpload}
+        closeOnOverlayClick={false}
+      >
+        <PhotoUpload
+          onUpload={handlePhotoUpload}
+          onCancel={closePhotoUpload}
+          isUploading={isUploadingPhoto}
+          initialFile={selectedFileForUpload || undefined}
+          skipFileSelection={true}
+        />
+      </PortalModal>
+    </>
+  );
+
+
   if (!isExpanded) {
     return (
-      <div
-        id={`dish-card-${dish.id}`}
-        style={{
-          ...STYLES.card,
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          borderColor: theme.colors.gray200,
-          boxShadow: SHADOWS.small,
-        }}
-        onClick={(e) => {
-          // Prevent card expansion when clicking on rating stars
-          const target = e.target as HTMLElement;
-          if (target.closest('[role="button"]') || target.closest('button')) {
-            e.stopPropagation();
-            return;
-          }
-          onToggleExpand();
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{
-              ...theme.fonts.heading,
-              fontSize: TYPOGRAPHY.lg.fontSize,
-              color: theme.colors.gray900,
-              margin: 0,
-              marginBottom: SPACING[2]
-            }}>
-              {dish.name}
-            </h3>
-            <RatingSummary
-              personalRating={personalRating}
-              communityAverage={dish.average_rating}
-              interactive={allowInlineRating}
-              onRatingChange={allowInlineRating ? handleInlineRating : undefined}
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3] }}>
-            {safePhotos.length > 0 && (
-              <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: BORDERS.radius.medium,
-                overflow: 'hidden',
-                flexShrink: 0
+      <>
+        <div
+          id={`dish-card-${dish.id}`}
+          style={{
+            ...STYLES.card,
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            borderColor: theme.colors.gray200,
+            boxShadow: SHADOWS.small,
+          }}
+          onClick={(e) => {
+            // Prevent card expansion when clicking on rating stars
+            const target = e.target as HTMLElement;
+            if (target.closest('[role="button"]') || target.closest('button')) {
+              e.stopPropagation();
+              return;
+            }
+            onToggleExpand();
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{
+                ...theme.fonts.heading,
+                fontSize: TYPOGRAPHY.lg.fontSize,
+                color: theme.colors.gray900,
+                margin: 0,
+                marginBottom: SPACING[2]
               }}>
-                <img
-                  src={safePhotos[0].url}
-                  alt="Dish photo"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                />
-              </div>
-            )}
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              style={{ color: theme.colors.gray400 }}
-            >
-              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-            </svg>
+                {dish.name}
+              </h3>
+              <RatingSummary
+                personalRating={personalRating}
+                communityAverage={dish.average_rating}
+                interactive={allowInlineRating}
+                onRatingChange={allowInlineRating ? handleInlineRating : undefined}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: SPACING[3] }}>
+              {safePhotos.length > 0 && (
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: BORDERS.radius.medium,
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}>
+                  <img
+                    src={safePhotos[0].url}
+                    alt="Dish photo"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </div>
+              )}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                style={{ color: theme.colors.gray400 }}
+              >
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
+        {photoUploadElements}
+      </>
     );
   }
 
@@ -955,15 +1001,6 @@ const DishCard: React.FC<DishCardProps> = ({
         />
 
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-
-
         {safePhotos.length > 0 && (
           <div style={{ marginTop: SPACING[3] }}>
             <PhotoCarousel
@@ -990,6 +1027,7 @@ const DishCard: React.FC<DishCardProps> = ({
           isSubmittingComment={isSubmittingComment}
         />
       </div>
+      {photoUploadElements}
 
 
       <PortalModal
@@ -1008,32 +1046,6 @@ const DishCard: React.FC<DishCardProps> = ({
           onSubmit={handleAddCommentInternal}
           onCancel={() => setShowCommentModal(false)}
           isLoading={isSubmittingComment}
-        />
-      </PortalModal>
-
-
-      <PortalModal
-        isOpen={showPhotoUpload}
-        onClose={() => {
-          setShowPhotoUpload(false);
-          setSelectedFileForUpload(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        }}
-      >
-        <PhotoUpload
-          onUpload={handlePhotoUpload}
-          onCancel={() => {
-            setShowPhotoUpload(false);
-            setSelectedFileForUpload(null);
-            if (fileInputRef.current) {
-              fileInputRef.current.value = '';
-            }
-          }}
-          isUploading={isUploadingPhoto}
-          initialFile={selectedFileForUpload || undefined}
-          skipFileSelection={true}
         />
       </PortalModal>
 
